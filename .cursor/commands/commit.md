@@ -1,0 +1,1 @@
+Logically group the files into commits and give them short consise messages prefixed the project (search-algorithms,websocket) and the the type (feat,chore,doc,fix). i.e. pagination:feat(ui): added pagination component
