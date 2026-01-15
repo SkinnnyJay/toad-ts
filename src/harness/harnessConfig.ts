@@ -1,0 +1,224 @@
+import { readFile } from "node:fs/promises";
+import { homedir } from "node:os";
+import path from "node:path";
+import { z } from "zod";
+
+const ENV_PATTERN = /\$(\w+)|\$\{([^}]+)\}/g;
+const DEFAULT_CONFIG_FILENAME = "harnesses.json";
+
+const harnessFileDefinitionSchema = z
+  .object({
+    name: z.string().min(1).optional(),
+    command: z.string().min(1).optional(),
+    args: z.array(z.string()).optional(),
+    env: z.record(z.string()).optional(),
+    cwd: z.string().min(1).optional(),
+    description: z.string().optional(),
+  })
+  .strict();
+
+export type HarnessFileDefinition = z.infer<typeof harnessFileDefinitionSchema>;
+
+export const harnessFileSchema = z
+  .object({
+    defaultHarness: z.string().min(1).optional(),
+    harnesses: z.record(harnessFileDefinitionSchema).default({}),
+  })
+  .strict();
+
+export type HarnessFileConfig = z.infer<typeof harnessFileSchema>;
+
+export const harnessConfigSchema = z
+  .object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    command: z.string().min(1),
+    args: z.array(z.string()).default([]),
+    env: z.record(z.string()).default({}),
+    cwd: z.string().min(1).optional(),
+    description: z.string().optional(),
+  })
+  .strict();
+
+export type HarnessConfig = z.infer<typeof harnessConfigSchema>;
+
+export interface HarnessConfigLoaderOptions {
+  readonly projectRoot?: string;
+  readonly configPath?: string;
+  readonly harnessId?: string;
+  readonly env?: NodeJS.ProcessEnv;
+  readonly homedir?: string;
+}
+
+export interface HarnessConfigResult {
+  readonly harnessId: string;
+  readonly harness: HarnessConfig;
+  readonly harnesses: Record<string, HarnessConfig>;
+}
+
+const parseHarnessFile = (raw: unknown, filePath: string): HarnessFileConfig => {
+  try {
+    return harnessFileSchema.parse(raw);
+  } catch (error) {
+    if (error instanceof Error) {
+      error.message = `Invalid harness config at ${filePath}: ${error.message}`;
+    }
+    throw error;
+  }
+};
+
+const readHarnessFile = async (filePath: string): Promise<HarnessFileConfig | null> => {
+  try {
+    const contents = await readFile(filePath, "utf8");
+    const parsed = JSON.parse(contents) as unknown;
+    return parseHarnessFile(parsed, filePath);
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException | undefined)?.code;
+    if (code === "ENOENT") {
+      return null;
+    }
+    throw error;
+  }
+};
+
+const mergeDefinitions = (
+  base: HarnessFileDefinition | undefined,
+  override: HarnessFileDefinition | undefined
+): HarnessFileDefinition => {
+  const mergedEnv = {
+    ...(base?.env ?? {}),
+    ...(override?.env ?? {}),
+  };
+
+  return {
+    name: override?.name ?? base?.name,
+    command: override?.command ?? base?.command,
+    args: override?.args ?? base?.args,
+    env: Object.keys(mergedEnv).length > 0 ? mergedEnv : undefined,
+    cwd: override?.cwd ?? base?.cwd,
+    description: override?.description ?? base?.description,
+  };
+};
+
+const mergeHarnessFiles = (
+  projectConfig: HarnessFileConfig | null,
+  userConfig: HarnessFileConfig | null
+): HarnessFileConfig => {
+  const harnesses: Record<string, HarnessFileDefinition> = {};
+
+  for (const [id, definition] of Object.entries(projectConfig?.harnesses ?? {})) {
+    harnesses[id] = definition;
+  }
+
+  for (const [id, definition] of Object.entries(userConfig?.harnesses ?? {})) {
+    harnesses[id] = mergeDefinitions(harnesses[id], definition);
+  }
+
+  return {
+    defaultHarness: userConfig?.defaultHarness ?? projectConfig?.defaultHarness,
+    harnesses,
+  };
+};
+
+const resolveHarnessConfig = (id: string, definition: HarnessFileDefinition): HarnessConfig => {
+  return harnessConfigSchema.parse({
+    id,
+    name: definition.name,
+    command: definition.command,
+    args: definition.args ?? [],
+    env: definition.env ?? {},
+    cwd: definition.cwd,
+    description: definition.description,
+  });
+};
+
+const expandEnvString = (value: string, env: NodeJS.ProcessEnv): string => {
+  return value.replace(ENV_PATTERN, (_, direct, braced) => {
+    const key = direct ?? braced;
+    return key ? (env[key] ?? "") : "";
+  });
+};
+
+const expandHarnessConfig = (config: HarnessConfig, env: NodeJS.ProcessEnv): HarnessConfig => {
+  const expandedEnv: Record<string, string> = {};
+  for (const [key, value] of Object.entries(config.env)) {
+    expandedEnv[key] = expandEnvString(value, env);
+  }
+
+  return {
+    ...config,
+    command: expandEnvString(config.command, env),
+    args: config.args.map((arg) => expandEnvString(arg, env)),
+    env: expandedEnv,
+    cwd: config.cwd ? expandEnvString(config.cwd, env) : config.cwd,
+  };
+};
+
+const resolveHarnessId = (
+  cliHarnessId: string | undefined,
+  userDefault: string | undefined,
+  projectDefault: string | undefined,
+  availableIds: string[]
+): string => {
+  if (cliHarnessId) {
+    return cliHarnessId;
+  }
+  if (userDefault) {
+    return userDefault;
+  }
+  if (projectDefault) {
+    return projectDefault;
+  }
+  if (availableIds.length === 1) {
+    const [only] = availableIds;
+    if (only) {
+      return only;
+    }
+  }
+  throw new Error("No default harness configured.");
+};
+
+export const loadHarnessConfig = async (
+  options: HarnessConfigLoaderOptions = {}
+): Promise<HarnessConfigResult> => {
+  const projectRoot = options.projectRoot ?? process.cwd();
+  const projectPath =
+    options.configPath ?? path.join(projectRoot, ".toad", DEFAULT_CONFIG_FILENAME);
+  const userPath = path.join(options.homedir ?? homedir(), ".toad", DEFAULT_CONFIG_FILENAME);
+  const env = options.env ?? process.env;
+
+  const [projectConfig, userConfig] = await Promise.all([
+    readHarnessFile(projectPath),
+    readHarnessFile(userPath),
+  ]);
+
+  const mergedConfig = mergeHarnessFiles(projectConfig, userConfig);
+  const resolvedHarnesses: Record<string, HarnessConfig> = {};
+
+  for (const [id, definition] of Object.entries(mergedConfig.harnesses)) {
+    resolvedHarnesses[id] = expandHarnessConfig(resolveHarnessConfig(id, definition), env);
+  }
+
+  const availableIds = Object.keys(resolvedHarnesses);
+  if (availableIds.length === 0) {
+    throw new Error("No harnesses configured.");
+  }
+
+  const selectedId = resolveHarnessId(
+    options.harnessId,
+    userConfig?.defaultHarness,
+    projectConfig?.defaultHarness,
+    availableIds
+  );
+
+  const harness = resolvedHarnesses[selectedId];
+  if (!harness) {
+    throw new Error(`Harness '${selectedId}' not found.`);
+  }
+
+  return {
+    harnessId: selectedId,
+    harness,
+    harnesses: resolvedHarnesses,
+  };
+};
