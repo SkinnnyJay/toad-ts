@@ -1,5 +1,5 @@
 ---
-title: TOAD Engineering Design Document
+title: TOADSTOOL Engineering Design Document
 date: 2025-01-27
 author: Systems Architecture Team
 status: active
@@ -7,7 +7,7 @@ lastUpdated: 2025-01-27
 description: Complete engineering design specification for TOAD Terminal UI
 ---
 
-# TOAD Engineering Design Document
+# TOADSTOOL Engineering Design Document
 
 **Revision:** v1.0.0  
 **Document Role:** Comprehensive engineering reference for TOAD implementation  
@@ -37,7 +37,7 @@ description: Complete engineering design specification for TOAD Terminal UI
 ## Executive Summary
 
 ### Purpose
-TOAD (Terminal Orchestration for AI Development) is a unified terminal interface for AI coding agents, built with TypeScript, Ink (React for CLIs), and Zustand. It provides a keyboard-first, streaming-enabled interface for ACP-compatible agents (Claude CLI, Gemini CLI, Codex CLI) with session persistence and multi-agent orchestration capabilities.
+TOADSTOOL (Terminal Orchestration for AI Development) is a unified terminal interface for AI coding agents, built with TypeScript, Ink (React for CLIs), and Zustand. It provides a keyboard-first, streaming-enabled interface for ACP-compatible agents (Claude CLI, Gemini CLI, Codex CLI) with session persistence and multi-agent orchestration capabilities.
 
 ### Key Architectural Principles
 

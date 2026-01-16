@@ -1,5 +1,5 @@
 ---
-title: TOAD - Terminal Orchestration for AI Development
+title: TOADSTOOL - Terminal Orchestration for AI Development
 date: 2025-01-27
 author: Jonathan Boice
 status: approved
@@ -7,13 +7,13 @@ lastUpdated: 2025-01-27
 description: A unified terminal interface for AI coding agents
 ---
 
-# 🐸 TOAD
+# 🍄 TOADSTOOL
 
 **Terminal Orchestration for AI Development**
 
 A unified terminal interface for AI coding agents, built with TypeScript, Ink, and React.
 
-[![npm version](https://img.shields.io/npm/v/toad-cli.svg)](https://www.npmjs.com/package/toad-cli)
+[![npm version](https://img.shields.io/npm/v/toadstool-cli.svg)](https://www.npmjs.com/package/toadstool-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue.svg)](https://www.typescriptlang.org/)
 
@@ -34,10 +34,10 @@ A unified terminal interface for AI coding agents, built with TypeScript, Ink, a
 
 ```bash
 # Install globally
-npm install -g toad-cli
+npm install -g toadstool-cli
 
 # Or use npx
-npx toad-cli
+npx toadstool-cli
 ```
 
 ### Requirements
@@ -59,27 +59,37 @@ export ANTHROPIC_API_KEY="sk-ant-api03-..."
 echo "ANTHROPIC_API_KEY=sk-ant-..." >> .env
 ```
 
-### 2. Launch TOAD
+### 2. Launch TOADSTOOL
 
 ```bash
 # Start with provider selection
-toad
+toadstool
 
 # Start directly with Claude
-toad -p claude
+toadstool -p claude
 
 # Start directly with another ACP agent
-toad -p gemini
+toadstool -p gemini
 
 # Start in a specific directory
-toad ~/projects/myapp
+toadstool ~/projects/myapp
 ```
+
+### Claude CLI setup
+
+- Install the binary: `npm install -g claude-code-acp` (or ensure it is in `node_modules/.bin`).
+- Set `ANTHROPIC_API_KEY` (in your shell or `.env`); the adapter will refuse to start without it.
+- Credential storage: keychain (keytar) by default; disk is **not** used unless you set `TOADSTOOL_CREDENTIAL_STORE=disk`. For tests/CI, prefer `TOADSTOOL_CREDENTIAL_STORE=memory`.
+- Sandbox: file/terminal access is scoped to the launch cwd; set `TOADSTOOL_ALLOW_ESCAPE=1` only if you intentionally want to allow paths outside the project root.
+- Override command/args if needed: `TOADSTOOL_CLAUDE_COMMAND`, `TOADSTOOL_CLAUDE_ARGS`.
+- If the binary is in `node_modules/.bin`, the adapter prepends that to `PATH` automatically.
+- Opt-in real harness test: `RUN_CLAUDE_CLI_E2E=1 npm run test -- __tests__/integration/core/claude-session-flow.integration.test.ts`.
 
 ### 3. Start chatting!
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  🐸 TOAD                     Ctrl+P: Switch  Ctrl+C: Quit│
+│  🍄 TOADSTOOL                 Ctrl+P: Switch  Ctrl+C: Quit│
 ├─────────────────────────────────────────────────────────┤
 │                                                          │
 │  You (10:30 AM)                                          │
@@ -122,14 +132,24 @@ toad ~/projects/myapp
 
 ### Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `ANTHROPIC_API_KEY` | Your Anthropic API key | For Claude CLI (if used) |
-| `TOAD_DEFAULT_AGENT` | Default ACP agent id (for example, `claude`) | No |
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `ANTHROPIC_API_KEY` | Anthropic API key (Claude CLI) | _none_ | Yes (if using Claude CLI) |
+| `TOADSTOOL_DEFAULT_AGENT` | Default ACP agent id | `claude` | No |
+| `TOADSTOOL_CREDENTIAL_STORE` | `keytar` \| `disk` \| `memory` | keytar→memory fallback | No (disk is opt-in) |
+| `TOADSTOOL_ALLOW_ESCAPE` | Allow file/terminal access outside cwd | off | No (sandboxed by default) |
+| `TOADSTOOL_PERSISTENCE_PROVIDER` | Persistence backend | `json` | No |
+| `TOADSTOOL_PERSISTENCE_JSON_PATH` | Path to JSON session store | `~/.toadstool/sessions.json` | No |
+| `TOADSTOOL_PERSISTENCE_SQLITE_PATH` | Path to SQLite DB file | `~/.toadstool/toadstool.db` | No |
+| `TOADSTOOL_PERSISTENCE_SQLITE_WRITE_MODE` | SQLite write mode (`per_message` / `per_token` / `on_session_change`) | `per_message` | No |
+| `TOADSTOOL_PERSISTENCE_SQLITE_BATCH_DELAY` | Batch delay (ms) for SQLite writes | `300` | No |
+| `TOADSTOOL_SESSION_MODE` | Default session mode (`read-only` / `auto` / `full-access`) | `auto` | No |
+| `DATABASE_URL` | SQLite database URL (for example, `sqlite:///~/.toadstool/toadstool.db`) | `sqlite:///~/.toadstool/toadstool.db` | No |
+| `REDIS_URL` | Redis connection string (optional cache layer) | _none_ | No |
 
 ### Config File
 
-Create `~/.config/toad/config.json` for advanced configuration:
+Create `~/.config/toadstool/config.json` for advanced configuration:
 
 ```json
 {
@@ -156,7 +176,7 @@ Create `~/.config/toad/config.json` for advanced configuration:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                         TOAD TUI                             │
+│                      TOADSTOOL TUI                            │
 ├─────────────────────────────────────────────────────────────┤
 │  UI Layer (Ink + React)                                      │
 │  ┌───────────┬────────────┬───────────┬──────────┐          │
@@ -201,14 +221,14 @@ Create `~/.config/toad/config.json` for advanced configuration:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/toad-ts.git
-cd toad-ts
+git clone https://github.com/your-org/toadstool-ts.git
+cd toadstool-ts
 
 # Install dependencies
 npm install
 
 # Set up environment
-cp .env.example .env
+cp .env.sample .env
 # Edit .env with your API keys
 ```
 
@@ -238,12 +258,48 @@ npm run lint
 
 # Format code
 npm run format
+
+# Check for magic literals
+npx tsx scripts/check-magic-literals.ts
 ```
+
+### Code Style & Constants
+
+TOADSTOOL follows strict TypeScript best practices with a focus on type safety and maintainability:
+
+- **No Magic Literals**: All string literals used in control flow (switch/case, if/else) must use constants from `src/constants/`
+- **No Magic Numbers**: All non-trivial numbers must be in `src/config/limits.ts` or `src/config/timeouts.ts`
+- **Constant Pattern**: Constants follow the pattern:
+  ```typescript
+  export const EXAMPLE_STATUS = {
+    PENDING: "pending",
+    RUNNING: "running",
+  } as const;
+  
+  export type ExampleStatus = typeof EXAMPLE_STATUS[keyof typeof EXAMPLE_STATUS];
+  ```
+
+See `.cursorrules` for detailed guidelines on literal extraction and constant patterns.
+
+### Pre-commit Hooks
+
+To enable magic literal detection on commit:
+
+```bash
+# Make the pre-commit hook executable
+chmod +x .git/hooks/pre-commit
+
+# Or create it manually:
+cp scripts/pre-commit.template .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+The hook will prevent commits if magic literals are detected (use `--no-verify` to bypass if needed).
 
 ### Project Structure
 
 ```
-toad-ts/
+toadstool-ts/
 ├── src/
 │   ├── cli.ts                 # Entry point
 │   ├── index.ts               # Library exports
@@ -285,7 +341,7 @@ toad-ts/
 
 ## 🧪 Testing Strategy
 
-TOAD uses a three-layer validation approach:
+TOADSTOOL uses a three-layer validation approach:
 
 | Layer | Purpose | Speed |
 |-------|---------|-------|

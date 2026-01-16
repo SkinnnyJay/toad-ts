@@ -1,4 +1,4 @@
-# TOAD TypeScript - Development Guide
+# TOADSTOOL TypeScript - Development Guide
 
 ## Development Process
 
@@ -85,6 +85,99 @@ When handling each new task, you should:
 - **Dependency injection** - Use factory functions for DI, not container libraries
 - **No AI slop** - Avoid redundant comments, over-explaining, generic helpers
 - **No junior mistakes** - Proper naming, no magic numbers/strings, no long functions
+
+### Literal Extraction Guidelines
+
+**When to extract literals into constants:**
+
+1. **Status strings** - Any status/enum-like strings used in switch/case or if/else chains
+2. **Magic numbers** - Timeouts, limits, thresholds, retry counts (except 0, 1, -1 in obvious contexts)
+3. **Repeated strings** - Any string literal that appears 2+ times across files or 3+ times in one file
+4. **Control flow strings** - Strings used in switch/case, if/else chains, or state machines
+5. **Domain constants** - Error codes, environment keys, file paths, encoding names, signal names
+6. **UI constants** - Color names, keyboard input characters, permission patterns
+
+**Constant module pattern:**
+
+```typescript
+// src/constants/example-status.ts
+export const EXAMPLE_STATUS = {
+  PENDING: "pending",
+  RUNNING: "running",
+  COMPLETED: "completed",
+} as const;
+
+export type ExampleStatus = typeof EXAMPLE_STATUS[keyof typeof EXAMPLE_STATUS];
+
+// Re-export for convenience
+export const { PENDING, RUNNING, COMPLETED } = EXAMPLE_STATUS;
+```
+
+**Zod schema integration:**
+
+```typescript
+import { EXAMPLE_STATUS } from "@/constants/example-status";
+
+// Use constants in Zod enums
+status: z.enum([
+  EXAMPLE_STATUS.PENDING,
+  EXAMPLE_STATUS.RUNNING,
+  EXAMPLE_STATUS.COMPLETED,
+])
+```
+
+**Real examples from codebase:**
+
+1. **Session Update Types** (`src/constants/session-update-types.ts`):
+```typescript
+export const SESSION_UPDATE_TYPE = {
+  SESSION_INFO_UPDATE: "session_info_update",
+  AGENT_MESSAGE_CHUNK: "agent_message_chunk",
+  USER_MESSAGE_CHUNK: "user_message_chunk",
+  // ... etc
+} as const;
+```
+
+2. **Status-to-Color Mapping** (`src/ui/status-colors.ts`):
+```typescript
+export const planStatusColor = (status: Plan["status"]): Color => {
+  switch (status) {
+    case PLAN_STATUS.PLANNING:
+      return COLOR.YELLOW;
+    case PLAN_STATUS.EXECUTING:
+      return COLOR.BLUE;
+    // ... etc
+  }
+};
+```
+
+3. **Magic Numbers in Config** (`src/config/limits.ts`):
+```typescript
+export const LIMIT = {
+  SIDEBAR_TASKS_DISPLAY: 5,
+  ID_TRUNCATE_LENGTH: 8,
+  NANOID_LENGTH: 6,
+  // ... etc
+} as const;
+```
+
+**Never use string literals in:**
+- Switch/case statements (use constants)
+- If/else chains checking status/state (use constants)
+- Environment variable keys (use constants from `src/constants/env-keys.ts`)
+- Error code comparisons (use constants from `src/constants/error-codes.ts`)
+
+**Exceptions (documented decisions):**
+
+1. **External Library/Protocol Types**: String literals from external libraries or protocols (e.g., ACP SDK content block types, markdown token types) may be used directly in switch statements when:
+   - The types are defined by an external specification or library
+   - Creating wrapper constants would add maintenance burden without clear benefit
+   - The literals are clearly documented as external protocol/library types
+   - Example: ACP SDK content block types (`"text"`, `"resource_link"`, `"image"`, etc.) in `session-stream.ts` are acceptable as they come from the external ACP protocol specification
+
+2. **One-off UI Copy**: Truly unique, non-repeated UI text that doesn't represent a domain concept may remain as literals
+
+3. **Trivial Numbers**: 0, 1, -1 in obvious local contexts (array indexing, simple counters) are acceptable
 
 ### Naming Patterns
 
@@ -198,7 +291,14 @@ npm run typecheck        # TypeScript type checking (tsc --noEmit)
 npm run lint             # Lint with Biome
 npm run lint:fix         # Lint and auto-fix
 npm run format           # Format with Biome
+npm run check:literals   # Check for magic literals (warnings only)
+npm run check:literals:strict  # Check for magic literals (fail on warnings)
 ```
+
+**Note**: Biome does not have a native `no-magic-numbers` rule. We rely on:
+- Guidelines in `.cursorrules` (Literal Extraction Guidelines)
+- Pre-commit hook (`scripts/pre-commit.template`) for detection
+- Manual code review and the `check:literals` script
 
 ---
 

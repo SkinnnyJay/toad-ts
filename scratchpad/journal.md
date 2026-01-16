@@ -1,13 +1,13 @@
 ---
-title: TOAD TypeScript - Development Journal
+title: TOADSTOOL TypeScript - Development Journal
 date: 2025-01-27
 author: Jonathan Boice
 status: active
-lastUpdated: 2026-01-14
-description: Daily work log and decision documentation for TOAD TypeScript
+lastUpdated: 2026-01-15
+description: Daily work log and decision documentation for TOADSTOOL TypeScript
 ---
 
-# TOAD TypeScript - Development Journal
+# TOADSTOOL TypeScript - Development Journal
 
 Revision: v1.1.0
 Document Role: Decision and session log; reflects rationale and history.
@@ -175,8 +175,8 @@ Several documents referenced design files that don't exist (`ui-design-mockups.m
 ---
 
 **Journal Status**: Active
-**Last Entry**: Session 1 (2025-01-27)
-**Next Expected Entry**: Phase 4 integration start
+**Last Entry**: Session 6 (2026-01-15)
+**Next Expected Entry**: UI parity sprint completion and build verification
 
 ---
 
@@ -230,5 +230,86 @@ Several documents referenced design files that don't exist (`ui-design-mockups.m
 
 ---
 
+## Session 4: Phase 4.0–4.1 Foundations
+**Date**: 2026-01-15
+**Phase**: Phase 4.0 (Harness) + Phase 4.1 (Persistence)
+
+### Objectives
+- Implement harness registry + config layering and defaults.
+- Add persistence abstraction (JSON + SQLite) with config toggles.
+- Wire persistence into the app lifecycle and add tests.
+
+### Work Completed
+- Added persistence provider abstraction, JSON provider, SQLite provider, and direct SQLite store.
+- Implemented persistence manager (write modes, batching) and search abstraction.
+- Added env-driven persistence config (JSON default, SQLite override).
+- Integrated harness configuration defaults and load fallback.
+- Wired session initialization via harness runtime + session manager + MCP config loader.
+- Added SQLite migration/export/import scripts and DB reset script using persistence config.
+- Added unit/integration tests for JSON + SQLite persistence providers.
+
+### Tests/Commands Run
+- `npm run lint` (pass)
+- `npm run typecheck` (pass)
+- `npm run test` (pass)
+- `npm run build` (pass)
+
+### Notes/Decisions
+- SQLite provider uses direct store in tests to avoid worker loader issues; workers used for non-test runs.
+- MCP config loader reads `.toadstool/mcp.json` or env override (`TOADSTOOL_MCP_CONFIG_PATH`).
+- Default harness config used as fallback when no harness file is available.
+
+---
+
+## Session 5: Phase 3 Verification
+**Date**: 2026-01-15
+**Phase**: Phase 3 Verification
+
+### Objectives
+- Verify Phase 3 UI acceptance criteria via tests.
+- Confirm no regressions before proceeding to Phase 4.2.
+
+### Work Completed
+- Verified AgentSelect and chat component behavior via unit/UI tests.
+- Confirmed persistence integration does not break existing UI flow in component tests.
+- Updated progress tracker to mark Phase 3 verification complete.
+
+### Tests/Commands Run
+- `npm run lint` (pass)
+- `npm run typecheck` (pass)
+- `npm run test` (pass)
+- `npm run build` (pass)
+
+### Notes/Decisions
+- No interactive `npm run dev` verification performed in this cycle; test suite used as verification.
+
+---
+
+## Session 6: UI Parity Sprint Kickoff
+**Date**: 2026-01-15
+**Phase**: Phase 7 - Testing & Quality (UI parity sprint)
+
+### Objectives
+- Align Ink UI with TOAD/OpenCode layout and interactions.
+- Harden sandboxed search and filesystem defaults.
+- Begin sidebar/status footer integration and message metadata refresh.
+
+### Work Completed
+- Added sandboxed search service (ripgrep + glob + fuzzy) with path-escape guard; exported through search index.
+- Hardened sandbox defaults for terminal and filesystem; harness cwd now set to project root.
+- Started UI parity refactor: theme tokens, Sidebar, StatusFooter; refactored MessageItem for role badges/timestamps; began wiring Sidebar and StatusFooter into App (pending fix).
+- Updated progress/plan docs to track UI parity sprint tasks.
+
+### Tests/Commands Run
+- Not run this session (UI wiring incomplete; tests will follow after layout fixes).
+
+### Notes/Decisions
+- Keep TOAD palette and two-column layout as the primary UI goal; finish App wiring before adding streaming markdown or prompt editor upgrades.
+- Maintain search escape guard unless `TOAD_ALLOW_ESCAPE=1` to prevent path traversal during search.
+
+---
+
 ## Changelog
+- v1.3.0 (2026-01-15): Added UI parity sprint kickoff session and updated progress tracking.
+- v1.2.0 (2026-01-15): Added Phase 3 verification session and progress updates.
 - v1.1.0 (2026-01-14): Added revision tag and document role; updated metadata for current cycle.

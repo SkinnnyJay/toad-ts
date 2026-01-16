@@ -1,5 +1,5 @@
 ---
-title: Toad TypeScript Enhanced Specification
+title: Toadstool TypeScript Enhanced Specification
 date: 2025-01-27
 author: Jonathan Boice
 status: active
@@ -7,10 +7,10 @@ lastUpdated: 2026-01-14
 description: Enhanced specification with package ecosystem analysis and testing strategy
 ---
 
-# Toad TypeScript Enhanced Specification
+# Toadstool TypeScript Enhanced Specification
 
 Revision: v1.1.0
-Document Role: Canonical specification for TOAD-TS; research specs supplement this document.
+Document Role: Canonical specification for TOADSTOOL-TS; research specs supplement this document.
 
 ## Package Ecosystem Analysis & Testing Strategy
 
@@ -126,11 +126,11 @@ After analyzing packages used by Claude CLI, Codex CLI, OpenCode, and similar pr
 
 ```json
 {
-  "name": "toad-ts",
+  "name": "toadstool-ts",
   "version": "0.1.0",
   "type": "module",
   "bin": {
-    "toad": "./dist/cli.js"
+    "toadstool": "./dist/cli.js"
   },
   "dependencies": {
     "ink": "^5.0.1",
@@ -257,7 +257,7 @@ export interface PersistenceProvider {
 # Environment variables
 PERSISTENCE_PROVIDER=json          # 'json' or 'sqlite'
 PERSISTENCE_JSON_PATH=./sessions.json
-PERSISTENCE_SQLITE_PATH=./toad.db
+PERSISTENCE_SQLITE_PATH=./toadstool.db
 PERSISTENCE_SQLITE_WRITE_MODE=per_message
 PERSISTENCE_SQLITE_BATCH_DELAY=300
 ```
@@ -851,7 +851,7 @@ export class TestHarness {
   };
   
   async setup(): Promise<string> {
-    this.projectDir = await mkdtemp(join(tmpdir(), 'toad-test-'));
+    this.projectDir = await mkdtemp(join(tmpdir(), 'toadstool-test-'));
     return this.projectDir;
   }
   
@@ -1270,7 +1270,7 @@ class ConfigStore {
   
   constructor() {
     this.conf = new Conf({
-      projectName: 'toad',
+      projectName: 'toadstool',
       schema: CONFIG_SCHEMA as any,
     });
   }

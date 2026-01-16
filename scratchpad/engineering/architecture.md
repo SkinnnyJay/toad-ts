@@ -1,4 +1,4 @@
-# TOAD Architecture
+# TOADSTOOL Architecture
 
 ## System Architecture
 

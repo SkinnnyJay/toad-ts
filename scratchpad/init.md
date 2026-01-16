@@ -1,20 +1,20 @@
 ---
-title: TOAD TypeScript - Agent Initialization Guide
+title: TOADSTOOL TypeScript - Agent Initialization Guide
 date: 2025-01-27
 author: Jonathan Boice
 status: active
 lastUpdated: 2026-01-14
-description: Agent initialization guide for TOAD TypeScript development
+description: Agent initialization guide for TOADSTOOL TypeScript development
 ---
 
-# TOAD TypeScript - Agent Initialization Guide
+# TOADSTOOL TypeScript - Agent Initialization Guide
 
 Revision: v1.1.0
 Document Role: Onboarding quickstart for agents; see plan.md for roadmap and spec.md for authoritative definitions.
 
 ## 🎯 Project Overview
 
-**TOAD (Terminal Orchestration for AI Development)** is a unified terminal interface for AI coding agents, built with TypeScript, Ink (React for CLIs), and ACP (Agent Client Protocol). This is a complete rewrite of the original Python/Textual Toad project, designed to provide a powerful, type-safe, and extensible interface for AI agent communication.
+**TOADSTOOL (Terminal Orchestration for AI Development)** is a unified terminal interface for AI coding agents, built with TypeScript, Ink (React for CLIs), and ACP (Agent Client Protocol). This is a complete rewrite of the original Python/Textual Toad project, designed to provide a powerful, type-safe, and extensible interface for AI agent communication.
 
 ## 📚 Essential Context
 
@@ -22,7 +22,7 @@ Document Role: Onboarding quickstart for agents; see plan.md for roadmap and spe
 A production-ready terminal UI that connects to AI coding agents (primarily Claude CLI) via the Agent Client Protocol (ACP). The system features:
 - Real-time streaming responses with rich markdown rendering
 - Multi-agent support with session management
-- Harness registry + config layering (`.toad/harnesses.json`, `~/.toad/harnesses.json`)
+- Harness registry + config layering (`.toadstool/harnesses.json`, `~/.toadstool/harnesses.json`)
 - Tool visualization (file operations, terminal commands)
 - Type-safe architecture with Zod validation at all boundaries
 - Comprehensive testing including LLM-based validation
@@ -124,8 +124,8 @@ Comprehensive code quality audit with:
 ### Phase 2: Environment Setup
 ```bash
 # Create project structure
-mkdir -p toad-ts/src/{cli,types,core,store,ui,config,utils,testing}
-cd toad-ts
+mkdir -p toadstool-ts/src/{cli,types,core,store,ui,config,utils,testing}
+cd toadstool-ts
 
 # Initialize project
 npm init -y
@@ -146,7 +146,7 @@ Start with Phase 1 (V0 Foundation) from `plan.md`:
 ## 🏗️ Project Structure
 
 ```
-toad-ts/
+toadstool-ts/
 ├── src/
 │   ├── cli.ts                      # CLI entry point
 │   ├── types/                      # Type definitions & schemas
@@ -178,8 +178,8 @@ toad-ts/
 
 ## 🧩 Harness Configuration
 
-- Project defaults: `./.toad/harnesses.json`
-- User overrides: `~/.toad/harnesses.json`
+- Project defaults: `./.toadstool/harnesses.json`
+- User overrides: `~/.toadstool/harnesses.json`
 - CLI overrides: `--harness <id>`, `--config <path>`
 - `.env` defaults for CLI command/args and session storage paths
 

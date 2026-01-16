@@ -1,6 +1,6 @@
-# TOAD TypeScript - Competitive Comparison
+# TOADSTOOL TypeScript - Competitive Comparison
 
-Feature comparison between TOAD-TS and other AI coding agent tools.
+Feature comparison between TOADSTOOL-TS and other AI coding agent tools.
 
 ---
 
@@ -8,7 +8,7 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 
 | Tool | Type | Language | ACP | Status | Best For |
 |-------|------|----------|-----|---------|-----------|
-| **toad-ts** | Terminal TUI | TypeScript | ✅ Full | 🟡 Beta (50%) | Type-safe, multi-agent terminal workflows |
+| **toadstool-ts** | Terminal TUI | TypeScript | ✅ Full | 🟡 Beta (50%) | Type-safe, multi-agent terminal workflows |
 | **toad** | Terminal TUI | Python | ✅ Full | 🟢 Stable | Rich Python ecosystem, ACP-first |
 | **open-code** | CLI | Go | ✅ Full | 🔴 Archived | Subagent patterns (but abandoned) |
 | **claude-cli** | CLI | Python | ⚠️ Partial | 🟢 Stable | Official Claude support |
@@ -20,7 +20,7 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 
 ### Core Platform
 
-| Feature | toad-ts | toad | open-code | claude-cli | zed |
+| Feature | toadstool-ts | toad | open-code | claude-cli | zed |
 |---------|----------|------|-----------|------------|-----|
 | **Interface Type** | Terminal TUI | Terminal TUI | CLI | CLI | Full IDE |
 | **Language** | TypeScript 5.5 | Python 3.10+ | Go 1.21+ | Python 3.9+ | Rust |
@@ -31,7 +31,7 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 
 ### Agent Capabilities
 
-| Feature | toad-ts | toad | open-code | claude-cli | zed |
+| Feature | toadstool-ts | toad | open-code | claude-cli | zed |
 |---------|----------|------|-----------|------------|-----|
 | **ACP Protocol Support** | ✅ Full JSON-RPC | ✅ Full | ✅ Full | ⚠️ Experimental | ✅ Native |
 | **Protocol Negotiation** | ✅ Planned | ✅ | ✅ | ⚠️ | ✅ |
@@ -44,7 +44,7 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 
 ### Tool System
 
-| Feature | toad-ts | toad | open-code | claude-cli | zed |
+| Feature | toadstool-ts | toad | open-code | claude-cli | zed |
 |---------|----------|------|-----------|------------|-----|
 | **File System Tools** | ⏳ Planned | ✅ fs/* | ✅ | ✅ | ✅ Native |
 | **Terminal Execution** | ⏳ Planned | ✅ terminal/* | ✅ | ✅ | ✅ Native |
@@ -56,7 +56,7 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 
 ### Session Management
 
-| Feature | toad-ts | toad | open-code | claude-cli | zed |
+| Feature | toadstool-ts | toad | open-code | claude-cli | zed |
 |---------|----------|------|-----------|------------|-----|
 | **Session Persistence** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Session Modes** | ⏳ Planned | ✅ | ✅ | ✅ | N/A |
@@ -69,7 +69,7 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 
 ### Content Types
 
-| Feature | toad-ts | toad | open-code | claude-cli | zed |
+| Feature | toadstool-ts | toad | open-code | claude-cli | zed |
 |---------|----------|------|-----------|------------|-----|
 | **Text Blocks** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Code Blocks** | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -84,7 +84,7 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 
 ### Type Safety & Developer Experience
 
-| Feature | toad-ts | toad | open-code | claude-cli | zed |
+| Feature | toadstool-ts | toad | open-code | claude-cli | zed |
 |---------|----------|------|-----------|------------|-----|
 | **Type Safety** | ✅ Strict TS | ⚠️ Dynamic | ⚠️ Go types | ⚠️ Dynamic | ✅ Rust |
 | **Branded IDs** | ✅ | ❌ | ❌ | ❌ | ❌ |
@@ -95,7 +95,7 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 
 ### UI/UX
 
-| Feature | toad-ts | toad | open-code | claude-cli | zed |
+| Feature | toadstool-ts | toad | open-code | claude-cli | zed |
 |---------|----------|------|-----------|------------|-----|
 | **Keyboard Navigation** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Mouse Support** | ✅ | ✅ | ❌ | ❌ | ✅ |
@@ -109,7 +109,7 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 
 ### Extensibility
 
-| Feature | toad-ts | toad | open-code | claude-cli | zed |
+| Feature | toadstool-ts | toad | open-code | claude-cli | zed |
 |---------|----------|------|-----------|------------|-----|
 | **Plugin System** | ⏳ Planned | ❌ | ❌ | ❌ | ✅ |
 | **Custom Agents** | ⏳ Planned | ✅ | ✅ | ✅ | ❌ |
@@ -124,7 +124,7 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 
 ### toad-ts vs toad
 
-| Aspect | toad-ts | toad |
+| Aspect | toadstool-ts | toad |
 |--------|----------|------|
 | **Type Safety** | ✅ Strict TypeScript, branded IDs, Zod | ⚠️ Dynamic Python, runtime errors possible |
 | **Performance** | ✅ 60fps React rendering | ⚠️ Textual TUI, adequate but not 60fps |
@@ -133,13 +133,13 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 | **Status** | 🟡 Beta, 50% complete | 🟢 Stable, mature |
 | **Learning Curve** | 🟢 Familiar React/TypeScript for web devs | 🟢 Familiar Python for data/script devs |
 
-**Verdict**: Choose **toad-ts** for type safety and modern React patterns. Choose **toad** for Python ecosystem and maturity.
+**Verdict**: Choose **toadstool-ts** for type safety and modern React patterns. Choose **toad** for Python ecosystem and maturity.
 
 ---
 
 ### toad-ts vs open-code
 
-| Aspect | toad-ts | open-code |
+| Aspect | toadstool-ts | open-code |
 |--------|----------|-----------|
 | **Status** | 🟡 Active development | 🔴 Archived (Sept 2025) |
 | **Subagent System** | ✅ Types ready, planned | ✅ Fully implemented, mature patterns |
@@ -149,13 +149,13 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 | **Community** | 🟡 New | 🔴 Abandoned |
 | **Maturity** | 🟡 Alpha/Beta | 🟢 Mature (but abandoned) |
 
-**Verdict**: Choose **toad-ts** for active development and TypeScript. Avoid **open-code** due to archived status.
+**Verdict**: Choose **toadstool-ts** for active development and TypeScript. Avoid **open-code** due to archived status.
 
 ---
 
 ### toad-ts vs claude-cli
 
-| Aspect | toad-ts | claude-cli |
+| Aspect | toadstool-ts | claude-cli |
 |--------|----------|-----------|
 | **Multi-Agent** | ✅ Any ACP agent | ❌ Claude only |
 | **Type Safety** | ✅ Strict TypeScript | ⚠️ Dynamic Python |
@@ -165,13 +165,13 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 | **Official Support** | ⚠️ Community | ✅ Official Anthropic |
 | **Model Flexibility** | ✅ Provider-agnostic | ⚠️ Claude only |
 
-**Verdict**: Choose **claude-cli** for official Anthropic support and Claude-only workflows. Choose **toad-ts** for multi-agent flexibility and better UX.
+**Verdict**: Choose **claude-cli** for official Anthropic support and Claude-only workflows. Choose **toadstool-ts** for multi-agent flexibility and better UX.
 
 ---
 
-### toad-ts vs zed
+### toadstool-ts vs zed
 
-| Aspect | toad-ts | zed |
+| Aspect | toadstool-ts | zed |
 |--------|----------|-----|
 | **Category** | Terminal TUI | Full IDE |
 | **Architecture** | 🟢 Separate agent processes | 🟢 Native ACP integration |
@@ -182,11 +182,11 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 | **Use Case** | Terminal workflows | IDE-based workflows |
 | **Learning Curve** | 🟢 Minimal (terminal users) | 🟡 Steeper (IDE users) |
 
-**Verdict**: These serve different use cases. Choose **zed** for full IDE integration. Choose **toad-ts** for terminal-first workflows.
+**Verdict**: These serve different use cases. Choose **zed** for full IDE integration. Choose **toadstool-ts** for terminal-first workflows.
 
 ---
 
-## Unique Value Proposition of toad-ts
+## Unique Value Proposition of toadstool-ts
 
 ### 1. Type Safety First
 - 100% TypeScript strict mode
@@ -222,16 +222,16 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 ## Recommendations
 
 ### For Terminal Power Users
-**toad-ts or toad** (choose based on language preference)
+**toadstool-ts or toad** (choose based on language preference)
 
 ### For TypeScript/Web Developers
-**toad-ts** - Familiar stack, type safety
+**toadstool-ts** - Familiar stack, type safety
 
 ### For Python/Data Developers
 **toad** - Python ecosystem, mature
 
 ### For Multi-Agent Workflows
-**toad-ts** - Designed from ground up for orchestration
+**toadstool-ts** - Designed from ground up for orchestration
 
 ### For Claude-Only Workflows
 **claude-cli** - Official support, latest Claude features
@@ -246,20 +246,20 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 
 ## Roadmap to Feature Parity
 
-### toad-ts vs toad (Maturity Gap)
+### toadstool-ts vs toad (Maturity Gap)
 - ✅ Core types and state management
 - ⏳ ACP JSON-RPC implementation
 - ⏳ Agent registry and discovery
 - ⏳ Tool system and permissions
 - ⏳ Rich content types (images, audio)
 
-### toad-ts vs open-code (Feature Gap)
+### toadstool-ts vs open-code (Feature Gap)
 - ✅ Type system is superior
 - ⏳ Permission system implementation
 - ⏳ Subagent execution engine
 - ⏳ Agent configuration system
 
-### toad-ts vs claude-cli (Multi-Agent Gap)
+### toadstool-ts vs claude-cli (Multi-Agent Gap)
 - ✅ Multi-agent architecture
 - ⏳ ACP protocol completion
 - ⏳ Claude-specific optimizations
@@ -268,7 +268,7 @@ Feature comparison between TOAD-TS and other AI coding agent tools.
 
 ## Conclusion
 
-**toad-ts** is positioned as:
+**toadstool-ts** is positioned as:
 - A **type-safe** alternative to toad
 - An **active** alternative to open-code
 - A **multi-agent** alternative to claude-cli

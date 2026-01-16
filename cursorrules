@@ -1,7 +1,0 @@
-# Cursor Rules - Execution Verification
-
-- Never claim lint/typecheck/test/build/dev were run unless the exact commands completed successfully in this workspace.
-- For every change cycle, run and report actual command output for: `npm run lint`, `npm run typecheck`, `npm run test` (project suites), and `npm run build` before stating readiness. If any are skipped, explicitly state they were not run and why.
-- Exclude third-party/vendor/research suites from test runs via config (as set in `vitest.config.ts`); do not mask project failures.
-- If any command fails, surface the error, do not downgrade severity, and do not proceed as “green”.
-- Final responses must list the commands actually executed and their status (pass/fail), or explicitly state if a command was not executed.

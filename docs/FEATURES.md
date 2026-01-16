@@ -253,7 +253,7 @@ npm run build       # Build verification
 Library exports for programmatic usage:
 
 ```typescript
-import { TOADClient } from 'toad-ts';
+import { TOADSTOOLClient } from 'toadstool-ts';
 
 const client = new TOADClient({
   agent: 'claude',

@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TOAD (Terminal Orchestration for AI Development) is a unified terminal interface for AI coding agents, built with TypeScript, Ink (React for CLIs), and Zustand for state management. It supports multiple AI providers (Claude, OpenAI) with streaming responses, session persistence, and rich markdown rendering.
+TOADSTOOL (Terminal Orchestration for AI Development) is a unified terminal interface for AI coding agents, built with TypeScript, Ink (React for CLIs), and Zustand for state management. It supports multiple AI providers (Claude, OpenAI) with streaming responses, session persistence, and rich markdown rendering.
 
 ## Commands
 
