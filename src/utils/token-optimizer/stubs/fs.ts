@@ -1,4 +1,6 @@
 import { readFile } from "node:fs/promises";
+import { ENCODING } from "@/constants/encodings";
+import { ERROR_CODE } from "@/constants/error-codes";
 
 const cache = new Map<string, string>();
 
@@ -17,11 +19,11 @@ export async function readTextCached(filePath: string): Promise<string> {
   }
 
   try {
-    const content = await readFile(filePath, "utf8");
+    const content = await readFile(filePath, ENCODING.UTF8);
     cache.set(filePath, content);
     return content;
   } catch (error: unknown) {
-    if (isErrnoException(error) && error.code === "ENOENT") {
+    if (isErrnoException(error) && error.code === ERROR_CODE.ENOENT) {
       return "";
     }
     throw error;

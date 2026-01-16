@@ -18,6 +18,7 @@
  *   const optimizer = new TokenOptimizer({ telemetryStorage, ... });
  */
 
+import { LIMIT } from "@/config/limits";
 import type { AnalyticsService } from "./stubs/analytics";
 import type { TelemetryStorage } from "./telemetryStorage";
 import type { AnalyticsSnapshot } from "./tokenOptimizer.types";
@@ -49,7 +50,7 @@ export const createAnalyticsTelemetryStorage = (
       snapshots.push(snapshot);
 
       // Cap local storage
-      if (snapshots.length > 1000) {
+      if (snapshots.length > LIMIT.TELEMETRY_MAX_SNAPSHOTS) {
         snapshots.shift();
       }
 

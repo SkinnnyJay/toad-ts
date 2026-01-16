@@ -1,5 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
+import { ENCODING } from "@/constants/encodings";
+import { ERROR_CODE } from "@/constants/error-codes";
 
 import { z } from "zod";
 import { invalidateCachedText, readTextCached } from "./stubs/fs";
@@ -51,7 +53,7 @@ const readSnapshots = async (filePath: string): Promise<AnalyticsSnapshot[]> => 
       })
       .filter((snapshot): snapshot is AnalyticsSnapshot => snapshot !== null);
   } catch (error: unknown) {
-    if (isErrnoException(error) && error.code === "ENOENT") {
+    if (isErrnoException(error) && error.code === ERROR_CODE.ENOENT) {
       return [];
     }
 
@@ -61,7 +63,7 @@ const readSnapshots = async (filePath: string): Promise<AnalyticsSnapshot[]> => 
 
 const writeSnapshots = async (filePath: string, snapshots: AnalyticsSnapshot[]): Promise<void> => {
   await mkdir(dirname(filePath), { recursive: true });
-  await writeFile(filePath, JSON.stringify(snapshots, null, 2), "utf8");
+  await writeFile(filePath, JSON.stringify(snapshots, null, 2), ENCODING.UTF8);
   invalidateCachedText(filePath);
 };
 
