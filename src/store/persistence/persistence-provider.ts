@@ -1,16 +1,22 @@
+import { PERSISTENCE_PROVIDER } from "@/constants/persistence-providers";
+import type { PERSISTENCE_WRITE_MODE } from "@/constants/persistence-write-modes";
 import type { SessionSnapshot } from "@/store/session-persistence";
 import type { Message, MessageRole, Session } from "@/types/domain";
 
 import { createJsonPersistenceProvider } from "./json-provider";
+import { createSqlitePersistenceProvider } from "./sqlite-provider";
 
 export interface PersistenceConfig {
-  provider: "json" | "sqlite";
+  provider: typeof PERSISTENCE_PROVIDER.JSON | typeof PERSISTENCE_PROVIDER.SQLITE;
   json?: {
     filePath: string;
   };
   sqlite?: {
     filePath: string;
-    writeMode: "per_token" | "per_message" | "on_session_change";
+    writeMode:
+      | typeof PERSISTENCE_WRITE_MODE.PER_TOKEN
+      | typeof PERSISTENCE_WRITE_MODE.PER_MESSAGE
+      | typeof PERSISTENCE_WRITE_MODE.ON_SESSION_CHANGE;
     batchDelay: number;
   };
 }
@@ -43,12 +49,12 @@ export interface PersistenceProvider {
 
 export const createPersistenceProvider = (config: PersistenceConfig): PersistenceProvider => {
   switch (config.provider) {
-    case "json":
+    case PERSISTENCE_PROVIDER.JSON:
       if (!config.json) {
         throw new Error("JSON provider requires json configuration");
       }
       return createJsonPersistenceProvider(config.json);
-    case "sqlite":
+    case PERSISTENCE_PROVIDER.SQLITE:
       if (!config.sqlite) {
         throw new Error("SQLite provider requires sqlite configuration");
       }
@@ -62,10 +68,4 @@ export const createPersistenceProvider = (config: PersistenceConfig): Persistenc
 
 // Provider implementations
 export { createJsonPersistenceProvider } from "./json-provider";
-
-// Forward declarations - will be implemented in separate files
-export const createSqlitePersistenceProvider = (
-  _config: PersistenceConfig["sqlite"]
-): PersistenceProvider => {
-  throw new Error("SQLite provider not yet implemented");
-};
+export { createSqlitePersistenceProvider } from "./sqlite-provider";

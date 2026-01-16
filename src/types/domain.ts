@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+import { CONNECTION_STATUS } from "@/constants/connection-status";
+import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { MCP_SERVER_TYPE } from "@/constants/mcp-server-types";
+import { PLAN_STATUS } from "@/constants/plan-status";
+import { SESSION_MODE } from "@/constants/session-modes";
+import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
+
 export const SessionIdSchema = z.string().min(1).brand<"SessionId">();
 export type SessionId = z.infer<typeof SessionIdSchema>;
 
@@ -12,36 +19,46 @@ export type MessageId = z.infer<typeof MessageIdSchema>;
 export const ToolCallIdSchema = z.string().min(1).brand<"ToolCallId">();
 export type ToolCallId = z.infer<typeof ToolCallIdSchema>;
 
-export const ConnectionStatusSchema = z.enum(["disconnected", "connecting", "connected", "error"]);
+export const ConnectionStatusSchema = z.enum([
+  CONNECTION_STATUS.DISCONNECTED,
+  CONNECTION_STATUS.CONNECTING,
+  CONNECTION_STATUS.CONNECTED,
+  CONNECTION_STATUS.ERROR,
+]);
 export type ConnectionStatus = z.infer<typeof ConnectionStatusSchema>;
 
 const TextContentBlockSchema = z.object({
-  type: z.literal("text"),
+  type: z.literal(CONTENT_BLOCK_TYPE.TEXT),
   text: z.string(),
 });
 
 const CodeContentBlockSchema = z.object({
-  type: z.literal("code"),
+  type: z.literal(CONTENT_BLOCK_TYPE.CODE),
   text: z.string(),
   language: z.string().optional(),
 });
 
 const ThinkingContentBlockSchema = z.object({
-  type: z.literal("thinking"),
+  type: z.literal(CONTENT_BLOCK_TYPE.THINKING),
   text: z.string(),
 });
 
 const ToolCallContentBlockSchema = z.object({
-  type: z.literal("tool_call"),
+  type: z.literal(CONTENT_BLOCK_TYPE.TOOL_CALL),
   toolCallId: ToolCallIdSchema,
   name: z.string().optional(),
   arguments: z.record(z.unknown()).optional().default({}),
-  status: z.enum(["pending", "running", "succeeded", "failed"]),
+  status: z.enum([
+    TOOL_CALL_STATUS.PENDING,
+    TOOL_CALL_STATUS.RUNNING,
+    TOOL_CALL_STATUS.SUCCEEDED,
+    TOOL_CALL_STATUS.FAILED,
+  ]),
   result: z.unknown().optional(),
 });
 
 const ResourceLinkContentBlockSchema = z.object({
-  type: z.literal("resource_link"),
+  type: z.literal(CONTENT_BLOCK_TYPE.RESOURCE_LINK),
   uri: z.string(),
   name: z.string(),
   title: z.string().optional(),
@@ -51,7 +68,7 @@ const ResourceLinkContentBlockSchema = z.object({
 });
 
 const ResourceContentBlockSchema = z.object({
-  type: z.literal("resource"),
+  type: z.literal(CONTENT_BLOCK_TYPE.RESOURCE),
   resource: z.union([
     z.object({
       uri: z.string(),
@@ -117,7 +134,7 @@ export type McpServerHttp = z.infer<typeof McpServerHttpSchema>;
 
 export const McpServerSseSchema = z
   .object({
-    type: z.literal("sse"),
+    type: z.literal(MCP_SERVER_TYPE.SSE),
     name: z.string().min(1),
     url: z.string().min(1),
     headers: z.array(McpHeaderSchema).default([]),
@@ -149,6 +166,9 @@ export const SessionMetadataSchema = z
   .strict();
 export type SessionMetadata = z.infer<typeof SessionMetadataSchema>;
 
+export const SessionModeSchema = z.enum(["read-only", "auto", "full-access"]);
+export type SessionMode = z.infer<typeof SessionModeSchema>;
+
 export const SessionSchema = z.object({
   id: SessionIdSchema,
   title: z.string().optional(),
@@ -157,16 +177,9 @@ export const SessionSchema = z.object({
   createdAt: z.number().nonnegative(),
   updatedAt: z.number().nonnegative(),
   metadata: SessionMetadataSchema.optional(),
+  mode: SessionModeSchema.default(SESSION_MODE.AUTO),
 });
 export type Session = z.infer<typeof SessionSchema>;
-
-export const AppStateSchema = z.object({
-  connectionStatus: ConnectionStatusSchema,
-  currentSessionId: SessionIdSchema.optional(),
-  sessions: z.record(SessionIdSchema, SessionSchema).default({}),
-  messages: z.record(MessageIdSchema, MessageSchema).default({}),
-});
-export type AppState = z.infer<typeof AppStateSchema>;
 
 export interface AppendMessageParams {
   sessionId: SessionId;
@@ -223,11 +236,25 @@ export const PlanSchema = z.object({
   sessionId: SessionIdSchema,
   originalPrompt: z.string(),
   tasks: z.array(TaskSchema).default([]),
-  status: z.enum(["planning", "executing", "completed", "failed"]),
+  status: z.enum([
+    PLAN_STATUS.PLANNING,
+    PLAN_STATUS.EXECUTING,
+    PLAN_STATUS.COMPLETED,
+    PLAN_STATUS.FAILED,
+  ]),
   createdAt: z.number().nonnegative(),
   updatedAt: z.number().nonnegative(),
 });
 export type Plan = z.infer<typeof PlanSchema>;
+
+export const AppStateSchema = z.object({
+  connectionStatus: ConnectionStatusSchema,
+  currentSessionId: SessionIdSchema.optional(),
+  sessions: z.record(SessionIdSchema, SessionSchema).default({}),
+  messages: z.record(MessageIdSchema, MessageSchema).default({}),
+  plans: z.record(PlanIdSchema, PlanSchema).default({}),
+});
+export type AppState = z.infer<typeof AppStateSchema>;
 
 export const SubAgentSchema = z.object({
   id: SubAgentIdSchema,

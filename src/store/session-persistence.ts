@@ -1,5 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
+import { ENCODING } from "@/constants/encodings";
+import { ERROR_CODE } from "@/constants/error-codes";
 
 import { AppStateSchema } from "@/types/domain";
 import { z } from "zod";
@@ -22,6 +24,7 @@ const defaultSnapshot: SessionSnapshot = SessionSnapshotSchema.parse({
   currentSessionId: undefined,
   sessions: {},
   messages: {},
+  plans: {},
 });
 
 const normalizeSnapshot = (snapshot?: SessionSnapshot): SessionSnapshot => {
@@ -44,14 +47,14 @@ function isErrnoException(error: unknown): error is NodeJS.ErrnoException {
 
 const readSnapshotFile = async (filePath: string): Promise<SessionSnapshot> => {
   try {
-    const content = await readFile(filePath, "utf8");
+    const content = await readFile(filePath, ENCODING.UTF8);
     if (!content.trim()) {
       return cloneSnapshot(defaultSnapshot);
     }
     const parsed: unknown = JSON.parse(content);
     return SessionSnapshotSchema.parse(parsed);
   } catch (error) {
-    if (isErrnoException(error) && error.code === "ENOENT") {
+    if (isErrnoException(error) && error.code === ERROR_CODE.ENOENT) {
       return cloneSnapshot(defaultSnapshot);
     }
     if (error instanceof SyntaxError || error instanceof z.ZodError) {
@@ -88,7 +91,7 @@ export const createDiskSessionPersistence = (
     async save(snapshot) {
       const normalized = normalizeSnapshot(snapshot);
       await mkdir(dirname(config.filePath), { recursive: true });
-      await writeFile(config.filePath, JSON.stringify(normalized, null, 2), "utf8");
+      await writeFile(config.filePath, JSON.stringify(normalized, null, 2), ENCODING.UTF8);
     },
   };
 };

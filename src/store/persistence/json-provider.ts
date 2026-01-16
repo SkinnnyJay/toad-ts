@@ -1,5 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
+import { LIMIT } from "@/config/limits";
+import { ENCODING } from "@/constants/encodings";
 
 import { SessionSnapshotSchema } from "@/store/session-persistence";
 import type { SessionSnapshot } from "@/store/session-persistence";
@@ -13,7 +15,7 @@ export const createJsonPersistenceProvider = (
 
   const readSnapshotFile = async (): Promise<SessionSnapshot> => {
     try {
-      const content = await readFile(filePath, "utf8");
+      const content = await readFile(filePath, ENCODING.UTF8);
       if (!content.trim()) {
         return SessionSnapshotSchema.parse({
           currentSessionId: undefined,
@@ -50,7 +52,7 @@ export const createJsonPersistenceProvider = (
     async save(snapshot: SessionSnapshot): Promise<void> {
       const normalized = SessionSnapshotSchema.parse(snapshot);
       await mkdir(dirname(filePath), { recursive: true });
-      await writeFile(filePath, JSON.stringify(normalized, null, 2), "utf8");
+      await writeFile(filePath, JSON.stringify(normalized, null, 2), ENCODING.UTF8);
     },
 
     async close(): Promise<void> {
@@ -94,7 +96,7 @@ export const createJsonPersistenceProvider = (
 
       // Apply pagination
       const offset = query.offset || 0;
-      const limit = query.limit || 50;
+      const limit = query.limit || LIMIT.DEFAULT_PAGINATION_LIMIT;
       return messages.slice(offset, offset + limit);
     },
 

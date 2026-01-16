@@ -6,6 +6,7 @@ import type {
   ConnectionStatus,
   Message,
   MessageId,
+  Plan,
   Session,
   SessionId,
   UpdateMessageParams,
@@ -23,6 +24,9 @@ export interface AppStore extends AppState {
   getSession: (sessionId: SessionId) => Session | undefined;
   getMessage: (messageId: MessageId) => Message | undefined;
   getMessagesForSession: (sessionId: SessionId) => Message[];
+  clearMessagesForSession: (sessionId: SessionId) => void;
+  upsertPlan: (plan: Plan) => void;
+  getPlanBySession: (sessionId: SessionId) => Plan | undefined;
   hydrate: (snapshot: SessionSnapshot) => void;
   reset: () => void;
 }
@@ -32,6 +36,7 @@ const initialState: AppState = {
   currentSessionId: undefined,
   sessions: {},
   messages: {},
+  plans: {},
 };
 
 export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState"], get) => ({
@@ -74,11 +79,31 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
       const updated: Message = { ...existing, ...patch };
       return { messages: { ...state.messages, [messageId]: updated } };
     }),
+  clearMessagesForSession: (sessionId) =>
+    set((state) => {
+      const entries = Object.entries(state.messages) as Array<[string, Message]>;
+      const retainedEntries = entries.filter(([, msg]) => msg.sessionId !== sessionId);
+      const retained = Object.fromEntries(retainedEntries) as AppState["messages"];
+      const session = state.sessions[sessionId];
+      const updatedSession = session ? { ...session, messageIds: [] } : undefined;
+      return {
+        messages: retained,
+        sessions: updatedSession
+          ? { ...state.sessions, [sessionId]: updatedSession }
+          : state.sessions,
+      } as Partial<AppState>;
+    }),
+
   getSession: (sessionId) => get().sessions[sessionId],
   getMessage: (messageId) => get().messages[messageId],
   getMessagesForSession: (sessionId) => {
     const messages = Object.values(get().messages) as Message[];
     return messages.filter((m) => m.sessionId === sessionId);
+  },
+  upsertPlan: (plan) => set((state) => ({ plans: { ...state.plans, [plan.id]: plan } })),
+  getPlanBySession: (sessionId) => {
+    const plans = Object.values(get().plans) as Plan[];
+    return plans.find((plan) => plan.sessionId === sessionId);
   },
   hydrate: (snapshot) =>
     set(() => ({
@@ -90,6 +115,7 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
       ...initialState,
       sessions: {},
       messages: {},
+      plans: {},
     })),
 }));
 
