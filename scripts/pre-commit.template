@@ -1,0 +1,17 @@
+#!/bin/sh
+# Pre-commit hook to check for magic literals
+# Install: cp scripts/pre-commit.template .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+
+# Run the detection script in strict mode
+npx tsx scripts/check-magic-literals.ts --strict
+
+# If the script exits with non-zero, prevent the commit
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ Commit blocked: Magic literals detected"
+  echo "Please extract literals to constants before committing."
+  echo "See .cursorrules for guidelines."
+  exit 1
+fi
+
+exit 0

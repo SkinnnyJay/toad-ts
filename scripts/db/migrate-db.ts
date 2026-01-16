@@ -1,19 +1,26 @@
 #!/usr/bin/env tsx
 
-import { homedir } from "node:os";
-import { join } from "node:path";
+import { createPersistenceConfig } from "../../src/store/persistence/persistence-config";
+import { createSqlitePersistenceProvider } from "../../src/store/persistence/sqlite-provider";
+import { Env, EnvManager } from "../../src/utils/env/env.utils";
 
-const DB_PATH = join(homedir(), ".toad", "toad.db");
+EnvManager.bootstrap();
+const env = new Env(EnvManager.getInstance());
+const persistenceConfig = createPersistenceConfig(env);
 
 async function migrateDatabase() {
   console.log("🔄 Running database migrations...");
 
-  // TODO: Implement Sequelize migrations here
-  // For now, this is a placeholder that will be implemented
-  // when we add the actual SQLite provider
+  if (!persistenceConfig.sqlite) {
+    throw new Error("SQLite configuration missing");
+  }
+
+  const provider = createSqlitePersistenceProvider(persistenceConfig.sqlite);
+  await provider.load();
+  await provider.close();
 
   console.log("✅ Database migrations completed");
-  console.log(`📍 Database location: ${DB_PATH}`);
+  console.log(`📍 Database location: ${persistenceConfig.sqlite.filePath}`);
 }
 
 migrateDatabase().catch((error) => {

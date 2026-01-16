@@ -1,24 +1,21 @@
 #!/usr/bin/env tsx
 
-import { readFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
-import { createJsonPersistenceProvider } from "../../src/store/persistence/json-provider";
+import { createPersistenceConfig } from "../../src/store/persistence/persistence-config";
+import { createPersistenceProvider } from "../../src/store/persistence/persistence-provider";
+import { Env, EnvManager } from "../../src/utils/env/env.utils";
 
-const DB_PATH = join(homedir(), ".toad", "toad.db");
+EnvManager.bootstrap();
+const env = new Env(EnvManager.getInstance());
+const persistenceConfig = createPersistenceConfig(env);
 
 async function exportData() {
   console.log("📤 Exporting persistence data...");
 
-  // For now, assume JSON provider for export
-  // TODO: Detect current provider from config
-  const provider = createJsonPersistenceProvider({
-    filePath: DB_PATH.replace(".db", ".json"),
-  });
-
   try {
+    const provider = createPersistenceProvider(persistenceConfig);
     const data = await provider.load();
     console.log(JSON.stringify(data, null, 2));
+    await provider.close();
     console.log("✅ Data exported successfully");
   } catch (error) {
     console.error("❌ Export failed:", (error as Error).message);
