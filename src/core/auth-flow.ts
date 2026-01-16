@@ -1,4 +1,6 @@
 import { createInterface } from "node:readline/promises";
+import { TOKEN_HINTS } from "@/constants/auth-hints";
+import { ERROR_CODE } from "@/constants/error-codes";
 import type { ACPClient } from "@/core/acp-client";
 import type { CredentialScope, CredentialStore } from "@/utils/credentials";
 import type {
@@ -8,9 +10,6 @@ import type {
   NewSessionResponse,
 } from "@agentclientprotocol/sdk";
 import { RequestError } from "@agentclientprotocol/sdk";
-
-const AUTH_REQUIRED_ERROR_CODE = -32000;
-const TOKEN_HINTS = ["token", "api", "key", "secret"];
 
 export interface AuthPrompt {
   selectMethod(methods: AuthMethod[]): Promise<AuthMethod>;
@@ -78,11 +77,11 @@ export const ensureAuthenticated = async (
 
 export const isAuthRequiredError = (error: unknown): boolean => {
   if (error instanceof RequestError) {
-    return error.code === AUTH_REQUIRED_ERROR_CODE;
+    return error.code === ERROR_CODE.AUTH_REQUIRED;
   }
 
   if (typeof error === "object" && error && "code" in error) {
-    return (error as { code?: number }).code === AUTH_REQUIRED_ERROR_CODE;
+    return (error as { code?: number }).code === ERROR_CODE.AUTH_REQUIRED;
   }
 
   return false;

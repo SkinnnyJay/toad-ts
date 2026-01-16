@@ -1,5 +1,10 @@
 import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { Readable, Writable } from "node:stream";
+import { LIMIT } from "@/config/limits";
+import { TIMEOUT } from "@/config/timeouts";
+import { CONNECTION_STATUS } from "@/constants/connection-status";
+import { ENCODING } from "@/constants/encodings";
+import { FALLBACK } from "@/constants/fallbacks";
 import type { ConnectionStatus } from "@/types/domain";
 import { type Stream, ndJsonStream } from "@agentclientprotocol/sdk";
 import { EventEmitter } from "eventemitter3";
@@ -29,14 +34,16 @@ export type SpawnFunction = (
   }
 ) => ChildProcessWithoutNullStreams;
 
-const DEFAULT_BACKOFF_BASE_MS = 250;
-const DEFAULT_BACKOFF_CAP_MS = 5_000;
+const DEFAULT_BACKOFF_BASE_MS = TIMEOUT.BACKOFF_BASE_MS;
+const DEFAULT_BACKOFF_CAP_MS = TIMEOUT.BACKOFF_CAP_MS;
 
 export class ACPConnection extends EventEmitter<ACPConnectionEvents> {
-  private status: ConnectionStatus = "disconnected";
+  private status: ConnectionStatus = CONNECTION_STATUS.DISCONNECTED;
   private child?: ChildProcessWithoutNullStreams;
   private stream?: Stream;
   private attempt = 0;
+  private isDisconnecting = false;
+  private readonly stderrLines: string[] = [];
   private readonly spawnFn: SpawnFunction;
   private readonly backoffBaseMs: number;
   private readonly backoffCapMs: number;
@@ -60,23 +67,32 @@ export class ACPConnection extends EventEmitter<ACPConnectionEvents> {
   }
 
   async connect(): Promise<void> {
-    if (this.status === "connecting" || this.status === "connected") {
+    if (
+      this.status === CONNECTION_STATUS.CONNECTING ||
+      this.status === CONNECTION_STATUS.CONNECTED
+    ) {
       return;
     }
+    this.isDisconnecting = false;
     this.setStatus("connecting");
     this.attempt += 1;
 
     try {
+      this.stderrLines.length = 0;
       const child = this.spawnFn(this.options.command, this.options.args ?? [], {
         cwd: this.options.cwd,
         env: { ...process.env, ...this.options.env },
       });
       this.child = child;
 
-      child.stdout.setEncoding("utf8");
-      child.stdout.on("data", (chunk: string) => this.emit("data", chunk));
-      child.stderr.setEncoding("utf8");
-      child.stderr.on("data", (chunk: string) => this.emit("data", chunk));
+      // Don't set encoding or add listeners before converting to Web streams
+      // as this can interfere with the stream conversion
+
+      child.stderr.setEncoding(ENCODING.UTF8);
+      child.stderr.on("data", (chunk: string) => {
+        this.emit("data", chunk);
+        this.captureStderr(chunk);
+      });
 
       const input = Writable.toWeb(child.stdin);
       const output = Readable.toWeb(child.stdout);
@@ -84,20 +100,29 @@ export class ACPConnection extends EventEmitter<ACPConnectionEvents> {
 
       child.on("error", (error) => {
         this.emit("error", error);
-        this.setStatus("error");
+        this.setStatus(CONNECTION_STATUS.ERROR);
       });
 
       child.on("close", (code, signal) => {
+        const wasDisconnecting = this.isDisconnecting;
+        this.isDisconnecting = false;
         this.emit("exit", { code, signal });
         this.child = undefined;
         this.stream = undefined;
-        this.setStatus("disconnected");
+
+        const hasError = !wasDisconnecting && ((code !== null && code !== 0) || signal !== null);
+        if (hasError) {
+          this.emit("error", this.formatExitError(code, signal));
+          this.setStatus(CONNECTION_STATUS.ERROR);
+        } else {
+          this.setStatus(CONNECTION_STATUS.DISCONNECTED);
+        }
       });
 
-      this.setStatus("connected");
+      this.setStatus(CONNECTION_STATUS.CONNECTED);
       this.attempt = 0;
     } catch (error) {
-      this.setStatus("error");
+      this.setStatus(CONNECTION_STATUS.ERROR);
       this.emit("error", error instanceof Error ? error : new Error(String(error)));
     }
   }
@@ -107,6 +132,7 @@ export class ACPConnection extends EventEmitter<ACPConnectionEvents> {
       this.setStatus("disconnected");
       return;
     }
+    this.isDisconnecting = true;
     await new Promise<void>((resolve) => {
       this.child?.once("close", () => resolve());
       this.child?.kill("SIGTERM");
@@ -115,10 +141,11 @@ export class ACPConnection extends EventEmitter<ACPConnectionEvents> {
           this.child.kill("SIGKILL");
         }
         resolve();
-      }, 500).unref();
+      }, TIMEOUT.DISCONNECT_FORCE_MS).unref();
     });
     this.child = undefined;
     this.stream = undefined;
+    this.isDisconnecting = false;
     this.setStatus("disconnected");
   }
 
@@ -138,5 +165,28 @@ export class ACPConnection extends EventEmitter<ACPConnectionEvents> {
   private setStatus(status: ConnectionStatus): void {
     this.status = status;
     this.emit("state", status);
+  }
+
+  private captureStderr(chunk: string): void {
+    const lines = chunk
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    if (lines.length === 0) {
+      return;
+    }
+    this.stderrLines.push(...lines);
+    if (this.stderrLines.length > LIMIT.STDERR_LINES) {
+      this.stderrLines.splice(0, this.stderrLines.length - LIMIT.STDERR_LINES);
+    }
+  }
+
+  private formatExitError(code: number | null, signal: NodeJS.Signals | null): Error {
+    const suffix = signal ? ` (signal ${signal})` : "";
+    const stderrOutput = this.stderrLines.join("\n");
+    const details = stderrOutput ? `\n${stderrOutput}` : "";
+    return new Error(
+      `Agent process exited with code ${code ?? FALLBACK.UNKNOWN}${suffix}${details}`
+    );
   }
 }

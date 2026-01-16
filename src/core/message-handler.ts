@@ -1,3 +1,6 @@
+import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { FALLBACK } from "@/constants/fallbacks";
+import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import { ContentBlockSchema } from "@/types/domain";
 import type { ContentBlock, MessageId, SessionId, ToolCallId } from "@/types/domain";
 import { EventEmitter } from "eventemitter3";
@@ -57,27 +60,27 @@ export class MessageHandler extends EventEmitter<MessageHandlerEvents> {
 
   private toContentBlock(content: RawContentUpdate): ContentBlock {
     switch (content.type) {
-      case "text":
-      case "thinking":
+      case CONTENT_BLOCK_TYPE.TEXT:
+      case CONTENT_BLOCK_TYPE.THINKING:
         return ContentBlockSchema.parse({ type: content.type, text: content.text ?? "" });
-      case "code":
+      case CONTENT_BLOCK_TYPE.CODE:
         return ContentBlockSchema.parse({
-          type: "code",
+          type: CONTENT_BLOCK_TYPE.CODE,
           text: content.text ?? "",
           language: content.language,
         });
-      case "tool_call":
+      case CONTENT_BLOCK_TYPE.TOOL_CALL:
         return ContentBlockSchema.parse({
-          type: "tool_call",
-          toolCallId: content.toolCallId ?? ("unknown" as ToolCallId),
+          type: CONTENT_BLOCK_TYPE.TOOL_CALL,
+          toolCallId: content.toolCallId ?? (FALLBACK.UNKNOWN as ToolCallId),
           name: content.name,
           arguments: content.arguments,
-          status: content.status ?? "pending",
+          status: content.status ?? TOOL_CALL_STATUS.PENDING,
           result: content.result,
         });
-      case "resource_link":
+      case CONTENT_BLOCK_TYPE.RESOURCE_LINK:
         return ContentBlockSchema.parse({
-          type: "resource_link",
+          type: CONTENT_BLOCK_TYPE.RESOURCE_LINK,
           uri: content.uri ?? "",
           name: content.name ?? content.uri ?? "resource",
           title: content.title,
@@ -85,9 +88,9 @@ export class MessageHandler extends EventEmitter<MessageHandlerEvents> {
           mimeType: content.mimeType,
           size: content.size,
         });
-      case "resource":
+      case CONTENT_BLOCK_TYPE.RESOURCE:
         return ContentBlockSchema.parse({
-          type: "resource",
+          type: CONTENT_BLOCK_TYPE.RESOURCE,
           resource: content.resource ?? {
             uri: content.uri ?? "",
             text: content.text ?? "",

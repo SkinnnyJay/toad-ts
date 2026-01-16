@@ -7,6 +7,12 @@ import type {
 } from "@agentclientprotocol/sdk";
 import { nanoid } from "nanoid";
 
+import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { CONTENT_MODE } from "@/constants/content-modes";
+import { SESSION_MODE } from "@/constants/session-modes";
+import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
+import { STREAM_METADATA_KEY } from "@/constants/stream-metadata";
+import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import { MessageHandler } from "@/core/message-handler";
 import type { AppStore } from "@/store/app-store";
 import {
@@ -22,14 +28,14 @@ import {
   ToolCallIdSchema,
 } from "@/types/domain";
 
-const STREAM_FINAL_KEYS = ["isFinal", "final"] as const;
+const STREAM_FINAL_KEYS = [STREAM_METADATA_KEY.IS_FINAL, STREAM_METADATA_KEY.FINAL] as const;
 
 type StreamKind =
-  | "user_message_chunk"
-  | "agent_message_chunk"
-  | "agent_thought_chunk"
-  | "tool_call"
-  | "tool_call_update";
+  | typeof SESSION_UPDATE_TYPE.USER_MESSAGE_CHUNK
+  | typeof SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK
+  | typeof SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK
+  | typeof SESSION_UPDATE_TYPE.TOOL_CALL
+  | typeof SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE;
 
 type StreamKey = string;
 
@@ -81,22 +87,32 @@ export class SessionStream {
     const update = notification.update;
 
     switch (update.sessionUpdate) {
-      case "session_info_update":
+      case SESSION_UPDATE_TYPE.SESSION_INFO_UPDATE:
         this.applySessionInfoUpdate(sessionId, update);
         return;
-      case "agent_message_chunk":
-        this.handleContentChunk(sessionId, "assistant", update, "message");
+      case SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK:
+        this.handleContentChunk(
+          sessionId,
+          "assistant" as MessageRole,
+          update,
+          CONTENT_MODE.MESSAGE
+        );
         return;
-      case "user_message_chunk":
-        this.handleContentChunk(sessionId, "user", update, "message");
+      case SESSION_UPDATE_TYPE.USER_MESSAGE_CHUNK:
+        this.handleContentChunk(sessionId, "user" as MessageRole, update, CONTENT_MODE.MESSAGE);
         return;
-      case "agent_thought_chunk":
-        this.handleContentChunk(sessionId, "assistant", update, "thought");
+      case SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK:
+        this.handleContentChunk(
+          sessionId,
+          "assistant" as MessageRole,
+          update,
+          CONTENT_MODE.THOUGHT
+        );
         return;
-      case "tool_call":
+      case SESSION_UPDATE_TYPE.TOOL_CALL:
         this.handleToolCall(sessionId, update);
         return;
-      case "tool_call_update":
+      case SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE:
         this.handleToolCallUpdate(sessionId, update);
         return;
       default:
@@ -120,7 +136,7 @@ export class SessionStream {
     block: ContentBlock;
   }): void {
     const existing = this.store.getMessage(payload.messageId);
-    const role = this.messageRoles.get(payload.messageId) ?? "assistant";
+    const role = this.messageRoles.get(payload.messageId) ?? ("assistant" as MessageRole);
     const sessionId = this.messageSessions.get(payload.messageId) ?? payload.sessionId;
 
     this.ensureSession(sessionId);
@@ -168,7 +184,7 @@ export class SessionStream {
       content: ACPContentBlock;
       _meta?: Record<string, unknown> | null;
     },
-    mode: "message" | "thought"
+    mode: typeof CONTENT_MODE.MESSAGE | typeof CONTENT_MODE.THOUGHT
   ): void {
     const key = this.buildStreamKey(sessionId, update.sessionUpdate);
     const messageId = this.getOrCreateMessageId(key, sessionId, role);
@@ -189,7 +205,7 @@ export class SessionStream {
 
   private handleToolCall(
     sessionId: SessionId,
-    update: ToolCall & { sessionUpdate: "tool_call" }
+    update: ToolCall & { sessionUpdate: typeof SESSION_UPDATE_TYPE.TOOL_CALL }
   ): void {
     const toolCallId = ToolCallIdSchema.parse(update.toolCallId);
     const key = this.buildStreamKey(sessionId, update.sessionUpdate, toolCallId);
@@ -210,10 +226,10 @@ export class SessionStream {
 
   private handleToolCallUpdate(
     sessionId: SessionId,
-    update: ToolCallUpdate & { sessionUpdate: "tool_call_update" }
+    update: ToolCallUpdate & { sessionUpdate: typeof SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE }
   ): void {
     const toolCallId = ToolCallIdSchema.parse(update.toolCallId);
-    const key = this.buildStreamKey(sessionId, "tool_call", toolCallId);
+    const key = this.buildStreamKey(sessionId, SESSION_UPDATE_TYPE.TOOL_CALL, toolCallId);
     const messageId = this.getOrCreateMessageId(key, sessionId, "assistant");
 
     this.handler.handle({
@@ -244,6 +260,8 @@ export class SessionStream {
       messageIds: existing?.messageIds ?? [],
       createdAt: existing?.createdAt ?? now,
       updatedAt: Number.isNaN(updatedAt) ? now : updatedAt,
+      mode: existing?.mode ?? "auto",
+      metadata: existing?.metadata,
     };
 
     this.store.upsertSession({ session });
@@ -260,6 +278,7 @@ export class SessionStream {
       messageIds: [],
       createdAt: now,
       updatedAt: now,
+      mode: SESSION_MODE.AUTO,
     };
 
     this.store.upsertSession({ session });
@@ -309,19 +328,23 @@ export class SessionStream {
   }
 
   private shouldFinalizeToolStatus(status?: ToolCallStatus | null): boolean {
-    return status === "completed" || status === "failed";
+    return status === "completed" || status === "failed"; // ACP SDK statuses, not our constants
   }
 
-  private mapContentBlock(block: ACPContentBlock, mode: "message" | "thought"): ContentBlock {
+  private mapContentBlock(
+    block: ACPContentBlock,
+    mode: typeof CONTENT_MODE.MESSAGE | typeof CONTENT_MODE.THOUGHT
+  ): ContentBlock {
     switch (block.type) {
       case "text":
         return {
-          type: mode === "thought" ? "thinking" : "text",
+          type:
+            mode === CONTENT_MODE.THOUGHT ? CONTENT_BLOCK_TYPE.THINKING : CONTENT_BLOCK_TYPE.TEXT,
           text: block.text,
         };
       case "resource_link":
         return {
-          type: "resource_link",
+          type: CONTENT_BLOCK_TYPE.RESOURCE_LINK,
           uri: block.uri,
           name: block.name,
           title: block.title ?? undefined,
@@ -331,25 +354,25 @@ export class SessionStream {
         };
       case "resource":
         return {
-          type: "resource",
+          type: CONTENT_BLOCK_TYPE.RESOURCE,
           resource: this.mapEmbeddedResource(block.resource),
         };
       case "image":
         return {
-          type: "resource",
+          type: CONTENT_BLOCK_TYPE.RESOURCE,
           resource: {
             uri: block.uri ?? "",
             blob: block.data,
-            mimeType: block.mimeType,
+            mimeType: block.mimeType ?? undefined,
           },
         };
       case "audio":
         return {
-          type: "resource",
+          type: CONTENT_BLOCK_TYPE.RESOURCE,
           resource: {
             uri: "",
             blob: block.data,
-            mimeType: block.mimeType,
+            mimeType: block.mimeType ?? undefined,
           },
         };
       default: {
@@ -383,10 +406,11 @@ export class SessionStream {
   }
 
   private mapToolCall(call: ToolCall | ToolCallUpdate): ContentBlock {
+    const name = "title" in call && call.title ? call.title : undefined;
     return {
-      type: "tool_call",
+      type: CONTENT_BLOCK_TYPE.TOOL_CALL,
       toolCallId: ToolCallIdSchema.parse(call.toolCallId),
-      name: "title" in call ? (call.title ?? undefined) : undefined,
+      name,
       arguments: this.mapToolArguments(call.rawInput),
       status: this.mapToolStatus(call.status),
       result: call.rawOutput,
@@ -402,16 +426,20 @@ export class SessionStream {
 
   private mapToolStatus(
     status?: ToolCallStatus | null
-  ): "pending" | "running" | "succeeded" | "failed" {
+  ):
+    | typeof TOOL_CALL_STATUS.PENDING
+    | typeof TOOL_CALL_STATUS.RUNNING
+    | typeof TOOL_CALL_STATUS.SUCCEEDED
+    | typeof TOOL_CALL_STATUS.FAILED {
     switch (status) {
       case "in_progress":
-        return "running";
+        return TOOL_CALL_STATUS.RUNNING;
       case "completed":
-        return "succeeded";
+        return TOOL_CALL_STATUS.SUCCEEDED;
       case "failed":
-        return "failed";
+        return TOOL_CALL_STATUS.FAILED;
       default:
-        return "pending";
+        return TOOL_CALL_STATUS.PENDING;
     }
   }
 

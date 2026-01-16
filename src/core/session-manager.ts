@@ -1,5 +1,7 @@
+import { ENV_KEY } from "@/constants/env-keys";
+import { SESSION_MODE } from "@/constants/session-modes";
 import { type EnvSource, type McpConfigInput, parseMcpConfig } from "@/core/mcp-config";
-import type { AgentId, Session } from "@/types/domain";
+import type { AgentId, Session, SessionMode } from "@/types/domain";
 import { SessionSchema } from "@/types/domain";
 import type { NewSessionRequest, NewSessionResponse } from "@agentclientprotocol/sdk";
 
@@ -18,7 +20,21 @@ export interface CreateSessionParams {
   title?: string;
   now?: number;
   env?: EnvSource;
+  mode?: SessionMode;
 }
+
+const parseSessionMode = (value: string | undefined): SessionMode => {
+  if (!value) return SESSION_MODE.AUTO;
+  const normalized = value.trim().toLowerCase();
+  if (
+    normalized === SESSION_MODE.READ_ONLY ||
+    normalized === SESSION_MODE.AUTO ||
+    normalized === SESSION_MODE.FULL_ACCESS
+  ) {
+    return normalized;
+  }
+  return SESSION_MODE.AUTO;
+};
 
 export class SessionManager {
   constructor(
@@ -30,6 +46,7 @@ export class SessionManager {
     const { cwd, agentId, title } = params;
     const now = params.now ?? Date.now();
     const env = params.env ?? process.env;
+    const mode = params.mode ?? parseSessionMode(env[ENV_KEY.TOADSTOOL_SESSION_MODE]);
     const mcpServers = parseMcpConfig(params.mcpConfig, env);
     const response = await this.client.newSession({ cwd, mcpServers });
     const session = SessionSchema.parse({
@@ -40,6 +57,7 @@ export class SessionManager {
       createdAt: now,
       updatedAt: now,
       metadata: { mcpServers },
+      mode,
     });
     this.store.upsertSession({ session });
     return session;

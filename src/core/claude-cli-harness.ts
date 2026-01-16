@@ -1,3 +1,8 @@
+import { existsSync } from "node:fs";
+import { delimiter, join } from "node:path";
+import { ENV_KEY } from "@/constants/env-keys";
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
+
 import { ACPClient, type ACPClientOptions, type ACPConnectionLike } from "@/core/acp-client";
 import { ACPConnection, type ACPConnectionOptions } from "@/core/acp-connection";
 import type {
@@ -33,10 +38,7 @@ export interface ClaudeCliHarnessAdapterOptions {
   connectionFactory?: (options: ACPConnectionOptions) => ACPConnectionLike;
 }
 
-const DEFAULT_CLAUDE_COMMAND = "claude";
-const DEFAULT_CLAUDE_ARGS = ["--experimental-acp"] as const;
-const CLAUDE_COMMAND_ENV_KEY = "TOAD_CLAUDE_COMMAND";
-const CLAUDE_ARGS_ENV_KEY = "TOAD_CLAUDE_ARGS";
+const DEFAULT_CLAUDE_ARGS: string[] = [];
 
 const parseArgs = (rawValue: string): string[] => {
   return rawValue
@@ -45,18 +47,39 @@ const parseArgs = (rawValue: string): string[] => {
     .filter((value) => value.length > 0);
 };
 
+const addLocalBinToPath = (env: NodeJS.ProcessEnv, cwd?: string): NodeJS.ProcessEnv => {
+  const baseDir = cwd ?? process.cwd();
+  const localBin = join(baseDir, "node_modules", ".bin");
+  const pathValue = env.PATH ?? process.env.PATH ?? "";
+  if (!existsSync(localBin)) {
+    return env;
+  }
+
+  const segments = pathValue.split(delimiter).filter(Boolean);
+  if (segments.includes(localBin)) {
+    return env;
+  }
+
+  return {
+    ...env,
+    PATH: `${localBin}${delimiter}${pathValue}`,
+  };
+};
+
 const resolveDefaults = (
   options: ClaudeCliHarnessAdapterOptions
-): { command: string; args: string[] } => {
+): { command: string; args: string[]; env: NodeJS.ProcessEnv } => {
   const envDefaults = options.envDefaults ?? process.env;
-  const commandFromEnv = envDefaults[CLAUDE_COMMAND_ENV_KEY];
-  const argsFromEnv = envDefaults[CLAUDE_ARGS_ENV_KEY];
+  const commandFromEnv = envDefaults[ENV_KEY.TOADSTOOL_CLAUDE_COMMAND];
+  const argsFromEnv = envDefaults[ENV_KEY.TOADSTOOL_CLAUDE_ARGS];
 
-  const command = options.command ?? commandFromEnv ?? DEFAULT_CLAUDE_COMMAND;
+  const command = options.command ?? commandFromEnv ?? HARNESS_DEFAULT.CLAUDE_COMMAND;
   const args =
     options.args ?? (argsFromEnv !== undefined ? parseArgs(argsFromEnv) : [...DEFAULT_CLAUDE_ARGS]);
 
-  return { command, args };
+  const env = addLocalBinToPath({ ...envDefaults }, options.cwd);
+
+  return { command, args, env };
 };
 
 export class ClaudeCliHarnessAdapter
@@ -74,11 +97,13 @@ export class ClaudeCliHarnessAdapter
     this.command = resolved.command;
     this.args = resolved.args;
 
+    const mergedEnv = { ...resolved.env, ...options.env };
+
     const connectionOptions: ACPConnectionOptions = {
       command: resolved.command,
       args: resolved.args,
       cwd: options.cwd,
-      env: options.env,
+      env: mergedEnv,
     };
 
     this.connection =
@@ -124,14 +149,6 @@ export class ClaudeCliHarnessAdapter
 
   async sessionUpdate(params: SessionNotification): Promise<void> {
     await this.client.sessionUpdate(params);
-  }
-
-  off<K extends keyof ClaudeCliHarnessAdapterEvents>(
-    event: K,
-    handler: ClaudeCliHarnessAdapterEvents[K]
-  ): this {
-    this.removeListener(event, handler);
-    return this;
   }
 }
 

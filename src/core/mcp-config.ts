@@ -1,3 +1,4 @@
+import { MCP_SERVER_TYPE } from "@/constants/mcp-server-types";
 import { type McpServer, McpServerSchema } from "@/types/domain";
 import { z } from "zod";
 
@@ -5,7 +6,7 @@ export type EnvSource = Record<string, string | undefined>;
 
 const mcpServerInputSchema = z
   .object({
-    type: z.enum(["http", "sse"]).optional(),
+    type: z.enum([MCP_SERVER_TYPE.HTTP, MCP_SERVER_TYPE.SSE]).optional(),
     url: z.string().min(1).optional(),
     headers: z.record(z.string().min(1), z.string()).optional(),
     command: z.string().min(1).optional(),
@@ -62,7 +63,7 @@ const mcpConfigSchema = z
 export type McpConfigInput = z.infer<typeof mcpConfigSchema>;
 
 const ENV_PATTERN = /\$(?:\{([A-Z0-9_]+)\}|([A-Z0-9_]+))/g;
-const ESCAPED_DOLLAR = "__TOAD_ESCAPED_DOLLAR__";
+const ESCAPED_DOLLAR = "__TOADSTOOL_ESCAPED_DOLLAR__";
 
 export function expandEnvValue(value: string, env: EnvSource): string {
   const withEscapes = value.replace(/\$\$/g, ESCAPED_DOLLAR);
@@ -102,7 +103,7 @@ function buildMcpServer(name: string, config: McpServerInput, env: EnvSource): M
     throw new Error(`MCP server ${name} is missing a url`);
   }
 
-  const type = config.type ?? "http";
+  const type = config.type ?? MCP_SERVER_TYPE.HTTP;
   const url = expandEnvValue(config.url, env);
   const headers = Object.entries(config.headers ?? {}).map(([key, value]) => ({
     name: key,

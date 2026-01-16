@@ -1,6 +1,7 @@
 import type { EventEmitter } from "eventemitter3";
 import type { z } from "zod";
 
+import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { ConnectionStatus } from "@/types/domain";
 import type {
   AuthenticateRequest,
@@ -14,7 +15,6 @@ import type {
   RequestPermissionRequest,
   SessionNotification,
 } from "@agentclientprotocol/sdk";
-import type { HarnessConfig } from "@/harness/harnessConfig";
 
 export interface HarnessRuntimeEvents {
   state: (status: ConnectionStatus) => void;

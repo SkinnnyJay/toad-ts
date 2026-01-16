@@ -1,6 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
+import { ENCODING } from "@/constants/encodings";
+import { ERROR_CODE } from "@/constants/error-codes";
+import { FILE_PATH } from "@/constants/file-paths";
 import { z } from "zod";
 
 const ENV_PATTERN = /\$(\w+)|\$\{([^}]+)\}/g;
@@ -69,12 +72,12 @@ const parseHarnessFile = (raw: unknown, filePath: string): HarnessFileConfig => 
 
 const readHarnessFile = async (filePath: string): Promise<HarnessFileConfig | null> => {
   try {
-    const contents = await readFile(filePath, "utf8");
+    const contents = await readFile(filePath, ENCODING.UTF8);
     const parsed = JSON.parse(contents) as unknown;
     return parseHarnessFile(parsed, filePath);
   } catch (error) {
     const code = (error as NodeJS.ErrnoException | undefined)?.code;
-    if (code === "ENOENT") {
+    if (code === ERROR_CODE.ENOENT) {
       return null;
     }
     throw error;
@@ -120,14 +123,18 @@ const mergeHarnessFiles = (
   };
 };
 
-const resolveHarnessConfig = (id: string, definition: HarnessFileDefinition): HarnessConfig => {
+const resolveHarnessConfig = (
+  id: string,
+  definition: HarnessFileDefinition,
+  projectRoot: string
+): HarnessConfig => {
   return harnessConfigSchema.parse({
     id,
     name: definition.name,
     command: definition.command,
     args: definition.args ?? [],
     env: definition.env ?? {},
-    cwd: definition.cwd,
+    cwd: definition.cwd ?? projectRoot,
     description: definition.description,
   });
 };
@@ -183,8 +190,12 @@ export const loadHarnessConfig = async (
 ): Promise<HarnessConfigResult> => {
   const projectRoot = options.projectRoot ?? process.cwd();
   const projectPath =
-    options.configPath ?? path.join(projectRoot, ".toad", DEFAULT_CONFIG_FILENAME);
-  const userPath = path.join(options.homedir ?? homedir(), ".toad", DEFAULT_CONFIG_FILENAME);
+    options.configPath ?? path.join(projectRoot, FILE_PATH.TOADSTOOL_DIR, DEFAULT_CONFIG_FILENAME);
+  const userPath = path.join(
+    options.homedir ?? homedir(),
+    FILE_PATH.TOADSTOOL_DIR,
+    DEFAULT_CONFIG_FILENAME
+  );
   const env = options.env ?? process.env;
 
   const [projectConfig, userConfig] = await Promise.all([
@@ -196,7 +207,10 @@ export const loadHarnessConfig = async (
   const resolvedHarnesses: Record<string, HarnessConfig> = {};
 
   for (const [id, definition] of Object.entries(mergedConfig.harnesses)) {
-    resolvedHarnesses[id] = expandHarnessConfig(resolveHarnessConfig(id, definition), env);
+    resolvedHarnesses[id] = expandHarnessConfig(
+      resolveHarnessConfig(id, definition, projectRoot),
+      env
+    );
   }
 
   const availableIds = Object.keys(resolvedHarnesses);
