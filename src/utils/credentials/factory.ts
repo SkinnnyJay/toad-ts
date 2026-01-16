@@ -1,3 +1,5 @@
+import { CREDENTIAL_STORE_KIND } from "@/constants/credential-stores";
+import { ENV_KEY } from "@/constants/env-keys";
 import {
   EncryptedDiskCredentialStore,
   type EncryptedDiskCredentialStoreOptions,
@@ -13,21 +15,37 @@ export interface CredentialStoreFactoryOptions {
     loader?: () => Promise<KeytarModule | null>;
   };
   disk?: EncryptedDiskCredentialStoreOptions;
+  env?: NodeJS.ProcessEnv;
 }
+
+const parseEnvMode = (env?: NodeJS.ProcessEnv): CredentialStoreKind | undefined => {
+  const raw = env?.[ENV_KEY.TOADSTOOL_CREDENTIAL_STORE];
+  if (!raw) return undefined;
+  const normalized = raw.trim().toLowerCase();
+  if (
+    normalized === CREDENTIAL_STORE_KIND.KEYTAR ||
+    normalized === CREDENTIAL_STORE_KIND.DISK ||
+    normalized === CREDENTIAL_STORE_KIND.MEMORY
+  ) {
+    return normalized;
+  }
+  return undefined;
+};
 
 export const createCredentialStore = async (
   options: CredentialStoreFactoryOptions = {}
 ): Promise<CredentialStore> => {
-  const mode = options.mode;
-  if (mode === "memory") {
+  const effectiveMode = options.mode ?? parseEnvMode(options.env ?? process.env);
+
+  if (effectiveMode === CREDENTIAL_STORE_KIND.MEMORY) {
     return new MemoryCredentialStore();
   }
 
-  if (mode === "disk") {
+  if (effectiveMode === CREDENTIAL_STORE_KIND.DISK) {
     return EncryptedDiskCredentialStore.create(options.disk);
   }
 
-  if (mode === "keytar") {
+  if (effectiveMode === CREDENTIAL_STORE_KIND.KEYTAR) {
     const keytar = await loadKeytar(options.keytar?.loader);
     if (!keytar) {
       throw new Error("Keytar module unavailable");
@@ -46,11 +64,7 @@ export const createCredentialStore = async (
     });
   }
 
-  try {
-    return await EncryptedDiskCredentialStore.create(options.disk);
-  } catch {
-    return new MemoryCredentialStore();
-  }
+  return new MemoryCredentialStore();
 };
 
 const loadKeytar = async (

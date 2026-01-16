@@ -15,7 +15,7 @@ export interface CredentialStore {
 
 export const DEFAULT_CREDENTIAL_ACCOUNT = "default";
 export const DEFAULT_TOKEN_TYPE = "auth";
-export const DEFAULT_SERVICE_NAME = "toad";
+export const DEFAULT_SERVICE_NAME = "toadstool";
 
 export const buildCredentialKey = (scope: CredentialScope): string => {
   const accountId = scope.accountId ?? DEFAULT_CREDENTIAL_ACCOUNT;

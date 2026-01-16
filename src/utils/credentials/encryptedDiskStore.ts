@@ -2,11 +2,12 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { CREDENTIAL_STORE_KIND } from "@/constants/credential-stores";
+import { ENCODING } from "@/constants/encodings";
+import { ENCRYPTION } from "@/constants/encryption";
+import { FILE_PATH } from "@/constants/file-paths";
 import { type CredentialScope, type CredentialStore, buildCredentialKey } from "./types";
 
-const ENCRYPTION_ALGORITHM = "aes-256-gcm";
-const ENCRYPTION_IV_BYTES = 12;
-const ENCRYPTION_KEY_BYTES = 32;
 const CURRENT_VERSION = 1;
 
 export interface EncryptedDiskCredentialStoreOptions {
@@ -29,7 +30,7 @@ type EncryptedPayload = {
 };
 
 export class EncryptedDiskCredentialStore implements CredentialStore {
-  readonly kind = "disk" as const;
+  readonly kind = CREDENTIAL_STORE_KIND.DISK;
   private readonly filePath: string;
   private readonly encryptionKey: Buffer;
   private cache = new Map<string, string>();
@@ -84,7 +85,7 @@ export class EncryptedDiskCredentialStore implements CredentialStore {
 
 const resolveDiskOptions = (options: EncryptedDiskCredentialStoreOptions): ResolvedDiskOptions => {
   const home = os.homedir();
-  const baseDir = path.join(home, ".toad");
+  const baseDir = path.join(home, FILE_PATH.TOADSTOOL_DIR);
   return {
     filePath: options.filePath ?? path.join(baseDir, "credentials.json"),
     keyPath: options.keyPath ?? path.join(baseDir, "credentials.key"),
@@ -100,15 +101,15 @@ const resolveEncryptionKey = async (options: ResolvedDiskOptions): Promise<Buffe
   const existingKey = await readKeyFile(options.keyPath);
   if (existingKey) return existingKey;
 
-  const generated = randomBytes(ENCRYPTION_KEY_BYTES);
+  const generated = randomBytes(ENCRYPTION.KEY_BYTES);
   await fs.mkdir(path.dirname(options.keyPath), { recursive: true });
   await fs.writeFile(options.keyPath, generated, { mode: 0o600 });
   return generated;
 };
 
 const normalizeEncryptionKey = (value: string | Buffer): Buffer => {
-  const buffer = typeof value === "string" ? Buffer.from(value, "utf8") : value;
-  if (buffer.length === ENCRYPTION_KEY_BYTES) return buffer;
+  const buffer = typeof value === "string" ? Buffer.from(value, ENCODING.UTF8) : value;
+  if (buffer.length === ENCRYPTION.KEY_BYTES) return buffer;
   return createHash("sha256").update(buffer).digest();
 };
 
@@ -122,7 +123,7 @@ const readKeyFile = async (keyPath: string): Promise<Buffer | null> => {
 
 const readEncryptedPayload = async (filePath: string): Promise<EncryptedPayload | null> => {
   try {
-    const raw = await fs.readFile(filePath, "utf8");
+    const raw = await fs.readFile(filePath, ENCODING.UTF8);
     return JSON.parse(raw) as EncryptedPayload;
   } catch {
     return null;
@@ -130,9 +131,9 @@ const readEncryptedPayload = async (filePath: string): Promise<EncryptedPayload 
 };
 
 const encryptPayload = (plaintext: string, key: Buffer): EncryptedPayload => {
-  const iv = randomBytes(ENCRYPTION_IV_BYTES);
-  const cipher = createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
-  const encrypted = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
+  const iv = randomBytes(ENCRYPTION.IV_BYTES);
+  const cipher = createCipheriv(ENCRYPTION.ALGORITHM, key, iv);
+  const encrypted = Buffer.concat([cipher.update(plaintext, ENCODING.UTF8), cipher.final()]);
   const tag = cipher.getAuthTag();
 
   return {
@@ -147,8 +148,8 @@ const decryptPayload = (payload: EncryptedPayload, key: Buffer): string => {
   const iv = Buffer.from(payload.iv, "base64");
   const tag = Buffer.from(payload.tag, "base64");
   const encrypted = Buffer.from(payload.data, "base64");
-  const decipher = createDecipheriv(ENCRYPTION_ALGORITHM, key, iv);
+  const decipher = createDecipheriv(ENCRYPTION.ALGORITHM, key, iv);
   decipher.setAuthTag(tag);
   const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
-  return decrypted.toString("utf8");
+  return decrypted.toString(ENCODING.UTF8);
 };

@@ -1,3 +1,4 @@
+import { CREDENTIAL_STORE_KIND } from "@/constants/credential-stores";
 import {
   type CredentialScope,
   type CredentialStore,
@@ -17,7 +18,7 @@ export interface KeytarCredentialStoreOptions {
 }
 
 export class KeytarCredentialStore implements CredentialStore {
-  readonly kind = "keytar" as const;
+  readonly kind = CREDENTIAL_STORE_KIND.KEYTAR;
   private readonly service: string;
 
   constructor(private readonly options: KeytarCredentialStoreOptions) {
