@@ -1,3 +1,4 @@
+import { COLOR } from "@/constants/colors";
 import type { AgentId } from "@/types/domain";
 import { Box, Text, useInput } from "ink";
 import { useEffect, useState } from "react";
@@ -40,7 +41,7 @@ export function AgentSelect({ agents, onSelect }: AgentSelectProps): JSX.Element
     <Box flexDirection="column" gap={1}>
       <Text>Select an agent:</Text>
       {agents.map((agent, i) => (
-        <Text key={agent.id} color={i === index ? "green" : undefined}>
+        <Text key={agent.id} color={i === index ? COLOR.GREEN : undefined}>
           {i === index ? "› " : "  "}
           {agent.name}
           {agent.description ? ` — ${agent.description}` : ""}

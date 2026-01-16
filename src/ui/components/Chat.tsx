@@ -1,67 +1,414 @@
-import type { ACPClient } from "@/core/acp-client";
+import { LIMIT } from "@/config/limits";
+import { TIMEOUT } from "@/config/timeouts";
+import { COLOR } from "@/constants/colors";
+import { CONNECTION_STATUS } from "@/constants/connection-status";
+import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { PERMISSION_PATTERN } from "@/constants/permission-patterns";
+import { PERMISSION } from "@/constants/permissions";
+import { PLAN_STATUS } from "@/constants/plan-status";
+import { SESSION_MODE } from "@/constants/session-modes";
+import { SLASH_COMMAND } from "@/constants/slash-commands";
+import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { useAppStore } from "@/store/app-store";
-import type { AgentId, Message, SessionId } from "@/types/domain";
-import { MessageIdSchema, SessionIdSchema } from "@/types/domain";
-import { Input } from "@/ui/components/Input";
+import type { AgentId, Message, Plan, Session, SessionId } from "@/types/domain";
+import {
+  MessageIdSchema,
+  PlanIdSchema,
+  SessionIdSchema,
+  SessionModeSchema,
+  TaskIdSchema,
+} from "@/types/domain";
+// import { AppIcon } from "@/ui/components/AppIcon";
+import { InputWithAutocomplete } from "@/ui/components/InputWithAutocomplete";
 import { MessageList } from "@/ui/components/MessageList";
+import { PlanApprovalPanel } from "@/ui/components/PlanApprovalPanel";
+import { PlanPanel } from "@/ui/components/PlanPanel";
+import { ToolCallManager } from "@/ui/components/ToolCallManager";
+import { roleColor } from "@/ui/theme";
 import { Box, Text } from "ink";
-import { useMemo, useState } from "react";
+import { nanoid } from "nanoid";
+import { memo, useCallback, useMemo, useState } from "react";
 
 interface ChatProps {
   sessionId?: SessionId;
   agent?: { id: AgentId; name: string; description?: string };
-  client?: ACPClient | null;
+  client?: HarnessRuntime | null;
   onPromptComplete?: (sessionId: SessionId) => void;
+  onOpenSettings?: () => void;
+  onOpenHelp?: () => void;
 }
 
-export function Chat({ sessionId, agent, client, onPromptComplete }: ChatProps): JSX.Element {
-  const appendMessage = useAppStore((state) => state.appendMessage);
-  const messages = useAppStore((state) =>
-    sessionId ? state.getMessagesForSession(sessionId) : []
-  );
+export const runSlashCommand = (
+  value: string,
+  deps: {
+    sessionId?: SessionId;
+    appendSystemMessage: (text: string) => void;
+    getSession: (sessionId: SessionId) => Session | undefined;
+    upsertSession: (params: { session: Session }) => void;
+    clearMessagesForSession: (sessionId: SessionId) => void;
+    upsertPlan: (plan: Plan) => void;
+    now?: () => number;
+  }
+): boolean => {
+  if (!value.startsWith("/")) return false;
+  const parts = value.trim().split(/\s+/);
+  const command = parts[0]?.toLowerCase();
+  if (!deps.sessionId) {
+    deps.appendSystemMessage("No active session for slash command.");
+    return true;
+  }
 
-  const [inputValue, setInputValue] = useState("");
-
-  const effectiveSessionId = useMemo(() => {
-    if (sessionId) return sessionId;
-    return SessionIdSchema.parse("session-unknown");
-  }, [sessionId]);
-
-  const handleSubmit = (value: string): void => {
-    if (!value.trim()) return;
-    const now = Date.now();
-    const userMessage: Message = {
-      id: MessageIdSchema.parse(`msg-${now}`),
-      sessionId: effectiveSessionId,
-      role: "user",
-      content: [{ type: "text", text: value }],
-      createdAt: now,
-      isStreaming: false,
-    };
-    appendMessage(userMessage);
-    setInputValue("");
-
-    if (!client || !sessionId) {
-      return;
+  switch (command) {
+    case SLASH_COMMAND.HELP: {
+      deps.appendSystemMessage(
+        "Commands: /help, /mode <read-only|auto|full-access>, /clear, /plan <title>"
+      );
+      return true;
     }
+    case SLASH_COMMAND.MODE: {
+      const nextMode = parts[1];
+      const parsed = SessionModeSchema.safeParse(nextMode);
+      if (!parsed.success) {
+        deps.appendSystemMessage("Invalid mode. Use read-only, auto, or full-access.");
+        return true;
+      }
+      const session = deps.getSession(deps.sessionId);
+      if (!session) {
+        deps.appendSystemMessage("No session to update mode.");
+        return true;
+      }
+      deps.upsertSession({ session: { ...session, mode: parsed.data } });
+      deps.appendSystemMessage(`Mode updated to ${parsed.data}.`);
+      return true;
+    }
+    case SLASH_COMMAND.CLEAR: {
+      deps.clearMessagesForSession(deps.sessionId);
+      deps.appendSystemMessage("Session messages cleared.");
+      return true;
+    }
+    case SLASH_COMMAND.PLAN: {
+      const title = parts.slice(1).join(" ").trim() || "Plan";
+      const now = deps.now?.() ?? Date.now();
+      const planId = PlanIdSchema.parse(`plan-${nanoid(6)}`);
+      const planPayload: Plan = {
+        id: planId,
+        sessionId: deps.sessionId,
+        originalPrompt: title,
+        tasks: [
+          {
+            id: TaskIdSchema.parse(`task-${nanoid(LIMIT.NANOID_LENGTH)}`),
+            planId,
+            title,
+            description: title,
+            status: "pending",
+            dependencies: [],
+            result: undefined,
+            createdAt: now,
+          },
+        ],
+        status: "planning",
+        createdAt: now,
+        updatedAt: now,
+      };
+      deps.upsertPlan(planPayload);
+      deps.appendSystemMessage(`Plan created: ${title}`);
+      return true;
+    }
+    default: {
+      deps.appendSystemMessage(`Unknown command: ${command}`);
+      return true;
+    }
+  }
+};
 
-    void client
-      .prompt({
+export const Chat = memo(
+  ({
+    sessionId,
+    agent,
+    client,
+    onPromptComplete,
+    onOpenSettings,
+    onOpenHelp,
+  }: ChatProps): JSX.Element => {
+    const appendMessage = useAppStore((state) => state.appendMessage);
+    const messages = useAppStore((state) =>
+      sessionId ? state.getMessagesForSession(sessionId) : []
+    );
+    const currentSession = useAppStore((state) =>
+      sessionId ? state.getSession(sessionId) : undefined
+    );
+    const connectionStatus = useAppStore((state) => state.connectionStatus);
+    const upsertSession = useAppStore((state) => state.upsertSession);
+    const clearMessagesForSession = useAppStore((state) => state.clearMessagesForSession);
+    const upsertPlan = useAppStore((state) => state.upsertPlan);
+    const getPlanBySession = useAppStore((state) => state.getPlanBySession);
+
+    const [inputValue, setInputValue] = useState("");
+    const [modeWarning, setModeWarning] = useState<string | null>(null);
+
+    const effectiveSessionId = useMemo(() => {
+      if (sessionId) return sessionId;
+      return SessionIdSchema.parse("session-unknown");
+    }, [sessionId]);
+
+    const sessionMode = currentSession?.mode ?? "auto";
+    const plan = sessionId ? getPlanBySession(sessionId) : undefined;
+
+    const appendSystemMessage = useCallback(
+      (text: string): void => {
+        const now = Date.now();
+        appendMessage({
+          id: MessageIdSchema.parse(`sys-${now}`),
+          sessionId: effectiveSessionId,
+          role: "system",
+          content: [{ type: CONTENT_BLOCK_TYPE.TEXT, text }],
+          createdAt: now,
+          isStreaming: false,
+        });
+      },
+      [appendMessage, effectiveSessionId]
+    );
+
+    const handleSlashCommand = useCallback(
+      (value: string): boolean => {
+        if (!value.startsWith("/")) return false;
+        const parts = value.trim().split(/\s+/);
+        const command = parts[0]?.toLowerCase();
+        if (!sessionId) {
+          appendSystemMessage("No active session for slash command.");
+          return true;
+        }
+
+        switch (command) {
+          case SLASH_COMMAND.HELP: {
+            onOpenHelp?.();
+            return true;
+          }
+          case SLASH_COMMAND.SETTINGS: {
+            onOpenSettings?.();
+            return true;
+          }
+          case SLASH_COMMAND.MODE: {
+            const nextMode = parts[1];
+            const parsed = SessionModeSchema.safeParse(nextMode);
+            if (!parsed.success) {
+              appendSystemMessage("Invalid mode. Use read-only, auto, or full-access.");
+              return true;
+            }
+            const session = useAppStore.getState().getSession(sessionId);
+            if (!session) {
+              appendSystemMessage("No session to update mode.");
+              return true;
+            }
+            upsertSession({ session: { ...session, mode: parsed.data } });
+            appendSystemMessage(`Mode updated to ${parsed.data}.`);
+            return true;
+          }
+          case SLASH_COMMAND.CLEAR: {
+            clearMessagesForSession(sessionId);
+            appendSystemMessage("Session messages cleared.");
+            return true;
+          }
+          case SLASH_COMMAND.PLAN: {
+            const title = parts.slice(1).join(" ").trim() || "Plan";
+            const now = Date.now();
+            const planId = PlanIdSchema.parse(`plan-${nanoid(LIMIT.NANOID_LENGTH)}`);
+            const planPayload: Plan = {
+              id: planId,
+              sessionId,
+              originalPrompt: title,
+              tasks: [
+                {
+                  id: TaskIdSchema.parse(`task-${nanoid(LIMIT.NANOID_LENGTH)}`),
+                  planId,
+                  title,
+                  description: title,
+                  status: "pending",
+                  dependencies: [],
+                  result: undefined,
+                  createdAt: now,
+                },
+              ],
+              status: "planning",
+              createdAt: now,
+              updatedAt: now,
+            };
+            upsertPlan(planPayload);
+            appendSystemMessage(`Plan created: ${title}`);
+            return true;
+          }
+          default: {
+            appendSystemMessage(`Unknown command: ${command}`);
+            return true;
+          }
+        }
+      },
+      [
         sessionId,
-        prompt: [{ type: "text", text: value }],
-      })
-      .then(() => {
-        onPromptComplete?.(sessionId);
-      });
-  };
+        appendSystemMessage,
+        upsertSession,
+        clearMessagesForSession,
+        upsertPlan,
+        onOpenSettings,
+        onOpenHelp,
+      ]
+    );
 
-  return (
-    <Box flexDirection="column" gap={1}>
-      <Text>
-        Session: {effectiveSessionId} {agent ? `· Agent: ${agent.name}` : ""}
-      </Text>
-      <MessageList messages={messages} />
-      <Input value={inputValue} onSubmit={handleSubmit} onChange={setInputValue} />
-    </Box>
-  );
-}
+    const handleSubmit = useCallback(
+      (value: string): void => {
+        if (!value.trim()) return;
+        if (handleSlashCommand(value)) {
+          setInputValue("");
+          return;
+        }
+        if (sessionMode === SESSION_MODE.READ_ONLY) {
+          setModeWarning("Session is read-only; prompts are blocked.");
+          return;
+        }
+        setModeWarning(null);
+
+        const now = Date.now();
+        const userMessage: Message = {
+          id: MessageIdSchema.parse(`msg-${now}`),
+          sessionId: effectiveSessionId,
+          role: "user",
+          content: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: value }],
+          createdAt: now,
+          isStreaming: false,
+        };
+        appendMessage(userMessage);
+        setInputValue("");
+
+        if (!client || !sessionId) {
+          return;
+        }
+
+        void client
+          .prompt({
+            sessionId,
+            prompt: [{ type: "text", text: value }],
+          })
+          .then(() => {
+            onPromptComplete?.(sessionId);
+          });
+      },
+      [
+        handleSlashCommand,
+        sessionMode,
+        effectiveSessionId,
+        appendMessage,
+        client,
+        sessionId,
+        onPromptComplete,
+      ]
+    );
+
+    return (
+      <Box flexDirection="column" height="100%" overflow="hidden" width="100%">
+        {/* Fixed header section */}
+        <Box flexDirection="column" flexShrink={0}>
+          <Box flexDirection="row" alignItems="center" gap={1}>
+            {/* <AppIcon size="small" /> */}
+            <Text>
+              Session: {effectiveSessionId} {agent ? `· Agent: ${agent.name}` : ""} · Mode:{" "}
+              {sessionMode} · Status:{" "}
+              <Text
+                color={
+                  connectionStatus === CONNECTION_STATUS.CONNECTED
+                    ? roleColor("assistant")
+                    : COLOR.YELLOW
+                }
+              >
+                {connectionStatus}
+              </Text>
+            </Text>
+          </Box>
+          {modeWarning ? <Text color={COLOR.YELLOW}>{modeWarning}</Text> : null}
+          {plan ? (
+            plan.status === PLAN_STATUS.PLANNING ? (
+              <PlanApprovalPanel
+                plan={plan}
+                onApprove={() => {
+                  // Update plan status to executing
+                  const updatedPlan = {
+                    ...plan,
+                    status: PLAN_STATUS.EXECUTING,
+                    updatedAt: Date.now(),
+                  };
+                  upsertPlan(updatedPlan);
+                }}
+                onDeny={() => {
+                  // Update plan status to failed
+                  const updatedPlan = {
+                    ...plan,
+                    status: PLAN_STATUS.FAILED,
+                    updatedAt: Date.now(),
+                  };
+                  upsertPlan(updatedPlan);
+                }}
+                autoApprove={sessionMode === SESSION_MODE.FULL_ACCESS}
+                showTaskDetails={true}
+              />
+            ) : (
+              <PlanPanel plan={plan} />
+            )
+          ) : null}
+          <ToolCallManager
+            defaultPermission={
+              sessionMode === SESSION_MODE.FULL_ACCESS
+                ? PERMISSION.ALLOW
+                : sessionMode === SESSION_MODE.READ_ONLY
+                  ? PERMISSION.DENY
+                  : PERMISSION.ASK
+            }
+            autoApproveTimeout={
+              sessionMode === SESSION_MODE.FULL_ACCESS
+                ? TIMEOUT.AUTO_APPROVE_DISABLED
+                : TIMEOUT.AUTO_APPROVE_DEFAULT
+            }
+            permissionProfiles={{
+              [PERMISSION_PATTERN.READ_FILE]: PERMISSION.ALLOW,
+              [PERMISSION_PATTERN.LIST]: PERMISSION.ALLOW,
+              [PERMISSION_PATTERN.GET]: PERMISSION.ALLOW,
+              [PERMISSION_PATTERN.WRITE]:
+                sessionMode === SESSION_MODE.FULL_ACCESS ? PERMISSION.ALLOW : PERMISSION.ASK,
+              [PERMISSION_PATTERN.DELETE]: PERMISSION.DENY,
+              [PERMISSION_PATTERN.EXEC]:
+                sessionMode === SESSION_MODE.FULL_ACCESS ? PERMISSION.ALLOW : PERMISSION.ASK,
+            }}
+          />
+        </Box>
+        {/* Scrollable message area - takes remaining space */}
+        <Box flexGrow={1} minHeight={0} overflow="hidden">
+          <MessageList messages={messages} />
+        </Box>
+        {/* Fixed footer section - input */}
+        <Box flexShrink={0}>
+          <InputWithAutocomplete
+            value={inputValue}
+            onSubmit={handleSubmit}
+            onChange={setInputValue}
+            slashCommands={[
+              { name: SLASH_COMMAND.HELP, description: "Show available commands" },
+              {
+                name: SLASH_COMMAND.MODE,
+                description: "Change session mode",
+                args: `<${SESSION_MODE.READ_ONLY}|${SESSION_MODE.AUTO}|${SESSION_MODE.FULL_ACCESS}>`,
+              },
+              { name: SLASH_COMMAND.CLEAR, description: "Clear chat messages" },
+              { name: SLASH_COMMAND.PLAN, description: "Create a new plan", args: "<title>" },
+              { name: SLASH_COMMAND.SETTINGS, description: "Open settings (coming soon)" },
+              {
+                name: SLASH_COMMAND.EXPORT,
+                description: "Export session (coming soon)",
+                args: "<filename>",
+              },
+            ]}
+          />
+        </Box>
+      </Box>
+    );
+  }
+);
+
+Chat.displayName = "Chat";
