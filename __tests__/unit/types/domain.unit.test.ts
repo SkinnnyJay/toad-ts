@@ -1,3 +1,4 @@
+import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { describe, expect, it } from "vitest";
 import {
   ContentBlockSchema,
@@ -14,14 +15,14 @@ describe("domain schemas", () => {
       id: "m-1",
       sessionId,
       role: MessageRoleSchema.parse("user"),
-      content: [ContentBlockSchema.parse({ type: "text", text: "hello" })],
+      content: [ContentBlockSchema.parse({ type: CONTENT_BLOCK_TYPE.TEXT, text: "hello" })],
       createdAt: Date.now(),
     });
-    expect(message.content[0]).toMatchObject({ type: "text", text: "hello" });
+    expect(message.content[0]).toMatchObject({ type: CONTENT_BLOCK_TYPE.TEXT, text: "hello" });
   });
 
   it("rejects an invalid content block", () => {
-    expect(() => ContentBlockSchema.parse({ type: "text" })).toThrow();
+    expect(() => ContentBlockSchema.parse({ type: CONTENT_BLOCK_TYPE.TEXT })).toThrow();
   });
 
   it("parses a session with defaults", () => {
@@ -36,15 +37,15 @@ describe("domain schemas", () => {
 
   it("parses resource content blocks", () => {
     const link = ContentBlockSchema.parse({
-      type: "resource_link",
+      type: CONTENT_BLOCK_TYPE.RESOURCE_LINK,
       uri: "file:///notes.txt",
       name: "notes.txt",
     });
     const resource = ContentBlockSchema.parse({
-      type: "resource",
+      type: CONTENT_BLOCK_TYPE.RESOURCE,
       resource: { uri: "file:///notes.txt", text: "hello" },
     });
-    expect(link.type).toBe("resource_link");
-    expect(resource.type).toBe("resource");
+    expect(link.type).toBe(CONTENT_BLOCK_TYPE.RESOURCE_LINK);
+    expect(resource.type).toBe(CONTENT_BLOCK_TYPE.RESOURCE);
   });
 });

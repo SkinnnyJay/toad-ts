@@ -1,4 +1,7 @@
 import { PassThrough, Readable, Writable } from "node:stream";
+import { CONNECTION_STATUS } from "@/constants/connection-status";
+import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import {
   type Agent,
   AgentSideConnection,
@@ -15,19 +18,19 @@ import { ClaudeCliHarnessAdapter } from "../../../src/core/claude-cli-harness";
 import type { ConnectionStatus } from "../../../src/types/domain";
 
 class FakeConnection extends EventEmitter implements ACPConnectionLike {
-  connectionStatus: ConnectionStatus = "disconnected";
+  connectionStatus: ConnectionStatus = CONNECTION_STATUS.DISCONNECTED;
 
   constructor(private readonly stream: Stream) {
     super();
   }
 
   async connect(): Promise<void> {
-    this.connectionStatus = "connected";
+    this.connectionStatus = CONNECTION_STATUS.CONNECTED;
     this.emit("state", this.connectionStatus);
   }
 
   async disconnect(): Promise<void> {
-    this.connectionStatus = "disconnected";
+    this.connectionStatus = CONNECTION_STATUS.DISCONNECTED;
     this.emit("state", this.connectionStatus);
   }
 
@@ -79,8 +82,8 @@ describe("ClaudeCliHarnessAdapter", () => {
           await conn.sessionUpdate({
             sessionId: params.sessionId,
             update: {
-              sessionUpdate: "agent_message_chunk",
-              content: { type: "text", text: "hello" },
+              sessionUpdate: SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK,
+              content: { type: CONTENT_BLOCK_TYPE.TEXT, text: "hello" },
             },
           });
           return { stopReason: "end_turn" };
@@ -99,7 +102,7 @@ describe("ClaudeCliHarnessAdapter", () => {
     const session = await adapter.newSession({ cwd: ".", mcpServers: [] });
     const result = await adapter.prompt({
       sessionId: session.sessionId,
-      prompt: [{ type: "text", text: "hi" }],
+      prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "hi" }],
     });
 
     expect(init.protocolVersion).toBe(PROTOCOL_VERSION);
@@ -113,11 +116,11 @@ describe("ClaudeCliHarnessAdapter", () => {
   });
 
   it("resolves command and args from env defaults", () => {
-    const originalCommand = process.env.TOAD_CLAUDE_COMMAND;
-    const originalArgs = process.env.TOAD_CLAUDE_ARGS;
+    const originalCommand = process.env.TOADSTOOL_CLAUDE_COMMAND;
+    const originalArgs = process.env.TOADSTOOL_CLAUDE_ARGS;
 
-    process.env.TOAD_CLAUDE_COMMAND = "claude-code-acp";
-    process.env.TOAD_CLAUDE_ARGS = "--experimental-acp --model sonnet";
+    process.env.TOADSTOOL_CLAUDE_COMMAND = "claude-code-acp";
+    process.env.TOADSTOOL_CLAUDE_ARGS = "--experimental-acp --model sonnet";
 
     const captured: ACPConnectionOptions[] = [];
     const adapter = new ClaudeCliHarnessAdapter({
@@ -133,15 +136,15 @@ describe("ClaudeCliHarnessAdapter", () => {
     expect(captured[0]?.args).toEqual(["--experimental-acp", "--model", "sonnet"]);
 
     if (originalCommand === undefined) {
-      Reflect.deleteProperty(process.env, "TOAD_CLAUDE_COMMAND");
+      Reflect.deleteProperty(process.env, "TOADSTOOL_CLAUDE_COMMAND");
     } else {
-      process.env.TOAD_CLAUDE_COMMAND = originalCommand;
+      process.env.TOADSTOOL_CLAUDE_COMMAND = originalCommand;
     }
 
     if (originalArgs === undefined) {
-      Reflect.deleteProperty(process.env, "TOAD_CLAUDE_ARGS");
+      Reflect.deleteProperty(process.env, "TOADSTOOL_CLAUDE_ARGS");
     } else {
-      process.env.TOAD_CLAUDE_ARGS = originalArgs;
+      process.env.TOADSTOOL_CLAUDE_ARGS = originalArgs;
     }
   });
 });

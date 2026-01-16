@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
 
 const writeHarnessFile = async (root: string, data: unknown): Promise<string> => {
-  const dir = path.join(root, ".toad");
+  const dir = path.join(root, ".toadstool");
   await mkdir(dir, { recursive: true });
   const filePath = path.join(dir, "harnesses.json");
   await writeFile(filePath, JSON.stringify(data, null, 2));
@@ -29,8 +29,8 @@ describe("harnessConfig", () => {
   });
 
   it("applies project, user, and CLI precedence", async () => {
-    projectRoot = await mkdtemp(path.join(tmpdir(), "toad-project-"));
-    userRoot = await mkdtemp(path.join(tmpdir(), "toad-user-"));
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
 
     await writeHarnessFile(projectRoot, {
       defaultHarness: "claude",
@@ -70,8 +70,8 @@ describe("harnessConfig", () => {
   });
 
   it("expands environment variables in config values", async () => {
-    projectRoot = await mkdtemp(path.join(tmpdir(), "toad-project-"));
-    userRoot = await mkdtemp(path.join(tmpdir(), "toad-user-"));
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
 
     await writeHarnessFile(projectRoot, {
       harnesses: {
@@ -104,8 +104,8 @@ describe("harnessConfig", () => {
   });
 
   it("uses CLI config path overrides", async () => {
-    projectRoot = await mkdtemp(path.join(tmpdir(), "toad-project-"));
-    userRoot = await mkdtemp(path.join(tmpdir(), "toad-user-"));
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
 
     await writeHarnessFile(projectRoot, {
       defaultHarness: "claude",
@@ -146,8 +146,8 @@ describe("harnessConfig", () => {
   });
 
   it("throws on invalid harness definitions", async () => {
-    projectRoot = await mkdtemp(path.join(tmpdir(), "toad-project-"));
-    userRoot = await mkdtemp(path.join(tmpdir(), "toad-user-"));
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
 
     await writeHarnessFile(projectRoot, {
       harnesses: {

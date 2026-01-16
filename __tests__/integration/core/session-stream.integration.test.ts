@@ -1,3 +1,5 @@
+import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { describe, expect, it } from "vitest";
 
 import { SessionStream } from "../../../src/core/session-stream";
@@ -15,16 +17,16 @@ describe("SessionStream integration", () => {
     stream.handleSessionUpdate({
       sessionId,
       update: {
-        sessionUpdate: "agent_message_chunk",
-        content: { type: "text", text: "Hello" },
+        sessionUpdate: SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK,
+        content: { type: CONTENT_BLOCK_TYPE.TEXT, text: "Hello" },
       },
     });
 
     stream.handleSessionUpdate({
       sessionId,
       update: {
-        sessionUpdate: "agent_message_chunk",
-        content: { type: "text", text: "World" },
+        sessionUpdate: SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK,
+        content: { type: CONTENT_BLOCK_TYPE.TEXT, text: "World" },
         _meta: { isFinal: true },
       },
     });

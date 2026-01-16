@@ -1,4 +1,7 @@
 import { PassThrough, Readable, Writable } from "node:stream";
+import { CONNECTION_STATUS } from "@/constants/connection-status";
+import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import {
   type Agent,
   AgentSideConnection,
@@ -12,19 +15,19 @@ import { ACPClient, type ACPConnectionLike } from "../../../src/core/acp-client"
 import type { ConnectionStatus } from "../../../src/types/domain";
 
 class FakeConnection extends EventEmitter implements ACPConnectionLike {
-  connectionStatus: ConnectionStatus = "disconnected";
+  connectionStatus: ConnectionStatus = CONNECTION_STATUS.DISCONNECTED;
 
   constructor(private readonly stream: Stream) {
     super();
   }
 
   async connect(): Promise<void> {
-    this.connectionStatus = "connected";
+    this.connectionStatus = CONNECTION_STATUS.CONNECTED;
     this.emit("state", this.connectionStatus);
   }
 
   async disconnect(): Promise<void> {
-    this.connectionStatus = "disconnected";
+    this.connectionStatus = CONNECTION_STATUS.DISCONNECTED;
     this.emit("state", this.connectionStatus);
   }
 
@@ -56,8 +59,8 @@ describe("ACPClient", () => {
           await conn.sessionUpdate({
             sessionId: params.sessionId,
             update: {
-              sessionUpdate: "agent_message_chunk",
-              content: { type: "text", text: "hello" },
+              sessionUpdate: SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK,
+              content: { type: CONTENT_BLOCK_TYPE.TEXT, text: "hello" },
             },
           });
           return { stopReason: "end_turn" };
@@ -76,7 +79,7 @@ describe("ACPClient", () => {
     const session = await client.newSession({ cwd: ".", mcpServers: [] });
     const result = await client.prompt({
       sessionId: session.sessionId,
-      prompt: [{ type: "text", text: "hi" }],
+      prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "hi" }],
     });
 
     expect(init.protocolVersion).toBe(PROTOCOL_VERSION);

@@ -1,8 +1,8 @@
-import { render } from "ink-testing-library";
 import React from "react";
 import { describe, expect, it } from "vitest";
 import { AgentIdSchema } from "../../../src/types/domain";
 import { type AgentOption, AgentSelect } from "../../../src/ui/components/AgentSelect";
+import { renderInk } from "../../utils/ink-test-helpers";
 
 const agents: AgentOption[] = [
   { id: AgentIdSchema.parse("a-1"), name: "One" },
@@ -11,7 +11,7 @@ const agents: AgentOption[] = [
 
 describe("AgentSelect", () => {
   it("renders agents", () => {
-    const { lastFrame } = render(
+    const { lastFrame } = renderInk(
       React.createElement(AgentSelect, {
         agents,
         onSelect: () => {},

@@ -1,6 +1,7 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 
 import { describe, expect, it } from "vitest";
 
@@ -31,7 +32,7 @@ const createSnapshot = () => {
         id: messageId,
         sessionId,
         role: "assistant",
-        content: [{ type: "text", text: "Stored" }],
+        content: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "Stored" }],
         createdAt: 2,
         isStreaming: false,
       },
@@ -49,7 +50,7 @@ describe("SessionPersistence", () => {
   });
 
   it("stores snapshots on disk", async () => {
-    const folder = await mkdtemp(join(tmpdir(), "toad-session-"));
+    const folder = await mkdtemp(join(tmpdir(), "toadstool-session-"));
     const filePath = join(folder, "sessions.json");
     const persistence = createDiskSessionPersistence({ filePath });
 
@@ -64,7 +65,7 @@ describe("SessionPersistence", () => {
   });
 
   it("returns defaults when no file exists", async () => {
-    const folder = await mkdtemp(join(tmpdir(), "toad-session-empty-"));
+    const folder = await mkdtemp(join(tmpdir(), "toadstool-session-empty-"));
     const filePath = join(folder, "sessions.json");
     const persistence = createDiskSessionPersistence({ filePath });
 

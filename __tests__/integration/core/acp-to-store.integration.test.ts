@@ -1,3 +1,5 @@
+import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import { describe, expect, it } from "vitest";
 import { MessageHandler } from "../../../src/core/message-handler";
 import { useAppStore } from "../../../src/store/app-store";
@@ -41,15 +43,18 @@ describe("ACP to store integration", () => {
       messageId,
       role: "assistant",
       content: {
-        type: "tool_call",
+        type: CONTENT_BLOCK_TYPE.TOOL_CALL,
         toolCallId: ToolCallIdSchema.parse("t-int"),
         name: "run",
-        status: "running",
+        status: TOOL_CALL_STATUS.RUNNING,
       },
     });
 
     const messages = useAppStore.getState().getMessagesForSession(sessionId);
     expect(messages).toHaveLength(1);
-    expect(messages[0]?.content[0]).toMatchObject({ type: "tool_call", name: "run" });
+    expect(messages[0]?.content[0]).toMatchObject({
+      type: CONTENT_BLOCK_TYPE.TOOL_CALL,
+      name: "run",
+    });
   });
 });
