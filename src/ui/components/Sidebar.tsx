@@ -3,7 +3,7 @@ import { COLOR } from "@/constants/colors";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { useAppStore } from "@/store/app-store";
 import type { Plan, Session, SessionId } from "@/types/domain";
-import { Box, Text, useInput } from "ink";
+import { Box, Text, useInput, useStdout } from "ink";
 import { useEffect, useMemo, useState } from "react";
 import { AccordionSection } from "./AccordionSection";
 import { FileTree } from "./FileTree";
@@ -23,12 +23,12 @@ const PlanSection = ({ plan }: { plan?: Plan }) => {
     plan.status === PLAN_STATUS.COMPLETED ? "✓" : plan.status === PLAN_STATUS.FAILED ? "✗" : "⟳";
 
   return (
-    <Box flexDirection="column" gap={0}>
-      <Text>
+    <Box flexDirection="column" gap={0} width="100%" overflow="hidden" minWidth={0}>
+      <Text wrap="wrap">
         {statusIcon} {plan.originalPrompt}
       </Text>
       {plan.tasks.slice(0, LIMIT.SIDEBAR_TASKS_DISPLAY).map((task) => (
-        <Text key={task.id} dimColor>
+        <Text key={task.id} dimColor wrap="wrap">
           {task.status === PLAN_STATUS.COMPLETED
             ? "✓"
             : task.status === PLAN_STATUS.FAILED
@@ -43,10 +43,26 @@ const PlanSection = ({ plan }: { plan?: Plan }) => {
 };
 
 const AgentsSection = ({ currentAgentName }: { currentAgentName?: string }) => {
-  if (!currentAgentName) return <Text dimColor>No agent selected</Text>;
+  if (!currentAgentName) {
+    return (
+      <Box width="100%" overflow="hidden" minWidth={0}>
+        <Text dimColor wrap="wrap">
+          No agent selected
+        </Text>
+      </Box>
+    );
+  }
   return (
-    <Box flexDirection="column" gap={0}>
-      <Text>{currentAgentName}</Text>
+    <Box
+      flexDirection="column"
+      gap={0}
+      width="100%"
+      overflow="hidden"
+      minWidth={0}
+      minHeight={0}
+      flexGrow={1}
+    >
+      <Text wrap="wrap">{currentAgentName}</Text>
     </Box>
   );
 };
@@ -65,7 +81,7 @@ const SessionsSection = ({
   }
 
   return (
-    <Box flexDirection="column" gap={0}>
+    <Box flexDirection="column" gap={0} width="100%" overflow="hidden" minWidth={0}>
       {sessions.map((session, idx) => {
         const isCurrent = session.id === currentSessionId;
         const isSelected = idx === selectedIndex;
@@ -74,6 +90,7 @@ const SessionsSection = ({
           <Text
             key={session.id}
             color={isSelected ? COLOR.CYAN : isCurrent ? COLOR.GREEN : undefined}
+            wrap="wrap"
           >
             {isSelected ? "›" : " "} {isCurrent ? "●" : "○"} {label}
           </Text>
@@ -91,6 +108,14 @@ export function Sidebar({
   onSelectSession,
   focusTarget = "chat",
 }: SidebarProps): JSX.Element {
+  const { stdout } = useStdout();
+  const terminalRows = stdout?.rows ?? 24;
+
+  // Calculate heights: Files 50%, others 12% each
+  // Account for Sidebar padding (2 lines), gaps between sections (4 gaps = 4 lines), shortcut hints (5 lines)
+  const availableHeight = terminalRows - 2 - 4 - 5; // Subtract padding, gaps, and shortcut hints
+  const filesHeight = Math.floor(availableHeight * 0.5);
+  const otherSectionHeight = Math.floor(availableHeight * 0.12);
   const storeCurrentSessionId = useAppStore((state) => state.currentSessionId);
   const activeSessionId = currentSessionId ?? storeCurrentSessionId;
   const plan = useMemo(
@@ -189,20 +214,24 @@ export function Sidebar({
       borderColor={COLOR.GRAY}
       paddingX={1}
       paddingY={1}
-      gap={1}
+      gap={2}
     >
       <AccordionSection
         title="Files"
         isCollapsed={filesCollapsed}
         shortcutHint="[⌘1 focus, ⌥1 toggle]"
+        height={filesHeight}
       >
-        {!filesCollapsed ? <FileTree isFocused={focusTarget === "files"} /> : null}
+        {!filesCollapsed ? (
+          <FileTree isFocused={focusTarget === "files"} height={filesHeight - 1} />
+        ) : null}
       </AccordionSection>
 
       <AccordionSection
         title="Plan"
         isCollapsed={planCollapsed}
         shortcutHint="[⌘2 focus, ⌥2 toggle]"
+        height={otherSectionHeight}
       >
         {!planCollapsed ? <PlanSection plan={plan} /> : null}
       </AccordionSection>
@@ -211,6 +240,7 @@ export function Sidebar({
         title="Context"
         isCollapsed={contextCollapsed}
         shortcutHint="[⌘3 focus, ⌥3 toggle]"
+        height={otherSectionHeight}
       >
         {!contextCollapsed ? <Text dimColor>No context files attached</Text> : null}
       </AccordionSection>
@@ -219,6 +249,7 @@ export function Sidebar({
         title="Sessions"
         isCollapsed={sessionsCollapsed}
         shortcutHint="[⌘4 focus, ⌥4 toggle]"
+        height={otherSectionHeight}
       >
         {!sessionsCollapsed ? (
           <SessionsSection
@@ -233,6 +264,7 @@ export function Sidebar({
         title="Sub-agents"
         isCollapsed={agentsCollapsed}
         shortcutHint="[⌘5 focus, ⌥5 toggle]"
+        height={otherSectionHeight}
       >
         {!agentsCollapsed ? <AgentsSection currentAgentName={currentAgentName} /> : null}
       </AccordionSection>
