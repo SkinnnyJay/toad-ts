@@ -1,8 +1,7 @@
+import { LOG_LEVEL, type LogLevel } from "@/constants/log-level";
 import { getCorrelationContext } from "./correlation-context";
 
 export type LogMetadata = Readonly<Record<string, unknown>>;
-
-export type LogLevel = "info" | "warn" | "debug" | "error";
 
 export interface Logger {
   info(message: string, metadata?: LogMetadata): void;
@@ -45,7 +44,7 @@ function writeLogLine(
 
   const line: string = `${message} ${JSON.stringify(payload)}`;
 
-  if (level === "error") {
+  if (level === LOG_LEVEL.ERROR) {
     process.stderr.write(`[${level}] ${line}\n`);
     return;
   }
@@ -56,13 +55,13 @@ function writeLogLine(
 export function createClassLogger(className: string): Logger {
   return {
     info: (message: string, metadata?: LogMetadata): void =>
-      writeLogLine("info", className, message, metadata),
+      writeLogLine(LOG_LEVEL.INFO, className, message, metadata),
     warn: (message: string, metadata?: LogMetadata): void =>
-      writeLogLine("warn", className, message, metadata),
+      writeLogLine(LOG_LEVEL.WARN, className, message, metadata),
     debug: (message: string, metadata?: LogMetadata): void =>
-      writeLogLine("debug", className, message, metadata),
+      writeLogLine(LOG_LEVEL.DEBUG, className, message, metadata),
     error: (message: string, metadata?: LogMetadata): void =>
-      writeLogLine("error", className, message, metadata),
+      writeLogLine(LOG_LEVEL.ERROR, className, message, metadata),
   };
 }
 

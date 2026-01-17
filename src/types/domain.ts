@@ -1,3 +1,4 @@
+import { AGENT_STATUS } from "@/constants/agent-status";
 import { z } from "zod";
 
 import { CONNECTION_STATUS } from "@/constants/connection-status";
@@ -262,7 +263,13 @@ export const SubAgentSchema = z.object({
   agentId: AgentIdSchema,
   sessionId: SessionIdSchema,
   currentTaskId: TaskIdSchema.optional(),
-  status: z.enum(["idle", "working", "waiting", "completed", "error"]),
+  status: z.enum([
+    AGENT_STATUS.IDLE,
+    AGENT_STATUS.WORKING,
+    AGENT_STATUS.WAITING,
+    AGENT_STATUS.COMPLETED,
+    AGENT_STATUS.ERROR,
+  ]),
   connectionStatus: ConnectionStatusSchema,
   createdAt: z.number().nonnegative(),
   lastActivityAt: z.number().nonnegative(),

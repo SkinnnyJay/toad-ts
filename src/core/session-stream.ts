@@ -327,6 +327,11 @@ export class SessionStream {
     return false;
   }
 
+  /**
+   * Checks if a tool call status should trigger finalization.
+   * Note: Uses ACP SDK status strings ("completed", "failed", "in_progress") which are external
+   * protocol types. These are acceptable as literals per project rules for external library types.
+   */
   private shouldFinalizeToolStatus(status?: ToolCallStatus | null): boolean {
     return status === "completed" || status === "failed"; // ACP SDK statuses, not our constants
   }

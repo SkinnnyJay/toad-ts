@@ -1,4 +1,4 @@
-import { createClassLogger } from "@/shared/utils/logging/logger.utils";
+import { createClassLogger } from "@/utils/logging/logger.utils";
 import { buildAnalyticsSnapshot } from "./analytics";
 import { cleanPrompt } from "./cleaner";
 import type { CompressionStrategy } from "./strategies/base";
