@@ -5,7 +5,6 @@ import { PLAN_STATUS } from "@/constants/plan-status";
 import { useAppStore } from "@/store/app-store";
 import type { Plan, Session, SessionId } from "@/types/domain";
 import { Box, Text, useInput, useStdout } from "ink";
-import { Tab, Tabs } from "ink-tab";
 import { memo, useEffect, useMemo, useState } from "react";
 import { FileTree } from "./FileTree";
 import { ScrollArea } from "./ScrollArea";
@@ -104,6 +103,14 @@ const SessionsSection = memo(
   }
 );
 
+const tabs = [
+  { id: "files", icon: "📁" },
+  { id: "plan", icon: "📋" },
+  { id: "context", icon: "📎" },
+  { id: "sessions", icon: "🕑" },
+  { id: "agent", icon: "🤖" },
+] as const;
+
 export function Sidebar({
   width = "15%",
   height,
@@ -115,10 +122,9 @@ export function Sidebar({
   const { stdout } = useStdout();
   const terminalRows = stdout?.rows ?? UI.TERMINAL_DEFAULT_ROWS;
 
-  // Calculate available height for tab content
-  // Account for Sidebar padding (2 lines), tab bar (2 lines), shortcut hint (1 line)
   const availableHeight = height ?? terminalRows - 5;
-  const contentHeight = Math.max(10, availableHeight - 3); // Leave space for tab bar
+  const tabBarHeight = 2;
+  const contentHeight = Math.max(8, availableHeight - tabBarHeight);
 
   const storeCurrentSessionId = useAppStore((state) => state.currentSessionId);
   const activeSessionId = currentSessionId ?? storeCurrentSessionId;
@@ -133,8 +139,14 @@ export function Sidebar({
     return values.slice().sort((a, b) => b.updatedAt - a.updatedAt);
   }, [sessionsById]);
 
-  const [activeTab, setActiveTab] = useState("files");
   const [sessionIndex, setSessionIndex] = useState(0);
+  const [selectedTab, setSelectedTab] = useState<SidebarProps["focusTarget"]>("files");
+
+  useEffect(() => {
+    if (focusTarget && tabs.some((tab) => tab.id === focusTarget)) {
+      setSelectedTab(focusTarget);
+    }
+  }, [focusTarget]);
 
   useEffect(() => {
     if (!activeSessionId) {
@@ -147,53 +159,38 @@ export function Sidebar({
     }
   }, [activeSessionId, sessions]);
 
-  // Callback for tab change
-  const handleTabChange = (name: string) => {
-    setActiveTab(name);
-  };
-
-  // Handle keyboard input for tab navigation
   useInput((input, key) => {
-    const tabs = ["files", "plan", "context", "sessions", "agents"];
-    const currentIndex = tabs.indexOf(activeTab);
-
-    // Command + arrow keys for tab navigation
-    if (key.meta || key.ctrl) {
-      if (key.leftArrow && currentIndex > 0) {
-        const prevTab = tabs[currentIndex - 1];
-        if (prevTab) setActiveTab(prevTab);
-        return;
+    // Tab navigation within sidebar when focused on sidebar targets
+    if (focusTarget !== "chat") {
+      if (key.leftArrow || input === "h") {
+        setSelectedTab((prev) => {
+          const currentIdx = tabs.findIndex((tab) => tab.id === prev);
+          const safeIdx = currentIdx >= 0 ? currentIdx : 0;
+          const nextIdx = (safeIdx - 1 + tabs.length) % tabs.length;
+          return tabs[nextIdx]?.id ?? prev;
+        });
       }
-      if (key.rightArrow && currentIndex < tabs.length - 1) {
-        const nextTab = tabs[currentIndex + 1];
-        if (nextTab) setActiveTab(nextTab);
-        return;
-      }
-
-      // Command + 1-5 for direct tab selection
-      if (/^[1-5]$/.test(input)) {
-        const tabMap: Record<string, string> = {
-          "1": "files",
-          "2": "plan",
-          "3": "context",
-          "4": "sessions",
-          "5": "agents",
-        };
-        const tabName = tabMap[input];
-        if (tabName) {
-          setActiveTab(tabName);
-        }
-        return;
+      if (key.rightArrow || input === "l") {
+        setSelectedTab((prev) => {
+          const currentIdx = tabs.findIndex((tab) => tab.id === prev);
+          const safeIdx = currentIdx >= 0 ? currentIdx : 0;
+          const nextIdx = (safeIdx + 1) % tabs.length;
+          return tabs[nextIdx]?.id ?? prev;
+        });
       }
     }
 
-    // Handle sessions navigation when in sessions tab
-    if (activeTab === "sessions" && focusTarget === "sessions" && sessions.length > 0) {
+    // Sessions navigation when on Sessions tab
+    if (selectedTab === "sessions" && focusTarget === "sessions" && sessions.length > 0) {
       if (key.upArrow) {
         setSessionIndex((prev) => Math.max(0, prev - 1));
-      } else if (key.downArrow) {
+        return;
+      }
+      if (key.downArrow) {
         setSessionIndex((prev) => Math.min(sessions.length - 1, prev + 1));
-      } else if (key.return) {
+        return;
+      }
+      if (key.return) {
         const chosen = sessions[sessionIndex];
         if (chosen) {
           if (onSelectSession) {
@@ -202,9 +199,94 @@ export function Sidebar({
             useAppStore.getState().setCurrentSession(chosen.id);
           }
         }
+        return;
       }
     }
   });
+
+  const tabContent = useMemo(() => {
+    switch (selectedTab) {
+      case "files":
+        return (
+          <ScrollArea
+            height={contentHeight}
+            showScrollbar={true}
+            isFocused={focusTarget === "files"}
+          >
+            <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
+              <Text color={COLOR.GRAY} bold>
+                Files
+              </Text>
+              <FileTree isFocused={focusTarget === "files"} height={contentHeight} />
+            </Box>
+          </ScrollArea>
+        );
+      case "plan":
+        return (
+          <ScrollArea height={contentHeight} showScrollbar={true}>
+            <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
+              <Text color={COLOR.GRAY} bold>
+                Plan
+              </Text>
+              <PlanSection plan={plan} />
+            </Box>
+          </ScrollArea>
+        );
+      case "context":
+        return (
+          <ScrollArea height={contentHeight} showScrollbar={true}>
+            <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
+              <Text color={COLOR.GRAY} bold>
+                Context
+              </Text>
+              <Text dimColor>No context files attached</Text>
+            </Box>
+          </ScrollArea>
+        );
+      case "sessions":
+        return (
+          <ScrollArea
+            height={contentHeight}
+            showScrollbar={true}
+            isFocused={focusTarget === "sessions"}
+          >
+            <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
+              <Text color={COLOR.GRAY} bold>
+                Sessions
+              </Text>
+              <SessionsSection
+                sessions={sessions}
+                currentSessionId={activeSessionId}
+                selectedIndex={sessionIndex}
+              />
+            </Box>
+          </ScrollArea>
+        );
+      case "agent":
+        return (
+          <ScrollArea height={contentHeight} showScrollbar={true}>
+            <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
+              <Text color={COLOR.GRAY} bold>
+                Sub-agents
+              </Text>
+              <AgentsSection currentAgentName={currentAgentName} />
+            </Box>
+          </ScrollArea>
+        );
+
+      default:
+        return null;
+    }
+  }, [
+    selectedTab,
+    focusTarget,
+    contentHeight,
+    plan,
+    sessions,
+    activeSessionId,
+    sessionIndex,
+    currentAgentName,
+  ]);
 
   return (
     <Box
@@ -217,63 +299,21 @@ export function Sidebar({
       borderColor={COLOR.GRAY}
       paddingX={1}
       paddingY={1}
+      gap={1}
     >
-      <Tabs
-        onChange={handleTabChange}
-        defaultValue="files"
-        showIndex={false}
-        keyMap={{ useNumbers: false, useTab: false }}
-        isFocused={false}
-      >
-        <Tab name="files">▤</Tab>
-        <Tab name="plan">☰</Tab>
-        <Tab name="context">◈</Tab>
-        <Tab name="sessions">◉</Tab>
-        <Tab name="agents">◆</Tab>
-      </Tabs>
-
-      <Box flexDirection="column" height={contentHeight} marginTop={1}>
-        {activeTab === "files" && (
-          <ScrollArea
-            height={contentHeight}
-            showScrollbar={true}
-            isFocused={focusTarget === "files"}
-          >
-            <FileTree isFocused={focusTarget === "files"} height={contentHeight} />
-          </ScrollArea>
-        )}
-
-        {activeTab === "plan" && (
-          <ScrollArea height={contentHeight} showScrollbar={true}>
-            <PlanSection plan={plan} />
-          </ScrollArea>
-        )}
-
-        {activeTab === "context" && (
-          <Box padding={1}>
-            <Text dimColor>No context files attached</Text>
-          </Box>
-        )}
-
-        {activeTab === "sessions" && (
-          <ScrollArea
-            height={contentHeight}
-            showScrollbar={true}
-            isFocused={focusTarget === "sessions"}
-          >
-            <SessionsSection
-              sessions={sessions}
-              currentSessionId={activeSessionId}
-              selectedIndex={sessionIndex}
-            />
-          </ScrollArea>
-        )}
-
-        {activeTab === "agents" && (
-          <Box padding={1}>
-            <AgentsSection currentAgentName={currentAgentName} />
-          </Box>
-        )}
+      <Box flexDirection="row" gap={2}>
+        {tabs.map((tab) => {
+          const isActive = tab.id === selectedTab;
+          return (
+            <Text key={tab.id} color={isActive ? COLOR.CYAN : COLOR.GRAY} bold={isActive}>
+              {isActive ? "▸ " : "  "}
+              {tab.icon}
+            </Text>
+          );
+        })}
+      </Box>
+      <Box flexDirection="column" flexGrow={1} minHeight={0}>
+        {tabContent}
       </Box>
     </Box>
   );

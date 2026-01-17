@@ -1,6 +1,7 @@
-import { readdir } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { COLOR } from "@/constants/colors";
+import ignore from "ignore";
 import { Box, Text, useInput } from "ink";
 import { useEffect, useMemo, useState } from "react";
 import { ScrollArea } from "./ScrollArea";
@@ -27,19 +28,37 @@ const sortNodes = (nodes: FileTreeNode[]): FileTreeNode[] => {
   });
 };
 
-const shouldSkip = (rootPath: string, fullPath: string): boolean => {
-  const rel = path.relative(rootPath, fullPath);
-  return rel.startsWith(".git") || rel.includes(`${path.sep}node_modules`);
+const toPosix = (value: string): string => value.split(path.sep).join("/");
+
+const createIgnoreFilter = async (rootPath: string): Promise<(relativePath: string) => boolean> => {
+  const ig = ignore();
+  ig.add([".git", "node_modules"]);
+
+  try {
+    const gitignoreContents = await readFile(path.join(rootPath, ".gitignore"), "utf8");
+    ig.add(gitignoreContents);
+  } catch (_error) {
+    // Ignore missing or unreadable .gitignore
+  }
+
+  return (relativePath: string): boolean => {
+    if (!relativePath) return false;
+    return ig.ignores(toPosix(relativePath)) || ig.ignores(`${toPosix(relativePath)}/`);
+  };
 };
 
-const buildTree = async (rootPath: string): Promise<FileTreeNode[]> => {
+const buildTree = async (
+  rootPath: string,
+  shouldIgnore: (relativePath: string) => boolean
+): Promise<FileTreeNode[]> => {
   const walk = async (dir: string): Promise<FileTreeNode[]> => {
     const dirents = await readdir(dir, { withFileTypes: true });
     const children: FileTreeNode[] = [];
 
     for (const dirent of dirents) {
       const fullPath = path.join(dir, dirent.name);
-      if (shouldSkip(rootPath, fullPath)) {
+      const relativePath = path.relative(rootPath, fullPath) || dirent.name;
+      if (shouldIgnore(relativePath)) {
         continue;
       }
 
@@ -73,7 +92,8 @@ export function FileTree({
     let active = true;
     void (async () => {
       try {
-        const loaded = await buildTree(rootPath);
+        const shouldIgnore = await createIgnoreFilter(rootPath);
+        const loaded = await buildTree(rootPath, shouldIgnore);
         if (!active) return;
         setNodes(loaded);
         setExpanded(new Set([rootPath]));

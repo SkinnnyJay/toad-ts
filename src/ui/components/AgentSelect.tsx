@@ -1,12 +1,13 @@
 import { COLOR } from "@/constants/colors";
 import type { AgentId } from "@/types/domain";
 import { Box, Text, useInput } from "ink";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export interface AgentOption {
   id: AgentId;
   name: string;
   description?: string;
+  status?: "ready" | "loading" | "error";
 }
 
 interface AgentSelectProps {
@@ -17,10 +18,21 @@ interface AgentSelectProps {
 export function AgentSelect({ agents, onSelect }: AgentSelectProps): JSX.Element {
   const [index, setIndex] = useState(0);
 
-  useInput((_input, key) => {
+  useInput((input, key) => {
     if (agents.length === 0) return;
     if (key.upArrow) setIndex((prev) => (prev - 1 + agents.length) % agents.length);
     if (key.downArrow) setIndex((prev) => (prev + 1) % agents.length);
+    if (/^[1-9]$/.test(input)) {
+      const num = Number(input) - 1;
+      if (num >= 0 && num < agents.length) {
+        const candidate = agents[num];
+        if (candidate) {
+          setIndex(num);
+          onSelect(candidate);
+        }
+      }
+      return;
+    }
     if (key.return) {
       const selected = agents[index];
       if (selected) onSelect(selected);
@@ -33,20 +45,70 @@ export function AgentSelect({ agents, onSelect }: AgentSelectProps): JSX.Element
     }
   }, [agents.length, index]);
 
+  const rows = useMemo(() => {
+    const cols = 3;
+    const chunked: AgentOption[][] = [];
+    for (let i = 0; i < agents.length; i += cols) {
+      chunked.push(agents.slice(i, i + cols));
+    }
+    return chunked;
+  }, [agents]);
+
   if (agents.length === 0) {
     return <Text dimColor>No agents available</Text>;
   }
 
+  const statusIcon = (status?: AgentOption["status"]): { icon: string; color?: string } => {
+    switch (status) {
+      case "ready":
+        return { icon: "●", color: COLOR.GREEN };
+      case "loading":
+        return { icon: "…", color: COLOR.CYAN };
+      case "error":
+        return { icon: "!", color: COLOR.RED };
+      default:
+        return { icon: "○", color: COLOR.GRAY };
+    }
+  };
+
   return (
     <Box flexDirection="column" gap={1}>
-      <Text>Select an agent:</Text>
-      {agents.map((agent, i) => (
-        <Text key={agent.id} color={i === index ? COLOR.GREEN : undefined}>
-          {i === index ? "› " : "  "}
-          {agent.name}
-          {agent.description ? ` — ${agent.description}` : ""}
-        </Text>
-      ))}
+      <Text>Pick an agent (1-9 quick-select):</Text>
+      <Box flexDirection="column" gap={1}>
+        {rows.map((row, rowIdx) => (
+          <Box key={row.map((a) => a.id).join("|") || `row-${rowIdx}`} flexDirection="row" gap={2}>
+            {row.map((agent, colIdx) => {
+              const idx = rowIdx * 3 + colIdx;
+              const selected = idx === index;
+              const { icon, color } = statusIcon(agent.status);
+              return (
+                <Box
+                  key={agent.id}
+                  borderStyle="single"
+                  borderColor={selected ? COLOR.CYAN : COLOR.GRAY}
+                  paddingX={1}
+                  paddingY={0}
+                  width={24}
+                  flexDirection="column"
+                  gap={0}
+                >
+                  <Text>
+                    <Text color={COLOR.YELLOW}>{idx + 1}.</Text> {agent.name}
+                  </Text>
+                  <Text color={color}>
+                    {icon} {agent.status ?? "unknown"}
+                  </Text>
+                  {agent.description ? (
+                    <Text dimColor wrap="wrap">
+                      {agent.description}
+                    </Text>
+                  ) : null}
+                </Box>
+              );
+            })}
+          </Box>
+        ))}
+      </Box>
     </Box>
   );
 }

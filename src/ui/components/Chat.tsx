@@ -335,11 +335,19 @@ export const Chat = memo(
       ]
     );
 
-    const handleCommandSelect = useCallback((cmd: CommandDefinition) => {
-      const next = `${cmd.name}${cmd.args ? " " : ""}`;
-      setInputValue(next);
-      setPaletteOpen(false);
-    }, []);
+    const handleCommandSelect = useCallback(
+      (cmd: CommandDefinition) => {
+        const next = `${cmd.name}${cmd.args ? " " : ""}`;
+        const handled = handleSlashCommand(next);
+        if (!handled) {
+          setInputValue(next);
+        } else {
+          setInputValue("");
+        }
+        setPaletteOpen(false);
+      },
+      [handleSlashCommand]
+    );
 
     return (
       <TruncationProvider>

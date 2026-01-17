@@ -7,6 +7,8 @@ import TerminalRenderer from "marked-terminal";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { TRUNCATION_SHORTCUT_HINT, useTruncationToggle } from "./TruncationProvider";
 
+marked.setOptions({ gfm: true, breaks: true });
+
 interface MarkdownRendererProps {
   markdown: string;
   /** Collapse after this many lines; show truncated notice. */
@@ -32,7 +34,35 @@ interface ParsedBlock {
 const splitBlocks = (markdown: string): string[] => {
   const normalized = markdown.replace(/\s+$/, "");
   if (!normalized) return [];
-  return normalized.split(/\n{2,}/);
+
+  const blocks: string[] = [];
+  const lines = normalized.split("\n");
+  let current: string[] = [];
+  let fenceOpen = false;
+
+  const flushCurrent = () => {
+    if (current.length > 0) {
+      blocks.push(current.join("\n"));
+      current = [];
+    }
+  };
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("```")) {
+      fenceOpen = !fenceOpen;
+    }
+
+    if (!fenceOpen && trimmed === "" && current.length > 0) {
+      flushCurrent();
+      continue;
+    }
+
+    current.push(line);
+  }
+
+  flushCurrent();
+  return blocks;
 };
 
 const createRenderer = (): Renderer =>

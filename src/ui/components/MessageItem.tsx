@@ -41,6 +41,16 @@ const mergeTextBlocks = (blocks: ChatContentBlock[]): ChatContentBlock[] => {
   return merged;
 };
 
+const countBlockLines = (block: ChatContentBlock): number => {
+  if (block.type === CONTENT_BLOCK_TYPE.TEXT || block.type === CONTENT_BLOCK_TYPE.THINKING) {
+    return (block.text ?? "").split(/\r?\n/).length;
+  }
+  if (block.type === CONTENT_BLOCK_TYPE.CODE) {
+    return block.text.split(/\r?\n/).length;
+  }
+  return 1;
+};
+
 type CodeContentBlock = Extract<ChatContentBlock, { type: typeof CONTENT_BLOCK_TYPE.CODE }>;
 type HighlightToken = { content: string; color?: string };
 type HighlightLine = HighlightToken[];
@@ -273,6 +283,30 @@ export const MessageItem = memo(({ message }: MessageItemProps): JSX.Element => 
     [mergedBlocks]
   );
 
+  const totalResponseLines = useMemo(
+    () => responseBlocks.reduce((total, block) => total + countBlockLines(block), 0),
+    [responseBlocks]
+  );
+
+  const isLongOutput = useMemo(
+    () =>
+      totalResponseLines > LIMIT.LONG_OUTPUT_LINE_THRESHOLD ||
+      responseBlocks.length > LIMIT.LONG_OUTPUT_PREVIEW_BLOCKS * 2,
+    [responseBlocks.length, totalResponseLines]
+  );
+
+  const { expanded: longOutputExpanded } = useTruncationToggle({
+    id: `${message.id}-long-output`,
+    label: "Long output",
+    isTruncated: isLongOutput,
+    defaultExpanded: EXPAND_ALL,
+  });
+
+  const displayedResponseBlocks = useMemo(() => {
+    if (!isLongOutput || longOutputExpanded) return responseBlocks;
+    return responseBlocks.slice(0, LIMIT.LONG_OUTPUT_PREVIEW_BLOCKS);
+  }, [isLongOutput, longOutputExpanded, responseBlocks]);
+
   // Check if we have incomplete markdown (for streaming messages)
   const hasIncompleteMarkdown = useMemo(
     () =>
@@ -316,11 +350,21 @@ export const MessageItem = memo(({ message }: MessageItemProps): JSX.Element => 
       )}
 
       {/* Then render response text and other content */}
-      {responseBlocks.map((block, idx) => (
+      {displayedResponseBlocks.map((block, idx) => (
         <Box key={`${message.id}-${block.type}-${idx}`} width="100%">
           <ContentBlockRenderer block={block} messageId={message.id} index={idx} />
         </Box>
       ))}
+
+      {isLongOutput ? (
+        <Box marginTop={1}>
+          <Text dimColor color={COLOR.GRAY}>
+            {`${longOutputExpanded ? "▶" : "•"} long output ${
+              longOutputExpanded ? "(expanded)" : "(collapsed)"
+            } · ${TRUNCATION_SHORTCUT_HINT}`}
+          </Text>
+        </Box>
+      ) : null}
 
       {/* Show error if markdown is incomplete */}
       {hasIncompleteMarkdown && (
