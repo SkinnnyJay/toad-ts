@@ -197,10 +197,38 @@ function ContentBlockRenderer({
 
     case CONTENT_BLOCK_TYPE.TOOL_CALL: {
       const label = block.name ?? "tool";
+      const statusColor =
+        block.status === "succeeded"
+          ? COLOR.GREEN
+          : block.status === "running"
+            ? COLOR.CYAN
+            : block.status === "failed"
+              ? COLOR.RED
+              : COLOR.YELLOW;
+
+      const statusText =
+        block.status === "succeeded"
+          ? "complete"
+          : block.status === "running"
+            ? "in-progress"
+            : block.status === "failed"
+              ? "failed"
+              : "pending";
+
       return (
-        <Text color={COLOR.YELLOW}>
-          {label} ({block.status})
-        </Text>
+        <Box flexDirection="column" gap={0}>
+          <Box gap={1}>
+            <Text color={statusColor}>[tool-call: {label}]</Text>
+            <Text color={statusColor} dimColor>
+              {statusText}
+            </Text>
+          </Box>
+          {block.arguments && Object.keys(block.arguments).length > 0 && (
+            <Text dimColor color={COLOR.GRAY}>
+              - {JSON.stringify(block.arguments).substring(0, 50)}...
+            </Text>
+          )}
+        </Box>
       );
     }
     case CONTENT_BLOCK_TYPE.RESOURCE_LINK:
@@ -231,6 +259,28 @@ function ContentBlockRenderer({
 
 export const MessageItem = memo(({ message }: MessageItemProps): JSX.Element => {
   const mergedBlocks = mergeTextBlocks(message.content);
+
+  // Separate tool calls from other content
+  const toolCallBlocks = mergedBlocks.filter(
+    (block) => block.type === CONTENT_BLOCK_TYPE.TOOL_CALL
+  );
+  const responseBlocks = mergedBlocks.filter(
+    (block) => block.type !== CONTENT_BLOCK_TYPE.TOOL_CALL
+  );
+
+  // Check if we have incomplete markdown (for streaming messages)
+  const hasIncompleteMarkdown =
+    message.isStreaming &&
+    responseBlocks.some((block) => {
+      if (block.type === CONTENT_BLOCK_TYPE.TEXT) {
+        const text = block.text || "";
+        // Check for unclosed code blocks or other markdown issues
+        const codeBlockCount = (text.match(/```/g) || []).length;
+        return codeBlockCount % 2 !== 0;
+      }
+      return false;
+    });
+
   return (
     <Box flexDirection="column" width="100%" gap={0} marginY={1}>
       <Box gap={1} marginBottom={1}>
@@ -238,12 +288,40 @@ export const MessageItem = memo(({ message }: MessageItemProps): JSX.Element => 
           [{message.role.toUpperCase()}]
         </Text>
         <Text dimColor>{formatTime(message.createdAt)}</Text>
+        {message.isStreaming && (
+          <Text color={COLOR.CYAN} dimColor>
+            {" "}
+            (streaming...)
+          </Text>
+        )}
       </Box>
-      {mergedBlocks.map((block, idx) => (
+
+      {/* Render tool calls first */}
+      {toolCallBlocks.length > 0 && (
+        <Box flexDirection="column" marginBottom={1}>
+          {toolCallBlocks.map((block, idx) => (
+            <Box key={`${message.id}-tool-${idx}`} paddingLeft={1}>
+              <ContentBlockRenderer block={block} messageId={message.id} index={idx} />
+            </Box>
+          ))}
+        </Box>
+      )}
+
+      {/* Then render response text and other content */}
+      {responseBlocks.map((block, idx) => (
         <Box key={`${message.id}-${block.type}-${idx}`} width="100%">
           <ContentBlockRenderer block={block} messageId={message.id} index={idx} />
         </Box>
       ))}
+
+      {/* Show error if markdown is incomplete */}
+      {hasIncompleteMarkdown && (
+        <Box marginTop={1} borderStyle="round" borderColor={COLOR.YELLOW} padding={1}>
+          <Text color={COLOR.YELLOW}>
+            ⚠ Incomplete markdown detected - waiting for complete response...
+          </Text>
+        </Box>
+      )}
     </Box>
   );
 });
