@@ -22,6 +22,11 @@ export default defineConfig({
         "**/test/**",
       ],
     },
-    exclude: ["scratchpad/**", "node_modules/**", ".opencode/**"],
+    exclude: [
+      "scratchpad/**",
+      "node_modules/**",
+      ".opencode/**",
+      "ref/**",
+    ],
   },
 });
