@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { useAppStore } from "../../../src/store/app-store";
 import { AgentIdSchema, MessageIdSchema } from "../../../src/types/domain";
 import { MessageList } from "../../../src/ui/components/MessageList";
+import { TruncationProvider } from "../../../src/ui/components/TruncationProvider";
 import { cleanup, createMockAgent, renderInk, setupSession } from "../../utils/ink-test-helpers";
 
 afterEach(() => {
@@ -16,9 +17,13 @@ describe("MessageList", () => {
     const sessionId = setupSession({ mode: SESSION_MODE.AUTO });
 
     const { lastFrame } = renderInk(
-      React.createElement(MessageList, {
-        messages: [],
-      })
+      React.createElement(
+        TruncationProvider,
+        {},
+        React.createElement(MessageList, {
+          messages: [],
+        })
+      )
     );
 
     expect(lastFrame()).toContain("No messages yet");
@@ -61,11 +66,19 @@ describe("MessageList", () => {
     store.appendMessage(msg3);
 
     const messages = store.getMessagesForSession(sessionId);
+    // Sort messages by createdAt to ensure chronological order
+    const sortedMessages = [...messages].sort((a, b) => a.createdAt - b.createdAt);
 
+    // Provide sufficient height to show all 3 messages
     const { lastFrame } = renderInk(
-      React.createElement(MessageList, {
-        messages,
-      })
+      React.createElement(
+        TruncationProvider,
+        {},
+        React.createElement(MessageList, {
+          messages: sortedMessages,
+          height: 30, // Provide enough height to show all messages
+        })
+      )
     );
 
     // Messages should appear in chronological order
@@ -74,7 +87,12 @@ describe("MessageList", () => {
     const secondIndex = frame.indexOf("Second message");
     const thirdIndex = frame.indexOf("Third message");
 
+    // All messages should be present in the frame
     expect(firstIndex).toBeGreaterThan(-1);
+    expect(secondIndex).toBeGreaterThan(-1);
+    expect(thirdIndex).toBeGreaterThan(-1);
+
+    // Messages should appear in chronological order
     expect(secondIndex).toBeGreaterThan(firstIndex);
     expect(thirdIndex).toBeGreaterThan(secondIndex);
   });
@@ -104,9 +122,13 @@ describe("MessageList", () => {
     const messages = store.getMessagesForSession(sessionId);
 
     const { lastFrame } = renderInk(
-      React.createElement(MessageList, {
-        messages,
-      })
+      React.createElement(
+        TruncationProvider,
+        {},
+        React.createElement(MessageList, {
+          messages,
+        })
+      )
     );
 
     expect(lastFrame()).toContain("User message");
@@ -132,10 +154,14 @@ describe("MessageList", () => {
     const messages = store.getMessagesForSession(sessionId);
 
     const { lastFrame } = renderInk(
-      React.createElement(MessageList, {
-        messages,
-        height: 60, // Provide height for ScrollArea
-      })
+      React.createElement(
+        TruncationProvider,
+        {},
+        React.createElement(MessageList, {
+          messages,
+          height: 60, // Provide height for ScrollArea
+        })
+      )
     );
 
     // Should render without crashing
