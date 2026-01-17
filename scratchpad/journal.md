@@ -3,7 +3,7 @@ title: TOADSTOOL TypeScript - Development Journal
 date: 2025-01-27
 author: Jonathan Boice
 status: active
-lastUpdated: 2026-01-15
+lastUpdated: 2026-01-17
 description: Daily work log and decision documentation for TOADSTOOL TypeScript
 ---
 
@@ -121,15 +121,6 @@ Several documents referenced design files that don't exist (`ui-design-mockups.m
 
 ---
 
-## Session 2: [To Be Added]
-**Date**: TBD
-**Duration**: TBD
-**Phase**: Phase 1 - Foundation
-
-[Future session notes will be added here]
-
----
-
 ## Decision Log
 
 ### D001: TypeScript Strict Mode
@@ -175,8 +166,8 @@ Several documents referenced design files that don't exist (`ui-design-mockups.m
 ---
 
 **Journal Status**: Active
-**Last Entry**: Session 6 (2026-01-15)
-**Next Expected Entry**: UI parity sprint completion and build verification
+**Last Entry**: Session 7 (2026-01-17)
+**Next Expected Entry**: Phase 7 execution results and UI parity completion
 
 ---
 
@@ -306,6 +297,29 @@ Several documents referenced design files that don't exist (`ui-design-mockups.m
 ### Notes/Decisions
 - Keep TOADSTOOL palette and two-column layout as the primary UI goal; finish App wiring before adding streaming markdown or prompt editor upgrades.
 - Maintain search escape guard unless `TOADSTOOL_ALLOW_ESCAPE=1` to prevent path traversal during search.
+
+---
+
+## Session 7: Phase 7/8 Readiness Plan
+**Date**: 2026-01-17
+**Phase**: Phase 7 - Testing & Quality / Phase 8 - UI Parity & Polish
+
+### Objectives
+- Reconcile scratchpad metadata and session logs.
+- Define concrete backlog to drive Phases 7–8 to 100%.
+- Capture ACP/OpenCode parity gaps and meta quality gates.
+
+### Work Completed
+- Updated journal metadata (`lastUpdated`) and removed obsolete placeholder session.
+- Recorded consolidated backlog for Phase 7 test suite, Phase 8 UI parity sprint, Phase 8 polish, and ACP/OpenCode gaps.
+- Added LLM validation scaffold and unit tests for validator criteria.
+- Restored sidebar to icon-only tabs with bold in-pane headers and contained scrolling per tab.
+- Aligned next-update expectations with UI parity completion and test hardening.
+
+### Notes/Decisions
+- Ran lint, typecheck, test, and build this session (all passed).
+- Next execution focus: Phase 7 test coverage (>80% unit), integration flows (ACP/session/tools/MCP), and LLM validation harness rollout.
+- UI parity remains top priority before polish: file tree + accordion, streaming markdown, prompt editor gitignore-aware @mentions, agent grid, command palette execute, status footer shortcuts, long-output handling.
 
 ---
 

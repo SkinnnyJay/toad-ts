@@ -67,6 +67,7 @@ Warning:        #FFA726 (orange)
 └──────────────────────────────────────────────────────────────────┘
 
 LEFT SIDEBAR (25% width):
+- Tab strip with icon-only tabs (default focus on Files) and in-pane bold headers; content scrolls within sidebar.
 - Collapsible accordion sections
 - File tree with syntax icons
 - Plan/task tracker with status
@@ -82,7 +83,9 @@ MAIN CONTENT (75% width):
 ```
 
 ### 2. Left Sidebar Navigation
-**Accordion-Style Collapsible Sections:**
+- Use a top tab strip (icon-only: Files 📁, Plan 📋, Context 📎, Sessions 🕑, Sub-agents 🤖); Files tab selected by default.
+- Each tab pane begins with a bold text header matching the tab name; pane content scrolls inside the sidebar, not the main layout.
+- Accordion-style collapsible sections remain for nested content where applicable.
 ```typescript
 interface SidebarSection {
   id: string;

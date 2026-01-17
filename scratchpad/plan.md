@@ -9,14 +9,14 @@ description: Complete implementation roadmap for TOADSTOOL TypeScript
 
 # TOADSTOOL TypeScript - Master Implementation Plan
 
-Revision: v1.3.0
+Revision: v1.5.0
 Document Role: Canonical roadmap for TOADSTOOL-TS execution; see spec.md for authoritative definitions.
 
 ## Executive Summary
 
 This document provides the complete implementation roadmap for TOADSTOOL TypeScript, a terminal interface for AI coding agents. The project is divided into 8 phases over approximately 14 weeks of active development, progressing from foundational setup to production-ready features.
 
-**Current Status**: Execution underway. Phases 0–6 complete; Phase 7 (Testing) in progress; Phase 8 (UI Parity & Production Polish) planned with comprehensive UI feature implementation including file tree/folder explorer.
+**Current Status**: Execution underway. Phases 0–6 complete; Phase 7 (Testing) in progress; Phase 8 (UI Parity & Production Polish) sprint underway with icon-only tabbed sidebar + .gitignore-aware file tree landed.
 **Interoperability Focus**: ACP protocol complete; Claude harness + streaming + sandboxing + search/indexing implemented; UI/UX parity sprint detailed in Phase 8 with major features like folder explorer, streaming markdown, and prompt editor enhancements.
 
 ## Project Timeline
@@ -810,6 +810,13 @@ Implement `src/testing/validators/llm-validator.ts`:
 - [ ] No flaky tests
 - [ ] CI/CD pipeline green
 
+### Phase 7 Execution Plan (2026-01-17 refresh)
+- Unit coverage: store/actions, message handler, renderer/streaming, search/index tools, prompt editor/autocomplete; target >80% overall.
+- Integration: ACP connect/handshake, session modes (setMode), tool approvals + terminal/fs handlers, MCP config + error recovery, persistence (JSON/SQLite) end-to-end.
+- LLM validation harness: scaffold validator, wire into pipeline, define scoring rubric/fixtures, gate critical flows.
+- Visual/interaction: Ink component tests for MessageItem, Sidebar/Accordion/FileTree, StatusFooter, PromptEditor/CommandPalette, AgentGrid.
+- Quality gates: enforce lint/typecheck/test/build before advancement; document in journal/progress each session.
+
 ---
 
 ## Phase 8: UI Parity & Production Polish (Weeks 14-16)
@@ -832,6 +839,11 @@ Achieve visual/interaction parity with original TOADSTOOL (Textual), implement m
 **Status Update (2026-01-16)**:
 - Completed: Multiline prompt input with Ctrl+Enter submit; @ file mentions; Ctrl+P command palette (inserts commands); sidebar sessions list navigable; loading flow staged with progress/clear.
 - Remaining P0/P1 focus: Streaming markdown with highlighting and truncation/expand; long-output handling (collapsible + ANSI + virtual scroll); TOADSTOOL palette/spacing and StatusFooter shortcuts/stats; sidebar context attachments + .gitignore-aware file tree with icons/persisted accordion; agent select grid/cards; command palette execute + dynamic commands; prompt editor gitignore-aware suggestions/debounce; visual/interaction tests and performance/error polish.
+
+**Status Update (2026-01-17)**:
+- Delivered icon-only tabbed sidebar with bold headers and scroll-contained panes; Files tab defaults.
+- File tree now gitignore-aware using `ignore` and `.gitignore` rules; hides `.git` and `node_modules`.
+- StatusFooter wiring deferred until type cleanup; next focus on streaming markdown/ANSI pipeline and prompt editor gitignore-aware @mentions/command execution.
 
 ### Phase 8.0: UI Foundation (Week 14, Days 1-3)
 
@@ -1338,38 +1350,57 @@ Implement differentiators (if time permits):
 - [ ] Rich content blocks rendered (if implemented)
 
 ### Phase 8 Acceptance Criteria
-- [ ] All quality gates pass
-- [ ] **File tree/folder explorer fully functional** (P0)
-- [ ] **Streaming markdown renders smoothly** (P0)
-- [ ] **Prompt editor with @ mentions works** (P0)
-- [ ] **Sidebar accordion sections work** (P0)
-- [ ] Visual parity with TOADSTOOL (90%+ similarity)
-- [ ] All keyboard shortcuts work
-- [ ] Performance targets met (60fps, <100ms latency)
-- [ ] Documentation complete
-- [ ] Release candidate ready
-- [ ] User testing successful
-- [ ] Terminal compatibility verified
+ - [ ] All quality gates pass
+ - [ ] **File tree/folder explorer fully functional** (P0)
+ - [ ] **Streaming markdown renders smoothly** (P0)
+ - [ ] **Prompt editor with @ mentions works** (P0)
+ - [ ] **Sidebar accordion sections work** (P0)
+ - [ ] Visual parity with TOADSTOOL (90%+ similarity)
+ - [ ] All keyboard shortcuts work
+ - [ ] Performance targets met (60fps, <100ms latency)
+ - [ ] Documentation complete
+ - [ ] Release candidate ready
+ - [ ] User testing successful
+ - [ ] Terminal compatibility verified
 
 ### Phase 8.5: Command Catalog & Help UX
 **Goal**: Curate and surface a rich command set with context-aware help, separating TOADSTOOL system commands from provider/harness commands.
 
 **Tasks**:
-- Catalog commands from OpenCode/TOADSTOOL/Claude CLI/Cursor/Codex/goose/gemini (e.g., `/compact`, `/clear`, `/mode`, `/plan`, `/export`, `/settings`, `/switch`, `/help files`).
-- Implement provider command registry with metadata (`kind: system|provider`, `providerId`, trigger `/|?|key`) and dynamic discovery on connect; refreshable via `/help`.
-- Passthrough unknown `/` or `?` commands to active provider when enabled; support provider-specific keymaps (TAB, etc.) via pty forwarding.
-- Extend `/help` with grouped sections (System, Provider-by-harness, Workspace, Panel-specific) showing command, description, example, trigger, and dividers; palette mirrors groups with badges/colors.
-- Surface provider command execution status: stream real harness output (ANSI-preserving) into collapsible blocks; show footer indicator (“Harness: /compact running…”), and synthesize “Harness command” messages for progress.
+ - Catalog commands from OpenCode/TOADSTOOL/Claude CLI/Cursor/Codex/goose/gemini (e.g., `/compact`, `/clear`, `/mode`, `/plan`, `/export`, `/settings`, `/switch`, `/help files`).
+ - Implement provider command registry with metadata (`kind: system|provider`, `providerId`, trigger `/|?|key`) and dynamic discovery on connect; refreshable via `/help`.
+ - Passthrough unknown `/` or `?` commands to active provider when enabled; support provider-specific keymaps (TAB, etc.) via pty forwarding.
+ - Extend `/help` with grouped sections (System, Provider-by-harness, Workspace, Panel-specific) showing command, description, example, trigger, and dividers; palette mirrors groups with badges/colors.
+ - Surface provider command execution status: stream real harness output (ANSI-preserving) into collapsible blocks; show footer indicator (“Harness: /compact running…”), and synthesize “Harness command” messages for progress.
 
 **Acceptance Criteria**:
-- [ ] `/help` shows grouped, well-formatted sections with provider badges and examples
-- [ ] Dynamic provider commands appear in palette and `/help`; passthrough works for `/` and `?` when enabled
-- [ ] Provider command execution streams real harness output with status in UI
-- [ ] Panel-specific help (`/help files`, etc.) reflects current shortcuts/commands
+ - [ ] `/help` shows grouped, well-formatted sections with provider badges and examples
+ - [ ] Dynamic provider commands appear in palette and `/help`; passthrough works for `/` and `?` when enabled
+ - [ ] Provider command execution streams real harness output with status in UI
+ - [ ] Panel-specific help (`/help files`, etc.) reflects current shortcuts/commands
+
+### Additional Gaps (ACP/OpenCode/Formatting)
+ - ACP stdio client + capability negotiation + session/update parity + cancel
+ - Session modes enforcement (`session/setMode`), model selection, auth methods (api-key/oauth)
+ - MCP transport (HTTP/SSE/stdio) with credential passthrough
+ - Slash command discovery/execution via ACP notifications
+ - Rich content parity: image, audio, resource, resource_link rendering
+ - Tool permission system (allow/ask/deny) and provider command passthrough/status UI
+ - Subagent/delegation system and per-agent config/permissions (AGENTS.md auto-load)
+ - ANSI/long-output pipeline (collapsible, virtual scroll) and streaming markdown with syntax highlighting
+ - Web mode and agent discovery/installation (optional)
+
+### Meta Quality Gates (apply to each phase)
+ - Add Ink component tests for UI changes
+ - Add unit tests for new logic paths
+ - Add integration tests for end-to-end flows
+ - Update `scratchpad/progress.md` before advancing phases
+ - Update `scratchpad/journal.md` after each session
 
 ---
 
 ## Phase 9: Architecture Refactoring - Agent Port Abstraction (Week 17)
+
 
 ### Goal
 Decouple core services from ACP implementation by introducing a clean Agent Port interface. This enables multi-agent support without core changes and improves testability. **This abstraction is critical for adding future providers** including Codex, Goose, Cursor AI, Gemini, and other ACP-compatible agents.
@@ -1839,6 +1870,145 @@ Add optional OpenTelemetry support:
 
 ---
 
+## Phase 14: Multi-Agent UX & Orchestration Upgrade (Week 22)
+
+### Goal
+Elevate TOADSTOOL-TS to OpenCode/Toad/Claude parity for multi-agent UX, orchestration, extensibility, and safety while remaining TypeScript-first.
+
+### Tasks
+
+#### 14.1 Role Switching & Permissions
+**Priority**: P0 - Critical
+**Duration**: 4 hours
+**Dependencies**: Phase 4 session modes
+
+Implement build/plan/general modes with scoped permissions and consent prompts:
+- Mode toggle with explicit capability boundaries
+- Consent prompts for risky actions (writes, commands, network)
+- UI indicators for active mode and pending approvals
+
+**Deliverables**:
+- [ ] Modes enforce permissions
+- [ ] Consent prompts surface before risky actions
+- [ ] UI shows mode + approvals state
+
+#### 14.2 Session & Project Model Expansion
+**Priority**: P0 - Critical
+**Duration**: 6 hours
+**Dependencies**: Phase 4 persistence
+
+Adopt OpenCode-like project/session lifecycle:
+- Add share/compact operations
+- Persist message parts for rewind/resume
+- Support project-scoped sessions and worktrees
+
+**Deliverables**:
+- [ ] Share/compact endpoints and persistence
+- [ ] Message parts persisted/resumable
+- [ ] Project-scoped session creation and resume
+
+#### 14.3 Orchestrator for Parallel Agents
+**Priority**: P0 - Critical
+**Duration**: 8 hours
+**Dependencies**: Phase 9 AgentPort
+
+Create orchestrator for parallel specialized agents (Claude code-review pattern):
+- Run N agents concurrently; collect outputs
+- Confidence/ranking aggregation to filter noise
+- First workflow: PR review with multi-check outputs
+
+**Deliverables**:
+- [ ] Parallel agent runner with aggregation
+- [ ] Confidence-scored/ranked outputs
+- [ ] PR-review workflow end-to-end
+
+#### 14.4 Plugin/Skill/Hook API
+**Priority**: P1 - High
+**Duration**: 6 hours
+**Dependencies**: Phase 5 slash commands
+
+Define TS contracts for commands/agents/skills/hooks (Claude plugin style):
+- Zod-validated manifests
+- DI-ready context injection
+- Load/unload lifecycle with safety checks
+
+**Deliverables**:
+- [ ] Contracts and schemas defined
+- [ ] Plugins load/unload with validation
+- [ ] Sample plugin exercising commands + hook
+
+#### 14.5 ACP Interoperability
+**Priority**: P1 - High
+**Duration**: 4 hours
+**Dependencies**: Phase 9 port abstraction
+
+Ensure transport compatibility to run inside ACP hubs (Toad):
+- Verify stdio JSON-RPC alignment
+- Map capabilities to ACP client expectations
+- Document interop steps
+
+**Deliverables**:
+- [ ] Compatibility verified in ACP hub
+- [ ] Capability mapping documented
+- [ ] Interop checklist produced
+
+#### 14.6 UI Enhancements for Multi-Agent UX
+**Priority**: P1 - High
+**Duration**: 6 hours
+**Dependencies**: Phase 8 UI parity
+
+Add affordances inspired by Toad/OpenCode:
+- Command palette + key-hint footer for agent commands
+- Sidebar widgets (Git status, session tree)
+- Optional web mirror of sessions for sharing
+
+**Deliverables**:
+- [ ] Palette + key-hint footer wired to agent commands
+- [ ] Sidebar widgets render Git/session info
+- [ ] Web mirror displays live session stream
+
+#### 14.7 Safety & Guidance Hooks
+**Priority**: P1 - High
+**Duration**: 4 hours
+**Dependencies**: 14.4 hooks
+
+Implement security-guidance and hookify-style rules:
+- Pre-tool hooks for risky patterns
+- Rule engine for enforced/allow/deny with prompts
+- Provider-agnostic model selection surfaced safely
+
+**Deliverables**:
+- [ ] Hooks trigger on risky actions
+- [ ] Rule engine enforces policies
+- [ ] Model selection UI respects safety
+
+#### 14.8 Guided Workflows
+**Priority**: P1 - High
+**Duration**: 4 hours
+**Dependencies**: 14.3 orchestrator
+
+Ship reusable guided flows (feature-dev, PR-review):
+- Command-driven workflow definitions
+- Uses orchestrator and dynamic commands
+- Progress/status surfaced in UI
+
+**Deliverables**:
+- [ ] Feature-dev workflow usable
+- [ ] PR-review workflow reusable outside tests
+- [ ] UI shows workflow progress
+
+### Phase 14 Acceptance Criteria
+- [ ] Mode toggle enforces permissions and consent
+- [ ] Sessions support share/compact/resume with message parts
+- [ ] Orchestrator runs parallel agents with confidence-scored outputs
+- [ ] Plugin API loads validated extensions safely
+- [ ] ACP interop works inside hubs
+- [ ] UI shows palette, key hints, sidebar widgets; web mirror streams sessions
+- [ ] Safety hooks block or warn appropriately; model selection remains provider-agnostic
+- [ ] At least one guided workflow runs end-to-end
+
+---
+
 ## Quality Gates
 
 Every phase must pass these gates before proceeding:
@@ -2029,15 +2199,16 @@ Remember: Build it right the first time. The cost of fixing issues increases exp
 
 ---
 
-**Document Version**: 1.4.0
-**Last Updated**: 2026-01-16
-**Next Review**: After Phase 13 observability integration completion
+**Document Version**: 1.5.0
+**Last Updated**: 2026-01-17
+**Next Review**: After Phase 14 multi-agent orchestration completion
 
 **Start Implementation**: Begin with Phase 1, Task 1.1!
 
 ---
 
 ## Changelog
+- v1.5.0 (2026-01-17): Added Phase 14 for multi-agent UX, orchestration, plugin/hook APIs, ACP interop, UI affordances, safety hooks, and guided workflows (OpenCode/Toad/Claude-aligned). Updated document version and review target.
 - v1.4.0 (2026-01-16): Added Phases 9-13 for architecture refactoring. Phase 9: Agent Port abstraction to decouple core from ACP. Phase 10: Reliability middleware (retry, circuit breaker, rate limiting). Phase 11: Store separation (UI vs domain state). Phase 12: Streaming backpressure. Phase 13: Observability integration (metrics, traces, structured logging). See `scratchpad/arch_discussion.md` for detailed architecture review and ADRs.
 - v1.3.0 (2026-01-16): Expanded Phase 8 with comprehensive UI parity sprint. Added detailed tasks for file tree/folder explorer (P0), streaming markdown renderer, prompt editor enhancements, sidebar accordion, agent selection grid, command palette, and performance optimizations. Integrated UI design review findings from `scratchpad/ui-design-brief.md` and `scratchpad/ui-implementation-roadmap.md`. Updated implementation priorities to reflect UI features as P0 critical.
 - v1.2.0 (2026-01-14): Updated Phase 2 status to complete, added ACPClient implementation details, reflected actual code completion.

@@ -14,8 +14,8 @@ Document Role: Live status tracker; authoritative for task state. Roadmap in pla
 
 ## Current Phase: Phase 7 - Testing & Quality
 
-**Phase Status**: 🔄 UI parity sprint in progress (aligning with TOADSTOOL/OpenCode visuals and interactions)
-**Last Updated**: 2026-01-16
+**Phase Status**: 🔄 UI parity sprint in progress (icon-only tabbed sidebar + gitignore-aware FileTree shipped; streaming markdown/prompt editor execute next)
+**Last Updated**: 2026-01-17
 
 
 ---
@@ -121,6 +121,7 @@ Document Role: Live status tracker; authoritative for task state. Roadmap in pla
 - [ ] **Task 7.1**: Unit Test Suite
 - [ ] **Task 7.2**: Integration Tests
 - [ ] **Task 7.3**: LLM Validation Framework
+- **Execution Plan (2026-01-17)**: Target >80% unit coverage (store/message/renderer/search/input); integration on ACP connect/session modes/tool approvals/MCP config/persistence recovery; scaffold LLM validator + pipeline gating; add visual/interaction tests for MessageItem/sidebar/footer/prompt editor/agent grid/palette.
 
 ### Phase 8: Polish & Production (Week 14)
 - [ ] **Task 8.1**: Error Handling & Recovery
@@ -128,18 +129,41 @@ Document Role: Live status tracker; authoritative for task state. Roadmap in pla
 - [ ] **Task 8.3**: Documentation
 - [ ] **Task 8.4**: Release Preparation
 - [ ] **Task 8.5**: Advanced Agent Features (Optional)
+- **Execution Plan (2026-01-17)**: Polish after UI parity—error/backoff/recovery flow, render/perf profiling + virtualized lists, docs/readme/architecture/troubleshooting, release/tag/changelog.
 
 ### UI Parity Sprint (TOADSTOOL/OpenCode alignment)
-- [ ] Two-column layout: banner, sidebar (Files/Plan/Context/Sessions), main chat/diff area, status footer (sidebar accordion + file tree/plan wired; footer present; polish remaining)
-- [ ] Theme/colors/typography: apply TOADSTOOL palette, consistent spacing, role badges, timestamps (badges/timestamps underway)
-- [ ] Streaming markdown renderer (incremental, block-level) with tables/lists/quotes/code highlighting
-- [ ] Prompt editor: multiline, @ file mentions with fuzzy search/.gitignore, command palette (Ctrl+P) (multiline/@mentions/Ctrl+P in place; finalize gitignore/debounce UX)
-- [ ] Agent select: grid/cards with status and quick-select numbers
-- [ ] Sidebar: file tree with icons, plan/tasks (implemented), context attachments, session history (placeholders), .gitignore-aware tree, persistent accordion state
-- [ ] Status footer: context-sensitive shortcuts, connection/agent/mode/task stats
-- [ ] Shell/tool integration: ANSI-preserving output, optional interactive indicator
-- [ ] Long output handling: collapsible sections, virtual scroll for long conversations
-- [ ] Visual/interaction tests for key components (MessageItem, sidebar, footer, prompt editor, agent grid, palette)
+ - [ ] Two-column layout: banner, sidebar (Files/Plan/Context/Sessions), main chat/diff area, status footer (sidebar accordion + file tree/plan wired; footer present; polish remaining)
+ - [ ] Theme/colors/typography: apply TOADSTOOL palette, consistent spacing, role badges, timestamps (badges/timestamps underway)
+ - [ ] Streaming markdown renderer (incremental, block-level) with tables/lists/quotes/code highlighting
+ - [ ] Prompt editor: multiline, @ file mentions with fuzzy search/.gitignore, command palette (Ctrl+P) (multiline/@mentions/Ctrl+P in place; finalize gitignore/debounce UX)
+ - [ ] Agent select: grid/cards with status and quick-select numbers
+ - [ ] Sidebar: file tree with icons, plan/tasks (implemented), context attachments, session history (placeholders), .gitignore-aware tree, persistent accordion state
+ - [ ] Status footer: context-sensitive shortcuts, connection/agent/mode/task stats
+ - [ ] Shell/tool integration: ANSI-preserving output, optional interactive indicator
+ - [ ] Long output handling: collapsible sections, virtual scroll for long conversations
+ - [ ] Visual/interaction tests for key components (MessageItem, sidebar, footer, prompt editor, agent grid, palette)
+ - **Execution Plan (2026-01-17)**: Finish sidebar accordion + .gitignore-aware file tree + status footer shortcuts/stats; implement streaming markdown + syntax highlighting and long-output pipeline; complete prompt editor gitignore-aware @mentions + debounce and command palette execute; build agent grid + quick-select; add visual/interaction tests before marking sprint complete.
+
+### Additional Gaps (ACP/OpenCode/Formatting)
+ - [ ] ACP stdio client + capability negotiation + session/update parity + cancel
+ - [ ] Session modes enforced via `session/setMode`; model selection; auth methods
+ - [ ] MCP transport + credential passthrough
+ - [ ] Slash commands discovery/execution via ACP notifications
+ - [ ] Rich content parity: image/audio/resource/resource_link rendering
+ - [ ] Tool permission system (allow/ask/deny) and provider command passthrough/status UI
+ - [ ] Subagent/delegation system and per-agent config/permissions (AGENTS.md auto-load)
+ - [ ] ANSI/long-output pipeline (collapsible, virtual scroll, streaming markdown with syntax highlighting)
+ - [ ] Web mode + agent discovery/installation (optional)
+ - **Execution Plan (2026-01-17)**: Prioritize ACP stdio parity + session/setMode enforcement and MCP transport; wire slash command discovery, tool permissions, rich content; finalize ANSI/long-output pipeline; schedule optional web/provider discovery last.
+
+### Meta Quality Gates
+ - [ ] Per-phase: add Ink tests for UI changes
+ - [ ] Per-phase: add unit tests for new logic
+ - [ ] Per-phase: add integration tests for flows
+ - [ ] Before advancing: update `scratchpad/progress.md`
+ - [ ] After each session: update `scratchpad/journal.md`
+ - **Execution Plan (2026-01-17)**: Enforce lint/typecheck/test/build per AGENTS.md; add Ink/unit/integration coverage alongside features; log each session in journal and refresh progress before advancing phases.
+
 
 ---
 
@@ -165,26 +189,32 @@ Document Role: Live status tracker; authoritative for task state. Roadmap in pla
 
 ---
 
-## 🔜 Next Actions
+## 🔜 Next Actions (to reach 100%)
 
-### Phase 6 (Search & Indexing) – Next
-- Ripgrep JSON search, file index, glob + fuzzy search, optional AST search
+### Phase 7 – Testing & Quality (critical)
+- Lift unit coverage >80% across store, message handler, renderer, search, prompt editor.
+- Integration suites for ACP connect/session modes/tool approvals/MCP config/error recovery; include mock agent.
+- Stand up LLM validation harness and gate relevant flows.
+- Visual/interaction tests for MessageItem, sidebar (accordion + file tree), footer, prompt editor, agent grid, command palette.
 
-### Phase 7 (Testing & Quality) – Next
-- Expand unit/integration coverage for new UI (streaming renderer, long-output, sidebar/context, palette, agent grid, prompt editor).
-- Implement LLM validation framework scaffold and integrate into test pipeline.
-- Add visual/interaction tests for MessageItem/sidebar/footer/prompt editor/agent grid and palette.
+### Phase 8 – UI Parity Sprint (P0/P1)
+- Finalize two-column layout: banner, sidebar accordion (Files/Plan/Context/Sessions) with .gitignore-aware file tree + icons; status footer wired with shortcuts/stats.
+- Streaming markdown renderer with syntax highlighting; long-output handling (collapsible, virtual scroll, ANSI-preserving pipeline).
+- Prompt editor finish: multiline + @mentions with gitignore-aware fuzzy search + debounce; command palette executes actions; agent grid/cards with quick-select numbers + status.
+- Shell/tool output: ANSI-preserving display, optional interactive indicator; collapsible long output.
 
-### Phase 8 (UI Parity & Production Polish) – Next
-- Streaming markdown renderer with syntax highlighting and truncation/expand.
-- Long-output handling: collapsible tool/shell output, ANSI-preserving rendering, virtual scroll for large transcripts.
-- Theme/palette polish: TOADSTOOL colors, spacing, role badges/timestamps; StatusFooter shortcuts + stats.
-- Sidebar completion: context attachments, session selection, .gitignore-aware file tree with icons; persist accordion state.
-- Agent select grid/cards with quick-select numbers and status indicators.
-- Prompt editor finish: .gitignore-aware file suggestions with debounce; keep multiline/@mentions; consistent Ctrl+Enter submit UX.
-- Command palette completion: dynamic commands when available; allow execute (not just insert); show session/agent context.
-- Provider/harness commands: dynamic discovery (/, ?), passthrough to claude-cli/codex/goose/gemini, provider keymaps, and streaming status in UI.
-- Production polish: error handling/recovery, performance profiling, documentation, release prep.
+### Phase 8 – Polish & Production
+- Error handling/recovery with backoff and user-friendly messaging.
+- Performance optimization: render/stream buffering, virtualization perf targets.
+- Documentation & release prep: README/API/architecture/troubleshooting, changelog, version tag.
+
+### ACP/OpenCode/Formatting Gaps
+- ACP stdio client parity + capability negotiation + cancel; enforce session/setMode + model/auth selection; MCP transport + credential passthrough.
+- Slash command discovery via ACP notifications; rich content parity (image/audio/resource/resource_link); tool permission profiles; subagent/delegation; ANSI/long-output pipeline; optional web mode/provider discovery.
+
+### Meta Quality Gates
+- Add Ink/unit/integration coverage per change.
+- Update `scratchpad/progress.md` and `scratchpad/journal.md` after each session.
 
 ---
 
@@ -204,6 +234,7 @@ None currently identified.
 - 2026-01-15: UI parity sprint started; Sidebar/StatusFooter wiring and MessageItem badges/timestamps underway.
 - 2026-01-15: Added sandboxed search service (ripgrep + glob + fuzzy) with path-escape guard unless `TOADSTOOL_ALLOW_ESCAPE=1`.
 - 2026-01-16: Loading flow staged with clear/progress/default provider; sidebar accordion + file tree/plan sections implemented; lint/type/test/build green.
+- 2026-01-17: Added LLM validation scaffold and unit coverage for validator criteria.
 - 2026-01-16: Multiline prompt + Ctrl+Enter submit + @mentions in place; Ctrl+P command palette added; sessions list navigable in sidebar.
 - 2026-01-15: Phase 5 complete - All UI/UX parity features implemented:
   - ToolCallApproval + ToolCallManager for tool approval flows with permission profiles
@@ -215,7 +246,7 @@ None currently identified.
 
 ---
 
-**Last Updated**: 2026-01-16
+**Last Updated**: 2026-01-17
 **Next Update**: After UI parity sprint milestones land (streaming markdown + long-output + palette/agent grid)
 
 ---
