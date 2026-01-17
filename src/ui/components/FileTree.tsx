@@ -15,13 +15,7 @@ interface FileTreeNode {
 interface FileTreeProps {
   rootPath?: string;
   isFocused?: boolean;
-  maxEntries?: number;
   height?: number;
-}
-
-interface BuildResult {
-  nodes: FileTreeNode[];
-  truncated: boolean;
 }
 
 const sortNodes = (nodes: FileTreeNode[]): FileTreeNode[] => {
@@ -38,16 +32,8 @@ const shouldSkip = (rootPath: string, fullPath: string): boolean => {
   return rel.startsWith(".git") || rel.includes(`${path.sep}node_modules`);
 };
 
-const buildTree = async (rootPath: string, maxEntries: number): Promise<BuildResult> => {
-  let count = 0;
-  let truncated = false;
-
+const buildTree = async (rootPath: string): Promise<FileTreeNode[]> => {
   const walk = async (dir: string): Promise<FileTreeNode[]> => {
-    if (count >= maxEntries) {
-      truncated = true;
-      return [];
-    }
-
     const dirents = await readdir(dir, { withFileTypes: true });
     const children: FileTreeNode[] = [];
 
@@ -56,13 +42,6 @@ const buildTree = async (rootPath: string, maxEntries: number): Promise<BuildRes
       if (shouldSkip(rootPath, fullPath)) {
         continue;
       }
-
-      if (count >= maxEntries) {
-        truncated = true;
-        break;
-      }
-
-      count += 1;
 
       if (dirent.isDirectory()) {
         const nested = await walk(fullPath);
@@ -75,14 +54,12 @@ const buildTree = async (rootPath: string, maxEntries: number): Promise<BuildRes
     return sortNodes(children);
   };
 
-  const nodes = await walk(rootPath);
-  return { nodes, truncated };
+  return walk(rootPath);
 };
 
 export function FileTree({
   rootPath = process.cwd(),
   isFocused = true,
-  maxEntries = 800,
   height,
 }: FileTreeProps): JSX.Element {
   const [nodes, setNodes] = useState<FileTreeNode[]>([]);
@@ -91,18 +68,16 @@ export function FileTree({
   const [scrollOffset, setScrollOffset] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isTruncated, setIsTruncated] = useState(false);
 
   useEffect(() => {
     let active = true;
     void (async () => {
       try {
-        const { nodes: loaded, truncated } = await buildTree(rootPath, maxEntries);
+        const loaded = await buildTree(rootPath);
         if (!active) return;
         setNodes(loaded);
         setExpanded(new Set([rootPath]));
         setSelectedIndex(0);
-        setIsTruncated(truncated);
       } catch (err) {
         if (!active) return;
         const message = err instanceof Error ? err.message : String(err);
@@ -117,7 +92,7 @@ export function FileTree({
     return () => {
       active = false;
     };
-  }, [maxEntries, rootPath]);
+  }, [rootPath]);
 
   const rootNode: FileTreeNode = useMemo(
     () => ({
@@ -141,11 +116,10 @@ export function FileTree({
     return result;
   }, [expanded, rootNode]);
 
-  // FileTree is inside AccordionSection within Sidebar
-  // The height prop is the available height from AccordionSection content area
-  // Account for FileTree padding (paddingBottom={1} = 1 line)
-  // If no height is provided, use a small default but allow flex to work
-  const scrollAreaHeight = height ? Math.max(1, height - 1) : undefined;
+  // FileTree is now inside a Tab within Sidebar
+  // The height prop is the available height from the tab content area
+  // Use the full height provided by the parent
+  const scrollAreaHeight = height ? Math.max(1, height) : undefined;
   const visibleItems = scrollAreaHeight ? Math.max(1, scrollAreaHeight) : 1;
   const maxScrollOffset = Math.max(0, visible.length - visibleItems);
 
@@ -244,25 +218,13 @@ export function FileTree({
     );
   });
 
-  // Add truncated message if needed
-  const allItems = isTruncated
-    ? [
-        ...fileTreeItems,
-        <Box key="truncated" width="100%" overflow="hidden" minWidth={0}>
-          <Text dimColor wrap="wrap">
-            … truncated view (limit {maxEntries} entries)
-          </Text>
-        </Box>,
-      ]
-    : fileTreeItems;
-
   return (
     <Box
       width="100%"
       overflow="hidden"
-      paddingX={1}
+      paddingX={0}
       paddingTop={0}
-      paddingBottom={1}
+      paddingBottom={0}
       flexDirection="column"
       flexShrink={1}
       flexGrow={1}
@@ -278,7 +240,7 @@ export function FileTree({
         estimatedLinesPerItem={1}
         showScrollHints={false}
       >
-        {allItems}
+        {fileTreeItems}
       </ScrollArea>
     </Box>
   );

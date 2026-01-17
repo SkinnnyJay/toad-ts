@@ -4,9 +4,10 @@ import { PLAN_STATUS } from "@/constants/plan-status";
 import { useAppStore } from "@/store/app-store";
 import type { Plan, Session, SessionId } from "@/types/domain";
 import { Box, Text, useInput, useStdout } from "ink";
+import { Tab, Tabs } from "ink-tab";
 import { useEffect, useMemo, useState } from "react";
-import { AccordionSection } from "./AccordionSection";
 import { FileTree } from "./FileTree";
+import { ScrollArea } from "./ScrollArea";
 
 interface SidebarProps {
   width?: string | number;
@@ -101,7 +102,7 @@ const SessionsSection = ({
 };
 
 export function Sidebar({
-  width = "25%",
+  width = "15%",
   height,
   currentAgentName,
   currentSessionId,
@@ -111,11 +112,11 @@ export function Sidebar({
   const { stdout } = useStdout();
   const terminalRows = stdout?.rows ?? 24;
 
-  // Calculate heights: Files 50%, others 12% each
-  // Account for Sidebar padding (2 lines), gaps between sections (4 gaps = 4 lines), shortcut hints (5 lines)
-  const availableHeight = terminalRows - 2 - 4 - 5; // Subtract padding, gaps, and shortcut hints
-  const filesHeight = Math.floor(availableHeight * 0.5);
-  const otherSectionHeight = Math.floor(availableHeight * 0.12);
+  // Calculate available height for tab content
+  // Account for Sidebar padding (2 lines), tab bar (2 lines), shortcut hint (1 line)
+  const availableHeight = height ?? terminalRows - 5;
+  const contentHeight = Math.max(10, availableHeight - 3); // Leave space for tab bar
+
   const storeCurrentSessionId = useAppStore((state) => state.currentSessionId);
   const activeSessionId = currentSessionId ?? storeCurrentSessionId;
   const plan = useMemo(
@@ -129,11 +130,7 @@ export function Sidebar({
     return values.slice().sort((a, b) => b.updatedAt - a.updatedAt);
   }, [sessionsById]);
 
-  const [planCollapsed, setPlanCollapsed] = useState(false);
-  const [agentsCollapsed, setAgentsCollapsed] = useState(false);
-  const [filesCollapsed, setFilesCollapsed] = useState(false);
-  const [contextCollapsed, setContextCollapsed] = useState(true);
-  const [sessionsCollapsed, setSessionsCollapsed] = useState(true);
+  const [activeTab, setActiveTab] = useState("files");
   const [sessionIndex, setSessionIndex] = useState(0);
 
   useEffect(() => {
@@ -147,45 +144,48 @@ export function Sidebar({
     }
   }, [activeSessionId, sessions]);
 
-  // Handle keyboard input: Option+1,2,3,4,5 for collapsing sections
-  // Note: Ink doesn't support Option/Alt key directly, so we detect it via escape sequences
-  // On macOS terminals, Option+number sends escape sequence like '\x1b1' or '\u001b1'
+  // Callback for tab change
+  const handleTabChange = (name: string) => {
+    setActiveTab(name);
+  };
+
+  // Handle keyboard input for tab navigation
   useInput((input, key) => {
-    // Try to detect Option+number via escape sequences (macOS terminals)
-    // Option+1 typically sends '\x1b1' or similar escape sequence
-    let optionNumber: string | null = null;
-    if (input.length >= 2 && input.charCodeAt(0) === 0x1b) {
-      // Escape sequence detected, check if followed by 1-5
-      const number = input.slice(1);
-      if (/^[1-5]$/.test(number)) {
-        optionNumber = number;
+    const tabs = ["files", "plan", "context", "sessions", "agents"];
+    const currentIndex = tabs.indexOf(activeTab);
+
+    // Command + arrow keys for tab navigation
+    if (key.meta || key.ctrl) {
+      if (key.leftArrow && currentIndex > 0) {
+        const prevTab = tabs[currentIndex - 1];
+        if (prevTab) setActiveTab(prevTab);
+        return;
+      }
+      if (key.rightArrow && currentIndex < tabs.length - 1) {
+        const nextTab = tabs[currentIndex + 1];
+        if (nextTab) setActiveTab(nextTab);
+        return;
+      }
+
+      // Command + 1-5 for direct tab selection
+      if (/^[1-5]$/.test(input)) {
+        const tabMap: Record<string, string> = {
+          "1": "files",
+          "2": "plan",
+          "3": "context",
+          "4": "sessions",
+          "5": "agents",
+        };
+        const tabName = tabMap[input];
+        if (tabName) {
+          setActiveTab(tabName);
+        }
+        return;
       }
     }
 
-    // Also support Shift+number as fallback (more reliable across terminals)
-    const shiftNumber = key.shift && /^[1-5]$/.test(input) ? input : null;
-    const collapseNumber = optionNumber ?? shiftNumber;
-
-    if (collapseNumber) {
-      const collapseMap: Record<string, () => void> = {
-        "1": () => setFilesCollapsed((prev) => !prev),
-        "2": () => setPlanCollapsed((prev) => !prev),
-        "3": () => setContextCollapsed((prev) => !prev),
-        "4": () => setSessionsCollapsed((prev) => !prev),
-        "5": () => setAgentsCollapsed((prev) => !prev),
-      };
-      const handler = collapseMap[collapseNumber];
-      if (handler) {
-        handler();
-      }
-      return;
-    }
-
-    if (focusTarget !== "files" && focusTarget !== "sessions") {
-      return;
-    }
-
-    if (focusTarget === "sessions" && !sessionsCollapsed && sessions.length > 0) {
+    // Handle sessions navigation when in sessions tab
+    if (activeTab === "sessions" && focusTarget === "sessions" && sessions.length > 0) {
       if (key.upArrow) {
         setSessionIndex((prev) => Math.max(0, prev - 1));
       } else if (key.downArrow) {
@@ -214,60 +214,64 @@ export function Sidebar({
       borderColor={COLOR.GRAY}
       paddingX={1}
       paddingY={1}
-      gap={2}
     >
-      <AccordionSection
-        title="Files"
-        isCollapsed={filesCollapsed}
-        shortcutHint="[⌘1 focus, ⌥1 toggle]"
-        height={filesHeight}
+      <Tabs
+        onChange={handleTabChange}
+        defaultValue="files"
+        showIndex={false}
+        keyMap={{ useNumbers: false, useTab: false }}
+        isFocused={false}
       >
-        {!filesCollapsed ? (
-          <FileTree isFocused={focusTarget === "files"} height={filesHeight - 1} />
-        ) : null}
-      </AccordionSection>
+        <Tab name="files">▤</Tab>
+        <Tab name="plan">☰</Tab>
+        <Tab name="context">◈</Tab>
+        <Tab name="sessions">◉</Tab>
+        <Tab name="agents">◆</Tab>
+      </Tabs>
 
-      <AccordionSection
-        title="Plan"
-        isCollapsed={planCollapsed}
-        shortcutHint="[⌘2 focus, ⌥2 toggle]"
-        height={otherSectionHeight}
-      >
-        {!planCollapsed ? <PlanSection plan={plan} /> : null}
-      </AccordionSection>
+      <Box flexDirection="column" height={contentHeight} marginTop={1}>
+        {activeTab === "files" && (
+          <ScrollArea
+            height={contentHeight}
+            showScrollbar={true}
+            isFocused={focusTarget === "files"}
+          >
+            <FileTree isFocused={focusTarget === "files"} height={contentHeight} />
+          </ScrollArea>
+        )}
 
-      <AccordionSection
-        title="Context"
-        isCollapsed={contextCollapsed}
-        shortcutHint="[⌘3 focus, ⌥3 toggle]"
-        height={otherSectionHeight}
-      >
-        {!contextCollapsed ? <Text dimColor>No context files attached</Text> : null}
-      </AccordionSection>
+        {activeTab === "plan" && (
+          <ScrollArea height={contentHeight} showScrollbar={true}>
+            <PlanSection plan={plan} />
+          </ScrollArea>
+        )}
 
-      <AccordionSection
-        title="Sessions"
-        isCollapsed={sessionsCollapsed}
-        shortcutHint="[⌘4 focus, ⌥4 toggle]"
-        height={otherSectionHeight}
-      >
-        {!sessionsCollapsed ? (
-          <SessionsSection
-            sessions={sessions}
-            currentSessionId={activeSessionId}
-            selectedIndex={sessionIndex}
-          />
-        ) : null}
-      </AccordionSection>
+        {activeTab === "context" && (
+          <Box padding={1}>
+            <Text dimColor>No context files attached</Text>
+          </Box>
+        )}
 
-      <AccordionSection
-        title="Sub-agents"
-        isCollapsed={agentsCollapsed}
-        shortcutHint="[⌘5 focus, ⌥5 toggle]"
-        height={otherSectionHeight}
-      >
-        {!agentsCollapsed ? <AgentsSection currentAgentName={currentAgentName} /> : null}
-      </AccordionSection>
+        {activeTab === "sessions" && (
+          <ScrollArea
+            height={contentHeight}
+            showScrollbar={true}
+            isFocused={focusTarget === "sessions"}
+          >
+            <SessionsSection
+              sessions={sessions}
+              currentSessionId={activeSessionId}
+              selectedIndex={sessionIndex}
+            />
+          </ScrollArea>
+        )}
+
+        {activeTab === "agents" && (
+          <Box padding={1}>
+            <AgentsSection currentAgentName={currentAgentName} />
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 }
