@@ -3,14 +3,17 @@
 # Install: cp scripts/pre-commit.template .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
 
 # Run the detection script in strict mode
+# This will fail on Critical/High severity issues
 npx tsx scripts/check-magic-literals.ts --strict
 
 # If the script exits with non-zero, prevent the commit
 if [ $? -ne 0 ]; then
   echo ""
-  echo "❌ Commit blocked: Magic literals detected"
+  echo "❌ Commit blocked: Critical or High severity magic literals detected"
   echo "Please extract literals to constants before committing."
-  echo "See .cursorrules for guidelines."
+  echo "See .cursorrules for guidelines and MAGIC_LITERALS_REPORT.md for details."
+  echo ""
+  echo "To see all issues (including Medium/Low): npm run check:literals"
   exit 1
 fi
 

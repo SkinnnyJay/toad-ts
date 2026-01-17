@@ -164,8 +164,79 @@ export const LIMIT = {
 **Never use string literals in:**
 - Switch/case statements (use constants)
 - If/else chains checking status/state (use constants)
+- Type definitions (use constants and derive types: `type X = typeof CONST[keyof typeof CONST]`)
 - Environment variable keys (use constants from `src/constants/env-keys.ts`)
 - Error code comparisons (use constants from `src/constants/error-codes.ts`)
+
+**Constant Creation Checklist:**
+
+When creating a new constant module:
+
+1. **Create the constant file** in `src/constants/` (e.g., `src/constants/my-status.ts`)
+2. **Define the constant object** with `as const`:
+   ```typescript
+   export const MY_STATUS = {
+     VALUE1: "value1",
+     VALUE2: "value2",
+   } as const;
+   ```
+3. **Derive the type** from the constant:
+   ```typescript
+   export type MyStatus = typeof MY_STATUS[keyof typeof MY_STATUS];
+   ```
+4. **Re-export for convenience**:
+   ```typescript
+   export const { VALUE1, VALUE2 } = MY_STATUS;
+   ```
+5. **Use in Zod schemas** if needed:
+   ```typescript
+   status: z.enum([MY_STATUS.VALUE1, MY_STATUS.VALUE2])
+   ```
+6. **Update the detection script** if adding new external types to the whitelist
+
+**External Library Type Exceptions:**
+
+The following are **acceptable as string literals** because they represent external protocol/library types:
+- **ACP SDK content block types**: `"text"`, `"resource_link"`, `"resource"`, `"image"`, `"audio"` (from ACP protocol spec)
+- **ACP SDK tool call statuses**: `"in_progress"`, `"completed"`, `"failed"` (from ACP protocol spec)
+- **Markdown token types**: `"heading"`, `"paragraph"`, `"list"`, `"code"`, `"table"`, `"strong"`, `"em"`, etc. (from marked library)
+- **Library configuration options**: Values passed to external libraries (e.g., `lineWidth: 80` in js-yaml options)
+
+These should be documented with comments when used, explaining they are external types.
+
+**Examples of Acceptable vs Unacceptable:**
+
+```typescript
+// ❌ BAD - Type literal
+type RenderStage = "loading" | "connecting" | "ready" | "error";
+
+// ✅ GOOD - Constant with derived type
+export const RENDER_STAGE = {
+  LOADING: "loading",
+  CONNECTING: "connecting",
+  READY: "ready",
+  ERROR: "error",
+} as const;
+export type RenderStage = typeof RENDER_STAGE[keyof typeof RENDER_STAGE];
+
+// ❌ BAD - Status string in control flow
+if (status === "pending") { ... }
+
+// ✅ GOOD - Using constant
+if (status === TASK_STATUS.PENDING) { ... }
+
+// ✅ ACCEPTABLE - External library type (ACP SDK)
+switch (block.type) {
+  case "text": // ACP SDK content block type
+    return ...;
+}
+
+// ❌ BAD - Magic number
+const timeout = 8000;
+
+// ✅ GOOD - Config constant
+const timeout = TIMEOUT.SESSION_BOOTSTRAP_MS;
+```
 
 **Exceptions (documented decisions):**
 
