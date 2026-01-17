@@ -31,29 +31,15 @@ export const MessageList = memo(
       [limitedMessages]
     );
 
-    // Calculate fixed height: terminal rows minus:
-    // - StatusFooter (3 lines)
-    // - Chat container padding (paddingY={1} = 2 lines total)
-    // - Chat header section (variable, estimate ~3-5 lines)
-    // - Input area (estimate ~3-4 lines)
-    // - Margin/gaps (1 line)
+    // Calculate height: terminal rows minus input area and margin
+    // Leave space for: StatusFooter (3), Input area (~7 lines for multiline), Margin between (1), Chat header (~4)
     const terminalRows = stdout?.rows ?? 24;
-    const containerPaddingY = 2; // paddingY={1} means 1 top + 1 bottom = 2 lines
     const statusFooterHeight = 3;
+    const inputAreaHeight = 7; // Estimated input height (multiline with minHeight=5 + padding)
+    const marginBetween = 1; // Margin between message container and input
     const chatHeaderHeight = 4; // Estimated header height
-    const inputAreaHeight = 4; // Estimated input height
-    const gapsAndMargins = 2; // Margins between sections
-    const effectiveHeight =
-      height ??
-      Math.max(
-        10,
-        terminalRows -
-          statusFooterHeight -
-          containerPaddingY -
-          chatHeaderHeight -
-          inputAreaHeight -
-          gapsAndMargins
-      );
+    const reservedSpace = statusFooterHeight + inputAreaHeight + marginBetween + chatHeaderHeight;
+    const effectiveHeight = height ?? Math.max(10, terminalRows - reservedSpace);
 
     if (isEmpty) {
       return (

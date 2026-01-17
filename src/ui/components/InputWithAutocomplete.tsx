@@ -213,12 +213,43 @@ export function InputWithAutocomplete({
     }
   });
 
-  // Format display value with cursor
+  // Format display value with cursor (supports multiline)
   const displayValue = useMemo(() => {
     if (value.length === 0) {
       return <Text dimColor>{placeholder}</Text>;
     }
 
+    if (multiline) {
+      // Split by newlines and render each line
+      const lines = value.split("\n");
+      const beforeLines = value.slice(0, cursorPosition).split("\n");
+      const lineIndex = beforeLines.length - 1;
+      const charIndex = beforeLines[lineIndex]?.length ?? 0;
+
+      return (
+        <>
+          {lines.map((line, idx) => {
+            const lineKey = `line-${idx}-${line.slice(0, 10)}`;
+            if (idx === lineIndex) {
+              // Current line with cursor
+              const before = line.slice(0, charIndex);
+              const after = line.slice(charIndex);
+              const cursor = <Text inverse> </Text>;
+              return (
+                <Text key={lineKey}>
+                  {before}
+                  {cursor}
+                  {after}
+                </Text>
+              );
+            }
+            return <Text key={lineKey}>{line}</Text>;
+          })}
+        </>
+      );
+    }
+
+    // Single line mode
     const before = value.slice(0, cursorPosition);
     const after = value.slice(cursorPosition);
     const cursor = <Text inverse> </Text>;
@@ -230,7 +261,7 @@ export function InputWithAutocomplete({
         <Text>{after}</Text>
       </>
     );
-  }, [value, cursorPosition, placeholder]);
+  }, [value, cursorPosition, placeholder, multiline]);
 
   return (
     <Box flexDirection="column" flexGrow={1} minWidth={0}>
@@ -305,8 +336,18 @@ export function InputWithAutocomplete({
       )}
 
       {/* Input field */}
-      <Box borderStyle="single" paddingLeft={1} paddingRight={1} flexGrow={1} minWidth={0}>
-        <Text>› </Text>
+      <Box
+        borderStyle="single"
+        paddingLeft={1}
+        paddingRight={1}
+        paddingY={multiline ? 1 : 0}
+        minHeight={multiline ? 5 : 1}
+        height={multiline ? undefined : 1}
+        flexGrow={multiline ? 1 : undefined}
+        minWidth={0}
+        flexDirection={multiline ? "column" : "row"}
+      >
+        {!multiline && <Text>› </Text>}
         {displayValue}
       </Box>
     </Box>
