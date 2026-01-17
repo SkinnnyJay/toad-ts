@@ -104,11 +104,11 @@ const SessionsSection = memo(
 );
 
 const tabs = [
-  { id: "files", icon: "📁" },
-  { id: "plan", icon: "📋" },
-  { id: "context", icon: "📎" },
-  { id: "sessions", icon: "🕑" },
-  { id: "agent", icon: "🤖" },
+  { id: "files", icon: "F" },
+  { id: "plan", icon: "P" },
+  { id: "context", icon: "C" },
+  { id: "sessions", icon: "S" },
+  { id: "agent", icon: "A" },
 ] as const;
 
 export function Sidebar({
@@ -217,7 +217,11 @@ export function Sidebar({
               <Text color={COLOR.GRAY} bold>
                 Files
               </Text>
-              <FileTree isFocused={focusTarget === "files"} height={contentHeight} />
+              <FileTree
+                isFocused={focusTarget === "files"}
+                height={contentHeight}
+                textSize="small"
+              />
             </Box>
           </ScrollArea>
         );
@@ -306,8 +310,7 @@ export function Sidebar({
           const isActive = tab.id === selectedTab;
           return (
             <Text key={tab.id} color={isActive ? COLOR.CYAN : COLOR.GRAY} bold={isActive}>
-              {isActive ? "▸ " : "  "}
-              {tab.icon}
+              {isActive ? "▸ " : "  "} {tab.icon}{" "}
             </Text>
           );
         })}

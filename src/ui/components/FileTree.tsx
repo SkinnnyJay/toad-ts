@@ -2,7 +2,7 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { COLOR } from "@/constants/colors";
 import ignore from "ignore";
-import { Box, Text, useInput } from "ink";
+import { Box, Text, useInput, useStdout } from "ink";
 import { useEffect, useMemo, useState } from "react";
 import { ScrollArea } from "./ScrollArea";
 
@@ -17,6 +17,7 @@ interface FileTreeProps {
   rootPath?: string;
   isFocused?: boolean;
   height?: number;
+  textSize?: "small" | "normal" | number;
 }
 
 const sortNodes = (nodes: FileTreeNode[]): FileTreeNode[] => {
@@ -29,6 +30,16 @@ const sortNodes = (nodes: FileTreeNode[]): FileTreeNode[] => {
 };
 
 const toPosix = (value: string): string => value.split(path.sep).join("/");
+
+// Helper function to truncate filename with ellipsis
+// Ensures the result never exceeds maxLength
+const truncateFileName = (name: string, maxLength: number): string => {
+  if (maxLength <= 0) return "…";
+  if (name.length <= maxLength) return name;
+  // Ensure we leave room for ellipsis (1 char)
+  const truncateAt = Math.max(1, maxLength - 1);
+  return `${name.slice(0, truncateAt)}…`;
+};
 
 const createIgnoreFilter = async (rootPath: string): Promise<(relativePath: string) => boolean> => {
   const ig = ignore();
@@ -80,7 +91,9 @@ export function FileTree({
   rootPath = process.cwd(),
   isFocused = true,
   height,
+  textSize = "normal",
 }: FileTreeProps): JSX.Element {
+  const { stdout } = useStdout();
   const [nodes, setNodes] = useState<FileTreeNode[]>([]);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -173,27 +186,84 @@ export function FileTree({
     });
   }, [selectedIndex, visible.length, visibleItems, maxScrollOffset]);
 
+  // Determine if text should be dimmed based on textSize prop
+  const isSmallText = textSize === "small" || (typeof textSize === "number" && textSize < 1);
+
+  // Calculate available width for filenames
+  // Sidebar is 15% of terminal width by default, with paddingX={1} (2 chars)
+  // FileTree is inside a Box with padding={1} (2 more chars on each side = 4 total)
+  // So we need: sidebar width - sidebar padding - filetree container padding
+  const terminalWidth = stdout?.columns ?? 80;
+  const sidebarWidthPercent = 0.15; // 15% default
+  const sidebarWidth = Math.floor(terminalWidth * sidebarWidthPercent);
+  const sidebarPadding = 2; // paddingX={1} on both sides
+  const fileTreeContainerPadding = 2; // padding={1} on left side only (right is handled by scrollbar)
+  const scrollbarWidth = 1; // Reserve space for scrollbar
+  const availableWidth = Math.max(
+    10,
+    sidebarWidth - sidebarPadding - fileTreeContainerPadding - scrollbarWidth
+  );
+
   // Render visible items (wrapped in ScrollArea) - memoize to prevent recreation
   // Must be called before early returns to follow Rules of Hooks
   const fileTreeItems = useMemo(
     () =>
       visible.map(({ node, depth }, idx) => {
         const isSelected = idx === selectedIndex;
-        const indent = "  ".repeat(depth);
-        const icon = node.isDir ? (expanded.has(node.path) ? "📂" : "📁") : "📄";
+        const isExpanded = node.isDir && expanded.has(node.path);
+        const icon = node.isDir ? (isExpanded ? "▼" : "▶") : "·";
         const pointer = isSelected ? "› " : "  ";
+
+        // Build tree structure with box-drawing characters
+        let treePrefix = "";
+        if (depth > 0) {
+          // Find all siblings at the same depth with the same parent
+          const parentPath = path.dirname(node.path);
+          const siblings = visible.filter(
+            (v) => v.depth === depth && path.dirname(v.node.path) === parentPath
+          );
+          const siblingIndex = siblings.findIndex((s) => s.node.path === node.path);
+          const isLastSibling = siblingIndex === siblings.length - 1;
+
+          // Build vertical lines for each ancestor level
+          for (let i = 1; i < depth; i++) {
+            // Get the ancestor path at depth i
+            const pathParts = node.path.split(path.sep);
+            const ancestorPath = pathParts.slice(0, pathParts.length - depth + i).join(path.sep);
+            const ancestorParentPath = path.dirname(ancestorPath);
+
+            // Find siblings of this ancestor
+            const ancestorSiblings = visible.filter(
+              (v) => v.depth === i && path.dirname(v.node.path) === ancestorParentPath
+            );
+            const ancestorIndex = ancestorSiblings.findIndex((s) => s.node.path === ancestorPath);
+            const hasMoreAfter = ancestorIndex >= 0 && ancestorIndex < ancestorSiblings.length - 1;
+
+            treePrefix += hasMoreAfter ? "│ " : "  ";
+          }
+
+          // Add connector for this item
+          treePrefix += isLastSibling ? "└─" : "├─";
+        }
+
+        // Calculate the length of the prefix (pointer + treePrefix + icon + space)
+        const prefixLength = pointer.length + treePrefix.length + icon.length + 1; // +1 for space after icon
+        // Use a conservative calculation: subtract prefix length and add safety margin
+        const safetyMargin = 3; // Extra margin to prevent any wrapping
+        const maxFileNameLength = Math.max(1, availableWidth - prefixLength - safetyMargin);
+        const truncatedName = truncateFileName(node.name, maxFileNameLength);
 
         return (
           <Box key={node.path} width="100%" overflow="hidden" minWidth={0}>
-            <Text color={isSelected ? COLOR.CYAN : undefined} wrap="wrap">
+            <Text color={isSelected ? COLOR.CYAN : undefined} dimColor={isSmallText && !isSelected}>
               {pointer}
-              {indent}
-              {icon} {node.name}
+              {treePrefix}
+              {icon} {truncatedName}
             </Text>
           </Box>
         );
       }),
-    [visible, selectedIndex, expanded]
+    [visible, selectedIndex, expanded, isSmallText, availableWidth]
   );
 
   useInput((_input, key) => {
@@ -223,7 +293,7 @@ export function FileTree({
   if (isLoading) {
     return (
       <Box flexDirection="column" paddingY={1} gap={0} width="100%" overflow="hidden" minWidth={0}>
-        <Text dimColor wrap="wrap">
+        <Text dimColor={isSmallText} wrap="wrap">
           Loading files…
         </Text>
       </Box>
@@ -233,7 +303,7 @@ export function FileTree({
   if (error) {
     return (
       <Box flexDirection="column" paddingY={1} gap={0} width="100%" overflow="hidden" minWidth={0}>
-        <Text color={COLOR.RED} wrap="wrap">
+        <Text color={COLOR.RED} dimColor={isSmallText} wrap="wrap">
           Failed to load files
         </Text>
         <Text dimColor wrap="wrap">

@@ -27,6 +27,7 @@ import { PlanApprovalPanel } from "@/ui/components/PlanApprovalPanel";
 import { PlanPanel } from "@/ui/components/PlanPanel";
 import { ToolCallManager } from "@/ui/components/ToolCallManager";
 import { roleColor } from "@/ui/theme";
+import { getRepoInfo } from "@/utils/git/git-info.utils";
 import { Box, Text, useInput } from "ink";
 import { nanoid } from "nanoid";
 import { memo, useCallback, useMemo, useState } from "react";
@@ -173,6 +174,18 @@ export const Chat = memo(
       if (sessionId) return sessionId;
       return SessionIdSchema.parse("session-unknown");
     }, [sessionId]);
+
+    const repoInfo = useMemo(() => {
+      const info = getRepoInfo();
+      const colonIndex = info.lastIndexOf(":");
+      if (colonIndex === -1) {
+        return { path: info, branch: "" };
+      }
+      return {
+        path: info.slice(0, colonIndex),
+        branch: info.slice(colonIndex + 1),
+      };
+    }, []);
 
     useInput((input, key) => {
       if (key.ctrl && (input === "p" || input === "P")) {
@@ -357,7 +370,13 @@ export const Chat = memo(
             <Box flexDirection="row" alignItems="center" gap={1}>
               {/* <AppIcon size="small" /> */}
               <Text>
-                Session: {effectiveSessionId} {agent ? `· Agent: ${agent.name}` : ""} · Mode:{" "}
+                {repoInfo.path}
+                {repoInfo.branch ? (
+                  <>
+                    :<Text color={COLOR.CYAN}>{repoInfo.branch}</Text>
+                  </>
+                ) : null}{" "}
+                · Session: {effectiveSessionId} {agent ? `· Agent: ${agent.name}` : ""} · Mode:{" "}
                 {sessionMode} · Status:{" "}
                 <Text
                   color={
