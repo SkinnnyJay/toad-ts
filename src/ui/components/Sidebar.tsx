@@ -9,6 +9,14 @@ import { memo, useEffect, useMemo, useState } from "react";
 import { FileTree } from "./FileTree";
 import { ScrollArea } from "./ScrollArea";
 
+// Helper function to truncate text with ellipsis
+const truncateText = (text: string, maxLength: number): string => {
+  if (maxLength <= 0) return "…";
+  if (text.length <= maxLength) return text;
+  const truncateAt = Math.max(1, maxLength - 1);
+  return `${text.slice(0, truncateAt)}…`;
+};
+
 interface SidebarProps {
   width?: string | number;
   height?: number;
@@ -73,28 +81,36 @@ const SessionsSection = memo(
     sessions,
     currentSessionId,
     selectedIndex,
+    maxWidth,
   }: {
     sessions: Session[];
     currentSessionId?: SessionId;
     selectedIndex: number;
+    maxWidth: number;
   }) => {
     if (sessions.length === 0) {
       return <Text dimColor>No sessions</Text>;
     }
+
+    // Calculate available width for session IDs
+    // Account for: pointer (2 chars), status icon (2 chars), spacing (2 chars), safety margin (2 chars)
+    const prefixLength = 2 + 2 + 2; // "› " + "● " or "○ " + spacing
+    const safetyMargin = 2;
+    const maxSessionIdLength = Math.max(1, maxWidth - prefixLength - safetyMargin);
 
     return (
       <Box flexDirection="column" gap={0} width="100%" overflow="hidden" minWidth={0}>
         {sessions.map((session, idx) => {
           const isCurrent = session.id === currentSessionId;
           const isSelected = idx === selectedIndex;
-          const label = session.title || session.id;
+          const truncatedId = truncateText(session.id, maxSessionIdLength);
           return (
             <Text
               key={session.id}
               color={isSelected ? COLOR.CYAN : isCurrent ? COLOR.GREEN : undefined}
-              wrap="wrap"
+              dimColor={!isSelected && !isCurrent}
             >
-              {isSelected ? "›" : " "} {isCurrent ? "●" : "○"} {label}
+              {isSelected ? "›" : " "} {isCurrent ? "●" : "○"} {truncatedId}
             </Text>
           );
         })}
@@ -121,6 +137,7 @@ export function Sidebar({
 }: SidebarProps): JSX.Element {
   const { stdout } = useStdout();
   const terminalRows = stdout?.rows ?? UI.TERMINAL_DEFAULT_ROWS;
+  const terminalWidth = stdout?.columns ?? 80;
 
   const availableHeight = height ?? terminalRows - 5;
   const tabBarHeight = 2;
@@ -206,25 +223,43 @@ export function Sidebar({
 
   const tabContent = useMemo(() => {
     switch (selectedTab) {
-      case "files":
+      case "files": {
+        // Account for header text (1 line), padding, gap, and safety margin
+        const headerHeight = 1;
+        const containerPadding = 2; // padding={1} top and bottom
+        const gapSpacing = 1; // gap={1} between header and FileTree
+        const safetyMargin = 2; // Extra margin to prevent overflow
+        const fileTreeHeight = Math.max(
+          1,
+          contentHeight - headerHeight - containerPadding - gapSpacing - safetyMargin
+        );
         return (
           <ScrollArea
             height={contentHeight}
             showScrollbar={true}
             isFocused={focusTarget === "files"}
           >
-            <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
+            <Box
+              padding={1}
+              paddingTop={0}
+              paddingBottom={1}
+              gap={1}
+              flexDirection="column"
+              flexGrow={1}
+              minHeight={0}
+            >
               <Text color={COLOR.GRAY} bold>
                 Files
               </Text>
               <FileTree
                 isFocused={focusTarget === "files"}
-                height={contentHeight}
+                height={fileTreeHeight}
                 textSize="small"
               />
             </Box>
           </ScrollArea>
         );
+      }
       case "plan":
         return (
           <ScrollArea height={contentHeight} showScrollbar={true}>
@@ -247,7 +282,17 @@ export function Sidebar({
             </Box>
           </ScrollArea>
         );
-      case "sessions":
+      case "sessions": {
+        // Calculate available width for session IDs
+        const sidebarWidthPercent = 0.15; // 15% default
+        const sidebarWidth = Math.floor(terminalWidth * sidebarWidthPercent);
+        const sidebarPadding = 2; // paddingX={1} on both sides
+        const containerPadding = 2; // padding={1} on left side
+        const scrollbarWidth = 1; // Reserve space for scrollbar
+        const maxSessionIdWidth = Math.max(
+          10,
+          sidebarWidth - sidebarPadding - containerPadding - scrollbarWidth
+        );
         return (
           <ScrollArea
             height={contentHeight}
@@ -262,10 +307,12 @@ export function Sidebar({
                 sessions={sessions}
                 currentSessionId={activeSessionId}
                 selectedIndex={sessionIndex}
+                maxWidth={maxSessionIdWidth}
               />
             </Box>
           </ScrollArea>
         );
+      }
       case "agent":
         return (
           <ScrollArea height={contentHeight} showScrollbar={true}>
@@ -290,6 +337,7 @@ export function Sidebar({
     activeSessionId,
     sessionIndex,
     currentAgentName,
+    terminalWidth,
   ]);
 
   return (

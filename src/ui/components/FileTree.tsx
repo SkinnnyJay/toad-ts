@@ -151,8 +151,8 @@ export function FileTree({
 
   // FileTree is now inside a Tab within Sidebar
   // The height prop is the available height from the tab content area
-  // Use the full height provided by the parent
-  const scrollAreaHeight = height ? Math.max(1, height) : undefined;
+  // Use the height provided by the parent, but subtract a small margin for safety
+  const scrollAreaHeight = height ? Math.max(1, height - 1) : undefined;
   const visibleItems = scrollAreaHeight ? Math.max(1, scrollAreaHeight) : 1;
   const maxScrollOffset = Math.max(0, visible.length - visibleItems);
 
@@ -211,7 +211,7 @@ export function FileTree({
       visible.map(({ node, depth }, idx) => {
         const isSelected = idx === selectedIndex;
         const isExpanded = node.isDir && expanded.has(node.path);
-        const icon = node.isDir ? (isExpanded ? "▼" : "▶") : "·";
+        const icon = node.isDir ? (isExpanded ? "▼" : "▶") : "•";
         const pointer = isSelected ? "› " : "  ";
 
         // Build tree structure with box-drawing characters
@@ -322,9 +322,10 @@ export function FileTree({
       paddingBottom={0}
       flexDirection="column"
       flexShrink={1}
-      flexGrow={1}
+      flexGrow={0}
       minWidth={0}
       minHeight={0}
+      height={height}
     >
       <ScrollArea
         height={scrollAreaHeight}

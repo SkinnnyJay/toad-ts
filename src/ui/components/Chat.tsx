@@ -4,6 +4,7 @@ import { COLOR } from "@/constants/colors";
 import type { CommandDefinition } from "@/constants/command-definitions";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { ENV_KEY } from "@/constants/env-keys";
 import { PERMISSION_PATTERN } from "@/constants/permission-patterns";
 import { PERMISSION } from "@/constants/permissions";
 import { PLAN_STATUS } from "@/constants/plan-status";
@@ -176,7 +177,10 @@ export const Chat = memo(
     }, [sessionId]);
 
     const repoInfo = useMemo(() => {
-      const info = getRepoInfo();
+      // Read format from environment variable, default to "full"
+      const formatEnv = process.env[ENV_KEY.TOADSTOOL_UI_PROJECT_FOLDER_PATH_RENDER];
+      const format = formatEnv === "short" ? "short" : "full";
+      const info = getRepoInfo(process.cwd(), format);
       const colonIndex = info.lastIndexOf(":");
       if (colonIndex === -1) {
         return { path: info, branch: "" };
