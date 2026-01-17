@@ -17,6 +17,8 @@ export interface InputWithAutocompleteProps {
   multiline?: boolean;
   /** Enable @-mention file suggestions. Default: true. */
   enableMentions?: boolean;
+  /** Focus target - only process input when focusTarget is "chat". Default: "chat". */
+  focusTarget?: "files" | "plan" | "context" | "sessions" | "agent" | "chat";
 }
 
 const DEFAULT_COMMANDS: SlashCommand[] = COMMAND_DEFINITIONS;
@@ -32,6 +34,7 @@ export function InputWithAutocomplete({
   placeholder = "Type a message or / for commands...",
   multiline = false,
   enableMentions = true,
+  focusTarget = "chat",
 }: InputWithAutocompleteProps): JSX.Element {
   const [cursorPosition, setCursorPosition] = useState(value.length);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
@@ -111,6 +114,10 @@ export function InputWithAutocomplete({
 
   // Handle keyboard input
   useInput((input, key) => {
+    // Only process input when focus is on chat
+    if (focusTarget !== "chat") {
+      return;
+    }
     // Navigation inside suggestion lists
     if (showAutocomplete && commandSuggestions.length > 0) {
       if (key.upArrow) {

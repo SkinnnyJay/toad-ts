@@ -38,6 +38,7 @@ interface ChatProps {
   onPromptComplete?: (sessionId: SessionId) => void;
   onOpenSettings?: () => void;
   onOpenHelp?: () => void;
+  focusTarget?: "files" | "plan" | "context" | "sessions" | "agent" | "chat";
 }
 
 export const runSlashCommand = (
@@ -131,6 +132,7 @@ export const Chat = memo(
     onPromptComplete,
     onOpenSettings,
     onOpenHelp,
+    focusTarget = "chat",
   }: ChatProps): JSX.Element => {
     const appendMessage = useAppStore((state) => state.appendMessage);
     const messages = useAppStore((state) =>
@@ -429,6 +431,7 @@ export const Chat = memo(
               onChange={setInputValue}
               multiline
               slashCommands={commandList}
+              focusTarget={focusTarget}
             />
           </Box>
         </Box>

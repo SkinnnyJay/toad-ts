@@ -146,6 +146,16 @@ export function App(): JSX.Element {
   useInput((input, key) => {
     if (view !== "chat") return;
 
+    // Option+` (backtick) to focus back on chat
+    // Option/Alt key combinations send escape sequences on macOS terminals
+    // Option+` typically sends '\x1b`' or similar escape sequence
+    const isOptionBacktick =
+      input.length >= 2 && input.charCodeAt(0) === 0x1b && input.slice(1) === "`";
+    if (isOptionBacktick) {
+      setFocusTarget("chat");
+      return;
+    }
+
     // Command+number sets focus (1=Files, 2=Plan, 3=Context, 4=Sessions, 5=Sub-agents)
     if ((key.meta || key.ctrl) && /^[1-5]$/.test(input)) {
       const focusMap: Record<string, FocusTarget> = {
@@ -455,7 +465,7 @@ export function App(): JSX.Element {
   }
 
   // Calculate layout dimensions
-  const sidebarWidth = Math.floor(terminalDimensions.columns * 0.25);
+  const sidebarWidth = Math.floor(terminalDimensions.columns * 0.15);
   const mainWidth = terminalDimensions.columns - sidebarWidth - 4; // Account for borders and gaps
 
   return (
@@ -532,6 +542,7 @@ export function App(): JSX.Element {
                     onPromptComplete={handlePromptComplete}
                     onOpenSettings={() => setIsSettingsOpen(true)}
                     onOpenHelp={() => setIsHelpOpen(true)}
+                    focusTarget={focusTarget}
                   />
                 )}
               </Box>
