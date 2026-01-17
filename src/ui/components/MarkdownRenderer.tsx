@@ -1,9 +1,10 @@
+import { LIMIT } from "@/config/limits";
 import { COLOR } from "@/constants/colors";
 import { Box, Text } from "ink";
 import type { MarkedOptions, Renderer } from "marked";
 import { marked } from "marked";
 import TerminalRenderer from "marked-terminal";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { TRUNCATION_SHORTCUT_HINT, useTruncationToggle } from "./TruncationProvider";
 
 interface MarkdownRendererProps {
@@ -21,7 +22,6 @@ interface MarkdownRendererProps {
 const EXPAND_ALL = process.env.TOADSTOOL_EXPAND_ALL === "1";
 const DEFAULT_COLLAPSE_AFTER = 120;
 const STREAM_BUFFER_MS = 10;
-const RENDER_CACHE_LIMIT = 200;
 
 interface ParsedBlock {
   id: string;
@@ -45,7 +45,7 @@ const renderBlock = (block: string, renderer: Renderer, cache: Map<string, strin
     const rendered = marked.parse(block, { renderer } as unknown as MarkedOptions);
     const finalText = typeof rendered === "string" ? rendered : block;
     cache.set(block, finalText);
-    if (cache.size > RENDER_CACHE_LIMIT) {
+    if (cache.size > LIMIT.RENDER_CACHE_LIMIT) {
       const firstKey = cache.keys().next().value as string | undefined;
       if (firstKey) cache.delete(firstKey);
     }
@@ -64,7 +64,7 @@ const useBufferedMarkdown = (markdown: string, bufferMs: number): string => {
   return buffered;
 };
 
-function MarkdownBlock({
+const MarkdownBlock = memo(function MarkdownBlock({
   block,
   collapseAfter,
   expandTruncated,
@@ -98,7 +98,7 @@ function MarkdownBlock({
       ) : null}
     </Box>
   );
-}
+});
 
 export function MarkdownRenderer({
   markdown,

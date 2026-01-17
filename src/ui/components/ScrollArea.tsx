@@ -1,3 +1,4 @@
+import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { Box, Text, useInput, useStdout } from "ink";
 import React, { type ReactNode, useCallback, useEffect, useState, useMemo } from "react";
@@ -42,13 +43,13 @@ export function ScrollArea({
   );
 
   // Get terminal dimensions
-  const terminalRows = stdout?.rows ?? 24;
+  const terminalRows = stdout?.rows ?? UI.TERMINAL_DEFAULT_ROWS;
 
   // Use provided height or calculate from terminal
   const effectiveHeight = height ?? Math.max(5, terminalRows - 20);
 
-  // Convert children to array
-  const childArray = React.Children.toArray(children).filter(Boolean);
+  // Convert children to array - memoize to prevent recreation on every render
+  const childArray = useMemo(() => React.Children.toArray(children).filter(Boolean), [children]);
   const totalItems = childArray.length;
 
   // Calculate how many items can fit in the visible area

@@ -223,7 +223,7 @@ export function PlanApprovalPanel({
       {plan.status === PLAN_STATUS.EXECUTING && (
         <Box marginTop={1}>
           <Text color={COLOR.BLUE}>
-            ⟳ Executing... {plan.tasks.filter((t) => t.status === TASK_STATUS.COMPLETED).length}/
+            ⟳ Executing… {plan.tasks.filter((t) => t.status === TASK_STATUS.COMPLETED).length}/
             {plan.tasks.length} tasks completed
           </Text>
         </Box>

@@ -1,6 +1,7 @@
 import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { COLOR } from "@/constants/colors";
+import type { CommandDefinition } from "@/constants/command-definitions";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { PERMISSION_PATTERN } from "@/constants/permission-patterns";
@@ -8,6 +9,7 @@ import { PERMISSION } from "@/constants/permissions";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
+import { TASK_STATUS } from "@/constants/task-status";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { useAppStore } from "@/store/app-store";
 import type { AgentId, Message, Plan, Session, SessionId } from "@/types/domain";
@@ -103,13 +105,13 @@ export const runSlashCommand = (
             planId,
             title,
             description: title,
-            status: "pending",
+            status: TASK_STATUS.PENDING,
             dependencies: [],
             result: undefined,
             createdAt: now,
           },
         ],
-        status: "planning",
+        status: PLAN_STATUS.PLANNING,
         createdAt: now,
         updatedAt: now,
       };
@@ -253,13 +255,13 @@ export const Chat = memo(
                   planId,
                   title,
                   description: title,
-                  status: "pending",
+                  status: TASK_STATUS.PENDING,
                   dependencies: [],
                   result: undefined,
                   createdAt: now,
                 },
               ],
-              status: "planning",
+              status: PLAN_STATUS.PLANNING,
               createdAt: now,
               updatedAt: now,
             };
@@ -332,6 +334,12 @@ export const Chat = memo(
         onPromptComplete,
       ]
     );
+
+    const handleCommandSelect = useCallback((cmd: CommandDefinition) => {
+      const next = `${cmd.name}${cmd.args ? " " : ""}`;
+      setInputValue(next);
+      setPaletteOpen(false);
+    }, []);
 
     return (
       <TruncationProvider>
@@ -419,11 +427,7 @@ export const Chat = memo(
               commands={commandList}
               isOpen={isPaletteOpen}
               onClose={() => setPaletteOpen(false)}
-              onSelect={(cmd) => {
-                const next = `${cmd.name}${cmd.args ? " " : ""}`;
-                setInputValue(next);
-                setPaletteOpen(false);
-              }}
+              onSelect={handleCommandSelect}
             />
             <InputWithAutocomplete
               value={inputValue}

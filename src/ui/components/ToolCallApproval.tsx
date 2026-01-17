@@ -35,7 +35,7 @@ const formatArguments = (args: Record<string, unknown>): string => {
       const displayValue =
         typeof value === "string"
           ? value.length > LIMIT.STRING_TRUNCATE_MEDIUM
-            ? `"${value.slice(0, LIMIT.STRING_TRUNCATE_TOOL_ARG)}..."`
+            ? `"${value.slice(0, LIMIT.STRING_TRUNCATE_TOOL_ARG)}…"`
             : `"${value}"`
           : JSON.stringify(value);
       return `  ${key}: ${displayValue}`;

@@ -83,7 +83,7 @@ export function DefaultProviderTab({ agents, onSave }: DefaultProviderTabProps):
   if (isLoading) {
     return (
       <Box flexDirection="column" paddingY={1}>
-        <Text dimColor>Loading settings...</Text>
+        <Text dimColor>Loading settings…</Text>
       </Box>
     );
   }

@@ -1,9 +1,10 @@
 import { COLOR } from "@/constants/colors";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import type { ContentBlock as ChatContentBlock, Message as ChatMessage } from "@/types/domain";
 import { roleColor } from "@/ui/theme";
 import { Box, Text } from "ink";
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { getHighlighter } from "shiki";
 import type { Highlighter } from "shiki";
 import { MarkdownRenderer } from "./MarkdownRenderer";
@@ -18,8 +19,9 @@ const formatTime = (timestamp?: number): string => {
   return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
+import { LIMIT } from "@/config/limits";
+
 const EXPAND_ALL = process.env.TOADSTOOL_EXPAND_ALL === "1";
-const MAX_BLOCK_LINES = 200;
 
 const mergeTextBlocks = (blocks: ChatContentBlock[]): ChatContentBlock[] => {
   const merged: ChatContentBlock[] = [];
@@ -114,7 +116,7 @@ function CodeBlock({
 }): JSX.Element {
   const lang = block.language ?? "";
   const lines = block.text.split(/\r?\n/);
-  const truncated = Math.max(0, lines.length - MAX_BLOCK_LINES);
+  const truncated = Math.max(0, lines.length - LIMIT.MAX_BLOCK_LINES);
   const { expanded, isActive } = useTruncationToggle({
     id: `${messageId}-code-${index}`,
     label: lang ? `${lang} code` : "Code block",
@@ -123,11 +125,12 @@ function CodeBlock({
   });
 
   const highlighted = useHighlightedCode(block.text, lang);
-  const visiblePlainLines = expanded || truncated === 0 ? lines : lines.slice(0, MAX_BLOCK_LINES);
+  const visiblePlainLines =
+    expanded || truncated === 0 ? lines : lines.slice(0, LIMIT.MAX_BLOCK_LINES);
   const visibleHighlighted = highlighted
     ? expanded || truncated === 0
       ? highlighted
-      : highlighted.slice(0, MAX_BLOCK_LINES)
+      : highlighted.slice(0, LIMIT.MAX_BLOCK_LINES)
     : null;
   const linesToRender: HighlightLine[] =
     visibleHighlighted ??
@@ -166,7 +169,7 @@ function CodeBlock({
   );
 }
 
-function ContentBlockRenderer({
+const ContentBlockRenderer = memo(function ContentBlockRenderer({
   block,
   messageId,
   index,
@@ -180,7 +183,7 @@ function ContentBlockRenderer({
       return (
         <MarkdownRenderer
           markdown={block.text ?? ""}
-          collapseAfter={MAX_BLOCK_LINES}
+          collapseAfter={LIMIT.MAX_BLOCK_LINES}
           expandTruncated={EXPAND_ALL}
           blockIdPrefix={`${messageId}-md-${index}`}
           blockLabel="Markdown block"
@@ -198,20 +201,20 @@ function ContentBlockRenderer({
     case CONTENT_BLOCK_TYPE.TOOL_CALL: {
       const label = block.name ?? "tool";
       const statusColor =
-        block.status === "succeeded"
+        block.status === TOOL_CALL_STATUS.SUCCEEDED
           ? COLOR.GREEN
-          : block.status === "running"
+          : block.status === TOOL_CALL_STATUS.RUNNING
             ? COLOR.CYAN
-            : block.status === "failed"
+            : block.status === TOOL_CALL_STATUS.FAILED
               ? COLOR.RED
               : COLOR.YELLOW;
 
       const statusText =
-        block.status === "succeeded"
+        block.status === TOOL_CALL_STATUS.SUCCEEDED
           ? "complete"
-          : block.status === "running"
+          : block.status === TOOL_CALL_STATUS.RUNNING
             ? "in-progress"
-            : block.status === "failed"
+            : block.status === TOOL_CALL_STATUS.FAILED
               ? "failed"
               : "pending";
 
@@ -225,7 +228,7 @@ function ContentBlockRenderer({
           </Box>
           {block.arguments && Object.keys(block.arguments).length > 0 && (
             <Text dimColor color={COLOR.GRAY}>
-              - {JSON.stringify(block.arguments).substring(0, 50)}...
+              - {JSON.stringify(block.arguments).substring(0, 50)}…
             </Text>
           )}
         </Box>
@@ -255,31 +258,36 @@ function ContentBlockRenderer({
     default:
       return <Text />;
   }
-}
+});
 
 export const MessageItem = memo(({ message }: MessageItemProps): JSX.Element => {
-  const mergedBlocks = mergeTextBlocks(message.content);
+  const mergedBlocks = useMemo(() => mergeTextBlocks(message.content), [message.content]);
 
   // Separate tool calls from other content
-  const toolCallBlocks = mergedBlocks.filter(
-    (block) => block.type === CONTENT_BLOCK_TYPE.TOOL_CALL
+  const toolCallBlocks = useMemo(
+    () => mergedBlocks.filter((block) => block.type === CONTENT_BLOCK_TYPE.TOOL_CALL),
+    [mergedBlocks]
   );
-  const responseBlocks = mergedBlocks.filter(
-    (block) => block.type !== CONTENT_BLOCK_TYPE.TOOL_CALL
+  const responseBlocks = useMemo(
+    () => mergedBlocks.filter((block) => block.type !== CONTENT_BLOCK_TYPE.TOOL_CALL),
+    [mergedBlocks]
   );
 
   // Check if we have incomplete markdown (for streaming messages)
-  const hasIncompleteMarkdown =
-    message.isStreaming &&
-    responseBlocks.some((block) => {
-      if (block.type === CONTENT_BLOCK_TYPE.TEXT) {
-        const text = block.text || "";
-        // Check for unclosed code blocks or other markdown issues
-        const codeBlockCount = (text.match(/```/g) || []).length;
-        return codeBlockCount % 2 !== 0;
-      }
-      return false;
-    });
+  const hasIncompleteMarkdown = useMemo(
+    () =>
+      message.isStreaming &&
+      responseBlocks.some((block) => {
+        if (block.type === CONTENT_BLOCK_TYPE.TEXT) {
+          const text = block.text || "";
+          // Check for unclosed code blocks or other markdown issues
+          const codeBlockCount = (text.match(/```/g) || []).length;
+          return codeBlockCount % 2 !== 0;
+        }
+        return false;
+      }),
+    [message.isStreaming, responseBlocks]
+  );
 
   return (
     <Box flexDirection="column" width="100%" gap={0} marginY={1}>
@@ -291,7 +299,7 @@ export const MessageItem = memo(({ message }: MessageItemProps): JSX.Element => 
         {message.isStreaming && (
           <Text color={COLOR.CYAN} dimColor>
             {" "}
-            (streaming...)
+            (streaming…)
           </Text>
         )}
       </Box>
@@ -318,7 +326,7 @@ export const MessageItem = memo(({ message }: MessageItemProps): JSX.Element => 
       {hasIncompleteMarkdown && (
         <Box marginTop={1} borderStyle="round" borderColor={COLOR.YELLOW} padding={1}>
           <Text color={COLOR.YELLOW}>
-            ⚠ Incomplete markdown detected - waiting for complete response...
+            ⚠ Incomplete markdown detected - waiting for complete response…
           </Text>
         </Box>
       )}

@@ -1,11 +1,12 @@
 import { LIMIT } from "@/config/limits";
+import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { useAppStore } from "@/store/app-store";
 import type { Plan, Session, SessionId } from "@/types/domain";
 import { Box, Text, useInput, useStdout } from "ink";
 import { Tab, Tabs } from "ink-tab";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { FileTree } from "./FileTree";
 import { ScrollArea } from "./ScrollArea";
 
@@ -18,7 +19,7 @@ interface SidebarProps {
   focusTarget?: "files" | "plan" | "context" | "sessions" | "agent" | "chat";
 }
 
-const PlanSection = ({ plan }: { plan?: Plan }) => {
+const PlanSection = memo(({ plan }: { plan?: Plan }) => {
   if (!plan) return <Text dimColor>No plan</Text>;
   const statusIcon =
     plan.status === PLAN_STATUS.COMPLETED ? "✓" : plan.status === PLAN_STATUS.FAILED ? "✗" : "⟳";
@@ -41,9 +42,9 @@ const PlanSection = ({ plan }: { plan?: Plan }) => {
       {plan.tasks.length > LIMIT.SIDEBAR_TASKS_DISPLAY ? <Text dimColor>…</Text> : null}
     </Box>
   );
-};
+});
 
-const AgentsSection = ({ currentAgentName }: { currentAgentName?: string }) => {
+const AgentsSection = memo(({ currentAgentName }: { currentAgentName?: string }) => {
   if (!currentAgentName) {
     return (
       <Box width="100%" overflow="hidden" minWidth={0}>
@@ -66,40 +67,42 @@ const AgentsSection = ({ currentAgentName }: { currentAgentName?: string }) => {
       <Text wrap="wrap">{currentAgentName}</Text>
     </Box>
   );
-};
+});
 
-const SessionsSection = ({
-  sessions,
-  currentSessionId,
-  selectedIndex,
-}: {
-  sessions: Session[];
-  currentSessionId?: SessionId;
-  selectedIndex: number;
-}) => {
-  if (sessions.length === 0) {
-    return <Text dimColor>No sessions</Text>;
+const SessionsSection = memo(
+  ({
+    sessions,
+    currentSessionId,
+    selectedIndex,
+  }: {
+    sessions: Session[];
+    currentSessionId?: SessionId;
+    selectedIndex: number;
+  }) => {
+    if (sessions.length === 0) {
+      return <Text dimColor>No sessions</Text>;
+    }
+
+    return (
+      <Box flexDirection="column" gap={0} width="100%" overflow="hidden" minWidth={0}>
+        {sessions.map((session, idx) => {
+          const isCurrent = session.id === currentSessionId;
+          const isSelected = idx === selectedIndex;
+          const label = session.title || session.id;
+          return (
+            <Text
+              key={session.id}
+              color={isSelected ? COLOR.CYAN : isCurrent ? COLOR.GREEN : undefined}
+              wrap="wrap"
+            >
+              {isSelected ? "›" : " "} {isCurrent ? "●" : "○"} {label}
+            </Text>
+          );
+        })}
+      </Box>
+    );
   }
-
-  return (
-    <Box flexDirection="column" gap={0} width="100%" overflow="hidden" minWidth={0}>
-      {sessions.map((session, idx) => {
-        const isCurrent = session.id === currentSessionId;
-        const isSelected = idx === selectedIndex;
-        const label = session.title || session.id;
-        return (
-          <Text
-            key={session.id}
-            color={isSelected ? COLOR.CYAN : isCurrent ? COLOR.GREEN : undefined}
-            wrap="wrap"
-          >
-            {isSelected ? "›" : " "} {isCurrent ? "●" : "○"} {label}
-          </Text>
-        );
-      })}
-    </Box>
-  );
-};
+);
 
 export function Sidebar({
   width = "15%",
@@ -110,7 +113,7 @@ export function Sidebar({
   focusTarget = "chat",
 }: SidebarProps): JSX.Element {
   const { stdout } = useStdout();
-  const terminalRows = stdout?.rows ?? 24;
+  const terminalRows = stdout?.rows ?? UI.TERMINAL_DEFAULT_ROWS;
 
   // Calculate available height for tab content
   // Account for Sidebar padding (2 lines), tab bar (2 lines), shortcut hint (1 line)

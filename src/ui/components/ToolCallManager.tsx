@@ -1,5 +1,6 @@
 import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
+import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { PERMISSION } from "@/constants/permissions";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
@@ -60,7 +61,6 @@ const getToolPermission = (
 };
 
 const EXPAND_ALL = process.env.TOADSTOOL_EXPAND_ALL === "1";
-const VISIBLE_RESULT_LINES = 80;
 
 const formatResultLines = (result: unknown): string[] => {
   if (result === undefined || result === null) return ["null"];
@@ -94,14 +94,15 @@ ActiveToolItem.displayName = "ActiveToolItem";
 
 const ToolResultOutput = memo(({ toolId, result }: { toolId: ToolCallId; result: unknown }) => {
   const lines = useMemo(() => formatResultLines(result), [result]);
-  const truncatedHead = Math.max(0, lines.length - VISIBLE_RESULT_LINES);
+  const truncatedHead = Math.max(0, lines.length - UI.VISIBLE_RESULT_LINES);
   const { expanded, isActive } = useTruncationToggle({
     id: `${toolId}-result`,
     label: "Tool result",
     isTruncated: truncatedHead > 0,
     defaultExpanded: EXPAND_ALL,
   });
-  const visibleLines = expanded || truncatedHead === 0 ? lines : lines.slice(-VISIBLE_RESULT_LINES);
+  const visibleLines =
+    expanded || truncatedHead === 0 ? lines : lines.slice(-UI.VISIBLE_RESULT_LINES);
 
   return (
     <Box flexDirection="column" gap={0}>

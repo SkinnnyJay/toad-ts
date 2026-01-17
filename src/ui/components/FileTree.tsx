@@ -153,6 +153,29 @@ export function FileTree({
     });
   }, [selectedIndex, visible.length, visibleItems, maxScrollOffset]);
 
+  // Render visible items (wrapped in ScrollArea) - memoize to prevent recreation
+  // Must be called before early returns to follow Rules of Hooks
+  const fileTreeItems = useMemo(
+    () =>
+      visible.map(({ node, depth }, idx) => {
+        const isSelected = idx === selectedIndex;
+        const indent = "  ".repeat(depth);
+        const icon = node.isDir ? (expanded.has(node.path) ? "📂" : "📁") : "📄";
+        const pointer = isSelected ? "› " : "  ";
+
+        return (
+          <Box key={node.path} width="100%" overflow="hidden" minWidth={0}>
+            <Text color={isSelected ? COLOR.CYAN : undefined} wrap="wrap">
+              {pointer}
+              {indent}
+              {icon} {node.name}
+            </Text>
+          </Box>
+        );
+      }),
+    [visible, selectedIndex, expanded]
+  );
+
   useInput((_input, key) => {
     if (!isFocused || isLoading || error) return;
     if (key.upArrow) {
@@ -199,24 +222,6 @@ export function FileTree({
       </Box>
     );
   }
-
-  // Render visible items (wrapped in ScrollArea)
-  const fileTreeItems = visible.map(({ node, depth }, idx) => {
-    const isSelected = idx === selectedIndex;
-    const indent = "  ".repeat(depth);
-    const icon = node.isDir ? (expanded.has(node.path) ? "📂" : "📁") : "📄";
-    const pointer = isSelected ? "› " : "  ";
-
-    return (
-      <Box key={node.path} width="100%" overflow="hidden" minWidth={0}>
-        <Text color={isSelected ? COLOR.CYAN : undefined} wrap="wrap">
-          {pointer}
-          {indent}
-          {icon} {node.name}
-        </Text>
-      </Box>
-    );
-  });
 
   return (
     <Box

@@ -1,4 +1,5 @@
 import { LIMIT } from "@/config/limits";
+import { AGENT_STATUS } from "@/constants/agent-status";
 import { COLOR } from "@/constants/colors";
 import { TASK_STATUS } from "@/constants/task-status";
 import type { Plan, SubAgent } from "@/types/domain";
@@ -12,7 +13,7 @@ interface MultiAgentStatusProps {
 export function MultiAgentStatus({ plan, agents }: MultiAgentStatusProps): JSX.Element {
   const completedTasks = plan.tasks.filter((t) => t.status === TASK_STATUS.COMPLETED).length;
   const totalTasks = plan.tasks.length;
-  const activeAgents = agents.filter((a) => a.status === "working").length;
+  const activeAgents = agents.filter((a) => a.status === AGENT_STATUS.WORKING).length;
 
   return (
     <Box
@@ -24,7 +25,7 @@ export function MultiAgentStatus({ plan, agents }: MultiAgentStatusProps): JSX.E
     >
       <Text bold color={COLOR.CYAN}>
         Multi-Agent Plan: {plan.originalPrompt.slice(0, LIMIT.STRING_TRUNCATE_MEDIUM)}
-        {plan.originalPrompt.length > LIMIT.STRING_TRUNCATE_MEDIUM ? "..." : ""}
+        {plan.originalPrompt.length > LIMIT.STRING_TRUNCATE_MEDIUM ? "…" : ""}
       </Text>
       <Box flexDirection="column" marginTop={1}>
         <Text>
@@ -73,11 +74,11 @@ export function MultiAgentStatus({ plan, agents }: MultiAgentStatusProps): JSX.E
             <Text bold>Agents:</Text>
             {agents.map((agent) => {
               const statusColor =
-                agent.status === "working"
+                agent.status === AGENT_STATUS.WORKING
                   ? COLOR.GREEN
-                  : agent.status === "error"
+                  : agent.status === AGENT_STATUS.ERROR
                     ? COLOR.RED
-                    : agent.status === "waiting"
+                    : agent.status === AGENT_STATUS.WAITING
                       ? COLOR.YELLOW
                       : COLOR.GRAY;
 

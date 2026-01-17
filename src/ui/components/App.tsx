@@ -1,8 +1,11 @@
 import { TIMEOUT } from "@/config/timeouts";
+import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
+import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { PERSISTENCE_WRITE_MODE } from "@/constants/persistence-write-modes";
+import { RENDER_STAGE, type RenderStage } from "@/constants/render-stage";
 import { VIEW, type View } from "@/constants/views";
 import { claudeCliHarnessAdapter } from "@/core/claude-cli-harness";
 import { loadMcpConfig } from "@/core/mcp-config-loader";
@@ -44,11 +47,6 @@ interface AgentInfo {
   description?: string;
 }
 
-type RenderStage = "loading" | "connecting" | "ready" | "error";
-type FocusTarget = "chat" | "files" | "plan" | "context" | "sessions" | "agent";
-
-const SESSION_BOOTSTRAP_TIMEOUT_MS = 8_000;
-
 const clearScreen = (): void => {
   process.stdout.write("\x1b[3J\x1b[H\x1b[2J");
 };
@@ -87,15 +85,15 @@ export function App(): JSX.Element {
   const [isSessionsPopupOpen, setIsSessionsPopupOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [stage, setStage] = useState<RenderStage>("loading");
+  const [stage, setStage] = useState<RenderStage>(RENDER_STAGE.LOADING);
   const [progress, setProgress] = useState<number>(5);
-  const [statusMessage, setStatusMessage] = useState<string>("Preparing...");
+  const [statusMessage, setStatusMessage] = useState<string>("Preparing…");
   const [defaultAgentId, setDefaultAgentId] = useState<AgentId | null>(null);
   const [hasHarnesses, setHasHarnesses] = useState(false);
-  const [focusTarget, setFocusTarget] = useState<FocusTarget>("chat");
+  const [focusTarget, setFocusTarget] = useState<FocusTarget>(FOCUS_TARGET.CHAT);
   const [terminalDimensions, setTerminalDimensions] = useState({
-    rows: stdout?.rows ?? 24,
-    columns: stdout?.columns ?? 80,
+    rows: stdout?.rows ?? UI.TERMINAL_DEFAULT_ROWS,
+    columns: stdout?.columns ?? UI.TERMINAL_DEFAULT_COLUMNS,
   });
 
   const currentSessionId = useAppStore((state) => state.currentSessionId);
@@ -142,9 +140,24 @@ export function App(): JSX.Element {
     [setCurrentSession, view]
   );
 
+  const handleAgentSelect = useCallback(
+    (agent: AgentOption) => {
+      const info = agentInfoMap.get(agent.id);
+      if (info) {
+        clearScreen();
+        setStatusMessage(`Connecting to ${info.name}…`);
+        setProgress((current) => Math.max(current, UI.PROGRESS.CONNECTION_START));
+        setStage(RENDER_STAGE.CONNECTING);
+        setSelectedAgent(info);
+        setView(VIEW.CHAT);
+      }
+    },
+    [agentInfoMap]
+  );
+
   // Handle focus shortcuts: Command+1,2,3,4,5 for focus, Option+1,2,3,4,5 for collapse
   useInput((input, key) => {
-    if (view !== "chat") return;
+    if (view !== VIEW.CHAT) return;
 
     // Option+` (backtick) to focus back on chat
     // Option/Alt key combinations send escape sequences on macOS terminals
@@ -152,31 +165,31 @@ export function App(): JSX.Element {
     const isOptionBacktick =
       input.length >= 2 && input.charCodeAt(0) === 0x1b && input.slice(1) === "`";
     if (isOptionBacktick) {
-      setFocusTarget("chat");
+      setFocusTarget(FOCUS_TARGET.CHAT);
       return;
     }
 
     // Command+number sets focus (1=Files, 2=Plan, 3=Context, 4=Sessions, 5=Sub-agents)
     if ((key.meta || key.ctrl) && /^[1-5]$/.test(input)) {
       const focusMap: Record<string, FocusTarget> = {
-        "1": "files",
-        "2": "plan",
+        "1": FOCUS_TARGET.FILES,
+        "2": FOCUS_TARGET.PLAN,
         "3": "context",
         "4": "sessions",
         "5": "agent",
       };
-      setFocusTarget(focusMap[input] ?? "chat");
+      setFocusTarget(focusMap[input] ?? FOCUS_TARGET.CHAT);
       return;
     }
 
     // Legacy: Command+F for files focus
     if ((key.meta || key.ctrl) && (input === "f" || input === "F")) {
-      setFocusTarget("files");
+      setFocusTarget(FOCUS_TARGET.FILES);
       return;
     }
 
     if (key.escape) {
-      setFocusTarget("chat");
+      setFocusTarget(FOCUS_TARGET.CHAT);
     }
     if (key.ctrl && (input === "s" || input === "S")) {
       setIsSessionsPopupOpen((prev) => !prev);
@@ -186,7 +199,7 @@ export function App(): JSX.Element {
   useEffect(() => {
     clearScreen();
     setProgress(5);
-    setStatusMessage("Loading TOADSTOOL...");
+    setStatusMessage("Loading TOADSTOOL…");
   }, []);
 
   // Track terminal resize
@@ -215,20 +228,20 @@ export function App(): JSX.Element {
 
   useEffect(() => {
     let active = true;
-    setStatusMessage("Hydrating sessions...");
-    setProgress((current) => Math.max(current, 10));
+    setStatusMessage("Hydrating sessions…");
+    setProgress((current) => Math.max(current, UI.PROGRESS.INITIAL));
     void (async () => {
       try {
         await persistenceManager.hydrate();
         if (!active) return;
         persistenceManager.start();
         setIsHydrated(true);
-        setProgress((current) => Math.max(current, 30));
+        setProgress((current) => Math.max(current, UI.PROGRESS.HARNESS_LOADING));
       } catch (error) {
         if (!active) return;
         const message = error instanceof Error ? error.message : String(error);
         setLoadError(message);
-        setStage("error");
+        setStage(RENDER_STAGE.ERROR);
         setStatusMessage(message);
       }
     })();
@@ -241,8 +254,8 @@ export function App(): JSX.Element {
 
   useEffect(() => {
     let active = true;
-    setStatusMessage("Loading providers...");
-    setProgress((current) => Math.max(current, 35));
+    setStatusMessage("Loading providers…");
+    setProgress((current) => Math.max(current, UI.PROGRESS.CONFIG_LOADING));
     void (async () => {
       try {
         const config = await loadHarnessConfig();
@@ -254,7 +267,7 @@ export function App(): JSX.Element {
         setHasHarnesses(true);
         const parsedDefault = AgentIdSchema.safeParse(config.harnessId);
         setDefaultAgentId(parsedDefault.success ? parsedDefault.data : null);
-        setProgress((current) => Math.max(current, 45));
+        setProgress((current) => Math.max(current, UI.PROGRESS.CONFIG_LOADED));
       } catch (error) {
         const fallback = createDefaultHarnessConfig();
         if (!active) return;
@@ -268,7 +281,7 @@ export function App(): JSX.Element {
         if (error instanceof Error && error.message !== "No harnesses configured.") {
           setLoadError(error.message);
         }
-        setProgress((current) => Math.max(current, 45));
+        setProgress((current) => Math.max(current, UI.PROGRESS.CONFIG_LOADED));
       }
     })();
 
@@ -293,9 +306,9 @@ export function App(): JSX.Element {
           const info = agentInfoMap.get(defaultProvider.agentId);
           if (info) {
             clearScreen();
-            setStatusMessage(`Connecting to ${info.name}...`);
-            setProgress((current) => Math.max(current, 60));
-            setStage("connecting");
+            setStatusMessage(`Connecting to ${info.name}…`);
+            setProgress((current) => Math.max(current, UI.PROGRESS.CONNECTION_START));
+            setStage(RENDER_STAGE.CONNECTING);
             setSelectedAgent(info);
             setView(VIEW.CHAT);
             return;
@@ -322,8 +335,8 @@ export function App(): JSX.Element {
 
       if (!active) return;
       clearScreen();
-      setStage("ready");
-      setProgress((current) => Math.max(current, 100));
+      setStage(RENDER_STAGE.READY);
+      setProgress((current) => Math.max(current, UI.PROGRESS.COMPLETE));
       setView(VIEW.AGENT_SELECT);
       setStatusMessage("Select a provider");
     })();
@@ -388,21 +401,21 @@ export function App(): JSX.Element {
     setLoadError(null);
     setConnectionStatus(CONNECTION_STATUS.CONNECTING);
     setStage("connecting");
-    setStatusMessage(`Connecting to ${selectedAgent.name}...`);
+    setStatusMessage(`Connecting to ${selectedAgent.name}…`);
     setProgress((current) => Math.max(current, 60));
     clearScreen();
 
     void (async () => {
       try {
-        await withTimeout(runtime.connect(), "connect", SESSION_BOOTSTRAP_TIMEOUT_MS);
+        await withTimeout(runtime.connect(), "connect", TIMEOUT.SESSION_BOOTSTRAP_MS);
         if (!active) return;
-        setStatusMessage("Initializing session...");
-        setProgress((current) => Math.max(current, 75));
+        setStatusMessage("Initializing session…");
+        setProgress((current) => Math.max(current, UI.PROGRESS.CONNECTION_ESTABLISHED));
 
-        await withTimeout(runtime.initialize(), "initialize", SESSION_BOOTSTRAP_TIMEOUT_MS);
+        await withTimeout(runtime.initialize(), "initialize", TIMEOUT.SESSION_BOOTSTRAP_MS);
         if (!active) return;
-        setStatusMessage("Preparing tools...");
-        setProgress((current) => Math.max(current, 85));
+        setStatusMessage("Preparing tools…");
+        setProgress((current) => Math.max(current, UI.PROGRESS.SESSION_READY));
 
         const mcpConfig = await loadMcpConfig();
         const session = await withTimeout(
@@ -414,23 +427,23 @@ export function App(): JSX.Element {
             env: process.env,
           }),
           "create session",
-          SESSION_BOOTSTRAP_TIMEOUT_MS
+          TIMEOUT.SESSION_BOOTSTRAP_MS
         );
         if (!active) return;
         setSessionId(session.id);
         setCurrentSession(session.id);
-        setView("chat");
-        setProgress(100);
+        setView(VIEW.CHAT);
+        setProgress(UI.PROGRESS.COMPLETE);
         setStatusMessage("Ready");
         clearScreen();
-        setStage("ready");
+        setStage(RENDER_STAGE.READY);
       } catch (error) {
         if (active) {
           const errorMessage = error instanceof Error ? error.message : String(error);
           setLoadError(errorMessage);
           setConnectionStatus(CONNECTION_STATUS.ERROR);
           setCurrentSession(undefined);
-          setStage("error");
+          setStage(RENDER_STAGE.ERROR);
           setStatusMessage(errorMessage);
         }
       }
@@ -451,7 +464,7 @@ export function App(): JSX.Element {
     setCurrentSession,
   ]);
 
-  if (stage === "error") {
+  if (stage === RENDER_STAGE.ERROR) {
     return (
       <Box padding={1} flexDirection="column" gap={1}>
         <Text color={COLOR.RED}>Error: {loadError ?? statusMessage}</Text>
@@ -460,7 +473,12 @@ export function App(): JSX.Element {
     );
   }
 
-  if (stage === "loading" || stage === "connecting" || !isHydrated || !hasHarnesses) {
+  if (
+    stage === RENDER_STAGE.LOADING ||
+    stage === RENDER_STAGE.CONNECTING ||
+    !isHydrated ||
+    !hasHarnesses
+  ) {
     return <LoadingScreen progress={progress} status={statusMessage} />;
   }
 
@@ -479,20 +497,7 @@ export function App(): JSX.Element {
           </Box>
         ) : null}
         {view === "agent-select" ? (
-          <AgentSelect
-            agents={agentOptions}
-            onSelect={(agent) => {
-              const info = agentInfoMap.get(agent.id);
-              if (info) {
-                clearScreen();
-                setStatusMessage(`Connecting to ${info.name}...`);
-                setProgress((current) => Math.max(current, 60));
-                setStage("connecting");
-                setSelectedAgent(info);
-                setView(VIEW.CHAT);
-              }
-            }}
-          />
+          <AgentSelect agents={agentOptions} onSelect={handleAgentSelect} />
         ) : (
           <Box flexDirection="column" height="100%" flexGrow={1} minHeight={0}>
             <Box flexDirection="row" flexGrow={1} minHeight={0} marginBottom={1}>

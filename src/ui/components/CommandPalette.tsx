@@ -93,7 +93,7 @@ export function CommandPalette({
       <Text color={COLOR.CYAN} bold>
         Command Palette
       </Text>
-      <Text>{query || "Type to search commands..."}</Text>
+      <Text>{query || "Type to search commands…"}</Text>
       <Box flexDirection="column" gap={0}>
         {results.map(({ cmd }, idx) => (
           <Text key={cmd.name} color={idx === index ? COLOR.YELLOW : undefined}>

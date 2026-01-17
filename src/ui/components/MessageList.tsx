@@ -1,3 +1,4 @@
+import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import type { Message } from "@/types/domain";
 import { MessageItem } from "@/ui/components/MessageItem";
@@ -33,7 +34,7 @@ export const MessageList = memo(
 
     // Calculate height: terminal rows minus input area and margin
     // Leave space for: StatusFooter (3), Input area (~7 lines for multiline), Margin between (1), Chat header (~4)
-    const terminalRows = stdout?.rows ?? 24;
+    const terminalRows = stdout?.rows ?? UI.TERMINAL_DEFAULT_ROWS;
     const statusFooterHeight = 3;
     const inputAreaHeight = 7; // Estimated input height (multiline with minHeight=5 + padding)
     const marginBetween = 1; // Margin between message container and input

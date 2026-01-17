@@ -18,12 +18,14 @@ export interface InputWithAutocompleteProps {
   /** Enable @-mention file suggestions. Default: true. */
   enableMentions?: boolean;
   /** Focus target - only process input when focusTarget is "chat". Default: "chat". */
-  focusTarget?: "files" | "plan" | "context" | "sessions" | "agent" | "chat";
+  focusTarget?: FocusTarget;
 }
+
+import { LIMIT } from "@/config/limits";
+import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
 
 const DEFAULT_COMMANDS: SlashCommand[] = COMMAND_DEFINITIONS;
 const MENTION_REGEX = /@([\w./-]*)$/;
-const MAX_FILES = 400;
 const MENTION_SUGGESTION_LIMIT = 8;
 
 export function InputWithAutocomplete({
@@ -31,10 +33,10 @@ export function InputWithAutocomplete({
   onChange,
   onSubmit,
   slashCommands = DEFAULT_COMMANDS,
-  placeholder = "Type a message or / for commands...",
+  placeholder = "Type a message or / for commands…",
   multiline = false,
   enableMentions = true,
-  focusTarget = "chat",
+  focusTarget = FOCUS_TARGET.CHAT,
 }: InputWithAutocompleteProps): JSX.Element {
   const [cursorPosition, setCursorPosition] = useState(value.length);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
@@ -57,7 +59,7 @@ export function InputWithAutocomplete({
           ignore: ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/.next/**"],
         });
         if (cancelled) return;
-        setFilePaths(files.slice(0, MAX_FILES));
+        setFilePaths(files.slice(0, LIMIT.MAX_FILES));
       } catch (error) {
         if (cancelled) return;
         const message = error instanceof Error ? error.message : String(error);
@@ -115,7 +117,7 @@ export function InputWithAutocomplete({
   // Handle keyboard input
   useInput((input, key) => {
     // Only process input when focus is on chat
-    if (focusTarget !== "chat") {
+    if (focusTarget !== FOCUS_TARGET.CHAT) {
       return;
     }
     // Navigation inside suggestion lists
