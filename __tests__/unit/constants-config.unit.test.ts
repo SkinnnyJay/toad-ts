@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
@@ -6,6 +5,7 @@ import { COLOR } from "@/constants/colors";
 import { PERMISSION } from "@/constants/permissions";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { SESSION_MODE } from "@/constants/session-modes";
+import { describe, expect, it } from "vitest";
 
 describe("Constants and Config", () => {
   describe("Constants exports", () => {

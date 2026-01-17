@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
+import type { CompressionStrategy } from "../../../src/utils/token-optimizer/strategies/base";
 import type { TelemetryStorage } from "../../../src/utils/token-optimizer/telemetryStorage";
 import { TokenOptimizer } from "../../../src/utils/token-optimizer/tokenOptimizer";
 import type {
-  CompressionStrategy,
   OptimizationRequest,
   OptimizationResult,
-  TokenizerAdapter,
   TokenizerEstimate,
 } from "../../../src/utils/token-optimizer/tokenOptimizer.types";
 import type { AnalyticsSnapshot } from "../../../src/utils/token-optimizer/tokenOptimizer.types";
+import type { TokenizerAdapter } from "../../../src/utils/token-optimizer/tokenizer";
 import { CompressionTypeEnum } from "../../../src/utils/token-optimizer/types";
 import { CompressionValidatorRegistry } from "../../../src/utils/token-optimizer/validatorRegistry";
 
@@ -26,6 +26,8 @@ describe("TokenOptimizer", () => {
 
   const createMockTelemetryStorage = (): TelemetryStorage => ({
     persistSnapshot: vi.fn().mockResolvedValue(undefined),
+    fetchRecent: vi.fn().mockResolvedValue([]),
+    purge: vi.fn().mockResolvedValue(undefined),
   });
 
   const createMockStrategy = (
