@@ -9,6 +9,7 @@ export const TIMEOUT = {
   AUTO_APPROVE_DEFAULT: 5,
   THROTTLE_MS: 100,
   MS_PER_SECOND: 1000,
+  SESSION_BOOTSTRAP_MS: 8000,
 } as const;
 
 // Re-export for convenience
@@ -23,4 +24,5 @@ export const {
   AUTO_APPROVE_DEFAULT,
   THROTTLE_MS,
   MS_PER_SECOND,
+  SESSION_BOOTSTRAP_MS,
 } = TIMEOUT;
