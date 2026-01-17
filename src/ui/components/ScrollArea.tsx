@@ -132,7 +132,7 @@ export function ScrollArea({
   }, [scrollbarHeight]);
 
   return (
-    <Box flexDirection="row" width="100%" height={effectiveHeight} overflow="hidden">
+    <Box flexDirection="row" width="100%" height={effectiveHeight} overflow="hidden" minWidth={0}>
       <Box
         flexDirection="column"
         flexGrow={1}
@@ -141,6 +141,7 @@ export function ScrollArea({
         overflow="hidden"
         minWidth={0}
         minHeight={0}
+        width="100%"
       >
         {/* Only show the windowed children, not all of them! */}
         {visibleChildren}

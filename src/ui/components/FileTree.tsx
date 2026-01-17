@@ -142,15 +142,11 @@ export function FileTree({
   }, [expanded, rootNode]);
 
   // FileTree is inside AccordionSection within Sidebar
-  // Use a small fixed height that fits within the accordion section
-  // AccordionSection is in a flex column with other sections, so we can't use terminal height
-  // Use a conservative fixed height that won't overflow
-  const effectiveHeight = height ?? 8; // Small fixed height that fits in accordion
-
-  // Calculate how many items fit in the viewport (each item is 1 line)
-  // Account for FileTree padding (paddingY={1} = 2 lines total)
-  const scrollAreaHeight = Math.max(3, effectiveHeight - 2);
-  const visibleItems = Math.max(1, scrollAreaHeight);
+  // The height prop is the available height from AccordionSection content area
+  // Account for FileTree padding (paddingBottom={1} = 1 line)
+  // If no height is provided, use a small default but allow flex to work
+  const scrollAreaHeight = height ? Math.max(1, height - 1) : undefined;
+  const visibleItems = scrollAreaHeight ? Math.max(1, scrollAreaHeight) : 1;
   const maxScrollOffset = Math.max(0, visible.length - visibleItems);
 
   // Adjust selectedIndex if it's out of bounds
@@ -209,17 +205,23 @@ export function FileTree({
 
   if (isLoading) {
     return (
-      <Box flexDirection="column" paddingY={1} gap={0}>
-        <Text dimColor>Loading files…</Text>
+      <Box flexDirection="column" paddingY={1} gap={0} width="100%" overflow="hidden" minWidth={0}>
+        <Text dimColor wrap="wrap">
+          Loading files…
+        </Text>
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Box flexDirection="column" paddingY={1} gap={0}>
-        <Text color={COLOR.RED}>Failed to load files</Text>
-        <Text dimColor>{error}</Text>
+      <Box flexDirection="column" paddingY={1} gap={0} width="100%" overflow="hidden" minWidth={0}>
+        <Text color={COLOR.RED} wrap="wrap">
+          Failed to load files
+        </Text>
+        <Text dimColor wrap="wrap">
+          {error}
+        </Text>
       </Box>
     );
   }
@@ -232,8 +234,8 @@ export function FileTree({
     const pointer = isSelected ? "› " : "  ";
 
     return (
-      <Box key={node.path} width="100%" overflow="hidden">
-        <Text color={isSelected ? COLOR.CYAN : undefined}>
+      <Box key={node.path} width="100%" overflow="hidden" minWidth={0}>
+        <Text color={isSelected ? COLOR.CYAN : undefined} wrap="wrap">
           {pointer}
           {indent}
           {icon} {node.name}
@@ -246,21 +248,26 @@ export function FileTree({
   const allItems = isTruncated
     ? [
         ...fileTreeItems,
-        <Text key="truncated" dimColor>
-          … truncated view (limit {maxEntries} entries)
-        </Text>,
+        <Box key="truncated" width="100%" overflow="hidden" minWidth={0}>
+          <Text dimColor wrap="wrap">
+            … truncated view (limit {maxEntries} entries)
+          </Text>
+        </Box>,
       ]
     : fileTreeItems;
 
   return (
     <Box
-      width="98%"
-      height={effectiveHeight}
+      width="100%"
       overflow="hidden"
       paddingX={1}
-      paddingY={1}
+      paddingTop={0}
+      paddingBottom={1}
       flexDirection="column"
       flexShrink={1}
+      flexGrow={1}
+      minWidth={0}
+      minHeight={0}
     >
       <ScrollArea
         height={scrollAreaHeight}
