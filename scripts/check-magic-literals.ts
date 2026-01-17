@@ -142,7 +142,7 @@ function scanFile(filePath: string): void {
         );
         if (statusPattern.test(line) && !line.includes("_STATUS.") && !line.includes("_STAGE.")) {
           // Skip if it's in a comment or string
-          if (!line.includes(`//`) && !line.match(/["'].*${status}.*["']/)) {
+          if (!line.includes("//") && !line.match(/["'].*${status}.*["']/)) {
             issues.push({
               file: filePath,
               line: lineNum,
@@ -252,7 +252,7 @@ if (low.length > 0) {
 
 // JSON output option
 if (process.argv.includes("--json")) {
-  console.log("\n" + JSON.stringify(issues, null, 2));
+  console.log(`\n${JSON.stringify(issues, null, 2)}`);
 }
 
 // Exit codes
