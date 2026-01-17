@@ -3,7 +3,7 @@ title: TOADSTOOL TypeScript - Master Implementation Plan
 date: 2025-01-27
 author: Jonathan Boice
 status: active
-lastUpdated: 2026-01-14
+lastUpdated: 2026-01-17
 description: Complete implementation roadmap for TOADSTOOL TypeScript
 ---
 
@@ -815,10 +815,10 @@ Implement `src/testing/validators/llm-validator.ts`:
 ## Phase 8: UI Parity & Production Polish (Weeks 14-16)
 
 ### Goal
-Achieve visual/interaction parity with original TOAD, implement major missing UI features (especially folder explorer), optimize performance, complete documentation, and prepare for release.
+Achieve visual/interaction parity with original TOADSTOOL (Textual), implement major missing UI features (especially folder explorer), optimize performance, complete documentation, and prepare for release.
 
 ### UI Parity Sprint Overview
-**Goal**: Achieve visual/interaction parity with original TOAD (see `scratchpad/ui-toad-fix.md`, `scratchpad/ui-design-brief.md`, `scratchpad/ui-implementation-roadmap.md`).
+**Goal**: Achieve visual/interaction parity with original TOADSTOOL (Textual) (see `scratchpad/ui-toad-fix.md`, `scratchpad/ui-design-brief.md`, `scratchpad/ui-implementation-roadmap.md`).
 
 **Key Missing Features to Implement**:
 - **Folder Explorer (File Tree)** - P0 Critical: Left sidebar file tree with expand/collapse, icons, selection
@@ -828,6 +828,10 @@ Achieve visual/interaction parity with original TOAD, implement major missing UI
 - **Agent Selection Grid** - P1 High: Card layout with quick-select
 - **Command Palette** - P1 High: Ctrl+P overlay with search
 - **Virtual Scrolling** - P1 High: Performance for 1000+ messages
+
+**Status Update (2026-01-16)**:
+- Completed: Multiline prompt input with Ctrl+Enter submit; @ file mentions; Ctrl+P command palette (inserts commands); sidebar sessions list navigable; loading flow staged with progress/clear.
+- Remaining P0/P1 focus: Streaming markdown with highlighting and truncation/expand; long-output handling (collapsible + ANSI + virtual scroll); TOADSTOOL palette/spacing and StatusFooter shortcuts/stats; sidebar context attachments + .gitignore-aware file tree with icons/persisted accordion; agent select grid/cards; command palette execute + dynamic commands; prompt editor gitignore-aware suggestions/debounce; visual/interaction tests and performance/error polish.
 
 ### Phase 8.0: UI Foundation (Week 14, Days 1-3)
 
@@ -853,12 +857,12 @@ npm install \
 - [ ] No breaking changes to existing code
 - [ ] Packages tested in basic components
 
-#### 8.0.2 Update Color System to TOAD Palette
+#### 8.0.2 Update Color System to TOADSTOOL Palette
 **Priority**: P0 - Critical
 **Duration**: 2 hours
 **Dependencies**: 8.0.1
 
-Update color constants and theme to match exact TOAD palette:
+Update color constants and theme to match exact TOADSTOOL palette:
 - Background: `#000000` (pure black)
 - User messages: `#00BFFF` (cyan)
 - Assistant: `#90EE90` (light green)
@@ -870,12 +874,12 @@ Update color constants and theme to match exact TOAD palette:
 - Warning: `#FFA726` (orange)
 
 **Files to Update**:
-- `src/constants/colors.ts` - Add TOAD palette hex codes
+- `src/constants/colors.ts` - Add TOADSTOOL palette hex codes
 - `src/ui/theme.ts` - Extend with full token system (see `scratchpad/ui-design-tokens.md`)
 
 **Deliverables**:
 - [ ] All components use new color constants
-- [ ] Visual matches TOAD palette exactly
+- [ ] Visual matches TOADSTOOL palette exactly
 - [ ] No regressions in existing UI
 - [ ] Design tokens documented
 
@@ -885,7 +889,7 @@ Update color constants and theme to match exact TOAD palette:
 **Dependencies**: 8.0.2
 
 Improve message rendering:
-- Enhanced role badges (bold, uppercase, proper TOAD colors)
+- Enhanced role badges (bold, uppercase, proper TOADSTOOL colors)
 - Proper spacing (1-unit margin between messages)
 - Improved code block rendering (round border, language label, syntax highlighting)
 - Timestamp formatting (right-aligned, dimmed)
@@ -894,7 +898,7 @@ Improve message rendering:
 - `src/ui/components/MessageItem.tsx`
 
 **Deliverables**:
-- [ ] Role badges match TOAD style exactly
+- [ ] Role badges match TOADSTOOL style exactly
 - [ ] Code blocks have round borders and language labels
 - [ ] Spacing is consistent (1-unit margins)
 - [ ] Timestamps are properly formatted
@@ -908,8 +912,9 @@ Improve message rendering:
 Enhance status footer:
 - Add context-sensitive shortcuts (change based on focus: editor vs conversation vs selection)
 - Improve layout (two rows: shortcuts, status)
-- Add proper spacing and borders matching TOAD style
+- Add proper spacing and borders matching TOADSTOOL style
 - Show task progress when available
+- Surface focus-aware help links (e.g., `/help files`, `/help plan`) based on current panel
 
 **Files to Update**:
 - `src/ui/components/StatusFooter.tsx`
@@ -919,8 +924,41 @@ Enhance status footer:
 - [ ] Shortcuts change based on current focus
 - [ ] Two-row layout with proper spacing
 - [ ] Status information displays correctly
-- [ ] Borders and colors match TOAD style
+- [ ] Borders and colors match TOADSTOOL style
 - [ ] Task progress shows when available
+- [ ] Focus-aware help entries visible in footer
+
+#### 8.0.5 Focus Manager & Panel Shortcuts (mac-first)
+**Priority**: P0 - Critical
+**Duration**: 4 hours
+**Dependencies**: 8.0.4
+
+Implement panel focus routing and keyboard map:
+- `Cmd+F` focuses Files panel; Up/Down navigate; Space/Enter expand/open; `Cmd+O` opens via `TOADSTOOL_DEFAULT_EDITOR`
+- Esc returns focus to Chat; add hooks for future non-mac modifiers
+- Footer shows current panel shortcuts; `/help <panel>` lists scoped commands
+
+**Deliverables**:
+- [ ] Files panel focusable via global shortcut
+- [ ] Navigation/expand/open work without flicker
+- [ ] `TOADSTOOL_DEFAULT_EDITOR` opener respected on mac; extensible to other OS
+- [ ] Esc returns to Chat reliably
+- [ ] Footer and `/help <panel>` show the panel’s shortcut set
+
+#### 8.0.6 Resize-Aware Layout & Virtualization
+**Priority**: P0 - Critical
+**Duration**: 4 hours
+**Dependencies**: 8.0.1
+
+Prevent flicker and console scrollbars:
+- Handle terminal resize events and recompute panel sizes without full re-render
+- Virtualize message list and file tree; batch streaming updates (5–10ms) to avoid redraw storms
+- Clamp layout to available rows/cols to avoid external console scrollbars
+
+**Deliverables**:
+- [ ] No visible flicker on Up/Down navigation in file tree
+- [ ] Streaming/chat updates do not grow terminal scrollback in typical sizes
+- [ ] Resize is smooth and preserves focus/scroll position
 
 ### Phase 8.1: Core UI Features (Week 14, Days 4-8)
 
@@ -1105,11 +1143,14 @@ Implement command palette overlay:
 
 **Commands to Support**:
 - `/help` - Show available commands
+- `/help <panel>` - Show panel-specific commands
 - `/mode <mode>` - Change session mode
 - `/clear` - Clear chat messages
 - `/plan <title>` - Create plan
 - `/export` - Export session (future)
 - `/settings` - Open settings (future)
+- Focus commands: “Focus: Files/Plan/Context/Sessions”
+- Workspace commands: “Open file”, “Copy path”, “Toggle accordion”
 - Dynamic commands from ACP agents
 
 **Acceptance Criteria**:
@@ -1119,6 +1160,7 @@ Implement command palette overlay:
 - [ ] Enter executes selected command
 - [ ] Escape closes palette
 - [ ] Dynamic commands from agents appear
+- [ ] Focus and workspace commands execute correctly
 
 #### 8.2.3 Code Block Syntax Highlighting
 **Priority**: P0 - Critical
@@ -1128,7 +1170,7 @@ Implement command palette overlay:
 Enhance code blocks with syntax highlighting:
 - Integrate syntax highlighting (use existing `shiki` dependency)
 - Language detection (from code fence or auto-detect)
-- Proper color scheme matching TOAD style
+- Proper color scheme matching TOADSTOOL style
 - Line numbers for long blocks (optional, can defer)
 
 **Files to Update**:
@@ -1138,7 +1180,7 @@ Enhance code blocks with syntax highlighting:
 **Acceptance Criteria**:
 - [ ] Syntax highlighting works for common languages (TypeScript, JavaScript, Python, etc.)
 - [ ] Language is detected automatically or from fence
-- [ ] Colors match TOAD style (light green text on dark slate background)
+- [ ] Colors match TOADSTOOL style (light green text on dark slate background)
 - [ ] Performance: Highlighting doesn't block rendering
 - [ ] Long code blocks handle gracefully
 
@@ -1301,13 +1343,29 @@ Implement differentiators (if time permits):
 - [ ] **Streaming markdown renders smoothly** (P0)
 - [ ] **Prompt editor with @ mentions works** (P0)
 - [ ] **Sidebar accordion sections work** (P0)
-- [ ] Visual parity with TOAD (90%+ similarity)
+- [ ] Visual parity with TOADSTOOL (90%+ similarity)
 - [ ] All keyboard shortcuts work
 - [ ] Performance targets met (60fps, <100ms latency)
 - [ ] Documentation complete
 - [ ] Release candidate ready
 - [ ] User testing successful
 - [ ] Terminal compatibility verified
+
+### Phase 8.5: Command Catalog & Help UX
+**Goal**: Curate and surface a rich command set with context-aware help, separating TOADSTOOL system commands from provider/harness commands.
+
+**Tasks**:
+- Catalog commands from OpenCode/TOADSTOOL/Claude CLI/Cursor/Codex/goose/gemini (e.g., `/compact`, `/clear`, `/mode`, `/plan`, `/export`, `/settings`, `/switch`, `/help files`).
+- Implement provider command registry with metadata (`kind: system|provider`, `providerId`, trigger `/|?|key`) and dynamic discovery on connect; refreshable via `/help`.
+- Passthrough unknown `/` or `?` commands to active provider when enabled; support provider-specific keymaps (TAB, etc.) via pty forwarding.
+- Extend `/help` with grouped sections (System, Provider-by-harness, Workspace, Panel-specific) showing command, description, example, trigger, and dividers; palette mirrors groups with badges/colors.
+- Surface provider command execution status: stream real harness output (ANSI-preserving) into collapsible blocks; show footer indicator (“Harness: /compact running…”), and synthesize “Harness command” messages for progress.
+
+**Acceptance Criteria**:
+- [ ] `/help` shows grouped, well-formatted sections with provider badges and examples
+- [ ] Dynamic provider commands appear in palette and `/help`; passthrough works for `/` and `?` when enabled
+- [ ] Provider command execution streams real harness output with status in UI
+- [ ] Panel-specific help (`/help files`, etc.) reflects current shortcuts/commands
 
 ---
 
@@ -1861,7 +1919,7 @@ A task is only complete when:
   - Streaming markdown renderer (block-level parsing)
   - Prompt editor with @ file mentions
   - Sidebar accordion sections
-  - Enhanced MessageItem with TOAD styling
+  - Enhanced MessageItem with TOADSTOOL styling
   - Status footer with context-sensitive shortcuts
   - Code block syntax highlighting
 

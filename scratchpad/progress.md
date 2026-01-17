@@ -3,7 +3,7 @@ title: TOADSTOOL TypeScript - Progress Tracking
 date: 2025-01-27
 author: Jonathan Boice
 status: active
-lastUpdated: 2026-01-15
+lastUpdated: 2026-01-17
 description: Real-time task status tracking for TOADSTOOL TypeScript implementation
 ---
 
@@ -14,8 +14,8 @@ Document Role: Live status tracker; authoritative for task state. Roadmap in pla
 
 ## Current Phase: Phase 7 - Testing & Quality
 
-**Phase Status**: 🔄 UI parity sprint in progress (aligning with TOAD/OpenCode visuals and interactions)
-**Last Updated**: 2026-01-15
+**Phase Status**: 🔄 UI parity sprint in progress (aligning with TOADSTOOL/OpenCode visuals and interactions)
+**Last Updated**: 2026-01-16
 
 
 ---
@@ -129,17 +129,17 @@ Document Role: Live status tracker; authoritative for task state. Roadmap in pla
 - [ ] **Task 8.4**: Release Preparation
 - [ ] **Task 8.5**: Advanced Agent Features (Optional)
 
-### UI Parity Sprint (TOAD/OpenCode alignment)
-- [ ] Two-column layout: banner, sidebar (Files/Plan/Context/Sessions), main chat/diff area, status footer (wip wiring started)
-- [ ] Theme/colors/typography: apply TOAD palette, consistent spacing, role badges, timestamps (badges/timestamps underway)
+### UI Parity Sprint (TOADSTOOL/OpenCode alignment)
+- [ ] Two-column layout: banner, sidebar (Files/Plan/Context/Sessions), main chat/diff area, status footer (sidebar accordion + file tree/plan wired; footer present; polish remaining)
+- [ ] Theme/colors/typography: apply TOADSTOOL palette, consistent spacing, role badges, timestamps (badges/timestamps underway)
 - [ ] Streaming markdown renderer (incremental, block-level) with tables/lists/quotes/code highlighting
-- [ ] Prompt editor: multiline, @ file mentions with fuzzy search/.gitignore, command palette (Ctrl+P)
+- [ ] Prompt editor: multiline, @ file mentions with fuzzy search/.gitignore, command palette (Ctrl+P) (multiline/@mentions/Ctrl+P in place; finalize gitignore/debounce UX)
 - [ ] Agent select: grid/cards with status and quick-select numbers
-- [ ] Sidebar: file tree with icons, plan/tasks, context attachments, session history
+- [ ] Sidebar: file tree with icons, plan/tasks (implemented), context attachments, session history (placeholders), .gitignore-aware tree, persistent accordion state
 - [ ] Status footer: context-sensitive shortcuts, connection/agent/mode/task stats
 - [ ] Shell/tool integration: ANSI-preserving output, optional interactive indicator
 - [ ] Long output handling: collapsible sections, virtual scroll for long conversations
-- [ ] Visual/interaction tests for key components (MessageItem, sidebar, footer, prompt editor, agent grid)
+- [ ] Visual/interaction tests for key components (MessageItem, sidebar, footer, prompt editor, agent grid, palette)
 
 ---
 
@@ -170,11 +170,21 @@ Document Role: Live status tracker; authoritative for task state. Roadmap in pla
 ### Phase 6 (Search & Indexing) – Next
 - Ripgrep JSON search, file index, glob + fuzzy search, optional AST search
 
-### Phase 7 (Testing & Quality) – Upcoming
-- Unit + Integration expansion, LLM validation framework
+### Phase 7 (Testing & Quality) – Next
+- Expand unit/integration coverage for new UI (streaming renderer, long-output, sidebar/context, palette, agent grid, prompt editor).
+- Implement LLM validation framework scaffold and integrate into test pipeline.
+- Add visual/interaction tests for MessageItem/sidebar/footer/prompt editor/agent grid and palette.
 
-### Phase 8 (Polish & Production) – Upcoming
-- Error handling, performance, docs, release prep, advanced features
+### Phase 8 (UI Parity & Production Polish) – Next
+- Streaming markdown renderer with syntax highlighting and truncation/expand.
+- Long-output handling: collapsible tool/shell output, ANSI-preserving rendering, virtual scroll for large transcripts.
+- Theme/palette polish: TOADSTOOL colors, spacing, role badges/timestamps; StatusFooter shortcuts + stats.
+- Sidebar completion: context attachments, session selection, .gitignore-aware file tree with icons; persist accordion state.
+- Agent select grid/cards with quick-select numbers and status indicators.
+- Prompt editor finish: .gitignore-aware file suggestions with debounce; keep multiline/@mentions; consistent Ctrl+Enter submit UX.
+- Command palette completion: dynamic commands when available; allow execute (not just insert); show session/agent context.
+- Provider/harness commands: dynamic discovery (/, ?), passthrough to claude-cli/codex/goose/gemini, provider keymaps, and streaming status in UI.
+- Production polish: error handling/recovery, performance profiling, documentation, release prep.
 
 ---
 
@@ -192,7 +202,9 @@ None currently identified.
 - Manual smoke on 2026-01-15: SQLite provider (save/reload), JSON/SQLite toggle, Claude harness + streaming validated in TUI
 - 2026-01-16: Added session modes (read-only/auto/full-access) + persisted; MCP config validated + wired through SessionManager; SQLite persistence now stores modes; env vars documented
 - 2026-01-15: UI parity sprint started; Sidebar/StatusFooter wiring and MessageItem badges/timestamps underway.
-- 2026-01-15: Added sandboxed search service (ripgrep + glob + fuzzy) with path-escape guard unless `TOAD_ALLOW_ESCAPE=1`.
+- 2026-01-15: Added sandboxed search service (ripgrep + glob + fuzzy) with path-escape guard unless `TOADSTOOL_ALLOW_ESCAPE=1`.
+- 2026-01-16: Loading flow staged with clear/progress/default provider; sidebar accordion + file tree/plan sections implemented; lint/type/test/build green.
+- 2026-01-16: Multiline prompt + Ctrl+Enter submit + @mentions in place; Ctrl+P command palette added; sessions list navigable in sidebar.
 - 2026-01-15: Phase 5 complete - All UI/UX parity features implemented:
   - ToolCallApproval + ToolCallManager for tool approval flows with permission profiles
   - InputWithAutocomplete for slash command discovery
@@ -203,8 +215,8 @@ None currently identified.
 
 ---
 
-**Last Updated**: 2026-01-15
-**Next Update**: After UI parity sprint milestones land (layout + streaming)
+**Last Updated**: 2026-01-16
+**Next Update**: After UI parity sprint milestones land (streaming markdown + long-output + palette/agent grid)
 
 ---
 

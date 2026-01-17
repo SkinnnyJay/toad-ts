@@ -132,7 +132,7 @@ The current UI lacks the polish, information density, and interaction patterns t
 ### Reduced Motion
 - **Respect**: `prefers-reduced-motion` via environment variable
 - **Fallback**: Instant transitions, no animations
-- **Implementation**: Check `TOAD_REDUCED_MOTION` env var
+- **Implementation**: Check `TOADSTOOL_REDUCED_MOTION` env var
 
 ---
 

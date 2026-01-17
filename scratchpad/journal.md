@@ -290,7 +290,7 @@ Several documents referenced design files that don't exist (`ui-design-mockups.m
 **Phase**: Phase 7 - Testing & Quality (UI parity sprint)
 
 ### Objectives
-- Align Ink UI with TOAD/OpenCode layout and interactions.
+- Align Ink UI with TOADSTOOL/OpenCode layout and interactions.
 - Harden sandboxed search and filesystem defaults.
 - Begin sidebar/status footer integration and message metadata refresh.
 
@@ -304,8 +304,8 @@ Several documents referenced design files that don't exist (`ui-design-mockups.m
 - Not run this session (UI wiring incomplete; tests will follow after layout fixes).
 
 ### Notes/Decisions
-- Keep TOAD palette and two-column layout as the primary UI goal; finish App wiring before adding streaming markdown or prompt editor upgrades.
-- Maintain search escape guard unless `TOAD_ALLOW_ESCAPE=1` to prevent path traversal during search.
+- Keep TOADSTOOL palette and two-column layout as the primary UI goal; finish App wiring before adding streaming markdown or prompt editor upgrades.
+- Maintain search escape guard unless `TOADSTOOL_ALLOW_ESCAPE=1` to prevent path traversal during search.
 
 ---
 

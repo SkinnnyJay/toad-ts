@@ -1,8 +1,8 @@
-# TOAD TypeScript: Missing Features Analysis
+# TOADSTOOL TypeScript: Missing Features Analysis
 
 ## Comparison Sources
 - **Your Spec**: TypeScript implementation using direct SDK calls (Claude/OpenAI)
-- **Original TOAD** (batrachianai/toad): Python/Textual with full ACP support
+- **Original TOADSTOOL** (batrachianai/toad): Python/Textual with full ACP support
 - **ACP Protocol**: Full Agent Client Protocol specification
 - **OpenCode**: Subagents, task delegation, and orchestration
 
@@ -84,6 +84,11 @@ ACP agents can advertise and handle slash commands:
 - Command execution routing
 - Dynamic command registration
 - Autocomplete support
+
+### UI Parity / Interaction Gaps
+- Panel focus + context-aware shortcuts/help: no global focus hotkeys, per-panel command sets, footer/help surfacing, or `.env` opener (`TOADSTOOL_DEFAULT_EDITOR`); dynamic command ingestion (e.g., Cursor folders) missing.
+- Resize-aware, flicker-free layout & virtualization: navigation flicker and chat growth can trigger console scrollbars; lacks resize handling, batched streaming updates, and virtualized lists to keep UI stable within terminal bounds.
+- Provider/harness command discovery and passthrough: no separation of TOADSTOOL system vs provider commands, no dynamic discovery of `/`/`?` commands (e.g., `/compact`), no provider keymap passthrough (TAB etc.), and no UI streaming/status for harness commands.
 
 ### 6. MCP Server Integration (from ACP)
 ACP supports passing MCP servers to agents:
@@ -186,15 +191,15 @@ Dynamic model switching within sessions:
 - Reasoning effort control (for reasoning models)
 - Provider-specific parameters
 
-### 14. Web Server Mode (from TOAD)
-Original TOAD can run as a web application:
+### 14. Web Server Mode (from legacy TOADSTOOL)
+Original TOADSTOOL can run as a web application:
 
 ```bash
 toad web   # Serve TUI via browser
 ```
 
-### 15. Agent Discovery & Installation (from TOAD)
-Original TOAD has agent lifecycle management:
+### 15. Agent Discovery & Installation (from legacy TOADSTOOL)
+Original TOADSTOOL has agent lifecycle management:
 
 - Scan PATH for ACP-compatible agents
 - Built-in agent installation
@@ -205,8 +210,8 @@ Original TOAD has agent lifecycle management:
 
 ## Summary: Feature Gap Matrix
 
-| Category | Original TOAD | ACP Protocol | OpenCode | Your Spec |
-|----------|---------------|--------------|----------|-----------|
+| Category | Original TOADSTOOL | ACP Protocol | OpenCode | Your Spec |
+|----------|--------------------|--------------|----------|-----------|
 | **Protocol** | ACP (stdio) | Full spec | SDK + MCP | SDK only |
 | **Multi-agent** | ✅ Registry | ✅ External | ✅ Primary+Sub | ⚠️ Providers only |
 | **Tool calls** | ✅ Full | ✅ Full | ✅ Full | ⏳ Deferred |
@@ -270,3 +275,119 @@ interface AgentConnection {
 // Current: SDKAgentConnection (Claude, OpenAI)
 // Future: ACPAgentConnection (stdio JSON-RPC)
 ```
+
+---
+
+## Message Formatting and Stream Processing (TOAD Implementation Analysis)
+
+### How TOAD Handles Message Formatting
+
+TOAD's message processing pipeline demonstrates a sophisticated approach to handling streaming content from Claude:
+
+**Architecture Flow:**
+```
+Claude Process → stdout → JSON-RPC Parser → ACP Agent → Message Router → UI Widgets
+```
+
+#### Key Components:
+1. **JSON-RPC Layer** (`jsonrpc.py`): Protocol-level message parsing
+2. **ACP Agent** (`acp/agent.py`): Routes message types via `rpc_session_update()`
+3. **Message Types** (`acp/messages.py`): Internal message representation
+4. **Conversation Widget** (`widgets/conversation.py`): Orchestrates display
+5. **Streaming Widgets** (`widgets/agent_response.py`): Real-time markdown rendering
+
+#### Message Type Processing:
+- `agent_message_chunk` → Markdown streaming via `AgentResponse` widget
+- `agent_thought_chunk` → Collapsible thought display via `AgentThought` widget
+- `tool_call` → Structured tool visualization via `ToolCall` widget
+- `plan` → Step-by-step plan display via `Plan` widget
+
+### Required TOADSTOOL Implementation
+
+To achieve TOAD-like message formatting in TypeScript:
+
+#### 1. Stream Aggregation System
+```typescript
+class MessageStreamAggregator {
+  private activeStreams: Map<string, StreamBuffer> = new Map();
+
+  processFragment(type: string, fragment: string): void {
+    const stream = this.activeStreams.get(type) || new StreamBuffer();
+    stream.append(fragment);
+    this.renderIncremental(type, stream.content);
+  }
+}
+```
+
+#### 2. Markdown Streaming Component
+```typescript
+const StreamingMarkdown: FC<{stream: MessageStream}> = ({ stream }) => {
+  const [content, setContent] = useState('');
+  const [rendered, setRendered] = useState<ReactNode>(null);
+
+  useEffect(() => {
+    stream.on('fragment', (fragment) => {
+      setContent(prev => {
+        const updated = prev + fragment;
+        // Parse and render markdown incrementally
+        setRendered(parseMarkdown(updated));
+        return updated;
+      });
+    });
+  }, [stream]);
+
+  return <Box>{rendered}</Box>;
+};
+```
+
+#### 3. ANSI Processing Pipeline
+```typescript
+class ANSIProcessor {
+  parse(text: string): ParsedSegment[] {
+    // Handle color codes, cursor movement, clear sequences
+    return this.patterns.reduce((segments, pattern) =>
+      this.extractPattern(segments, pattern), []);
+  }
+}
+```
+
+#### 4. Widget State Management
+```typescript
+interface ConversationWidgets {
+  activeResponse: StreamingWidget | null;
+  activeThought: StreamingWidget | null;
+  toolCalls: Map<string, ToolCallWidget>;
+
+  appendToActive(type: WidgetType, content: string): void;
+  finalizeActive(type: WidgetType): void;
+  updateToolCall(id: string, update: ToolCallUpdate): void;
+}
+```
+
+### Critical Missing Pieces in Current Spec
+
+| Feature | TOAD Implementation | Required for TOADSTOOL |
+|---------|-------------------|------------------------|
+| **Stream Buffering** | `MarkdownStream` class | Need async buffer management |
+| **Incremental Parsing** | Textual's markdown parser | Requires streaming markdown lib |
+| **ANSI Handling** | `ansi/_stream_parser.py` | Need ANSI escape parser |
+| **Widget Lifecycle** | Message-driven state machine | React effect management |
+| **Tool Call Updates** | Diff-based updates | State reconciliation logic |
+
+### Performance Considerations
+
+TOAD optimizes rendering through:
+1. **Debounced Updates**: Batches rapid fragments
+2. **Virtual Scrolling**: Only renders visible content
+3. **Cached Parsing**: Reuses parsed markdown blocks
+4. **Lazy Highlighting**: Defers syntax highlighting
+
+TOADSTOOL should implement:
+```typescript
+const debouncedRender = useMemo(
+  () => debounce(render, 16), // 60fps threshold
+  []
+);
+```
+
+See full implementation guide in `scratchpad/format-output-toad.md` for complete TypeScript examples.

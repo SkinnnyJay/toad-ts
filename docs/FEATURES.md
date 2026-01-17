@@ -159,11 +159,11 @@ Comprehensive feature documentation for TOAD TypeScript, a type-safe terminal in
 - `ANTHROPIC_API_KEY` - Anthropic API key for Claude CLI
 - `OPENAI_API_KEY` - OpenAI API key for GPT models
 - `LOG_LEVEL` - Logging verbosity (debug, info, warn, error)
-- `TOAD_DEFAULT_AGENT` - Default agent ID
-- `TOAD_CONFIG_PATH` - Custom config file location
+- `TOADSTOOL_DEFAULT_AGENT` - Default agent ID
+- `TOADSTOOL_CONFIG_PATH` - Custom config file location
 
 ### Agent Configuration
-**JSON config at `~/.config/toad/config.json`:**
+**JSON config at `~/.config/toadstool/config.json`:**
 
 ```json
 {
