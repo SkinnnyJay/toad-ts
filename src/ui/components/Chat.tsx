@@ -25,9 +25,11 @@ import { PlanApprovalPanel } from "@/ui/components/PlanApprovalPanel";
 import { PlanPanel } from "@/ui/components/PlanPanel";
 import { ToolCallManager } from "@/ui/components/ToolCallManager";
 import { roleColor } from "@/ui/theme";
-import { Box, Text } from "ink";
+import { Box, Text, useInput } from "ink";
 import { nanoid } from "nanoid";
 import { memo, useCallback, useMemo, useState } from "react";
+import { CommandPalette } from "./CommandPalette";
+import { TruncationProvider } from "./TruncationProvider";
 
 interface ChatProps {
   sessionId?: SessionId;
@@ -145,11 +147,37 @@ export const Chat = memo(
 
     const [inputValue, setInputValue] = useState("");
     const [modeWarning, setModeWarning] = useState<string | null>(null);
+    const [isPaletteOpen, setPaletteOpen] = useState(false);
+
+    const commandList = useMemo(
+      () => [
+        { name: SLASH_COMMAND.HELP, description: "Show available commands" },
+        {
+          name: SLASH_COMMAND.MODE,
+          description: "Change session mode",
+          args: `<${SESSION_MODE.READ_ONLY}|${SESSION_MODE.AUTO}|${SESSION_MODE.FULL_ACCESS}>`,
+        },
+        { name: SLASH_COMMAND.CLEAR, description: "Clear chat messages" },
+        { name: SLASH_COMMAND.PLAN, description: "Create a new plan", args: "<title>" },
+        { name: SLASH_COMMAND.SETTINGS, description: "Open settings" },
+        { name: SLASH_COMMAND.EXPORT, description: "Export session", args: "<filename>" },
+      ],
+      []
+    );
 
     const effectiveSessionId = useMemo(() => {
       if (sessionId) return sessionId;
       return SessionIdSchema.parse("session-unknown");
     }, [sessionId]);
+
+    useInput((input, key) => {
+      if (key.ctrl && (input === "p" || input === "P")) {
+        setPaletteOpen((prev) => !prev);
+      }
+      if (isPaletteOpen && key.escape) {
+        setPaletteOpen(false);
+      }
+    });
 
     const sessionMode = currentSession?.mode ?? "auto";
     const plan = sessionId ? getPlanBySession(sessionId) : undefined;
@@ -304,109 +332,107 @@ export const Chat = memo(
     );
 
     return (
-      <Box flexDirection="column" height="100%" overflow="hidden" width="100%">
-        {/* Fixed header section */}
-        <Box flexDirection="column" flexShrink={0}>
-          <Box flexDirection="row" alignItems="center" gap={1}>
-            {/* <AppIcon size="small" /> */}
-            <Text>
-              Session: {effectiveSessionId} {agent ? `· Agent: ${agent.name}` : ""} · Mode:{" "}
-              {sessionMode} · Status:{" "}
-              <Text
-                color={
-                  connectionStatus === CONNECTION_STATUS.CONNECTED
-                    ? roleColor("assistant")
-                    : COLOR.YELLOW
-                }
-              >
-                {connectionStatus}
+      <TruncationProvider>
+        <Box flexDirection="column" height="100%">
+          {/* Fixed header section */}
+          <Box flexDirection="column" flexShrink={0}>
+            <Box flexDirection="row" alignItems="center" gap={1}>
+              {/* <AppIcon size="small" /> */}
+              <Text>
+                Session: {effectiveSessionId} {agent ? `· Agent: ${agent.name}` : ""} · Mode:{" "}
+                {sessionMode} · Status:{" "}
+                <Text
+                  color={
+                    connectionStatus === CONNECTION_STATUS.CONNECTED
+                      ? roleColor("assistant")
+                      : COLOR.YELLOW
+                  }
+                >
+                  {connectionStatus}
+                </Text>
               </Text>
-            </Text>
+            </Box>
+            {modeWarning ? <Text color={COLOR.YELLOW}>{modeWarning}</Text> : null}
+            {plan ? (
+              plan.status === PLAN_STATUS.PLANNING ? (
+                <PlanApprovalPanel
+                  plan={plan}
+                  onApprove={() => {
+                    // Update plan status to executing
+                    const updatedPlan = {
+                      ...plan,
+                      status: PLAN_STATUS.EXECUTING,
+                      updatedAt: Date.now(),
+                    };
+                    upsertPlan(updatedPlan);
+                  }}
+                  onDeny={() => {
+                    // Update plan status to failed
+                    const updatedPlan = {
+                      ...plan,
+                      status: PLAN_STATUS.FAILED,
+                      updatedAt: Date.now(),
+                    };
+                    upsertPlan(updatedPlan);
+                  }}
+                  autoApprove={sessionMode === SESSION_MODE.FULL_ACCESS}
+                  showTaskDetails={true}
+                />
+              ) : (
+                <PlanPanel plan={plan} />
+              )
+            ) : null}
+            <ToolCallManager
+              defaultPermission={
+                sessionMode === SESSION_MODE.FULL_ACCESS
+                  ? PERMISSION.ALLOW
+                  : sessionMode === SESSION_MODE.READ_ONLY
+                    ? PERMISSION.DENY
+                    : PERMISSION.ASK
+              }
+              autoApproveTimeout={
+                sessionMode === SESSION_MODE.FULL_ACCESS
+                  ? TIMEOUT.AUTO_APPROVE_DISABLED
+                  : TIMEOUT.AUTO_APPROVE_DEFAULT
+              }
+              permissionProfiles={{
+                [PERMISSION_PATTERN.READ_FILE]: PERMISSION.ALLOW,
+                [PERMISSION_PATTERN.LIST]: PERMISSION.ALLOW,
+                [PERMISSION_PATTERN.GET]: PERMISSION.ALLOW,
+                [PERMISSION_PATTERN.WRITE]:
+                  sessionMode === SESSION_MODE.FULL_ACCESS ? PERMISSION.ALLOW : PERMISSION.ASK,
+                [PERMISSION_PATTERN.DELETE]: PERMISSION.DENY,
+                [PERMISSION_PATTERN.EXEC]:
+                  sessionMode === SESSION_MODE.FULL_ACCESS ? PERMISSION.ALLOW : PERMISSION.ASK,
+              }}
+            />
           </Box>
-          {modeWarning ? <Text color={COLOR.YELLOW}>{modeWarning}</Text> : null}
-          {plan ? (
-            plan.status === PLAN_STATUS.PLANNING ? (
-              <PlanApprovalPanel
-                plan={plan}
-                onApprove={() => {
-                  // Update plan status to executing
-                  const updatedPlan = {
-                    ...plan,
-                    status: PLAN_STATUS.EXECUTING,
-                    updatedAt: Date.now(),
-                  };
-                  upsertPlan(updatedPlan);
-                }}
-                onDeny={() => {
-                  // Update plan status to failed
-                  const updatedPlan = {
-                    ...plan,
-                    status: PLAN_STATUS.FAILED,
-                    updatedAt: Date.now(),
-                  };
-                  upsertPlan(updatedPlan);
-                }}
-                autoApprove={sessionMode === SESSION_MODE.FULL_ACCESS}
-                showTaskDetails={true}
-              />
-            ) : (
-              <PlanPanel plan={plan} />
-            )
-          ) : null}
-          <ToolCallManager
-            defaultPermission={
-              sessionMode === SESSION_MODE.FULL_ACCESS
-                ? PERMISSION.ALLOW
-                : sessionMode === SESSION_MODE.READ_ONLY
-                  ? PERMISSION.DENY
-                  : PERMISSION.ASK
-            }
-            autoApproveTimeout={
-              sessionMode === SESSION_MODE.FULL_ACCESS
-                ? TIMEOUT.AUTO_APPROVE_DISABLED
-                : TIMEOUT.AUTO_APPROVE_DEFAULT
-            }
-            permissionProfiles={{
-              [PERMISSION_PATTERN.READ_FILE]: PERMISSION.ALLOW,
-              [PERMISSION_PATTERN.LIST]: PERMISSION.ALLOW,
-              [PERMISSION_PATTERN.GET]: PERMISSION.ALLOW,
-              [PERMISSION_PATTERN.WRITE]:
-                sessionMode === SESSION_MODE.FULL_ACCESS ? PERMISSION.ALLOW : PERMISSION.ASK,
-              [PERMISSION_PATTERN.DELETE]: PERMISSION.DENY,
-              [PERMISSION_PATTERN.EXEC]:
-                sessionMode === SESSION_MODE.FULL_ACCESS ? PERMISSION.ALLOW : PERMISSION.ASK,
-            }}
-          />
+          {/* Message area - fixed height container */}
+          <Box flexGrow={1} minHeight={0} overflow="hidden" height="100%">
+            <MessageList messages={messages} />
+          </Box>
+          {/* Fixed footer section - input pinned to bottom */}
+          <Box flexDirection="column" flexShrink={0}>
+            <CommandPalette
+              commands={commandList}
+              isOpen={isPaletteOpen}
+              onClose={() => setPaletteOpen(false)}
+              onSelect={(cmd) => {
+                const next = `${cmd.name}${cmd.args ? " " : ""}`;
+                setInputValue(next);
+                setPaletteOpen(false);
+              }}
+            />
+            <InputWithAutocomplete
+              value={inputValue}
+              onSubmit={handleSubmit}
+              onChange={setInputValue}
+              multiline
+              slashCommands={commandList}
+            />
+          </Box>
         </Box>
-        {/* Scrollable message area - takes remaining space */}
-        <Box flexGrow={1} minHeight={0} overflow="hidden">
-          <MessageList messages={messages} />
-        </Box>
-        {/* Fixed footer section - input */}
-        <Box flexShrink={0}>
-          <InputWithAutocomplete
-            value={inputValue}
-            onSubmit={handleSubmit}
-            onChange={setInputValue}
-            slashCommands={[
-              { name: SLASH_COMMAND.HELP, description: "Show available commands" },
-              {
-                name: SLASH_COMMAND.MODE,
-                description: "Change session mode",
-                args: `<${SESSION_MODE.READ_ONLY}|${SESSION_MODE.AUTO}|${SESSION_MODE.FULL_ACCESS}>`,
-              },
-              { name: SLASH_COMMAND.CLEAR, description: "Clear chat messages" },
-              { name: SLASH_COMMAND.PLAN, description: "Create a new plan", args: "<title>" },
-              { name: SLASH_COMMAND.SETTINGS, description: "Open settings (coming soon)" },
-              {
-                name: SLASH_COMMAND.EXPORT,
-                description: "Export session (coming soon)",
-                args: "<filename>",
-              },
-            ]}
-          />
-        </Box>
-      </Box>
+      </TruncationProvider>
     );
   }
 );

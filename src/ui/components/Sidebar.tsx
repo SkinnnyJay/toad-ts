@@ -2,15 +2,19 @@ import { LIMIT } from "@/config/limits";
 import { COLOR } from "@/constants/colors";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { useAppStore } from "@/store/app-store";
-import type { Plan } from "@/types/domain";
+import type { Plan, Session, SessionId } from "@/types/domain";
 import { Box, Text, useInput } from "ink";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AccordionSection } from "./AccordionSection";
 import { FileTree } from "./FileTree";
 
 interface SidebarProps {
-  width?: string;
+  width?: string | number;
+  height?: number;
   currentAgentName?: string;
+  currentSessionId?: SessionId;
+  onSelectSession?: (sessionId: SessionId) => void;
+  focusTarget?: "files" | "plan" | "context" | "sessions" | "agent" | "chat";
 }
 
 const PlanSection = ({ plan }: { plan?: Plan }) => {
@@ -47,63 +51,189 @@ const AgentsSection = ({ currentAgentName }: { currentAgentName?: string }) => {
   );
 };
 
-export function Sidebar({ width = "25%", currentAgentName }: SidebarProps): JSX.Element {
-  const currentSessionId = useAppStore((state) => state.currentSessionId);
-  const plan = useMemo(
-    () =>
-      currentSessionId ? useAppStore.getState().getPlanBySession(currentSessionId) : undefined,
-    [currentSessionId]
+const SessionsSection = ({
+  sessions,
+  currentSessionId,
+  selectedIndex,
+}: {
+  sessions: Session[];
+  currentSessionId?: SessionId;
+  selectedIndex: number;
+}) => {
+  if (sessions.length === 0) {
+    return <Text dimColor>No sessions</Text>;
+  }
+
+  return (
+    <Box flexDirection="column" gap={0}>
+      {sessions.map((session, idx) => {
+        const isCurrent = session.id === currentSessionId;
+        const isSelected = idx === selectedIndex;
+        const label = session.title || session.id;
+        return (
+          <Text
+            key={session.id}
+            color={isSelected ? COLOR.CYAN : isCurrent ? COLOR.GREEN : undefined}
+          >
+            {isSelected ? "›" : " "} {isCurrent ? "●" : "○"} {label}
+          </Text>
+        );
+      })}
+    </Box>
   );
+};
+
+export function Sidebar({
+  width = "25%",
+  height,
+  currentAgentName,
+  currentSessionId,
+  onSelectSession,
+  focusTarget = "chat",
+}: SidebarProps): JSX.Element {
+  const storeCurrentSessionId = useAppStore((state) => state.currentSessionId);
+  const activeSessionId = currentSessionId ?? storeCurrentSessionId;
+  const plan = useMemo(
+    () => (activeSessionId ? useAppStore.getState().getPlanBySession(activeSessionId) : undefined),
+    [activeSessionId]
+  );
+
+  const sessionsById = useAppStore((state) => state.sessions);
+  const sessions = useMemo<Session[]>(() => {
+    const values = Object.values(sessionsById) as Session[];
+    return values.slice().sort((a, b) => b.updatedAt - a.updatedAt);
+  }, [sessionsById]);
 
   const [planCollapsed, setPlanCollapsed] = useState(false);
   const [agentsCollapsed, setAgentsCollapsed] = useState(false);
   const [filesCollapsed, setFilesCollapsed] = useState(false);
   const [contextCollapsed, setContextCollapsed] = useState(true);
   const [sessionsCollapsed, setSessionsCollapsed] = useState(true);
+  const [sessionIndex, setSessionIndex] = useState(0);
 
-  // Handle keyboard input for toggling sections: 1=Files, 2=Plan, 3=Context, 4=Sessions
-  useInput((input) => {
-    if (input === "1") {
-      setFilesCollapsed((prev) => !prev);
-    } else if (input === "2") {
-      setPlanCollapsed((prev) => !prev);
-    } else if (input === "3") {
-      setContextCollapsed((prev) => !prev);
-    } else if (input === "4") {
-      setSessionsCollapsed((prev) => !prev);
-    } else if (input === "a" || input === "A") {
-      setAgentsCollapsed((prev) => !prev);
+  useEffect(() => {
+    if (!activeSessionId) {
+      setSessionIndex(0);
+      return;
+    }
+    const foundIndex = sessions.findIndex((session) => session.id === activeSessionId);
+    if (foundIndex >= 0) {
+      setSessionIndex(foundIndex);
+    }
+  }, [activeSessionId, sessions]);
+
+  // Handle keyboard input: Option+1,2,3,4,5 for collapsing sections
+  // Note: Ink doesn't support Option/Alt key directly, so we detect it via escape sequences
+  // On macOS terminals, Option+number sends escape sequence like '\x1b1' or '\u001b1'
+  useInput((input, key) => {
+    // Try to detect Option+number via escape sequences (macOS terminals)
+    // Option+1 typically sends '\x1b1' or similar escape sequence
+    let optionNumber: string | null = null;
+    if (input.length >= 2 && input.charCodeAt(0) === 0x1b) {
+      // Escape sequence detected, check if followed by 1-5
+      const number = input.slice(1);
+      if (/^[1-5]$/.test(number)) {
+        optionNumber = number;
+      }
+    }
+
+    // Also support Shift+number as fallback (more reliable across terminals)
+    const shiftNumber = key.shift && /^[1-5]$/.test(input) ? input : null;
+    const collapseNumber = optionNumber ?? shiftNumber;
+
+    if (collapseNumber) {
+      const collapseMap: Record<string, () => void> = {
+        "1": () => setFilesCollapsed((prev) => !prev),
+        "2": () => setPlanCollapsed((prev) => !prev),
+        "3": () => setContextCollapsed((prev) => !prev),
+        "4": () => setSessionsCollapsed((prev) => !prev),
+        "5": () => setAgentsCollapsed((prev) => !prev),
+      };
+      const handler = collapseMap[collapseNumber];
+      if (handler) {
+        handler();
+      }
+      return;
+    }
+
+    if (focusTarget !== "files" && focusTarget !== "sessions") {
+      return;
+    }
+
+    if (focusTarget === "sessions" && !sessionsCollapsed && sessions.length > 0) {
+      if (key.upArrow) {
+        setSessionIndex((prev) => Math.max(0, prev - 1));
+      } else if (key.downArrow) {
+        setSessionIndex((prev) => Math.min(sessions.length - 1, prev + 1));
+      } else if (key.return) {
+        const chosen = sessions[sessionIndex];
+        if (chosen) {
+          if (onSelectSession) {
+            onSelectSession(chosen.id);
+          } else {
+            useAppStore.getState().setCurrentSession(chosen.id);
+          }
+        }
+      }
     }
   });
 
   return (
     <Box
       width={width}
+      height={height}
       flexDirection="column"
+      flexGrow={height === undefined ? 1 : undefined}
+      minHeight={0}
       borderStyle="single"
       borderColor={COLOR.GRAY}
       paddingX={1}
       paddingY={1}
       gap={1}
-      height="100%"
     >
-      <AccordionSection title="Files" isCollapsed={filesCollapsed} shortcutHint="[1]">
-        {!filesCollapsed ? <FileTree isFocused={!filesCollapsed} /> : null}
+      <AccordionSection
+        title="Files"
+        isCollapsed={filesCollapsed}
+        shortcutHint="[⌘1 focus, ⌥1 toggle]"
+      >
+        {!filesCollapsed ? <FileTree isFocused={focusTarget === "files"} /> : null}
       </AccordionSection>
 
-      <AccordionSection title="Plan" isCollapsed={planCollapsed} shortcutHint="[2]">
+      <AccordionSection
+        title="Plan"
+        isCollapsed={planCollapsed}
+        shortcutHint="[⌘2 focus, ⌥2 toggle]"
+      >
         {!planCollapsed ? <PlanSection plan={plan} /> : null}
       </AccordionSection>
 
-      <AccordionSection title="Context" isCollapsed={contextCollapsed} shortcutHint="[3]">
+      <AccordionSection
+        title="Context"
+        isCollapsed={contextCollapsed}
+        shortcutHint="[⌘3 focus, ⌥3 toggle]"
+      >
         {!contextCollapsed ? <Text dimColor>No context files attached</Text> : null}
       </AccordionSection>
 
-      <AccordionSection title="Sessions" isCollapsed={sessionsCollapsed} shortcutHint="[4]">
-        {!sessionsCollapsed ? <Text dimColor>Press Ctrl+S to switch sessions</Text> : null}
+      <AccordionSection
+        title="Sessions"
+        isCollapsed={sessionsCollapsed}
+        shortcutHint="[⌘4 focus, ⌥4 toggle]"
+      >
+        {!sessionsCollapsed ? (
+          <SessionsSection
+            sessions={sessions}
+            currentSessionId={activeSessionId}
+            selectedIndex={sessionIndex}
+          />
+        ) : null}
       </AccordionSection>
 
-      <AccordionSection title="Agent" isCollapsed={agentsCollapsed} shortcutHint="[A]">
+      <AccordionSection
+        title="Sub-agents"
+        isCollapsed={agentsCollapsed}
+        shortcutHint="[⌘5 focus, ⌥5 toggle]"
+      >
         {!agentsCollapsed ? <AgentsSection currentAgentName={currentAgentName} /> : null}
       </AccordionSection>
     </Box>

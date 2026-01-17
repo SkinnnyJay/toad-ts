@@ -3,6 +3,7 @@ import path from "node:path";
 import { COLOR } from "@/constants/colors";
 import { Box, Text, useInput } from "ink";
 import { useEffect, useMemo, useState } from "react";
+import { ScrollArea } from "./ScrollArea";
 
 interface FileTreeNode {
   name: string;
@@ -15,6 +16,7 @@ interface FileTreeProps {
   rootPath?: string;
   isFocused?: boolean;
   maxEntries?: number;
+  height?: number;
 }
 
 interface BuildResult {
@@ -81,10 +83,12 @@ export function FileTree({
   rootPath = process.cwd(),
   isFocused = true,
   maxEntries = 800,
+  height,
 }: FileTreeProps): JSX.Element {
   const [nodes, setNodes] = useState<FileTreeNode[]>([]);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [scrollOffset, setScrollOffset] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isTruncated, setIsTruncated] = useState(false);
@@ -137,11 +141,47 @@ export function FileTree({
     return result;
   }, [expanded, rootNode]);
 
+  // FileTree is inside AccordionSection within Sidebar
+  // Use a small fixed height that fits within the accordion section
+  // AccordionSection is in a flex column with other sections, so we can't use terminal height
+  // Use a conservative fixed height that won't overflow
+  const effectiveHeight = height ?? 8; // Small fixed height that fits in accordion
+
+  // Calculate how many items fit in the viewport (each item is 1 line)
+  // Account for FileTree padding (paddingY={1} = 2 lines total)
+  const scrollAreaHeight = Math.max(3, effectiveHeight - 2);
+  const visibleItems = Math.max(1, scrollAreaHeight);
+  const maxScrollOffset = Math.max(0, visible.length - visibleItems);
+
+  // Adjust selectedIndex if it's out of bounds
   useEffect(() => {
     if (selectedIndex >= visible.length) {
       setSelectedIndex(Math.max(0, visible.length - 1));
     }
   }, [selectedIndex, visible.length]);
+
+  // Selection-driven scrolling: keep selected item visible
+  useEffect(() => {
+    if (visible.length === 0) {
+      setScrollOffset(0);
+      return;
+    }
+
+    setScrollOffset((currentScrollOffset) => {
+      // If selected item is above visible viewport, scroll up
+      if (selectedIndex < currentScrollOffset) {
+        return selectedIndex;
+      }
+      // If selected item is below visible viewport, scroll down
+      if (selectedIndex >= currentScrollOffset + visibleItems) {
+        // Keep selected item in middle of viewport when possible
+        const idealOffset = selectedIndex - Math.floor(visibleItems / 2);
+        return Math.max(0, Math.min(idealOffset, maxScrollOffset));
+      }
+      // Selected item is already visible, no change needed
+      return currentScrollOffset;
+    });
+  }, [selectedIndex, visible.length, visibleItems, maxScrollOffset]);
 
   useInput((_input, key) => {
     if (!isFocused || isLoading || error) return;
@@ -184,23 +224,55 @@ export function FileTree({
     );
   }
 
-  return (
-    <Box flexDirection="column" gap={0}>
-      {visible.map(({ node, depth }, idx) => {
-        const isSelected = idx === selectedIndex;
-        const indent = "  ".repeat(depth);
-        const icon = node.isDir ? (expanded.has(node.path) ? "📂" : "📁") : "📄";
-        const pointer = isSelected ? "› " : "  ";
+  // Render visible items (wrapped in ScrollArea)
+  const fileTreeItems = visible.map(({ node, depth }, idx) => {
+    const isSelected = idx === selectedIndex;
+    const indent = "  ".repeat(depth);
+    const icon = node.isDir ? (expanded.has(node.path) ? "📂" : "📁") : "📄";
+    const pointer = isSelected ? "› " : "  ";
 
-        return (
-          <Text key={node.path} color={isSelected ? COLOR.CYAN : undefined}>
-            {pointer}
-            {indent}
-            {icon} {node.name}
-          </Text>
-        );
-      })}
-      {isTruncated ? <Text dimColor>… truncated view (limit {maxEntries} entries)</Text> : null}
+    return (
+      <Box key={node.path} width="100%" overflow="hidden">
+        <Text color={isSelected ? COLOR.CYAN : undefined}>
+          {pointer}
+          {indent}
+          {icon} {node.name}
+        </Text>
+      </Box>
+    );
+  });
+
+  // Add truncated message if needed
+  const allItems = isTruncated
+    ? [
+        ...fileTreeItems,
+        <Text key="truncated" dimColor>
+          … truncated view (limit {maxEntries} entries)
+        </Text>,
+      ]
+    : fileTreeItems;
+
+  return (
+    <Box
+      width="98%"
+      height={effectiveHeight}
+      overflow="hidden"
+      paddingX={1}
+      paddingY={1}
+      flexDirection="column"
+      flexShrink={1}
+    >
+      <ScrollArea
+        height={scrollAreaHeight}
+        showScrollbar={true}
+        isFocused={isFocused}
+        scrollOffset={scrollOffset}
+        onScrollChange={setScrollOffset}
+        estimatedLinesPerItem={1}
+        showScrollHints={false}
+      >
+        {allItems}
+      </ScrollArea>
     </Box>
   );
 }

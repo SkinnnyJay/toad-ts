@@ -3,20 +3,43 @@ import { Box, Text } from "ink";
 
 export interface StatusFooterProps {
   taskProgress?: { completed: number; total: number };
+  focusTarget?: "chat" | "files" | "plan" | "context" | "sessions" | "agent";
 }
 
-const shortcuts = [
+const globalShortcuts = [
   { key: "^C", label: "Exit" },
   { key: "^P", label: "Commands" },
-  { key: "Tab", label: "Focus" },
-  { key: "F1", label: "Help" },
+  { key: "Esc", label: "Back to Chat" },
 ];
 
-export function StatusFooter({ taskProgress }: StatusFooterProps): JSX.Element {
+const focusShortcuts: Record<NonNullable<StatusFooterProps["focusTarget"]>, string[]> = {
+  chat: ["Enter submit", "Ctrl+Enter submit", "Ctrl+P palette"],
+  files: ["Cmd+F focus", "↑/↓ navigate", "Space/Enter expand"],
+  plan: ["2 toggle", "Enter select"],
+  context: ["3 toggle"],
+  sessions: ["4 toggle", "↑/↓ select", "Enter open"],
+  agent: ["5 toggle"],
+};
+
+export function StatusFooter({
+  taskProgress,
+  focusTarget = "chat",
+}: StatusFooterProps): JSX.Element {
+  const focusHints = focusShortcuts[focusTarget] ?? [];
   return (
-    <Box flexDirection="column" borderStyle="single" borderColor={COLOR.GRAY} paddingX={1}>
-      <Box flexDirection="row" gap={2} flexWrap="wrap">
-        {shortcuts.map((sc) => (
+    <Box
+      width="100%"
+      flexDirection="row"
+      borderStyle="single"
+      borderColor={COLOR.GRAY}
+      paddingX={1}
+      paddingY={0}
+      gap={2}
+      justifyContent="space-between"
+      alignItems="center"
+    >
+      <Box flexDirection="row" gap={2}>
+        {globalShortcuts.map((sc) => (
           <Text key={sc.key}>
             <Text bold color={COLOR.CYAN}>
               {sc.key}
@@ -25,12 +48,23 @@ export function StatusFooter({ taskProgress }: StatusFooterProps): JSX.Element {
           </Text>
         ))}
       </Box>
-      {taskProgress ? (
-        <Box gap={2} borderTop borderColor={COLOR.GRAY} paddingTop={0}>
-          <Text>
-            Tasks: {taskProgress.completed}/{taskProgress.total}
+      <Box flexDirection="row" gap={2}>
+        <Text>
+          <Text bold color={COLOR.YELLOW}>
+            Focus:
+          </Text>{" "}
+          {focusTarget}
+        </Text>
+        {focusHints.map((hint) => (
+          <Text key={hint} color={COLOR.GRAY}>
+            {hint}
           </Text>
-        </Box>
+        ))}
+      </Box>
+      {taskProgress ? (
+        <Text>
+          Tasks: {taskProgress.completed}/{taskProgress.total}
+        </Text>
       ) : null}
     </Box>
   );

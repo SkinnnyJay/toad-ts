@@ -33,7 +33,7 @@ import { Sidebar } from "@/ui/components/Sidebar";
 import { StatusFooter } from "@/ui/components/StatusFooter";
 import { withTimeout } from "@/utils/async/withTimeout";
 import { Env, EnvManager } from "@/utils/env/env.utils";
-import { Box, Text, useInput } from "ink";
+import { Box, Text, useInput, useStdout } from "ink";
 import { TerminalInfoProvider } from "ink-picture";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -45,6 +45,7 @@ interface AgentInfo {
 }
 
 type RenderStage = "loading" | "connecting" | "ready" | "error";
+type FocusTarget = "chat" | "files" | "plan" | "context" | "sessions" | "agent";
 
 const SESSION_BOOTSTRAP_TIMEOUT_MS = 8_000;
 
@@ -74,6 +75,7 @@ const buildAgentOptions = (
 };
 
 export function App(): JSX.Element {
+  const { stdout } = useStdout();
   const [view, setView] = useState<View>(VIEW.AGENT_SELECT);
   const [selectedAgent, setSelectedAgent] = useState<AgentInfo | null>(null);
   const [client, setClient] = useState<HarnessRuntime | null>(null);
@@ -90,6 +92,11 @@ export function App(): JSX.Element {
   const [statusMessage, setStatusMessage] = useState<string>("Preparing...");
   const [defaultAgentId, setDefaultAgentId] = useState<AgentId | null>(null);
   const [hasHarnesses, setHasHarnesses] = useState(false);
+  const [focusTarget, setFocusTarget] = useState<FocusTarget>("chat");
+  const [terminalDimensions, setTerminalDimensions] = useState({
+    rows: stdout?.rows ?? 24,
+    columns: stdout?.columns ?? 80,
+  });
 
   const currentSessionId = useAppStore((state) => state.currentSessionId);
   const setConnectionStatus = useAppStore((state) => state.setConnectionStatus);
@@ -135,9 +142,33 @@ export function App(): JSX.Element {
     [setCurrentSession, view]
   );
 
-  // Handle Ctrl+S to toggle sessions popup (only in chat view)
+  // Handle focus shortcuts: Command+1,2,3,4,5 for focus, Option+1,2,3,4,5 for collapse
   useInput((input, key) => {
-    if (view === "chat" && key.ctrl && (input === "s" || input === "S")) {
+    if (view !== "chat") return;
+
+    // Command+number sets focus (1=Files, 2=Plan, 3=Context, 4=Sessions, 5=Sub-agents)
+    if ((key.meta || key.ctrl) && /^[1-5]$/.test(input)) {
+      const focusMap: Record<string, FocusTarget> = {
+        "1": "files",
+        "2": "plan",
+        "3": "context",
+        "4": "sessions",
+        "5": "agent",
+      };
+      setFocusTarget(focusMap[input] ?? "chat");
+      return;
+    }
+
+    // Legacy: Command+F for files focus
+    if ((key.meta || key.ctrl) && (input === "f" || input === "F")) {
+      setFocusTarget("files");
+      return;
+    }
+
+    if (key.escape) {
+      setFocusTarget("chat");
+    }
+    if (key.ctrl && (input === "s" || input === "S")) {
       setIsSessionsPopupOpen((prev) => !prev);
     }
   });
@@ -147,6 +178,24 @@ export function App(): JSX.Element {
     setProgress(5);
     setStatusMessage("Loading TOADSTOOL...");
   }, []);
+
+  // Track terminal resize
+  useEffect(() => {
+    const handleResize = () => {
+      setTerminalDimensions({
+        rows: stdout?.rows ?? 24,
+        columns: stdout?.columns ?? 80,
+      });
+    };
+    stdout?.on("resize", handleResize);
+    return () => {
+      if (stdout?.off) {
+        stdout.off("resize", handleResize);
+      } else if (stdout?.removeListener) {
+        stdout.removeListener("resize", handleResize);
+      }
+    };
+  }, [stdout]);
 
   useEffect(() => {
     if (currentSessionId) {
@@ -405,9 +454,13 @@ export function App(): JSX.Element {
     return <LoadingScreen progress={progress} status={statusMessage} />;
   }
 
+  // Calculate layout dimensions
+  const sidebarWidth = Math.floor(terminalDimensions.columns * 0.25);
+  const mainWidth = terminalDimensions.columns - sidebarWidth - 4; // Account for borders and gaps
+
   return (
     <TerminalInfoProvider>
-      <Box flexDirection="column" padding={1} gap={1} height="100%">
+      <Box flexDirection="column" height={terminalDimensions.rows}>
         {view === "agent-select" && <AsciiBanner />}
         {loadError ? (
           <Box flexDirection="column" gap={1}>
@@ -431,55 +484,63 @@ export function App(): JSX.Element {
             }}
           />
         ) : (
-          <Box flexDirection="row" gap={1} flexGrow={1} height="100%">
-            <Sidebar width="30%" currentAgentName={selectedAgent?.name} />
-            <Box
-              flexDirection="column"
-              flexGrow={1}
-              height="100%"
-              borderStyle="single"
-              borderColor={COLOR.GRAY}
-              paddingX={1}
-              paddingY={1}
-            >
-              {isSessionsPopupOpen ? (
-                <SessionsPopup
-                  isOpen={isSessionsPopupOpen}
-                  onClose={() => setIsSessionsPopupOpen(false)}
-                  onSelectSession={handleSelectSession}
-                />
-              ) : isSettingsOpen ? (
-                <SettingsModal
-                  key="settings-modal"
-                  isOpen={isSettingsOpen}
-                  onClose={() => {
-                    setIsSettingsOpen(false);
-                  }}
-                  agents={agentOptions}
-                />
-              ) : isHelpOpen ? (
-                <HelpModal
-                  key="help-modal"
-                  isOpen={isHelpOpen}
-                  onClose={() => {
-                    setIsHelpOpen(false);
-                  }}
-                />
-              ) : (
-                <Chat
-                  key={`chat-${sessionId ?? "no-session"}`}
-                  sessionId={sessionId}
-                  agent={selectedAgent ?? undefined}
-                  client={client}
-                  onPromptComplete={handlePromptComplete}
-                  onOpenSettings={() => setIsSettingsOpen(true)}
-                  onOpenHelp={() => setIsHelpOpen(true)}
-                />
-              )}
+          <Box flexDirection="column" height="100%" flexGrow={1} minHeight={0}>
+            <Box flexDirection="row" flexGrow={1} minHeight={0} marginBottom={1}>
+              <Sidebar
+                width={sidebarWidth}
+                currentAgentName={selectedAgent?.name}
+                focusTarget={focusTarget}
+              />
+              <Box
+                flexDirection="column"
+                width={mainWidth}
+                flexGrow={1}
+                borderStyle="single"
+                borderColor={COLOR.GRAY}
+                paddingX={1}
+                paddingY={1}
+              >
+                {isSessionsPopupOpen ? (
+                  <SessionsPopup
+                    isOpen={isSessionsPopupOpen}
+                    onClose={() => setIsSessionsPopupOpen(false)}
+                    onSelectSession={handleSelectSession}
+                  />
+                ) : isSettingsOpen ? (
+                  <SettingsModal
+                    key="settings-modal"
+                    isOpen={isSettingsOpen}
+                    onClose={() => {
+                      setIsSettingsOpen(false);
+                    }}
+                    agents={agentOptions}
+                  />
+                ) : isHelpOpen ? (
+                  <HelpModal
+                    key="help-modal"
+                    isOpen={isHelpOpen}
+                    onClose={() => {
+                      setIsHelpOpen(false);
+                    }}
+                  />
+                ) : (
+                  <Chat
+                    key={`chat-${sessionId ?? "no-session"}`}
+                    sessionId={sessionId}
+                    agent={selectedAgent ?? undefined}
+                    client={client}
+                    onPromptComplete={handlePromptComplete}
+                    onOpenSettings={() => setIsSettingsOpen(true)}
+                    onOpenHelp={() => setIsHelpOpen(true)}
+                  />
+                )}
+              </Box>
+            </Box>
+            <Box flexShrink={0}>
+              <StatusFooter taskProgress={undefined} focusTarget={focusTarget} />
             </Box>
           </Box>
         )}
-        <StatusFooter taskProgress={undefined} />
       </Box>
     </TerminalInfoProvider>
   );

@@ -9,6 +9,7 @@ import { type PermissionProfile, ToolCallApproval } from "@/ui/components/ToolCa
 import type { BoxProps } from "ink";
 import { Box, Text } from "ink";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { TRUNCATION_SHORTCUT_HINT, useTruncationToggle } from "./TruncationProvider";
 
 export interface ToolCall {
   id: ToolCallId;
@@ -58,22 +59,18 @@ const getToolPermission = (
   return defaultPerm;
 };
 
-const formatResult = (result: unknown): string => {
-  if (result === undefined || result === null) return "null";
+const EXPAND_ALL = process.env.TOADSTOOL_EXPAND_ALL === "1";
+const VISIBLE_RESULT_LINES = 80;
 
-  if (typeof result === "string") {
-    return result.length > LIMIT.STRING_TRUNCATE_SHORT
-      ? `${result.slice(0, LIMIT.STRING_TRUNCATE_SHORT_SLICE)}...`
-      : result;
-  }
+const formatResultLines = (result: unknown): string[] => {
+  if (result === undefined || result === null) return ["null"];
+
+  if (typeof result === "string") return result.split(/\r?\n/);
 
   try {
-    const str = JSON.stringify(result, null, 2);
-    return str.length > LIMIT.STRING_TRUNCATE_LONG
-      ? `${str.slice(0, LIMIT.STRING_TRUNCATE_LONG_SLICE)}...`
-      : str;
+    return JSON.stringify(result, null, 2).split(/\r?\n/);
   } catch {
-    return String(result);
+    return [String(result)];
   }
 };
 
@@ -94,6 +91,34 @@ const ActiveToolItem = memo(({ tool }: { tool: ToolCall }) => (
   </Box>
 ));
 ActiveToolItem.displayName = "ActiveToolItem";
+
+const ToolResultOutput = memo(({ toolId, result }: { toolId: ToolCallId; result: unknown }) => {
+  const lines = useMemo(() => formatResultLines(result), [result]);
+  const truncatedHead = Math.max(0, lines.length - VISIBLE_RESULT_LINES);
+  const { expanded, isActive } = useTruncationToggle({
+    id: `${toolId}-result`,
+    label: "Tool result",
+    isTruncated: truncatedHead > 0,
+    defaultExpanded: EXPAND_ALL,
+  });
+  const visibleLines = expanded || truncatedHead === 0 ? lines : lines.slice(-VISIBLE_RESULT_LINES);
+
+  return (
+    <Box flexDirection="column" gap={0}>
+      {visibleLines.map((line, idx) => (
+        <Text key={`${toolId}-line-${idx}-${line}`}>{line || " "}</Text>
+      ))}
+      {truncatedHead > 0 ? (
+        <Text dimColor color={COLOR.GRAY}>
+          {`${isActive ? "▶" : "•"} … ${truncatedHead} more lines ${
+            expanded ? "(expanded)" : "(collapsed)"
+          } · ${TRUNCATION_SHORTCUT_HINT}`}
+        </Text>
+      ) : null}
+    </Box>
+  );
+});
+ToolResultOutput.displayName = "ToolResultOutput";
 
 // Memoized component for recent tool calls
 const RecentToolItem = memo(({ tool }: { tool: ToolCall }) => (
@@ -120,10 +145,11 @@ const RecentToolItem = memo(({ tool }: { tool: ToolCall }) => (
       )}
     </Box>
     {tool.result !== undefined && tool.result !== null && (
-      <Box paddingLeft={2}>
+      <Box paddingLeft={2} flexDirection="column" gap={0}>
         <Text color={COLOR.GRAY} dimColor>
-          → {formatResult(tool.result)}
+          →
         </Text>
+        <ToolResultOutput toolId={tool.id} result={tool.result} />
       </Box>
     )}
     {tool.error && (

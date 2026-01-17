@@ -17,22 +17,33 @@ export function AccordionSection({
   const indicator = isCollapsed ? "▶" : "▼";
 
   return (
-    <Box
-      flexDirection="column"
-      borderStyle="single"
-      borderColor={COLOR.GRAY}
-      marginBottom={1}
-      paddingX={1}
-      paddingY={0}
-      gap={0}
-    >
-      <Box justifyContent="space-between" alignItems="center">
-        <Text bold>
-          {indicator} {title}
-        </Text>
-        {shortcutHint ? <Text dimColor>{shortcutHint}</Text> : null}
+    <Box flexDirection="column" marginBottom={1} gap={0}>
+      {shortcutHint ? (
+        <Box flexDirection="row" justifyContent="flex-end" marginBottom={0}>
+          <Text dimColor color={COLOR.GRAY}>
+            {shortcutHint}
+          </Text>
+        </Box>
+      ) : null}
+      <Box
+        flexDirection="column"
+        borderStyle="single"
+        borderColor={COLOR.GRAY}
+        paddingX={1}
+        paddingY={0}
+        gap={0}
+      >
+        <Box justifyContent="space-between" alignItems="center">
+          <Text bold>
+            {indicator} {title}
+          </Text>
+        </Box>
+        {!isCollapsed ? (
+          <Box marginTop={0} overflow="hidden" minHeight={0}>
+            {children}
+          </Box>
+        ) : null}
       </Box>
-      {!isCollapsed ? <Box marginTop={0}>{children}</Box> : null}
     </Box>
   );
 }
