@@ -9,7 +9,7 @@ description: Daily work log and decision documentation for TOADSTOOL TypeScript
 
 # TOADSTOOL TypeScript - Development Journal
 
-Revision: v1.1.0
+Revision: v1.4.0
 Document Role: Decision and session log; reflects rationale and history.
 
 ## Session 1: Project Planning & Documentation Setup
@@ -166,8 +166,8 @@ Several documents referenced design files that don't exist (`ui-design-mockups.m
 ---
 
 **Journal Status**: Active
-**Last Entry**: Session 7 (2026-01-17)
-**Next Expected Entry**: Phase 7 execution results and UI parity completion
+**Last Entry**: Session 8 (2026-01-17)
+**Next Expected Entry**: Streaming markdown/ANSI pipeline + prompt editor execute + accordion persistence
 
 ---
 
@@ -323,7 +323,29 @@ Several documents referenced design files that don't exist (`ui-design-mockups.m
 
 ---
 
+## Session 8: Sidebar Tabs & Gitignore FileTree
+**Date**: 2026-01-17
+**Phase**: Phase 8 - UI Parity & Polish
+
+### Objectives
+- Ship icon-only tabbed sidebar with Files default and scoped scroll.
+- Make FileTree gitignore-aware and sync scratchpad plan/progress with UI parity status.
+
+### Work Completed
+- Restored sidebar to icon-only tab strip with bold headers and scroll-contained panes; Files tab defaults selected.
+- Updated FileTree to respect `.gitignore` via the `ignore` package, skipping `.git` and `node_modules` by default.
+- Refreshed `plan.md` and `progress.md` to record Phase 8 sprint progress and next targets.
+
+### Tests/Commands Run
+- None (documentation/status updates only; rerun quality gates after next code changes).
+
+### Notes/Decisions
+- StatusFooter wiring remains deferred until type cleanup; next focus is streaming markdown/ANSI pipeline, prompt editor gitignore-aware @mentions/execute, and accordion persistence/context attachments.
+
+---
+
 ## Changelog
+- v1.4.0 (2026-01-17): Added Session 8 covering sidebar tab strip + gitignore FileTree and synced plan/progress.
 - v1.3.0 (2026-01-15): Added UI parity sprint kickoff session and updated progress tracking.
 - v1.2.0 (2026-01-15): Added Phase 3 verification session and progress updates.
 - v1.1.0 (2026-01-14): Added revision tag and document role; updated metadata for current cycle.

@@ -137,7 +137,7 @@ Document Role: Live status tracker; authoritative for task state. Roadmap in pla
  - [ ] Streaming markdown renderer (incremental, block-level) with tables/lists/quotes/code highlighting
  - [ ] Prompt editor: multiline, @ file mentions with fuzzy search/.gitignore, command palette (Ctrl+P) (multiline/@mentions/Ctrl+P in place; finalize gitignore/debounce UX)
  - [ ] Agent select: grid/cards with status and quick-select numbers
- - [ ] Sidebar: file tree with icons, plan/tasks (implemented), context attachments, session history (placeholders), .gitignore-aware tree, persistent accordion state
+ - [ ] Sidebar: icon-only tabbed sidebar with bold headers + scroll-contained panes shipped; gitignore-aware FileTree with icons in Files pane; context attachments, accordion persistence, and session history wiring still pending
  - [ ] Status footer: context-sensitive shortcuts, connection/agent/mode/task stats
  - [ ] Shell/tool integration: ANSI-preserving output, optional interactive indicator
  - [ ] Long output handling: collapsible sections, virtual scroll for long conversations
@@ -235,6 +235,7 @@ None currently identified.
 - 2026-01-15: Added sandboxed search service (ripgrep + glob + fuzzy) with path-escape guard unless `TOADSTOOL_ALLOW_ESCAPE=1`.
 - 2026-01-16: Loading flow staged with clear/progress/default provider; sidebar accordion + file tree/plan sections implemented; lint/type/test/build green.
 - 2026-01-17: Added LLM validation scaffold and unit coverage for validator criteria.
+- 2026-01-17: Restored icon-only tabbed sidebar with bold headers + scroll-contained panes; Files tab now shows gitignore-aware FileTree hiding `.git`/`node_modules`.
 - 2026-01-16: Multiline prompt + Ctrl+Enter submit + @mentions in place; Ctrl+P command palette added; sessions list navigable in sidebar.
 - 2026-01-15: Phase 5 complete - All UI/UX parity features implemented:
   - ToolCallApproval + ToolCallManager for tool approval flows with permission profiles
