@@ -8,3 +8,4 @@
 - 2026-02-09 19:10 - Implemented tool registry, built-in tools, ACP tool host wiring.
 - 2026-02-09 19:40 - Added background task manager, task output tool, and UI task modal.
 - 2026-02-09 20:05 - Added shell command auto-detect and tab completion in chat input.
+- 2026-02-09 20:30 - Added interactive shell execution with renderer suspend/resume.

@@ -13,7 +13,7 @@
   - [X] ACP tool host + permission handler wiring
   - [X] Shell background tasks + task output UX
   - [X] Shell auto-detect + tab completion
-  - [ ] Interactive shell apps + shell mode UX
+  - [X] Interactive shell apps + shell mode UX
 
 ## Phase 6: Agent Execution Engine
 - [ ] Phase 6 tasks (see PLAN.md)
