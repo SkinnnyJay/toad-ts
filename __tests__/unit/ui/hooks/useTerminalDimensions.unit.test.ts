@@ -44,17 +44,19 @@ describe("useTerminalDimensions logic", () => {
     });
   });
 
-  describe("throttle behavior", () => {
-    it("throttles rapid updates", async () => {
+  describe("debounce behavior", () => {
+    it("debounces rapid updates", async () => {
       let updateCount = 0;
       let resizeTimer: NodeJS.Timeout | null = null;
 
       const handleResize = () => {
-        if (resizeTimer) return;
+        if (resizeTimer) {
+          clearTimeout(resizeTimer);
+        }
         resizeTimer = setTimeout(() => {
           resizeTimer = null;
           updateCount++;
-        }, TIMEOUT.THROTTLE_MS);
+        }, TIMEOUT.RESIZE_DEBOUNCE_MS);
       };
 
       // Simulate rapid resize events
@@ -62,34 +64,36 @@ describe("useTerminalDimensions logic", () => {
       handleResize();
       handleResize();
 
-      // Before throttle completes
+      // Before debounce completes
       expect(updateCount).toBe(0);
 
-      // After throttle delay
-      await vi.advanceTimersByTimeAsync(TIMEOUT.THROTTLE_MS);
+      // After debounce delay
+      await vi.advanceTimersByTimeAsync(TIMEOUT.RESIZE_DEBOUNCE_MS);
       expect(updateCount).toBe(1);
     });
 
-    it("allows subsequent updates after throttle period", async () => {
+    it("allows subsequent updates after debounce period", async () => {
       let updateCount = 0;
       let resizeTimer: NodeJS.Timeout | null = null;
 
       const handleResize = () => {
-        if (resizeTimer) return;
+        if (resizeTimer) {
+          clearTimeout(resizeTimer);
+        }
         resizeTimer = setTimeout(() => {
           resizeTimer = null;
           updateCount++;
-        }, TIMEOUT.THROTTLE_MS);
+        }, TIMEOUT.RESIZE_DEBOUNCE_MS);
       };
 
       // First resize
       handleResize();
-      await vi.advanceTimersByTimeAsync(TIMEOUT.THROTTLE_MS);
+      await vi.advanceTimersByTimeAsync(TIMEOUT.RESIZE_DEBOUNCE_MS);
       expect(updateCount).toBe(1);
 
-      // Second resize after throttle period
+      // Second resize after debounce period
       handleResize();
-      await vi.advanceTimersByTimeAsync(TIMEOUT.THROTTLE_MS);
+      await vi.advanceTimersByTimeAsync(TIMEOUT.RESIZE_DEBOUNCE_MS);
       expect(updateCount).toBe(2);
     });
   });
@@ -100,8 +104,8 @@ describe("useTerminalDimensions logic", () => {
       expect(UI.TERMINAL_DEFAULT_COLUMNS).toBe(80);
     });
 
-    it("uses TIMEOUT constant for throttle", () => {
-      expect(TIMEOUT.THROTTLE_MS).toBe(100);
+    it("uses TIMEOUT constant for debounce", () => {
+      expect(TIMEOUT.RESIZE_DEBOUNCE_MS).toBe(50);
     });
   });
 

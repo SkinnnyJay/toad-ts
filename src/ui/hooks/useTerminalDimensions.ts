@@ -26,7 +26,9 @@ export function useTerminalDimensions(): TerminalDimensions {
     let lastCols = terminal.width ?? UI.TERMINAL_DEFAULT_COLUMNS;
 
     const handleResize = () => {
-      if (resizeTimer) return;
+      if (resizeTimer) {
+        clearTimeout(resizeTimer);
+      }
       resizeTimer = setTimeout(() => {
         resizeTimer = null;
         const nextRows = terminal.height ?? UI.TERMINAL_DEFAULT_ROWS;
@@ -39,7 +41,7 @@ export function useTerminalDimensions(): TerminalDimensions {
         lastRows = clampedRows;
         lastCols = clampedCols;
         setDimensions({ rows: clampedRows, columns: clampedCols });
-      }, TIMEOUT.THROTTLE_MS);
+      }, TIMEOUT.RESIZE_DEBOUNCE_MS);
     };
 
     handleResize();
