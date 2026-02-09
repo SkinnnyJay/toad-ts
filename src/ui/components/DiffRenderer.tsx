@@ -1,8 +1,11 @@
 import { LIMIT } from "@/config/limits";
+import { COLOR } from "@/constants/colors";
 import { DIFF_VIEW_MODE } from "@/constants/diff-types";
 import { diffColors } from "@/ui/theme";
+import { computeDiffInWorker } from "@/utils/diff/diff-worker-client";
+import { TextAttributes } from "@opentui/core";
 import { createTwoFilesPatch } from "diff";
-import { type ReactNode, memo, useMemo } from "react";
+import { type ReactNode, memo, useEffect, useMemo, useState } from "react";
 
 interface DiffRendererProps {
   /** Content before the change */
@@ -19,6 +22,25 @@ interface DiffRendererProps {
   contextLines?: number;
 }
 
+const truncateByLines = (
+  content: string,
+  maxLines: number
+): { content: string; truncated: boolean } => {
+  const lines = content.split(/\r?\n/);
+  if (lines.length <= maxLines) {
+    return { content, truncated: false };
+  }
+  return { content: lines.slice(0, maxLines).join("\n"), truncated: true };
+};
+
+const truncateDiffLines = (diff: string, maxLines: number): string => {
+  const lines = diff.split(/\r?\n/);
+  if (lines.length <= maxLines) {
+    return diff;
+  }
+  return lines.slice(0, maxLines).join("\n");
+};
+
 export const DiffRenderer = memo(function DiffRenderer({
   oldContent,
   newContent,
@@ -27,13 +49,62 @@ export const DiffRenderer = memo(function DiffRenderer({
   viewMode = DIFF_VIEW_MODE.UNIFIED,
   contextLines = LIMIT.DIFF_CONTEXT_LINES,
 }: DiffRendererProps): ReactNode {
-  const diff = useMemo(
-    () =>
-      createTwoFilesPatch(filename, filename, oldContent, newContent, "", "", {
-        context: contextLines,
-      }),
-    [contextLines, filename, newContent, oldContent]
-  );
+  const preview = useMemo(() => {
+    const truncatedOld = truncateByLines(oldContent, LIMIT.DIFF_PREVIEW_LINES);
+    const truncatedNew = truncateByLines(newContent, LIMIT.DIFF_PREVIEW_LINES);
+    const previewDiff = createTwoFilesPatch(
+      filename,
+      filename,
+      truncatedOld.content,
+      truncatedNew.content,
+      "",
+      "",
+      { context: contextLines }
+    );
+    return {
+      diff: truncateDiffLines(previewDiff, LIMIT.DIFF_MAX_LINES),
+      truncated: truncatedOld.truncated || truncatedNew.truncated,
+    };
+  }, [contextLines, filename, newContent, oldContent]);
+
+  const [diff, setDiff] = useState(preview.diff);
+  const [isLoading, setIsLoading] = useState(preview.truncated);
+
+  useEffect(() => {
+    let active = true;
+    setDiff(preview.diff);
+
+    if (!preview.truncated) {
+      setIsLoading(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    setIsLoading(true);
+    void (async () => {
+      const workerDiff = await computeDiffInWorker({
+        filename,
+        oldContent,
+        newContent,
+        contextLines,
+      });
+
+      const fullDiff =
+        workerDiff ??
+        createTwoFilesPatch(filename, filename, oldContent, newContent, "", "", {
+          context: contextLines,
+        });
+
+      if (!active) return;
+      setDiff(truncateDiffLines(fullDiff, LIMIT.DIFF_MAX_LINES));
+      setIsLoading(false);
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [contextLines, filename, newContent, oldContent, preview.diff, preview.truncated]);
 
   const view = viewMode === DIFF_VIEW_MODE.SIDE_BY_SIDE ? "split" : "unified";
 
@@ -52,6 +123,11 @@ export const DiffRenderer = memo(function DiffRenderer({
       <text fg={diffColors.header} bg={diffColors.headerBg}>
         {filename}
       </text>
+      {isLoading ? (
+        <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
+          Loading full diff…
+        </text>
+      ) : null}
       <diff
         diff={diff}
         filetype={language}
