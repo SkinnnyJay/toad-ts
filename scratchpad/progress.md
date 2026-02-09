@@ -25,3 +25,7 @@
 - [X] Markdown agent config loader
 - [X] Tab key agent switching
 - [X] Per-agent model/temperature config
+- [X] Hidden agents (compaction/title/summary)
+- [X] Subagent runner for @mention invocation
+- [X] @agent mention syntax in input
+- [X] Child session navigation

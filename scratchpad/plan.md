@@ -22,6 +22,10 @@
   - [X] Markdown agent config loader (.opencode/agents)
   - [X] Tab key agent switching in TUI
   - [X] Per-agent model/temperature config
+  - [X] Hidden agents (compaction/title/summary)
+  - [X] Subagent runner for @mention invocation
+  - [X] @agent mention syntax in input
+  - [X] Child session navigation (leader + arrows)
 
 ## Phase 7: Slash Commands & UX Polish
 - [ ] Phase 7 tasks (see PLAN.md)
