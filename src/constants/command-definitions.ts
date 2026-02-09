@@ -10,6 +10,7 @@ export interface CommandDefinition {
 
 export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   { name: SLASH_COMMAND.CONNECT, description: "Open provider connection settings" },
+  { name: SLASH_COMMAND.EDITOR, description: "Open external editor for input" },
   { name: SLASH_COMMAND.HELP, description: "Show available commands" },
   { name: SLASH_COMMAND.DETAILS, description: "Toggle tool execution details" },
   {
@@ -26,6 +27,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   { name: "/approve", description: "Approve pending tool call" },
   { name: "/deny", description: "Deny pending tool call" },
   { name: SLASH_COMMAND.SETTINGS, description: "Open settings" },
+  { name: SLASH_COMMAND.THEMES, description: "Open theme selector" },
   { name: SLASH_COMMAND.THINKING, description: "Toggle thinking blocks" },
   { name: SLASH_COMMAND.EXPORT, description: "Export session to file", args: "<filename>" },
   { name: "/import", description: "Import session from file", args: "<filename>" },

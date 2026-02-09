@@ -41,6 +41,7 @@ export interface SlashCommandDeps {
   setSessionModel?: (modelId: string) => Promise<void>;
   toggleToolDetails?: () => boolean;
   toggleThinking?: () => boolean;
+  openEditor?: (initialValue: string) => Promise<void>;
   now?: () => number;
 }
 
@@ -62,6 +63,15 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
   switch (command) {
     case SLASH_COMMAND.HELP: {
       deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.HELP_SUMMARY);
+      return true;
+    }
+    case SLASH_COMMAND.EDITOR: {
+      if (!deps.openEditor) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.EDITOR_NOT_CONFIGURED);
+        return true;
+      }
+      const initialValue = parts.slice(1).join(" ");
+      void deps.openEditor(initialValue);
       return true;
     }
     case SLASH_COMMAND.SESSIONS: {
@@ -222,6 +232,10 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       deps.appendSystemMessage(formatThinkingMessage(enabled));
       return true;
     }
+    case SLASH_COMMAND.THEMES: {
+      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.THEMES_NOT_AVAILABLE);
+      return true;
+    }
     default: {
       deps.appendSystemMessage(formatUnknownCommandMessage(command ?? ""));
       return true;
@@ -235,6 +249,7 @@ export interface SlashCommandHandlerOptions {
   onOpenSettings?: () => void;
   onOpenHelp?: () => void;
   onOpenSessions?: () => void;
+  onOpenEditor?: (initialValue: string) => Promise<void>;
   client?: HarnessRuntime | null;
   agent?: AgentInfo;
   now?: () => number;
@@ -246,6 +261,7 @@ export const useSlashCommandHandler = ({
   onOpenSettings,
   onOpenHelp,
   onOpenSessions,
+  onOpenEditor,
   client,
   agent,
   now,
@@ -336,6 +352,7 @@ export const useSlashCommandHandler = ({
           setShowThinking(next);
           return next;
         },
+        openEditor: onOpenEditor,
         now,
       });
     },
@@ -350,6 +367,7 @@ export const useSlashCommandHandler = ({
       onOpenHelp,
       onOpenSettings,
       onOpenSessions,
+      onOpenEditor,
       client,
       agent,
       setShowToolDetails,

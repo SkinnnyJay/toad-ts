@@ -13,6 +13,7 @@ import { PERMISSION_PATTERN } from "@/constants/permission-patterns";
 import { PERMISSION } from "@/constants/permissions";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { SESSION_MODE } from "@/constants/session-modes";
+import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { useAppStore } from "@/store/app-store";
 import { runInteractiveShellCommand } from "@/tools/interactive-shell";
@@ -28,6 +29,7 @@ import { PlanPanel } from "@/ui/components/PlanPanel";
 import { ToolCallManager } from "@/ui/components/ToolCallManager";
 import { TruncationProvider } from "@/ui/components/TruncationProvider";
 import { roleColor } from "@/ui/theme";
+import { openExternalEditor } from "@/utils/editor/externalEditor";
 import { Env, EnvManager } from "@/utils/env/env.utils";
 import { getRepoInfo } from "@/utils/git/git-info.utils";
 import { useKeyboard, useRenderer } from "@opentui/react";
@@ -144,12 +146,34 @@ export const Chat = memo(
       [appendMessage, effectiveSessionId]
     );
 
+    const handleOpenEditor = useCallback(
+      async (initialValue: string) => {
+        const content = await openExternalEditor({
+          initialValue,
+          cwd: process.cwd(),
+          renderer,
+        });
+        if (content === null) {
+          appendSystemMessage(SLASH_COMMAND_MESSAGE.EDITOR_NOT_CONFIGURED);
+          return;
+        }
+        const trimmed = content.trimEnd();
+        if (!trimmed.trim()) {
+          appendSystemMessage(SLASH_COMMAND_MESSAGE.EDITOR_EMPTY);
+          return;
+        }
+        setInputValue(trimmed);
+      },
+      [appendSystemMessage, renderer]
+    );
+
     const handleSlashCommand = useSlashCommandHandler({
       sessionId,
       appendSystemMessage,
       onOpenSettings,
       onOpenHelp,
       onOpenSessions,
+      onOpenEditor: handleOpenEditor,
       client,
       agent,
     });
