@@ -67,11 +67,15 @@ export class SessionManager {
     const temperature = params.temperature;
     const parentSessionId = params.parentSessionId;
     const response = await this.client.newSession({ cwd, mcpServers });
+    const availableModels = response.models?.availableModels;
+    const responseModel = response.models?.currentModelId;
+    const resolvedModel = model ?? responseModel;
     const metadata = {
       mcpServers,
-      ...(model ? { model } : {}),
+      ...(resolvedModel ? { model: resolvedModel } : {}),
       ...(temperature !== undefined ? { temperature } : {}),
       ...(parentSessionId ? { parentSessionId } : {}),
+      ...(availableModels ? { availableModels } : {}),
     };
     const session = SessionSchema.parse({
       id: response.sessionId,

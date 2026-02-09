@@ -169,12 +169,23 @@ export const McpServerSchema = z.union([
 ]);
 export type McpServer = z.infer<typeof McpServerSchema>;
 
+export const ModelInfoSchema = z
+  .object({
+    modelId: z.string().min(1),
+    name: z.string().min(1),
+    description: z.string().optional().nullable(),
+    _meta: z.record(z.unknown()).optional().nullable(),
+  })
+  .strict();
+export type ModelInfo = z.infer<typeof ModelInfoSchema>;
+
 export const SessionMetadataSchema = z
   .object({
     mcpServers: z.array(McpServerSchema).default([]),
     model: z.string().min(1).optional(),
     temperature: z.number().nonnegative().optional(),
     parentSessionId: SessionIdSchema.optional(),
+    availableModels: z.array(ModelInfoSchema).optional(),
   })
   .strict();
 export type SessionMetadata = z.infer<typeof SessionMetadataSchema>;

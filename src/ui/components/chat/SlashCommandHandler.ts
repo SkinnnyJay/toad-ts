@@ -5,6 +5,7 @@ import {
   SLASH_COMMAND_MESSAGE,
   formatModeUpdatedMessage,
   formatModelCurrentMessage,
+  formatModelListMessage,
   formatModelUpdateFailedMessage,
   formatModelUpdatedMessage,
   formatPlanCreatedMessage,
@@ -136,7 +137,10 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       if (!modelId) {
         const session = deps.sessionId ? deps.getSession(deps.sessionId) : undefined;
         const currentModel = session?.metadata?.model;
-        if (!currentModel) {
+        const availableModels = session?.metadata?.availableModels ?? [];
+        if (availableModels.length > 0) {
+          deps.appendSystemMessage(formatModelListMessage(availableModels, currentModel));
+        } else if (!currentModel) {
           deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MODEL_CONFIGURED);
         } else {
           deps.appendSystemMessage(formatModelCurrentMessage(currentModel));
@@ -335,6 +339,9 @@ export const useSlashCommandHandler = ({
                 : {}),
               ...(session.metadata?.parentSessionId
                 ? { parentSessionId: session.metadata.parentSessionId }
+                : {}),
+              ...(session.metadata?.availableModels
+                ? { availableModels: session.metadata.availableModels }
                 : {}),
             };
             upsertSession({ session: { ...session, metadata } });

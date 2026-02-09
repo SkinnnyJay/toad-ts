@@ -11,6 +11,7 @@ export const SLASH_COMMAND_MESSAGE = {
   SESSION_CLEARED: "Session messages cleared.",
   SESSION_RENAME_MISSING: "Provide a new session title.",
   NO_MODEL_CONFIGURED: "No model configured for this session.",
+  NO_MODELS_AVAILABLE: "No available models reported by the agent.",
   EDITOR_NOT_CONFIGURED: "No editor configured (set VISUAL or EDITOR).",
   EDITOR_EMPTY: "Editor closed without content.",
   THEMES_NOT_AVAILABLE: "Theme selection is not yet available.",
@@ -50,6 +51,20 @@ export const formatModelUpdatedMessage = (model: string): string => `Model set t
 
 export const formatModelUpdateFailedMessage = (message: string): string =>
   `Failed to update model: ${message}`;
+
+export const formatModelListMessage = (
+  models: Array<{ modelId: string; name: string }>,
+  currentModel?: string
+): string => {
+  if (models.length === 0) {
+    return SLASH_COMMAND_MESSAGE.NO_MODELS_AVAILABLE;
+  }
+  const lines = models.map((model) => {
+    const current = currentModel && model.modelId === currentModel ? " (current)" : "";
+    return `- ${model.modelId} (${model.name})${current}`;
+  });
+  return `Available models:\n${lines.join("\n")}`;
+};
 
 export const formatToolDetailsMessage = (enabled: boolean): string =>
   `Tool details ${enabled ? "shown" : "hidden"}.`;
