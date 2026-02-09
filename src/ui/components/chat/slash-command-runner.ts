@@ -1,9 +1,9 @@
 import { LIMIT } from "@/config/limits";
-import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { ENV_KEY } from "@/constants/env-keys";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import {
   SLASH_COMMAND_MESSAGE,
+  formatCompactionCompleteMessage,
   formatContextMessage,
   formatCostMessage,
   formatDebugMessage,
@@ -14,6 +14,8 @@ import {
   formatModelUpdateFailedMessage,
   formatModelUpdatedMessage,
   formatPlanCreatedMessage,
+  formatRedoMessage,
+  formatRewindMessage,
   formatSessionCreateFailedMessage,
   formatSessionCreatedMessage,
   formatSessionListMessage,
@@ -21,25 +23,40 @@ import {
   formatStatsMessage,
   formatThinkingMessage,
   formatToolDetailsMessage,
+  formatUndoMessage,
   formatUnknownCommandMessage,
 } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { TASK_STATUS } from "@/constants/task-status";
-import type { ContentBlock, Message, Plan, Session, SessionId } from "@/types/domain";
+import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
 import { PlanIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
 import { EnvManager } from "@/utils/env/env.utils";
-import { createDefaultTokenizerAdapter } from "@/utils/token-optimizer/tokenizer";
 import { nanoid } from "nanoid";
+
+import {
+  runCopyCommand,
+  runMemoryCommand,
+  runShareCommand,
+  runUnshareCommand,
+} from "./slash-command-actions";
+import {
+  buildContextStats,
+  orderMessages,
+  popRedoStack,
+  pushRedoStack,
+} from "./slash-command-helpers";
 
 export interface SlashCommandDeps {
   sessionId?: SessionId;
   appendSystemMessage: (text: string) => void;
+  appendMessage?: (message: Message) => void;
   getSession: (sessionId: SessionId) => Session | undefined;
   getMessagesForSession: (sessionId: SessionId) => Message[];
   getPlanBySession: (sessionId: SessionId) => Plan | undefined;
   listSessions: () => Session[];
   upsertSession: (params: { session: Session }) => void;
   clearMessagesForSession: (sessionId: SessionId) => void;
+  removeMessages?: (sessionId: SessionId, messageIds: MessageId[]) => void;
   upsertPlan: (plan: Plan) => void;
   openSessions?: () => void;
   createSession?: (title?: string) => Promise<SessionId | null>;
@@ -47,42 +64,12 @@ export interface SlashCommandDeps {
   toggleToolDetails?: () => boolean;
   toggleThinking?: () => boolean;
   openEditor?: (initialValue: string) => Promise<void>;
+  openMemoryFile?: (filePath: string) => Promise<boolean>;
+  copyToClipboard?: (text: string) => Promise<boolean>;
+  runCompaction?: (sessionId: SessionId) => Promise<SessionId | null>;
   connectionStatus?: string;
   now?: () => number;
 }
-
-const extractBlockText = (block: ContentBlock): string => {
-  switch (block.type) {
-    case CONTENT_BLOCK_TYPE.TEXT:
-    case CONTENT_BLOCK_TYPE.THINKING:
-      return block.text ?? "";
-    case CONTENT_BLOCK_TYPE.CODE:
-      return block.text ?? "";
-    case CONTENT_BLOCK_TYPE.RESOURCE_LINK:
-      return block.name ?? block.uri ?? "";
-    case CONTENT_BLOCK_TYPE.RESOURCE:
-      return "text" in block.resource ? (block.resource.text ?? "") : "";
-    case CONTENT_BLOCK_TYPE.TOOL_CALL:
-      return "";
-    default:
-      return "";
-  }
-};
-
-const buildContextStats = (
-  messages: Message[]
-): { tokens: number; chars: number; bytes: number } => {
-  const tokenizer = createDefaultTokenizerAdapter();
-  const combined = messages
-    .map((message) => message.content.map(extractBlockText).join("\n"))
-    .join("\n");
-  const estimate = tokenizer.estimate(combined);
-  return {
-    tokens: estimate.tokenCount,
-    chars: estimate.charCount,
-    bytes: estimate.byteSize,
-  };
-};
 
 export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean => {
   if (!value.startsWith("/")) return false;
@@ -96,7 +83,8 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     command === SLASH_COMMAND.NEW ||
     command === SLASH_COMMAND.DOCTOR ||
     command === SLASH_COMMAND.DEBUG ||
-    command === SLASH_COMMAND.STATS;
+    command === SLASH_COMMAND.STATS ||
+    command === SLASH_COMMAND.MEMORY;
   if (!deps.sessionId && !allowsWithoutSession) {
     deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
     return true;
@@ -340,35 +328,122 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       return true;
     }
     case SLASH_COMMAND.COMPACT: {
-      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.COMPACT_NOT_AVAILABLE);
+      if (!deps.sessionId) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
+        return true;
+      }
+      if (!deps.runCompaction) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.COMPACT_FAILED);
+        return true;
+      }
+      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.COMPACT_STARTING);
+      void deps
+        .runCompaction(deps.sessionId)
+        .then((compactionSessionId) => {
+          if (compactionSessionId) {
+            deps.appendSystemMessage(formatCompactionCompleteMessage(compactionSessionId));
+          } else {
+            deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.COMPACT_FAILED);
+          }
+        })
+        .catch(() => deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.COMPACT_FAILED));
       return true;
     }
     case SLASH_COMMAND.MEMORY: {
-      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.MEMORY_NOT_AVAILABLE);
+      void runMemoryCommand(parts[1]?.toLowerCase(), {
+        appendSystemMessage: deps.appendSystemMessage,
+        openMemoryFile: deps.openMemoryFile,
+      });
       return true;
     }
     case SLASH_COMMAND.COPY: {
-      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.COPY_NOT_AVAILABLE);
+      void runCopyCommand(deps.sessionId, {
+        appendSystemMessage: deps.appendSystemMessage,
+        copyToClipboard: deps.copyToClipboard,
+        getMessagesForSession: deps.getMessagesForSession,
+      });
       return true;
     }
     case SLASH_COMMAND.SHARE: {
-      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.SHARE_NOT_AVAILABLE);
+      void runShareCommand(deps.sessionId, {
+        appendSystemMessage: deps.appendSystemMessage,
+        getSession: deps.getSession,
+        getMessagesForSession: deps.getMessagesForSession,
+      });
       return true;
     }
     case SLASH_COMMAND.UNSHARE: {
-      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.SHARE_NOT_AVAILABLE);
+      void runUnshareCommand(deps.sessionId, {
+        appendSystemMessage: deps.appendSystemMessage,
+      });
       return true;
     }
     case SLASH_COMMAND.UNDO: {
-      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.UNDO_NOT_AVAILABLE);
+      if (!deps.sessionId) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
+        return true;
+      }
+      if (!deps.removeMessages) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.UNDO_NOT_AVAILABLE);
+        return true;
+      }
+      const messages = orderMessages(deps.getMessagesForSession(deps.sessionId));
+      const last = messages[messages.length - 1];
+      if (!last) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MESSAGES_TO_UNDO);
+        return true;
+      }
+      deps.removeMessages(deps.sessionId, [last.id]);
+      pushRedoStack(deps.sessionId, [last]);
+      deps.appendSystemMessage(formatUndoMessage(1));
       return true;
     }
     case SLASH_COMMAND.REDO: {
-      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.REDO_NOT_AVAILABLE);
+      if (!deps.sessionId) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
+        return true;
+      }
+      if (!deps.appendMessage) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.REDO_NOT_AVAILABLE);
+        return true;
+      }
+      const removed = popRedoStack(deps.sessionId);
+      if (!removed || removed.length === 0) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MESSAGES_TO_REDO);
+        return true;
+      }
+      removed.forEach((message) => deps.appendMessage?.(message));
+      deps.appendSystemMessage(formatRedoMessage(removed.length));
       return true;
     }
     case SLASH_COMMAND.REWIND: {
-      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.REWIND_NOT_AVAILABLE);
+      if (!deps.sessionId) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
+        return true;
+      }
+      if (!deps.removeMessages) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.REWIND_NOT_AVAILABLE);
+        return true;
+      }
+      const countInput = parts[1];
+      const parsedCount = countInput ? Number.parseInt(countInput, 10) : LIMIT.REWIND_DEFAULT_COUNT;
+      if (!Number.isFinite(parsedCount) || parsedCount <= 0) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.INVALID_REWIND_COUNT);
+        return true;
+      }
+      const messages = orderMessages(deps.getMessagesForSession(deps.sessionId));
+      if (messages.length === 0) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MESSAGES_TO_UNDO);
+        return true;
+      }
+      const count = Math.min(parsedCount, messages.length);
+      const removed = messages.slice(-count);
+      deps.removeMessages(
+        deps.sessionId,
+        removed.map((message) => message.id)
+      );
+      pushRedoStack(deps.sessionId, removed);
+      deps.appendSystemMessage(formatRewindMessage(count));
       return true;
     }
     case SLASH_COMMAND.THEMES: {

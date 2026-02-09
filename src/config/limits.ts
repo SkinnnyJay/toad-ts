@@ -46,6 +46,8 @@ export const LIMIT = {
   LINE_KEY_SLICE: 10,
   MIN_TERMINAL_ROWS: 10,
   MIN_TERMINAL_COLS: 50,
+  REWIND_DEFAULT_COUNT: 5,
+  UNDO_STACK_LIMIT: 20,
 } as const;
 
 // Re-export for convenience
@@ -95,4 +97,6 @@ export const {
   LINE_KEY_SLICE,
   MIN_TERMINAL_ROWS,
   MIN_TERMINAL_COLS,
+  REWIND_DEFAULT_COUNT,
+  UNDO_STACK_LIMIT,
 } = LIMIT;

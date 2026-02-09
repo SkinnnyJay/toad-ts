@@ -35,18 +35,23 @@
   - [X] Slash command: /themes placeholder
   - [X] /models listing from agent capabilities
   - [X] Slash commands: /doctor, /debug, /context, /stats, /cost
+  - [X] Slash command: /memory editing
+  - [X] Slash command: /copy clipboard
 
 ## Phase 8: Checkpointing & Undo/Redo
 - [ ] Phase 8 tasks (see PLAN.md)
+  - [X] Undo/redo/rewind commands for message history
 
 ## Phase 9: Configuration & Keybind System
 - [ ] Phase 9 tasks (see PLAN.md)
 
 ## Phase 10: Compaction & Context Management
 - [ ] Phase 10 tasks (see PLAN.md)
+  - [X] /compact triggers compaction subagent
 
 ## Phase 11: Session Management, Sharing & Export
 - [ ] Phase 11 tasks (see PLAN.md)
+  - [X] /share + /unshare export session markdown
 
 ## Phase 12: Provider Expansion
 - [ ] Phase 12 tasks (see PLAN.md)

@@ -23,6 +23,7 @@ export interface AppStore extends AppState {
   upsertSession: (params: UpsertSessionParams) => void;
   appendMessage: (message: Message) => void;
   updateMessage: (params: UpdateMessageParams) => void;
+  removeMessages: (sessionId: SessionId, messageIds: MessageId[]) => void;
   getSession: (sessionId: SessionId) => Session | undefined;
   getMessage: (messageId: MessageId) => Message | undefined;
   getMessagesForSession: (sessionId: SessionId) => Message[];
@@ -98,6 +99,28 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
       if (!existing) return {};
       const updated: Message = { ...existing, ...patch };
       return { messages: { ...state.messages, [messageId]: updated } };
+    }),
+  removeMessages: (sessionId, messageIds) =>
+    set((state) => {
+      if (messageIds.length === 0) return {};
+      const messageIdSet = new Set(messageIds.map((id) => String(id)));
+      const entries = Object.entries(state.messages) as Array<[string, Message]>;
+      const retainedEntries = entries.filter(([id]) => !messageIdSet.has(id));
+      const retained = Object.fromEntries(retainedEntries) as AppState["messages"];
+      const session = state.sessions[sessionId];
+      const updatedSession = session
+        ? {
+            ...session,
+            messageIds: session.messageIds.filter((id) => !messageIdSet.has(String(id))),
+            updatedAt: Date.now(),
+          }
+        : undefined;
+      return {
+        messages: retained,
+        sessions: updatedSession
+          ? { ...state.sessions, [sessionId]: updatedSession }
+          : state.sessions,
+      } as Partial<AppState>;
     }),
   clearMessagesForSession: (sessionId) =>
     set((state) => {

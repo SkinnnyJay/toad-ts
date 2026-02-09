@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -17,6 +17,14 @@ export interface ExternalEditorOptions {
   renderer: CliRenderer;
 }
 
+export interface ExternalEditorFileOptions {
+  filePath: string;
+  cwd?: string;
+  env?: NodeJS.ProcessEnv;
+  renderer: CliRenderer;
+  createIfMissing?: boolean;
+}
+
 const logger = createClassLogger("ExternalEditor");
 
 const quoteShellArg = (value: string): string => {
@@ -26,6 +34,11 @@ const quoteShellArg = (value: string): string => {
 
 const resolveEditorCommand = (env: NodeJS.ProcessEnv): string => {
   return env[ENV_KEY.VISUAL] ?? env[ENV_KEY.EDITOR] ?? DEFAULT_COMMAND;
+};
+
+const ensureFileExists = async (filePath: string): Promise<void> => {
+  await mkdir(path.dirname(filePath), { recursive: true });
+  await writeFile(filePath, "", { flag: "a" });
 };
 
 export const openExternalEditor = async (
@@ -59,5 +72,34 @@ export const openExternalEditor = async (
     return null;
   } finally {
     await rm(tempDir, { recursive: true, force: true });
+  }
+};
+
+export const openExternalEditorForFile = async (
+  options: ExternalEditorFileOptions
+): Promise<boolean> => {
+  const env = { ...EnvManager.getInstance().getSnapshot(), ...options.env };
+  const editorCommand = resolveEditorCommand(env).trim();
+  if (!editorCommand) {
+    return false;
+  }
+
+  try {
+    if (options.createIfMissing !== false) {
+      await ensureFileExists(options.filePath);
+    }
+    const command = `${editorCommand} ${quoteShellArg(options.filePath)}`;
+    await runInteractiveShellCommand({
+      command,
+      cwd: options.cwd,
+      env,
+      renderer: options.renderer,
+    });
+    return true;
+  } catch (error) {
+    logger.warn("External editor failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
   }
 };

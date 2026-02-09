@@ -1,4 +1,6 @@
 import type { AgentInfo } from "@/agents/agent-manager";
+import type { SubAgentRunner } from "@/agents/subagent-runner";
+import { AGENT_ID_SEPARATOR, COMPACTION } from "@/constants/agent-ids";
 import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { loadMcpConfig } from "@/core/mcp-config-loader";
@@ -6,7 +8,10 @@ import { SessionManager } from "@/core/session-manager";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { useAppStore } from "@/store/app-store";
 import type { Session, SessionId } from "@/types/domain";
+import { copyToClipboard } from "@/utils/clipboard/clipboard.utils";
+import { openExternalEditorForFile } from "@/utils/editor/externalEditor";
 import { EnvManager } from "@/utils/env/env.utils";
+import { useRenderer } from "@opentui/react";
 import { useCallback } from "react";
 import { runSlashCommand } from "./slash-command-runner";
 
@@ -22,6 +27,8 @@ export interface SlashCommandHandlerOptions {
   onOpenEditor?: (initialValue: string) => Promise<void>;
   client?: HarnessRuntime | null;
   agent?: AgentInfo;
+  agents?: AgentInfo[];
+  subAgentRunner?: SubAgentRunner;
   now?: () => number;
 }
 
@@ -34,19 +41,63 @@ export const useSlashCommandHandler = ({
   onOpenEditor,
   client,
   agent,
+  agents = [],
+  subAgentRunner,
   now,
 }: SlashCommandHandlerOptions): ((value: string) => boolean) => {
+  const renderer = useRenderer();
   const getSession = useAppStore((state) => state.getSession);
   const getMessagesForSession = useAppStore((state) => state.getMessagesForSession);
   const getPlanBySession = useAppStore((state) => state.getPlanBySession);
   const connectionStatus = useAppStore((state) => state.connectionStatus);
   const listSessions = useAppStore((state) => Object.values(state.sessions));
   const upsertSession = useAppStore((state) => state.upsertSession);
+  const appendMessage = useAppStore((state) => state.appendMessage);
   const clearMessagesForSession = useAppStore((state) => state.clearMessagesForSession);
+  const removeMessages = useAppStore((state) => state.removeMessages);
   const upsertPlan = useAppStore((state) => state.upsertPlan);
   const setShowToolDetails = useAppStore((state) => state.setShowToolDetails);
   const setShowThinking = useAppStore((state) => state.setShowThinking);
   const setCurrentSession = useAppStore((state) => state.setCurrentSession);
+
+  const openMemoryFile = useCallback(
+    (filePath: string) =>
+      openExternalEditorForFile({
+        filePath,
+        renderer,
+        cwd: process.cwd(),
+      }),
+    [renderer]
+  );
+
+  const runCompaction = useCallback(
+    async (targetSessionId: SessionId) => {
+      if (!subAgentRunner || agents.length === 0) {
+        return null;
+      }
+      const currentHarnessId = agent?.harnessId;
+      const compactionAgent =
+        agents.find(
+          (candidate) =>
+            candidate.hidden &&
+            String(candidate.id).endsWith(`${AGENT_ID_SEPARATOR}${COMPACTION}`) &&
+            (!currentHarnessId || candidate.harnessId === currentHarnessId)
+        ) ??
+        agents.find(
+          (candidate) =>
+            candidate.hidden && String(candidate.id).endsWith(`${AGENT_ID_SEPARATOR}${COMPACTION}`)
+        );
+      if (!compactionAgent) {
+        return null;
+      }
+      return subAgentRunner.run({
+        parentSessionId: targetSessionId,
+        agent: compactionAgent,
+        prompt: "Summarize the session for compaction.",
+      });
+    },
+    [agent?.harnessId, agents, subAgentRunner]
+  );
 
   return useCallback(
     (value: string): boolean => {
@@ -67,12 +118,14 @@ export const useSlashCommandHandler = ({
       return runSlashCommand(value, {
         sessionId,
         appendSystemMessage,
+        appendMessage,
         getSession,
         getMessagesForSession,
         getPlanBySession,
         listSessions: () => listSessions.filter((session): session is Session => Boolean(session)),
         upsertSession,
         clearMessagesForSession,
+        removeMessages,
         upsertPlan,
         openSessions: onOpenSessions,
         createSession: async (title?: string) => {
@@ -131,6 +184,9 @@ export const useSlashCommandHandler = ({
           return next;
         },
         openEditor: onOpenEditor,
+        openMemoryFile,
+        copyToClipboard,
+        runCompaction,
         connectionStatus,
         now,
       });
@@ -138,6 +194,7 @@ export const useSlashCommandHandler = ({
     [
       sessionId,
       appendSystemMessage,
+      appendMessage,
       getSession,
       getMessagesForSession,
       getPlanBySession,
@@ -145,6 +202,7 @@ export const useSlashCommandHandler = ({
       listSessions,
       upsertSession,
       clearMessagesForSession,
+      removeMessages,
       upsertPlan,
       onOpenHelp,
       onOpenSettings,
@@ -152,6 +210,8 @@ export const useSlashCommandHandler = ({
       onOpenEditor,
       client,
       agent,
+      openMemoryFile,
+      runCompaction,
       setShowToolDetails,
       setShowThinking,
       setCurrentSession,

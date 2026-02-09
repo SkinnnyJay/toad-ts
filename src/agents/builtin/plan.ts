@@ -1,4 +1,5 @@
 import type { AgentConfig } from "@/agents/agent-config";
+import { AGENT_ID_SEPARATOR, PLAN } from "@/constants/agent-ids";
 import { PERMISSION } from "@/constants/permissions";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { TOOL_KIND } from "@/constants/tool-kinds";
@@ -21,7 +22,7 @@ const PLAN_AGENT_PERMISSIONS: ToolPermissionOverrides = {
 
 export const createPlanAgent = (harness: HarnessConfig): AgentConfig => {
   return {
-    id: AgentIdSchema.parse(`${harness.id}:plan`),
+    id: AgentIdSchema.parse(`${harness.id}${AGENT_ID_SEPARATOR}${PLAN}`),
     name: `${harness.name} Plan`,
     harnessId: harness.id,
     description: "Read-first agent that requests permission for edits and commands.",

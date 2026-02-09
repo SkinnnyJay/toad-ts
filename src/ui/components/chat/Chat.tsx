@@ -176,6 +176,8 @@ export const Chat = memo(
       onOpenEditor: handleOpenEditor,
       client,
       agent,
+      agents,
+      subAgentRunner,
     });
 
     const shellCompletion = useMemo(

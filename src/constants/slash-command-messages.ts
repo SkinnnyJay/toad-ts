@@ -5,7 +5,7 @@ export const SLASH_COMMAND_MESSAGE = {
   NO_ACTIVE_SESSION: "No active session for slash command.",
   NO_ACTIVE_CLIENT: "No active agent connection for slash command.",
   HELP_SUMMARY:
-    "Commands: /help, /connect, /sessions, /new, /rename, /editor, /mode <read-only|auto|full-access>, /models <id>, /details, /thinking, /themes, /context, /doctor, /debug, /stats, /cost, /clear, /plan <title>",
+    "Commands: /help, /connect, /sessions, /new, /rename, /editor, /memory, /mode <read-only|auto|full-access>, /models <id>, /details, /thinking, /themes, /context, /doctor, /debug, /stats, /cost, /copy, /share, /unshare, /undo, /redo, /rewind <count>, /clear, /plan <title>, /compact",
   INVALID_MODE: "Invalid mode. Use read-only, auto, or full-access.",
   NO_SESSION_TO_UPDATE: "No session to update mode.",
   SESSION_CLEARED: "Session messages cleared.",
@@ -15,13 +15,21 @@ export const SLASH_COMMAND_MESSAGE = {
   EDITOR_NOT_CONFIGURED: "No editor configured (set VISUAL or EDITOR).",
   EDITOR_EMPTY: "Editor closed without content.",
   THEMES_NOT_AVAILABLE: "Theme selection is not yet available.",
-  COMPACT_NOT_AVAILABLE: "Compaction is not yet available.",
-  MEMORY_NOT_AVAILABLE: "Memory editing is not yet available.",
-  COPY_NOT_AVAILABLE: "Clipboard copy is not yet available.",
-  SHARE_NOT_AVAILABLE: "Session sharing is not yet available.",
-  UNDO_NOT_AVAILABLE: "Undo is not yet available.",
-  REDO_NOT_AVAILABLE: "Redo is not yet available.",
-  REWIND_NOT_AVAILABLE: "Rewind is not yet available.",
+  COMPACT_STARTING: "Starting compaction session...",
+  COMPACT_FAILED: "Compaction failed.",
+  MEMORY_NOT_AVAILABLE: "Memory editing is not available.",
+  MEMORY_OPEN_FAILED: "Failed to open memory file.",
+  COPY_NOT_AVAILABLE: "Clipboard copy is not available.",
+  COPY_FAILED: "Failed to copy to clipboard.",
+  COPY_NO_CONTENT: "No assistant response available to copy.",
+  SHARE_FAILED: "Failed to share session.",
+  UNSHARE_FAILED: "Failed to unshare session.",
+  UNDO_NOT_AVAILABLE: "Undo is not available.",
+  REDO_NOT_AVAILABLE: "Redo is not available.",
+  REWIND_NOT_AVAILABLE: "Rewind is not available.",
+  NO_MESSAGES_TO_UNDO: "No messages available to undo.",
+  NO_MESSAGES_TO_REDO: "No messages available to redo.",
+  INVALID_REWIND_COUNT: "Provide a valid rewind count.",
 } as const;
 
 export const formatModeUpdatedMessage = (mode: SessionMode): string => `Mode updated to ${mode}.`;
@@ -91,6 +99,28 @@ export const formatStatsMessage = (lines: string[]): string =>
   `Session stats:\n${lines.join("\n")}`;
 
 export const formatCostMessage = (lines: string[]): string => `Cost estimate:\n${lines.join("\n")}`;
+
+export const formatCopySuccessMessage = (): string => "Copied last response to clipboard.";
+
+export const formatMemoryOpenedMessage = (fileLabel: string): string =>
+  `Opened memory file: ${fileLabel}.`;
+
+export const formatCompactionCompleteMessage = (sessionId: string): string =>
+  `Compaction session created: ${sessionId}.`;
+
+export const formatUndoMessage = (count: number): string =>
+  `Undid ${count} message${count === 1 ? "" : "s"}.`;
+
+export const formatRedoMessage = (count: number): string =>
+  `Redid ${count} message${count === 1 ? "" : "s"}.`;
+
+export const formatRewindMessage = (count: number): string =>
+  `Rewound ${count} message${count === 1 ? "" : "s"}.`;
+
+export const formatShareMessage = (filePath: string): string => `Session shared to ${filePath}.`;
+
+export const formatUnshareMessage = (filePath: string): string =>
+  `Session unshared from ${filePath}.`;
 
 export const formatUnknownCommandMessage = (command: string): string =>
   `Unknown command: ${command}`;

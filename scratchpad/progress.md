@@ -3,7 +3,7 @@
 ## Current Focus
 - Phase 4A: App smoke test
 - Phase 4E: Manual smoke tests
-- Phase 7: Slash commands & UX polish
+- Phase 7-11: Slash commands, undo/redo, sharing, compaction
 
 ## Status
 - [X] Install Bun
@@ -35,3 +35,8 @@
 - [X] Slash command: /themes placeholder
 - [X] /models listing from agent capabilities
 - [X] Slash commands: /doctor, /debug, /context, /stats, /cost
+- [X] Slash command: /memory editing
+- [X] Slash command: /copy clipboard
+- [X] Slash commands: /undo, /redo, /rewind
+- [X] Slash commands: /share + /unshare
+- [X] /compact triggers compaction subagent

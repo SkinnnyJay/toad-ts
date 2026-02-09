@@ -5,10 +5,18 @@ export const FILE_PATH = {
   MCP_JSON: "mcp.json",
   SETTINGS_JSON: "settings.json",
   TODOS_JSON: "todos.json",
+  SHARED_SESSIONS_DIR: "shared-sessions",
 } as const;
 
 export type FilePath = (typeof FILE_PATH)[keyof typeof FILE_PATH];
 
 // Re-export for convenience
-export const { TOADSTOOL_DIR, SESSIONS_JSON, TOADSTOOL_DB, MCP_JSON, SETTINGS_JSON, TODOS_JSON } =
-  FILE_PATH;
+export const {
+  TOADSTOOL_DIR,
+  SESSIONS_JSON,
+  TOADSTOOL_DB,
+  MCP_JSON,
+  SETTINGS_JSON,
+  TODOS_JSON,
+  SHARED_SESSIONS_DIR,
+} = FILE_PATH;

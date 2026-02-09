@@ -1,4 +1,5 @@
 import type { AgentConfig } from "@/agents/agent-config";
+import { AGENT_ID_SEPARATOR, BUILD } from "@/constants/agent-ids";
 import { PERMISSION } from "@/constants/permissions";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { TOOL_KIND } from "@/constants/tool-kinds";
@@ -21,7 +22,7 @@ const BUILD_AGENT_PERMISSIONS: ToolPermissionOverrides = {
 
 export const createBuildAgent = (harness: HarnessConfig): AgentConfig => {
   return {
-    id: AgentIdSchema.parse(`${harness.id}:build`),
+    id: AgentIdSchema.parse(`${harness.id}${AGENT_ID_SEPARATOR}${BUILD}`),
     name: `${harness.name} Build`,
     harnessId: harness.id,
     description: "Full-access agent for implementation work.",

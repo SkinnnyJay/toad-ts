@@ -1,4 +1,5 @@
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { SESSION_MODE } from "@/constants/session-modes";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -147,5 +148,108 @@ describe("Chat", () => {
     const plan = store.getPlanBySession(sessionId);
     expect(plan).toBeDefined();
     expect(plan?.originalPrompt).toContain("test plan");
+  });
+
+  it("copies last assistant response via /copy", async () => {
+    const sessionId = setupSession({ sessionId: "s-copy" });
+    const store = useAppStore.getState();
+    const copySpy = vi.fn(async () => true);
+
+    store.appendMessage({
+      id: MessageIdSchema.parse("m-user-copy"),
+      sessionId,
+      role: MESSAGE_ROLE.USER,
+      content: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "Hello" }],
+      createdAt: Date.now(),
+      isStreaming: false,
+    });
+    store.appendMessage({
+      id: MessageIdSchema.parse("m-assistant-copy"),
+      sessionId,
+      role: MESSAGE_ROLE.ASSISTANT,
+      content: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "Copied text" }],
+      createdAt: Date.now() + 1,
+      isStreaming: false,
+    });
+
+    runSlashCommand("/copy", {
+      sessionId,
+      appendSystemMessage: (text) =>
+        store.appendMessage({
+          id: MessageIdSchema.parse("sys-copy"),
+          sessionId,
+          role: MESSAGE_ROLE.SYSTEM,
+          content: [{ type: CONTENT_BLOCK_TYPE.TEXT, text }],
+          createdAt: Date.now() + 2,
+          isStreaming: false,
+        }),
+      appendMessage: store.appendMessage,
+      getSession: store.getSession,
+      getMessagesForSession: store.getMessagesForSession,
+      getPlanBySession: store.getPlanBySession,
+      listSessions: () => Object.values(store.sessions),
+      upsertSession: store.upsertSession,
+      clearMessagesForSession: store.clearMessagesForSession,
+      removeMessages: store.removeMessages,
+      upsertPlan: store.upsertPlan,
+      copyToClipboard: copySpy,
+    });
+
+    await waitFor(() => copySpy.mock.calls.length > 0);
+    expect(copySpy).toHaveBeenCalledWith("Copied text");
+  });
+
+  it("undos and redoes the last message", async () => {
+    const sessionId = setupSession({ sessionId: "s-undo" });
+    const store = useAppStore.getState();
+
+    store.appendMessage({
+      id: MessageIdSchema.parse("m-undo-1"),
+      sessionId,
+      role: MESSAGE_ROLE.USER,
+      content: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "First" }],
+      createdAt: Date.now(),
+      isStreaming: false,
+    });
+    store.appendMessage({
+      id: MessageIdSchema.parse("m-undo-2"),
+      sessionId,
+      role: MESSAGE_ROLE.ASSISTANT,
+      content: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "Second" }],
+      createdAt: Date.now() + 1,
+      isStreaming: false,
+    });
+
+    runSlashCommand("/undo", {
+      sessionId,
+      appendSystemMessage: () => {},
+      appendMessage: store.appendMessage,
+      getSession: store.getSession,
+      getMessagesForSession: store.getMessagesForSession,
+      getPlanBySession: store.getPlanBySession,
+      listSessions: () => Object.values(store.sessions),
+      upsertSession: store.upsertSession,
+      clearMessagesForSession: store.clearMessagesForSession,
+      removeMessages: store.removeMessages,
+      upsertPlan: store.upsertPlan,
+    });
+
+    await waitFor(() => store.getMessagesForSession(sessionId).length === 1);
+
+    runSlashCommand("/redo", {
+      sessionId,
+      appendSystemMessage: () => {},
+      appendMessage: store.appendMessage,
+      getSession: store.getSession,
+      getMessagesForSession: store.getMessagesForSession,
+      getPlanBySession: store.getPlanBySession,
+      listSessions: () => Object.values(store.sessions),
+      upsertSession: store.upsertSession,
+      clearMessagesForSession: store.clearMessagesForSession,
+      removeMessages: store.removeMessages,
+      upsertPlan: store.upsertPlan,
+    });
+
+    await waitFor(() => store.getMessagesForSession(sessionId).length === 2);
   });
 });
