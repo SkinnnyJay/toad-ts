@@ -20,6 +20,17 @@ describe("AgentManager", () => {
     expect(agents.some((agent) => agent.id === planId)).toBe(true);
   });
 
+  it("omits hidden agents from selectable options", () => {
+    const { harnesses } = createDefaultHarnessConfig();
+    const manager = new AgentManager({ harnesses, customAgents: [] });
+    const { options, infoMap } = manager.buildAgentOptions();
+
+    expect(options.some((agent) => agent.id === AgentIdSchema.parse("mock:compaction"))).toBe(
+      false
+    );
+    expect(infoMap.has(AgentIdSchema.parse("mock:compaction"))).toBe(true);
+  });
+
   it("includes custom agents when harness exists", () => {
     const { harnesses } = createDefaultHarnessConfig();
     const customAgent: AgentConfig = {

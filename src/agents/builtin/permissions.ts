@@ -1,0 +1,16 @@
+import { PERMISSION } from "@/constants/permissions";
+import { TOOL_KIND } from "@/constants/tool-kinds";
+import type { ToolPermissionOverrides } from "@/tools/permissions";
+
+export const READ_ONLY_PERMISSIONS: ToolPermissionOverrides = {
+  [TOOL_KIND.READ]: PERMISSION.ALLOW,
+  [TOOL_KIND.SEARCH]: PERMISSION.ALLOW,
+  [TOOL_KIND.FETCH]: PERMISSION.ALLOW,
+  [TOOL_KIND.THINK]: PERMISSION.ALLOW,
+  [TOOL_KIND.EDIT]: PERMISSION.DENY,
+  [TOOL_KIND.MOVE]: PERMISSION.DENY,
+  [TOOL_KIND.DELETE]: PERMISSION.DENY,
+  [TOOL_KIND.EXECUTE]: PERMISSION.DENY,
+  [TOOL_KIND.SWITCH_MODE]: PERMISSION.DENY,
+  [TOOL_KIND.OTHER]: PERMISSION.DENY,
+};

@@ -20,6 +20,7 @@ export interface AgentConfig {
   model?: string;
   temperature?: number;
   sessionMode?: SessionMode;
+  hidden?: boolean;
   permissions?: ToolPermissionOverrides;
   prompt?: string;
 }
@@ -35,6 +36,7 @@ const agentFrontmatterSchema = z
     model: z.string().min(1).optional(),
     temperature: z.number().nonnegative().optional(),
     mode: z.string().min(1).optional(),
+    hidden: z.boolean().optional(),
     tools: z.record(permissionValueSchema).optional(),
   })
   .strict();
@@ -117,6 +119,7 @@ const buildAgentConfig = (params: {
   model?: string;
   temperature?: number;
   mode?: SessionMode;
+  hidden?: boolean;
   permissions?: ToolPermissionOverrides;
   prompt?: string;
 }): AgentConfig => {
@@ -128,6 +131,7 @@ const buildAgentConfig = (params: {
     model: params.model,
     temperature: params.temperature,
     sessionMode: params.mode,
+    hidden: params.hidden,
     permissions: params.permissions,
     prompt: params.prompt,
   };
@@ -194,6 +198,7 @@ export const loadAgentConfigs = async (
         model: parsed.model,
         temperature: parsed.temperature,
         mode: sessionMode,
+        hidden: parsed.hidden,
         permissions,
         prompt,
       })

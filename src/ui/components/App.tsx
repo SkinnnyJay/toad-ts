@@ -1,3 +1,4 @@
+import { SubAgentRunner } from "@/agents/subagent-runner";
 import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
@@ -17,7 +18,7 @@ import { useBackgroundTaskStore } from "@/store/background-task-store";
 import { createPersistenceConfig } from "@/store/persistence/persistence-config";
 import { PersistenceManager } from "@/store/persistence/persistence-manager";
 import { createPersistenceProvider } from "@/store/persistence/persistence-provider";
-import type { SessionId } from "@/types/domain";
+import type { Session, SessionId } from "@/types/domain";
 import { AgentSelect } from "@/ui/components/AgentSelect";
 import type { AgentOption } from "@/ui/components/AgentSelect";
 import { AsciiBanner } from "@/ui/components/AsciiBanner";
@@ -47,6 +48,7 @@ export function App(): ReactNode {
   const currentSessionId = useAppStore((state) => state.currentSessionId);
   const getPlanBySession = useAppStore((state) => state.getPlanBySession);
   const setCurrentSession = useAppStore((state) => state.setCurrentSession);
+  const sessionsById = useAppStore((state) => state.sessions);
 
   // Terminal dimensions hook
   const terminalDimensions = useTerminalDimensions();
@@ -101,6 +103,16 @@ export function App(): ReactNode {
     []
   );
   const sessionStream = useMemo(() => new SessionStream(useAppStore.getState()), []);
+  const subAgentRunner = useMemo(
+    () =>
+      new SubAgentRunner({
+        harnessRegistry,
+        harnessConfigs,
+        sessionStream,
+        store: useAppStore.getState(),
+      }),
+    [harnessConfigs, harnessRegistry, sessionStream]
+  );
 
   // Harness connection hook
   const { client, sessionId: connectionSessionId } = useHarnessConnection({
@@ -131,19 +143,6 @@ export function App(): ReactNode {
       setSessionId(currentSessionId);
     }
   }, [currentSessionId]);
-
-  // Keyboard shortcuts hook
-  const {
-    focusTarget,
-    isSessionsPopupOpen,
-    setIsSessionsPopupOpen,
-    isSettingsOpen,
-    setIsSettingsOpen,
-    isHelpOpen,
-    setIsHelpOpen,
-    isBackgroundTasksOpen,
-    setIsBackgroundTasksOpen,
-  } = useAppKeyboardShortcuts({ view });
 
   const backgroundTasks = useBackgroundTaskStore((state) => state.tasks);
   const taskProgress = useMemo(() => {
@@ -233,6 +232,56 @@ export function App(): ReactNode {
       setView(VIEW.CHAT);
     }
   }, [selectedAgent]);
+
+  const navigateChildSession = useCallback(
+    (direction: "prev" | "next") => {
+      const activeSessionId = currentSessionId ?? sessionId;
+      if (!activeSessionId) return;
+      const activeSession = sessionsById[activeSessionId];
+      if (!activeSession) return;
+      const parentId = activeSession.metadata?.parentSessionId ?? activeSession.id;
+      const parentSession = sessionsById[parentId];
+      if (!parentSession) return;
+      const children = Object.values(sessionsById)
+        .filter((session): session is Session => {
+          if (!session) {
+            return false;
+          }
+          return session.metadata?.parentSessionId === parentId;
+        })
+        .sort((a, b) => a.createdAt - b.createdAt);
+      const chain: Session[] = [parentSession, ...children];
+      if (chain.length <= 1) return;
+      const index = chain.findIndex((session) => session.id === activeSessionId);
+      if (index < 0) return;
+      const nextIndex =
+        direction === "next"
+          ? (index + 1) % chain.length
+          : (index - 1 + chain.length) % chain.length;
+      const target = chain[nextIndex];
+      if (target) {
+        setCurrentSession(target.id);
+        setSessionId(target.id);
+        if (view !== VIEW.CHAT) {
+          setView(VIEW.CHAT);
+        }
+      }
+    },
+    [currentSessionId, sessionId, sessionsById, setCurrentSession, view]
+  );
+
+  // Keyboard shortcuts hook
+  const {
+    focusTarget,
+    isSessionsPopupOpen,
+    setIsSessionsPopupOpen,
+    isSettingsOpen,
+    setIsSettingsOpen,
+    isHelpOpen,
+    setIsHelpOpen,
+    isBackgroundTasksOpen,
+    setIsBackgroundTasksOpen,
+  } = useAppKeyboardShortcuts({ view, onNavigateChildSession: navigateChildSession });
 
   // Render error state
   if (stage === RENDER_STAGE.ERROR) {
@@ -330,11 +379,13 @@ export function App(): ReactNode {
                   key={`chat-${sessionId ?? "no-session"}`}
                   sessionId={sessionId}
                   agent={selectedAgent ?? undefined}
+                  agents={Array.from(agentInfoMap.values())}
                   client={client}
                   onPromptComplete={handlePromptComplete}
                   onOpenSettings={() => setIsSettingsOpen(true)}
                   onOpenHelp={() => setIsHelpOpen(true)}
                   onOpenAgentSelect={handleAgentSwitchRequest}
+                  subAgentRunner={subAgentRunner}
                   focusTarget={focusTarget}
                 />
               )}

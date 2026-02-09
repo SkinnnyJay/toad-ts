@@ -36,7 +36,7 @@ describe("useSessionHydration", () => {
       const { options, infoMap } = buildAgentOptions(harnesses);
 
       expect(options).toHaveLength(6);
-      expect(infoMap.size).toBe(6);
+      expect(infoMap.size).toBe(12);
 
       const claudeInfo = infoMap.get(AgentIdSchema.parse("claude-cli"));
       const claudeBuild = infoMap.get(AgentIdSchema.parse("claude-cli:build"));

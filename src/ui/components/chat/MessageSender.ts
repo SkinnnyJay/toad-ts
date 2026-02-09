@@ -1,3 +1,5 @@
+import type { AgentInfo } from "@/agents/agent-manager";
+import { parseAgentMention } from "@/agents/agent-mentions";
 import { LIMIT } from "@/config/limits";
 import { CHAT_MESSAGE } from "@/constants/chat-messages";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
@@ -20,6 +22,8 @@ export interface MessageSenderOptions {
   sessionId?: SessionId;
   effectiveSessionId: SessionId;
   client?: HarnessRuntime | null;
+  agents: AgentInfo[];
+  currentAgent?: AgentInfo | null;
   appendMessage: (message: Message) => void;
   updateMessage: (params: { messageId: Message["id"]; patch: Partial<Message> }) => void;
   onPromptComplete?: (sessionId: SessionId) => void;
@@ -29,6 +33,11 @@ export interface MessageSenderOptions {
   toolRuntime: ToolRuntime;
   shellCommandConfig: ShellCommandConfig;
   runInteractiveShell: (command: string, cwd?: string) => Promise<InteractiveShellResult>;
+  runSubAgent?: (
+    agent: AgentInfo,
+    prompt: string,
+    parentSessionId: SessionId
+  ) => Promise<SessionId>;
 }
 
 export interface MessageSenderResult {
@@ -41,6 +50,8 @@ export const useMessageSender = ({
   sessionId,
   effectiveSessionId,
   client,
+  agents,
+  currentAgent,
   appendMessage,
   updateMessage,
   onPromptComplete,
@@ -50,6 +61,7 @@ export const useMessageSender = ({
   toolRuntime,
   shellCommandConfig,
   runInteractiveShell,
+  runSubAgent,
 }: MessageSenderOptions): MessageSenderResult => {
   const [modeWarning, setModeWarning] = useState<string | null>(null);
 
@@ -58,6 +70,48 @@ export const useMessageSender = ({
       if (!value.trim()) return;
       if (handleSlashCommand(value)) {
         onResetInput();
+        return;
+      }
+
+      const mention = parseAgentMention(value, agents, currentAgent);
+      if (mention && runSubAgent) {
+        if (sessionMode === SESSION_MODE.READ_ONLY) {
+          setModeWarning(CHAT_MESSAGE.READ_ONLY_WARNING);
+          appendSystemMessage(CHAT_MESSAGE.READ_ONLY_WARNING);
+          return;
+        }
+        if (!sessionId) {
+          appendSystemMessage(CHAT_MESSAGE.SUBAGENT_NO_SESSION);
+          return;
+        }
+
+        setModeWarning(null);
+        const now = Date.now();
+        const userMessage: Message = {
+          id: MessageIdSchema.parse(`msg-${now}`),
+          sessionId: effectiveSessionId,
+          role: MESSAGE_ROLE.USER,
+          content: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: value }],
+          createdAt: now,
+          isStreaming: false,
+        };
+        appendMessage(userMessage);
+        onResetInput();
+        appendSystemMessage(`${CHAT_MESSAGE.SUBAGENT_DELEGATING} ${mention.agent.name}`);
+
+        void runSubAgent(mention.agent, mention.prompt, sessionId)
+          .then((childSessionId) => {
+            appendSystemMessage(
+              `${CHAT_MESSAGE.SUBAGENT_COMPLETE} ${childSessionId} (${mention.agent.name})`
+            );
+          })
+          .catch((error) => {
+            appendSystemMessage(
+              `${CHAT_MESSAGE.SUBAGENT_FAILED} ${
+                error instanceof Error ? error.message : String(error)
+              }`
+            );
+          });
         return;
       }
 
@@ -202,8 +256,10 @@ export const useMessageSender = ({
         });
     },
     [
+      agents,
       appendMessage,
       appendSystemMessage,
+      currentAgent,
       effectiveSessionId,
       handleSlashCommand,
       onPromptComplete,
@@ -212,6 +268,7 @@ export const useMessageSender = ({
       sessionId,
       onResetInput,
       runInteractiveShell,
+      runSubAgent,
       shellCommandConfig,
       toolRuntime.context,
       toolRuntime.registry,

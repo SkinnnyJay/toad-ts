@@ -1,11 +1,13 @@
+import { TIMEOUT } from "@/config/timeouts";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
 import { VIEW, type View } from "@/constants/views";
 import type { KeyEvent } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface UseAppKeyboardShortcutsOptions {
   view: View;
+  onNavigateChildSession?: (direction: "prev" | "next") => void;
 }
 
 export interface UseAppKeyboardShortcutsResult {
@@ -47,12 +49,29 @@ export const isOptionBacktick = (key: Pick<KeyEvent, "option" | "name">): boolea
  */
 export function useAppKeyboardShortcuts({
   view,
+  onNavigateChildSession,
 }: UseAppKeyboardShortcutsOptions): UseAppKeyboardShortcutsResult {
   const [focusTarget, setFocusTarget] = useState<FocusTarget>(FOCUS_TARGET.CHAT);
   const [isSessionsPopupOpen, setIsSessionsPopupOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isBackgroundTasksOpen, setIsBackgroundTasksOpen] = useState(false);
+  const leaderActive = useRef(false);
+  const leaderTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const resetLeader = useCallback(() => {
+    leaderActive.current = false;
+    if (leaderTimeout.current) {
+      clearTimeout(leaderTimeout.current);
+      leaderTimeout.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      resetLeader();
+    };
+  }, [resetLeader]);
 
   useKeyboard((key) => {
     // Only handle shortcuts in chat view
@@ -98,10 +117,35 @@ export function useAppKeyboardShortcuts({
       return;
     }
 
+    // Ctrl+X activates leader key for child session navigation
+    if (key.ctrl && key.name === "x") {
+      key.preventDefault();
+      key.stopPropagation();
+      leaderActive.current = true;
+      if (leaderTimeout.current) {
+        clearTimeout(leaderTimeout.current);
+      }
+      leaderTimeout.current = setTimeout(() => {
+        leaderActive.current = false;
+        leaderTimeout.current = null;
+      }, TIMEOUT.LEADER_KEY_TIMEOUT_MS);
+      return;
+    }
+
+    if (leaderActive.current && (key.name === "left" || key.name === "right")) {
+      key.preventDefault();
+      key.stopPropagation();
+      const direction = key.name === "left" ? "prev" : "next";
+      onNavigateChildSession?.(direction);
+      resetLeader();
+      return;
+    }
+
     // Escape returns focus to chat
     if (key.name === "escape") {
       key.preventDefault();
       key.stopPropagation();
+      resetLeader();
       setFocusTarget(FOCUS_TARGET.CHAT);
       return;
     }

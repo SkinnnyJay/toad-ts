@@ -33,6 +33,7 @@ export interface CreateSessionParams {
   mode?: SessionMode;
   model?: string;
   temperature?: number;
+  parentSessionId?: Session["id"];
 }
 
 const parseSessionMode = (value: string | undefined): SessionMode => {
@@ -64,11 +65,13 @@ export class SessionManager {
     const mcpServers = parseMcpConfig(params.mcpConfig, env);
     const model = params.model;
     const temperature = params.temperature;
+    const parentSessionId = params.parentSessionId;
     const response = await this.client.newSession({ cwd, mcpServers });
     const metadata = {
       mcpServers,
       ...(model ? { model } : {}),
       ...(temperature !== undefined ? { temperature } : {}),
+      ...(parentSessionId ? { parentSessionId } : {}),
     };
     const session = SessionSchema.parse({
       id: response.sessionId,

@@ -1,3 +1,5 @@
+import type { AgentInfo } from "@/agents/agent-manager";
+import type { SubAgentRunner } from "@/agents/subagent-runner";
 import { TIMEOUT } from "@/config/timeouts";
 import { COLOR } from "@/constants/colors";
 import type { CommandDefinition } from "@/constants/command-definitions";
@@ -16,7 +18,7 @@ import { useAppStore } from "@/store/app-store";
 import { runInteractiveShellCommand } from "@/tools/interactive-shell";
 import { createToolRuntime } from "@/tools/runtime";
 import { getShellCommandConfig, isShellCommandInput } from "@/tools/shell-command-config";
-import type { AgentId, Message, SessionId } from "@/types/domain";
+import type { Message, SessionId } from "@/types/domain";
 import { MessageIdSchema, SessionIdSchema } from "@/types/domain";
 import { CommandPalette } from "@/ui/components/CommandPalette";
 import { InputWithAutocomplete } from "@/ui/components/InputWithAutocomplete";
@@ -35,12 +37,14 @@ import { useSlashCommandHandler } from "./SlashCommandHandler";
 
 export interface ChatProps {
   sessionId?: SessionId;
-  agent?: { id: AgentId; name: string; description?: string };
+  agent?: AgentInfo;
+  agents?: AgentInfo[];
   client?: HarnessRuntime | null;
   onPromptComplete?: (sessionId: SessionId) => void;
   onOpenSettings?: () => void;
   onOpenHelp?: () => void;
   onOpenAgentSelect?: () => void;
+  subAgentRunner?: SubAgentRunner;
   focusTarget?: FocusTarget;
 }
 
@@ -48,11 +52,13 @@ export const Chat = memo(
   ({
     sessionId,
     agent,
+    agents = [],
     client,
     onPromptComplete,
     onOpenSettings,
     onOpenHelp,
     onOpenAgentSelect,
+    subAgentRunner,
     focusTarget = FOCUS_TARGET.CHAT,
   }: ChatProps): ReactNode => {
     const appendMessage = useAppStore((state) => state.appendMessage);
@@ -157,6 +163,8 @@ export const Chat = memo(
       sessionId,
       effectiveSessionId,
       client,
+      agents,
+      currentAgent: agent,
       appendMessage,
       updateMessage,
       onPromptComplete,
@@ -166,6 +174,10 @@ export const Chat = memo(
       toolRuntime,
       shellCommandConfig,
       runInteractiveShell,
+      runSubAgent: subAgentRunner
+        ? (targetAgent, prompt, parentSessionId) =>
+            subAgentRunner.run({ agent: targetAgent, prompt, parentSessionId })
+        : undefined,
     });
 
     const handleCommandSelect = useCallback(
