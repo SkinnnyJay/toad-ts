@@ -1,1 +1,32 @@
-Logically group the files into commits and give them short consise messages prefixed the project (search-algorithms,websocket) and the the type (feat,chore,doc,fix). i.e. pagination:feat(ui): added pagination component
+# Commit Changes
+
+## Overview
+
+Group changed files into logical, atomic commits using the project's conventional commit format. Ensure code quality gates pass before committing.
+
+## Steps
+
+1. **Review changes**
+   - Run `git status` and `git diff --staged` to see all changes
+
+2. **Plan commits**
+   - Group changed files into logical, atomic commits
+   - Use format: `toad:<type>(<scope>): <summary>`
+   - Types: feat, fix, chore, refactor, docs, test
+   - Present tense, imperative mood, under 72 characters
+
+3. **Quality gate**
+   - Run `npm run lint && npm run typecheck` before committing
+
+4. **Commit**
+   - Stage each group and commit separately
+
+5. **Never commit** `.env`, credentials, or secrets
+
+## Checklist
+
+- [ ] Changes reviewed (git status, git diff --staged)
+- [ ] Commits are atomic and logically grouped
+- [ ] Message format: `toad:<type>(<scope>): <summary>`
+- [ ] Lint and typecheck pass
+- [ ] No secrets or .env in commit
