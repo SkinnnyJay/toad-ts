@@ -1,4 +1,5 @@
 import { UI } from "@/config/ui";
+import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-marks";
 import { RENDER_STAGE, type RenderStage } from "@/constants/render-stage";
 import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
@@ -88,12 +89,19 @@ export function useSessionHydration({
     let active = true;
     setStatusMessage("Hydrating sessions…");
     setProgress((current) => Math.max(current, UI.PROGRESS.INITIAL));
+    performance.mark(PERFORMANCE_MARK.SESSION_LOAD_START);
 
     void (async () => {
       try {
         await persistenceManager.hydrate();
         if (!active) return;
         persistenceManager.start();
+        performance.mark(PERFORMANCE_MARK.SESSION_LOAD_END);
+        performance.measure(
+          PERFORMANCE_MEASURE.SESSION_LOAD,
+          PERFORMANCE_MARK.SESSION_LOAD_START,
+          PERFORMANCE_MARK.SESSION_LOAD_END
+        );
         setIsHydrated(true);
         setProgress((current) => Math.max(current, UI.PROGRESS.HARNESS_LOADING));
       } catch (error) {

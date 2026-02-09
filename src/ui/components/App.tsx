@@ -2,6 +2,7 @@ import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
+import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-marks";
 import { PERSISTENCE_WRITE_MODE } from "@/constants/persistence-write-modes";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { RENDER_STAGE } from "@/constants/render-stage";
@@ -34,10 +35,11 @@ import {
 } from "@/ui/hooks";
 import { Env, EnvManager } from "@/utils/env/env.utils";
 import { TextAttributes } from "@opentui/core";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export function App(): ReactNode {
   const [view, setView] = useState<View>(VIEW.AGENT_SELECT);
+  const startupMeasured = useRef(false);
 
   const currentSessionId = useAppStore((state) => state.currentSessionId);
   const getPlanBySession = useAppStore((state) => state.getPlanBySession);
@@ -157,6 +159,19 @@ export function App(): ReactNode {
     setProgress(5);
     setStatusMessage("Loading TOADSTOOL…");
   }, [setProgress, setStatusMessage]);
+
+  useEffect(() => {
+    if (stage !== RENDER_STAGE.READY || startupMeasured.current) {
+      return;
+    }
+    performance.mark(PERFORMANCE_MARK.STARTUP_READY);
+    performance.measure(
+      PERFORMANCE_MEASURE.STARTUP,
+      PERFORMANCE_MARK.STARTUP_START,
+      PERFORMANCE_MARK.STARTUP_READY
+    );
+    startupMeasured.current = true;
+  }, [stage]);
 
   // Handlers
   const handlePromptComplete = useCallback(

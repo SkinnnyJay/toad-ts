@@ -11,6 +11,7 @@ import { TIMEOUT } from "@/config/timeouts";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { CONTENT_MODE } from "@/constants/content-modes";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
+import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-marks";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { STREAM_METADATA_KEY } from "@/constants/stream-metadata";
@@ -62,6 +63,7 @@ export class SessionStream {
   private readonly activeStreams = new Map<StreamKey, MessageId>();
   private readonly messageRoles = new Map<MessageId, MessageRole>();
   private readonly messageSessions = new Map<MessageId, SessionId>();
+  private readonly streamMarks = new Map<MessageId, string>();
   private readonly bufferedBlocks = new Map<
     MessageId,
     { sessionId: SessionId; role: MessageRole; blocks: ContentBlock[]; finalize: boolean }
@@ -131,6 +133,7 @@ export class SessionStream {
     messageId: MessageId;
     block: ContentBlock;
   }): void {
+    this.markStreamStart(payload.messageId);
     const role = this.messageRoles.get(payload.messageId) ?? MESSAGE_ROLE.ASSISTANT;
     const sessionId = this.messageSessions.get(payload.messageId) ?? payload.sessionId;
 
@@ -148,6 +151,7 @@ export class SessionStream {
   }
 
   private handleDone(payload: { sessionId: SessionId; messageId: MessageId }): void {
+    this.markStreamEnd(payload.messageId);
     const role = this.messageRoles.get(payload.messageId) ?? MESSAGE_ROLE.ASSISTANT;
     const sessionId = this.messageSessions.get(payload.messageId) ?? payload.sessionId;
 
@@ -380,6 +384,26 @@ export class SessionStream {
         isStreaming,
       },
     });
+  }
+
+  private markStreamStart(messageId: MessageId): void {
+    if (this.streamMarks.has(messageId)) {
+      return;
+    }
+    const markName = `${PERFORMANCE_MARK.STREAM_RENDER_START}:${messageId}`;
+    performance.mark(markName);
+    this.streamMarks.set(messageId, markName);
+  }
+
+  private markStreamEnd(messageId: MessageId): void {
+    const startMark = this.streamMarks.get(messageId);
+    if (!startMark) {
+      return;
+    }
+    const endMark = `${PERFORMANCE_MARK.STREAM_RENDER_END}:${messageId}`;
+    performance.mark(endMark);
+    performance.measure(`${PERFORMANCE_MEASURE.STREAM_RENDER}:${messageId}`, startMark, endMark);
+    this.streamMarks.delete(messageId);
   }
 
   private shouldFinalize(meta?: Record<string, unknown> | null): boolean {
