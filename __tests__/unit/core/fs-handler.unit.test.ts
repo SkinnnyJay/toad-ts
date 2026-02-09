@@ -33,6 +33,13 @@ describe("FsHandler", () => {
     expect(await fsHandler.exists("missing.txt")).toBe(false);
   });
 
+  it("resolves paths within base dir", async () => {
+    const base = await mkdtemp(join(tmpdir(), "fs-handler-"));
+    const fsHandler = new FsHandler({ baseDir: base });
+    const resolved = fsHandler.resolve("nested/file.txt");
+    expect(resolved).toBe(join(base, "nested/file.txt"));
+  });
+
   it("uses work subdirectory when env var is set", async () => {
     const base = await mkdtemp(join(tmpdir(), "fs-handler-"));
     const subdir = "workspace";

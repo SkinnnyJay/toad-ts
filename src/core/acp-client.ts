@@ -1,4 +1,5 @@
 import type { ACPConnection } from "@/core/acp-connection";
+import type { ToolHost } from "@/tools/tool-host";
 import type { ConnectionStatus } from "@/types/domain";
 import {
   type AuthenticateRequest,
@@ -6,16 +7,30 @@ import {
   type Client,
   type ClientCapabilities,
   ClientSideConnection,
+  type CreateTerminalRequest,
+  type CreateTerminalResponse,
   type InitializeRequest,
   type InitializeResponse,
+  type KillTerminalCommandRequest,
+  type KillTerminalCommandResponse,
   type NewSessionRequest,
   type NewSessionResponse,
   PROTOCOL_VERSION,
   type PromptRequest,
   type PromptResponse,
+  type ReadTextFileRequest,
+  type ReadTextFileResponse,
+  type ReleaseTerminalRequest,
+  type ReleaseTerminalResponse,
   type RequestPermissionRequest,
   type RequestPermissionResponse,
   type SessionNotification,
+  type TerminalOutputRequest,
+  type TerminalOutputResponse,
+  type WaitForTerminalExitRequest,
+  type WaitForTerminalExitResponse,
+  type WriteTextFileRequest,
+  type WriteTextFileResponse,
 } from "@agentclientprotocol/sdk";
 import { EventEmitter } from "eventemitter3";
 
@@ -29,6 +44,7 @@ export interface ACPClientEvents {
 export interface ACPClientOptions {
   clientCapabilities?: ClientCapabilities;
   permissionHandler?: (request: RequestPermissionRequest) => Promise<RequestPermissionResponse>;
+  toolHost?: ToolHost;
 }
 
 export interface ACPConnectionLike {
@@ -46,12 +62,16 @@ export interface ACPConnectionLike {
 
 export class ACPClient extends EventEmitter<ACPClientEvents> implements Client {
   private clientConnection?: ClientSideConnection;
+  private readonly toolHost?: ToolHost;
+  private readonly clientCapabilities: ClientCapabilities;
 
   constructor(
     private readonly connection: ACPConnectionLike,
     private readonly options: ACPClientOptions = {}
   ) {
     super();
+    this.toolHost = options.toolHost;
+    this.clientCapabilities = options.clientCapabilities ?? this.toolHost?.capabilities ?? {};
     this.connection.on("state", (status) => this.emit("state", status));
     this.connection.on("error", (error) => this.emit("error", error));
   }
@@ -74,7 +94,7 @@ export class ACPClient extends EventEmitter<ACPClientEvents> implements Client {
     const connection = this.requireConnection();
     return connection.initialize({
       protocolVersion: PROTOCOL_VERSION,
-      clientCapabilities: this.options.clientCapabilities ?? {},
+      clientCapabilities: this.clientCapabilities,
       ...params,
     });
   }
@@ -105,6 +125,57 @@ export class ACPClient extends EventEmitter<ACPClientEvents> implements Client {
 
   async sessionUpdate(params: SessionNotification): Promise<void> {
     this.emit("sessionUpdate", params);
+  }
+
+  async readTextFile(params: ReadTextFileRequest): Promise<ReadTextFileResponse> {
+    if (!this.toolHost) {
+      throw new Error("File system tools not configured");
+    }
+    return this.toolHost.readTextFile(params);
+  }
+
+  async writeTextFile(params: WriteTextFileRequest): Promise<WriteTextFileResponse> {
+    if (!this.toolHost) {
+      throw new Error("File system tools not configured");
+    }
+    return this.toolHost.writeTextFile(params);
+  }
+
+  async createTerminal(params: CreateTerminalRequest): Promise<CreateTerminalResponse> {
+    if (!this.toolHost) {
+      throw new Error("Terminal tools not configured");
+    }
+    return this.toolHost.createTerminal(params);
+  }
+
+  async terminalOutput(params: TerminalOutputRequest): Promise<TerminalOutputResponse> {
+    if (!this.toolHost) {
+      throw new Error("Terminal tools not configured");
+    }
+    return this.toolHost.terminalOutput(params);
+  }
+
+  async waitForTerminalExit(
+    params: WaitForTerminalExitRequest
+  ): Promise<WaitForTerminalExitResponse> {
+    if (!this.toolHost) {
+      throw new Error("Terminal tools not configured");
+    }
+    return this.toolHost.waitForTerminalExit(params);
+  }
+
+  async releaseTerminal(params: ReleaseTerminalRequest): Promise<ReleaseTerminalResponse> {
+    if (!this.toolHost) {
+      throw new Error("Terminal tools not configured");
+    }
+    return this.toolHost.releaseTerminal(params);
+  }
+
+  async killTerminal(params: KillTerminalCommandRequest): Promise<KillTerminalCommandResponse> {
+    if (!this.toolHost) {
+      throw new Error("Terminal tools not configured");
+    }
+    return this.toolHost.killTerminal(params);
   }
 
   get connectionStatus(): ConnectionStatus {

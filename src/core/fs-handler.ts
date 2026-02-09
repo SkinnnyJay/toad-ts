@@ -96,6 +96,10 @@ export class FsHandler {
     }
   }
 
+  resolve(filePath: string, baseDir?: string): string {
+    return this.resolvePath(filePath, baseDir);
+  }
+
   private resolvePath(filePath: string, baseDir?: string): string {
     const base = baseDir ?? this.defaultBaseDir;
     const candidate = isAbsolute(filePath) ? normalize(filePath) : resolve(base, filePath);

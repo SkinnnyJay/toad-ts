@@ -1,0 +1,58 @@
+import { PERMISSION, type Permission } from "@/constants/permissions";
+import { TOOL_KIND, type ToolKind } from "@/constants/tool-kinds";
+import type {
+  PermissionOption,
+  RequestPermissionRequest,
+  RequestPermissionResponse,
+} from "@agentclientprotocol/sdk";
+
+export type ToolPermissionOverrides = Partial<Record<ToolKind, Permission>>;
+
+const DEFAULT_PERMISSIONS: Record<ToolKind, Permission> = {
+  [TOOL_KIND.READ]: PERMISSION.ALLOW,
+  [TOOL_KIND.SEARCH]: PERMISSION.ALLOW,
+  [TOOL_KIND.FETCH]: PERMISSION.ALLOW,
+  [TOOL_KIND.EDIT]: PERMISSION.ASK,
+  [TOOL_KIND.EXECUTE]: PERMISSION.ASK,
+  [TOOL_KIND.DELETE]: PERMISSION.DENY,
+  [TOOL_KIND.MOVE]: PERMISSION.ASK,
+  [TOOL_KIND.THINK]: PERMISSION.ALLOW,
+  [TOOL_KIND.SWITCH_MODE]: PERMISSION.ALLOW,
+  [TOOL_KIND.OTHER]: PERMISSION.ASK,
+};
+
+const selectOption = (
+  options: PermissionOption[],
+  permission: Permission
+): PermissionOption | undefined => {
+  if (options.length === 0) {
+    return undefined;
+  }
+
+  const allowKinds = ["allow_always", "allow_once"]; // ACP permission option kinds
+  const rejectKinds = ["reject_always", "reject_once"]; // ACP permission option kinds
+
+  if (permission === PERMISSION.ALLOW) {
+    return options.find((option) => allowKinds.includes(option.kind)) ?? options[0];
+  }
+
+  if (permission === PERMISSION.DENY) {
+    return options.find((option) => rejectKinds.includes(option.kind)) ?? options[0];
+  }
+
+  return options.find((option) => option.kind === "allow_once") ?? options[0];
+};
+
+export const createPermissionHandler = (
+  overrides: ToolPermissionOverrides = {}
+): ((request: RequestPermissionRequest) => Promise<RequestPermissionResponse>) => {
+  return async (request) => {
+    const kind = request.toolCall.kind ?? TOOL_KIND.OTHER;
+    const permission = overrides[kind] ?? DEFAULT_PERMISSIONS[kind] ?? PERMISSION.ASK;
+    const selected = selectOption(request.options, permission);
+    if (!selected) {
+      return { outcome: { outcome: "cancelled" } };
+    }
+    return { outcome: { outcome: "selected", optionId: selected.optionId } };
+  };
+};

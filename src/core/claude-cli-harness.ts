@@ -16,6 +16,8 @@ import type {
   HarnessRuntimeEvents,
 } from "@/harness/harnessAdapter";
 import { harnessConfigSchema } from "@/harness/harnessConfig";
+import { createPermissionHandler } from "@/tools/permissions";
+import { ToolHost } from "@/tools/tool-host";
 import type { ConnectionStatus } from "@/types/domain";
 import { retryWithBackoff } from "@/utils/async/retryWithBackoff";
 import { EnvManager } from "@/utils/env/env.utils";
@@ -206,13 +208,23 @@ export const claudeCliHarnessAdapter: HarnessAdapter = {
   id: "claude-cli",
   name: "Claude CLI",
   configSchema: harnessConfigSchema,
-  createHarness: (config) =>
-    new ClaudeCliHarnessAdapter({
+  createHarness: (config) => {
+    const env = { ...EnvManager.getInstance().getSnapshot(), ...config.env };
+    const toolHost = new ToolHost({ baseDir: config.cwd, env });
+    const clientOptions: ACPClientOptions = {
+      toolHost,
+      clientCapabilities: toolHost.capabilities,
+      permissionHandler: createPermissionHandler(),
+    };
+
+    return new ClaudeCliHarnessAdapter({
       command: config.command,
       args: config.args,
       cwd: config.cwd,
-      env: { ...EnvManager.getInstance().getSnapshot(), ...config.env },
-    }),
+      env,
+      clientOptions,
+    });
+  },
 };
 
 const isErrnoException = (error: unknown): error is NodeJS.ErrnoException =>

@@ -218,14 +218,19 @@ export const Chat = memo(
                   : TIMEOUT.AUTO_APPROVE_DEFAULT
               }
               permissionProfiles={{
-                [PERMISSION_PATTERN.READ_FILE]: PERMISSION.ALLOW,
+                [PERMISSION_PATTERN.READ]: PERMISSION.ALLOW,
                 [PERMISSION_PATTERN.LIST]: PERMISSION.ALLOW,
-                [PERMISSION_PATTERN.GET]: PERMISSION.ALLOW,
+                [PERMISSION_PATTERN.SEARCH]: PERMISSION.ALLOW,
+                [PERMISSION_PATTERN.FETCH]: PERMISSION.ALLOW,
                 [PERMISSION_PATTERN.WRITE]:
+                  sessionMode === SESSION_MODE.FULL_ACCESS ? PERMISSION.ALLOW : PERMISSION.ASK,
+                [PERMISSION_PATTERN.EDIT]:
                   sessionMode === SESSION_MODE.FULL_ACCESS ? PERMISSION.ALLOW : PERMISSION.ASK,
                 [PERMISSION_PATTERN.DELETE]: PERMISSION.DENY,
                 [PERMISSION_PATTERN.EXEC]:
                   sessionMode === SESSION_MODE.FULL_ACCESS ? PERMISSION.ALLOW : PERMISSION.ASK,
+                [PERMISSION_PATTERN.TODO]: PERMISSION.ALLOW,
+                [PERMISSION_PATTERN.ASK]: PERMISSION.ASK,
               }}
             />
           </box>

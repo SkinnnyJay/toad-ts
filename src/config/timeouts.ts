@@ -13,6 +13,7 @@ export const TIMEOUT = {
   SESSION_BOOTSTRAP_MS: 8000,
   STREAM_BUFFER_MS: 16,
   MENTION_DEBOUNCE_MS: 150,
+  WEBFETCH_MS: 10000,
 } as const;
 
 // Re-export for convenience
@@ -31,4 +32,5 @@ export const {
   SESSION_BOOTSTRAP_MS,
   STREAM_BUFFER_MS,
   MENTION_DEBOUNCE_MS,
+  WEBFETCH_MS,
 } = TIMEOUT;
