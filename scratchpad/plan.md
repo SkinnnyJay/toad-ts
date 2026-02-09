@@ -2,8 +2,8 @@
 
 ## Phase 4: OpenTUI Migration & Code Quality
 - [ ] 4A: Runtime & Build Migration
-- [ ] 4B: Core Component Migration
-- [ ] 4C: Code Quality Cleanup
+- [X] 4B: Core Component Migration
+- [X] 4C: Code Quality Cleanup
 - [ ] 4D: Performance Foundations
 - [ ] 4E: Test Migration & Verification
 
