@@ -231,7 +231,7 @@ export const Chat = memo(
           </box>
           {/* Message area - fixed height container */}
           <box flexGrow={1} minHeight={0} overflow="hidden" height="100%">
-            <MessageList messages={messages} />
+            <MessageList messages={messages} isFocused={focusTarget === FOCUS_TARGET.CHAT} />
           </box>
           {/* Fixed footer section - input pinned to bottom */}
           <box flexDirection="column" flexShrink={0}>
