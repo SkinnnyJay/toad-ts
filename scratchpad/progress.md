@@ -18,3 +18,5 @@
 - [X] Tool registry + built-in tools
 - [X] ACP tool host + permission handler wiring
 - [X] Shell background tasks + task output UX
+- [X] Shell auto-detect + tab completion
+- [ ] Interactive shell apps + shell mode UX
