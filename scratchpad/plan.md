@@ -31,6 +31,8 @@
 - [ ] Phase 7 tasks (see PLAN.md)
   - [X] Slash commands: /connect, /sessions, /new, /rename, /models
   - [X] Slash commands: /details + /thinking toggles
+  - [X] Slash command: /editor (external editor)
+  - [X] Slash command: /themes placeholder
 
 ## Phase 8: Checkpointing & Undo/Redo
 - [ ] Phase 8 tasks (see PLAN.md)

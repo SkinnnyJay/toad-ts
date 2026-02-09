@@ -31,3 +31,5 @@
 - [X] Child session navigation
 - [X] Slash commands: /connect, /sessions, /new, /rename, /models
 - [X] Slash commands: /details + /thinking toggles
+- [X] Slash command: /editor
+- [X] Slash command: /themes placeholder

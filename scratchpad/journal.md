@@ -14,3 +14,4 @@
 - 2026-02-09 21:50 - Added Tab agent switching and per-agent model/temperature wiring.
 - 2026-02-09 22:25 - Added hidden agents, subagent runner, @mentions, and child session navigation.
 - 2026-02-09 22:50 - Expanded slash commands (connect/sessions/new/rename/models/details/thinking).
+- 2026-02-09 23:15 - Added /editor command and editor integration.
