@@ -17,4 +17,4 @@
 - [ ] App smoke test (blank screen)
 - [X] Tool registry + built-in tools
 - [X] ACP tool host + permission handler wiring
-- [ ] Shell background tasks + task output UX
+- [X] Shell background tasks + task output UX

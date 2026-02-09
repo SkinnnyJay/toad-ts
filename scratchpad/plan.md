@@ -11,7 +11,7 @@
 - [ ] Phase 5 tasks (see PLAN.md)
   - [X] Tool registry + built-in tool implementations
   - [X] ACP tool host + permission handler wiring
-  - [ ] Shell background tasks + task output UX
+  - [X] Shell background tasks + task output UX
 
 ## Phase 6: Agent Execution Engine
 - [ ] Phase 6 tasks (see PLAN.md)
