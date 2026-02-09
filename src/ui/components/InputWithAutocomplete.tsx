@@ -33,6 +33,8 @@ export interface InputWithAutocompleteProps {
   /** Focus target - only process input when focusTarget is "chat". Default: "chat". */
   focusTarget?: FocusTarget;
   shellCompletion?: ShellCompletionProvider;
+  /** Optional handler to open agent selector on Tab. */
+  onAgentSwitch?: () => void;
 }
 
 export interface ShellCompletionProvider {
@@ -73,6 +75,7 @@ export function InputWithAutocomplete({
   enableMentions = true,
   focusTarget = FOCUS_TARGET.CHAT,
   shellCompletion,
+  onAgentSwitch,
 }: InputWithAutocompleteProps): ReactNode {
   const inputRef = useRef<InputRenderable | null>(null);
   const textareaRef = useRef<TextareaRenderable | null>(null);
@@ -372,6 +375,13 @@ export function InputWithAutocomplete({
       key.preventDefault();
       key.stopPropagation();
       void handleShellTab();
+      return;
+    }
+
+    if (key.name === "tab" && onAgentSwitch && value.trim().length === 0) {
+      key.preventDefault();
+      key.stopPropagation();
+      onAgentSwitch();
     }
   });
 

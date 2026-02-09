@@ -84,6 +84,7 @@ export class AgentManager {
       description: agent.description,
       model: agent.model,
       temperature: agent.temperature,
+      sessionMode: agent.sessionMode,
       permissions: agent.permissions,
       prompt: agent.prompt,
     });

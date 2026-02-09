@@ -25,6 +25,10 @@ import {
   type RequestPermissionRequest,
   type RequestPermissionResponse,
   type SessionNotification,
+  type SetSessionModeRequest,
+  type SetSessionModeResponse,
+  type SetSessionModelRequest,
+  type SetSessionModelResponse,
   type TerminalOutputRequest,
   type TerminalOutputResponse,
   type WaitForTerminalExitRequest,
@@ -109,6 +113,14 @@ export class ACPClient extends EventEmitter<ACPClientEvents> implements Client {
 
   async prompt(params: PromptRequest): Promise<PromptResponse> {
     return this.requireConnection().prompt(params);
+  }
+
+  async setSessionMode(params: SetSessionModeRequest): Promise<SetSessionModeResponse> {
+    return this.requireConnection().setSessionMode(params);
+  }
+
+  async setSessionModel(params: SetSessionModelRequest): Promise<SetSessionModelResponse> {
+    return this.requireConnection().unstable_setSessionModel(params);
   }
 
   async requestPermission(params: RequestPermissionRequest): Promise<RequestPermissionResponse> {

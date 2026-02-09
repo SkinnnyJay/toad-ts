@@ -172,6 +172,8 @@ export type McpServer = z.infer<typeof McpServerSchema>;
 export const SessionMetadataSchema = z
   .object({
     mcpServers: z.array(McpServerSchema).default([]),
+    model: z.string().min(1).optional(),
+    temperature: z.number().nonnegative().optional(),
   })
   .strict();
 export type SessionMetadata = z.infer<typeof SessionMetadataSchema>;

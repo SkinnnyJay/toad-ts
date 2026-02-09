@@ -4,10 +4,19 @@ import { type EnvSource, type McpConfigInput, parseMcpConfig } from "@/core/mcp-
 import type { AgentId, Session, SessionMode } from "@/types/domain";
 import { SessionSchema } from "@/types/domain";
 import { EnvManager } from "@/utils/env/env.utils";
+import { createClassLogger } from "@/utils/logging/logger.utils";
 import type { NewSessionRequest, NewSessionResponse } from "@agentclientprotocol/sdk";
+import type {
+  SetSessionModeRequest,
+  SetSessionModeResponse,
+  SetSessionModelRequest,
+  SetSessionModelResponse,
+} from "@agentclientprotocol/sdk";
 
 export interface SessionClient {
   newSession(params: NewSessionRequest): Promise<NewSessionResponse>;
+  setSessionMode?: (params: SetSessionModeRequest) => Promise<SetSessionModeResponse>;
+  setSessionModel?: (params: SetSessionModelRequest) => Promise<SetSessionModelResponse>;
 }
 
 export interface SessionStore {
@@ -22,6 +31,8 @@ export interface CreateSessionParams {
   now?: number;
   env?: EnvSource;
   mode?: SessionMode;
+  model?: string;
+  temperature?: number;
 }
 
 const parseSessionMode = (value: string | undefined): SessionMode => {
@@ -38,6 +49,8 @@ const parseSessionMode = (value: string | undefined): SessionMode => {
 };
 
 export class SessionManager {
+  private readonly logger = createClassLogger("SessionManager");
+
   constructor(
     private readonly client: SessionClient,
     private readonly store: SessionStore
@@ -49,7 +62,14 @@ export class SessionManager {
     const env = params.env ?? EnvManager.getInstance().getSnapshot();
     const mode = params.mode ?? parseSessionMode(env[ENV_KEY.TOADSTOOL_SESSION_MODE]);
     const mcpServers = parseMcpConfig(params.mcpConfig, env);
+    const model = params.model;
+    const temperature = params.temperature;
     const response = await this.client.newSession({ cwd, mcpServers });
+    const metadata = {
+      mcpServers,
+      ...(model ? { model } : {}),
+      ...(temperature !== undefined ? { temperature } : {}),
+    };
     const session = SessionSchema.parse({
       id: response.sessionId,
       title,
@@ -57,10 +77,42 @@ export class SessionManager {
       messageIds: [],
       createdAt: now,
       updatedAt: now,
-      metadata: { mcpServers },
+      metadata,
       mode,
     });
     this.store.upsertSession({ session });
+    await this.applySessionMode(session.id, mode);
+    await this.applySessionModel(session.id, model);
     return session;
+  }
+
+  private async applySessionMode(sessionId: Session["id"], mode: SessionMode): Promise<void> {
+    if (!this.client.setSessionMode) {
+      return;
+    }
+    try {
+      await this.client.setSessionMode({ sessionId, modeId: mode });
+    } catch (error) {
+      this.logger.warn("Failed to set session mode", {
+        sessionId,
+        mode,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  private async applySessionModel(sessionId: Session["id"], model?: string): Promise<void> {
+    if (!model || !this.client.setSessionModel) {
+      return;
+    }
+    try {
+      await this.client.setSessionModel({ sessionId, modelId: model });
+    } catch (error) {
+      this.logger.warn("Failed to set session model", {
+        sessionId,
+        model,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 }

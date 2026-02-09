@@ -17,9 +17,16 @@ export interface AgentOption {
 interface AgentSelectProps {
   agents: AgentOption[];
   onSelect: (agent: AgentOption) => void;
+  selectedId?: AgentId;
+  onCancel?: () => void;
 }
 
-export function AgentSelect({ agents, onSelect }: AgentSelectProps): ReactNode {
+export function AgentSelect({
+  agents,
+  onSelect,
+  selectedId,
+  onCancel,
+}: AgentSelectProps): ReactNode {
   const terminal = useTerminalDimensions();
   const [index, setIndex] = useState(0);
 
@@ -71,6 +78,12 @@ export function AgentSelect({ agents, onSelect }: AgentSelectProps): ReactNode {
       key.stopPropagation();
       const selected = agents[index];
       if (selected) onSelect(selected);
+      return;
+    }
+    if (key.name === "escape" && onCancel) {
+      key.preventDefault();
+      key.stopPropagation();
+      onCancel();
     }
   });
 
@@ -79,6 +92,14 @@ export function AgentSelect({ agents, onSelect }: AgentSelectProps): ReactNode {
       setIndex(0);
     }
   }, [agents.length, index]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    const selectedIndex = agents.findIndex((agent) => agent.id === selectedId);
+    if (selectedIndex >= 0) {
+      setIndex(selectedIndex);
+    }
+  }, [agents, selectedId]);
 
   const rows = useMemo(() => {
     const chunked: AgentOption[][] = [];

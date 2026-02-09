@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { loadAgentConfigs } from "@/agents/agent-config";
 import { PERMISSION } from "@/constants/permissions";
+import { SESSION_MODE } from "@/constants/session-modes";
 import { TOOL_KIND } from "@/constants/tool-kinds";
 
 const createAgentsDir = async (root: string): Promise<string> => {
@@ -36,6 +37,7 @@ describe("agent-config loader", () => {
         "description: Planning agent",
         "model: test-model",
         "temperature: 0.2",
+        "mode: full-access",
         "tools:",
         "  read: allow",
         "  bash: ask",
@@ -58,6 +60,7 @@ describe("agent-config loader", () => {
     expect(config?.description).toBe("Planning agent");
     expect(config?.model).toBe("test-model");
     expect(config?.temperature).toBe(0.2);
+    expect(config?.sessionMode).toBe(SESSION_MODE.FULL_ACCESS);
     expect(config?.permissions).toEqual({
       [TOOL_KIND.READ]: PERMISSION.ALLOW,
       [TOOL_KIND.EXECUTE]: PERMISSION.ASK,

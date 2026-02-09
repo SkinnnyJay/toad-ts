@@ -40,6 +40,7 @@ export interface ChatProps {
   onPromptComplete?: (sessionId: SessionId) => void;
   onOpenSettings?: () => void;
   onOpenHelp?: () => void;
+  onOpenAgentSelect?: () => void;
   focusTarget?: FocusTarget;
 }
 
@@ -51,6 +52,7 @@ export const Chat = memo(
     onPromptComplete,
     onOpenSettings,
     onOpenHelp,
+    onOpenAgentSelect,
     focusTarget = FOCUS_TARGET.CHAT,
   }: ChatProps): ReactNode => {
     const appendMessage = useAppStore((state) => state.appendMessage);
@@ -287,6 +289,7 @@ export const Chat = memo(
               slashCommands={COMMAND_DEFINITIONS}
               placeholder="Type a message or / for commands…"
               shellCompletion={shellCompletion}
+              onAgentSwitch={onOpenAgentSelect}
             />
           </box>
         </box>

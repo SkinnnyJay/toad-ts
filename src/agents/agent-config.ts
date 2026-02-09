@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { PERMISSION } from "@/constants/permissions";
 import type { Permission } from "@/constants/permissions";
+import { SESSION_MODE, type SessionMode } from "@/constants/session-modes";
 import { TOOL_KIND, type ToolKind } from "@/constants/tool-kinds";
 import type { ToolPermissionOverrides } from "@/tools/permissions";
 import type { AgentId } from "@/types/domain";
@@ -18,7 +19,7 @@ export interface AgentConfig {
   description?: string;
   model?: string;
   temperature?: number;
-  mode?: string;
+  sessionMode?: SessionMode;
   permissions?: ToolPermissionOverrides;
   prompt?: string;
 }
@@ -115,7 +116,7 @@ const buildAgentConfig = (params: {
   description?: string;
   model?: string;
   temperature?: number;
-  mode?: string;
+  mode?: SessionMode;
   permissions?: ToolPermissionOverrides;
   prompt?: string;
 }): AgentConfig => {
@@ -126,10 +127,23 @@ const buildAgentConfig = (params: {
     description: params.description,
     model: params.model,
     temperature: params.temperature,
-    mode: params.mode,
+    sessionMode: params.mode,
     permissions: params.permissions,
     prompt: params.prompt,
   };
+};
+
+const parseSessionMode = (value: string | undefined): SessionMode | undefined => {
+  if (!value) return undefined;
+  const normalized = value.trim().toLowerCase();
+  if (
+    normalized === SESSION_MODE.READ_ONLY ||
+    normalized === SESSION_MODE.AUTO ||
+    normalized === SESSION_MODE.FULL_ACCESS
+  ) {
+    return normalized;
+  }
+  return undefined;
 };
 
 const resolveAgentId = (frontmatterId: string | undefined, filePath: string): string => {
@@ -169,6 +183,7 @@ export const loadAgentConfigs = async (
     const id = resolveAgentId(parsed.id, filePath);
     const name = parsed.name ?? id;
     const permissions = normalizeToolPermissions(parsed.tools);
+    const sessionMode = parseSessionMode(parsed.mode);
     const prompt = body.trim().length > 0 ? body.trim() : undefined;
     configs.push(
       buildAgentConfig({
@@ -178,7 +193,7 @@ export const loadAgentConfigs = async (
         description: parsed.description,
         model: parsed.model,
         temperature: parsed.temperature,
-        mode: parsed.mode,
+        mode: sessionMode,
         permissions,
         prompt,
       })

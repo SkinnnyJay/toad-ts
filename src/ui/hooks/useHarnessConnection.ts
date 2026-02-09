@@ -177,6 +177,8 @@ export function useHarnessConnection({
             mcpConfig,
             env,
             mode: selectedAgent.sessionMode,
+            model: selectedAgent.model,
+            temperature: selectedAgent.temperature,
           }),
           "create session",
           TIMEOUT.SESSION_BOOTSTRAP_MS

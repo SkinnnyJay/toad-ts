@@ -1,4 +1,9 @@
-import type { NewSessionRequest, NewSessionResponse } from "@agentclientprotocol/sdk";
+import type {
+  NewSessionRequest,
+  NewSessionResponse,
+  SetSessionModeResponse,
+  SetSessionModelResponse,
+} from "@agentclientprotocol/sdk";
 import { describe, expect, it, vi } from "vitest";
 import { ENV_KEY } from "../../../src/constants/env-keys";
 import { SESSION_MODE } from "../../../src/constants/session-modes";
@@ -13,6 +18,24 @@ describe("SessionManager", () => {
     newSession: vi.fn().mockResolvedValue({
       sessionId: SessionIdSchema.parse("test-session-1"),
     }),
+  });
+
+  const createMockClientWithSessionOptions = (): {
+    newSession: (params: NewSessionRequest) => Promise<NewSessionResponse>;
+    setSessionMode: (params: {
+      sessionId: string;
+      modeId: string;
+    }) => Promise<SetSessionModeResponse>;
+    setSessionModel: (params: {
+      sessionId: string;
+      modelId: string;
+    }) => Promise<SetSessionModelResponse>;
+  } => ({
+    newSession: vi.fn().mockResolvedValue({
+      sessionId: SessionIdSchema.parse("test-session-1"),
+    }),
+    setSessionMode: vi.fn().mockResolvedValue({}),
+    setSessionModel: vi.fn().mockResolvedValue({}),
   });
 
   const createMockStore = (): {
@@ -179,6 +202,30 @@ describe("SessionManager", () => {
 
       expect(store.upsertSession).toHaveBeenCalledWith({ session });
       expect(store.sessions.get(session.id)).toBeDefined();
+    });
+
+    it("sets model and mode when client supports it", async () => {
+      const client = createMockClientWithSessionOptions();
+      const store = createMockStore();
+      const manager = new SessionManager(client, store);
+
+      const session = await manager.createSession({
+        cwd: "/test",
+        mode: SESSION_MODE.READ_ONLY,
+        model: "model-1",
+        temperature: 0.3,
+      });
+
+      expect(session.metadata?.model).toBe("model-1");
+      expect(session.metadata?.temperature).toBe(0.3);
+      expect(client.setSessionMode).toHaveBeenCalledWith({
+        sessionId: session.id,
+        modeId: SESSION_MODE.READ_ONLY,
+      });
+      expect(client.setSessionModel).toHaveBeenCalledWith({
+        sessionId: session.id,
+        modelId: "model-1",
+      });
     });
   });
 });

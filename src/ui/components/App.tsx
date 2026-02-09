@@ -223,6 +223,17 @@ export function App(): ReactNode {
     [agentInfoMap, selectAgent]
   );
 
+  const handleAgentSwitchRequest = useCallback(() => {
+    if (agentOptions.length === 0) return;
+    setView(VIEW.AGENT_SELECT);
+  }, [agentOptions.length]);
+
+  const handleAgentSelectCancel = useCallback(() => {
+    if (selectedAgent) {
+      setView(VIEW.CHAT);
+    }
+  }, [selectedAgent]);
+
   // Render error state
   if (stage === RENDER_STAGE.ERROR) {
     return (
@@ -259,7 +270,12 @@ export function App(): ReactNode {
         </box>
       ) : null}
       {view === VIEW.AGENT_SELECT ? (
-        <AgentSelect agents={agentOptions} onSelect={handleAgentSelect} />
+        <AgentSelect
+          agents={agentOptions}
+          onSelect={handleAgentSelect}
+          selectedId={selectedAgent?.id}
+          onCancel={selectedAgent ? handleAgentSelectCancel : undefined}
+        />
       ) : (
         <box flexDirection="column" height="100%" flexGrow={1} minHeight={0}>
           <box flexDirection="row" flexGrow={1} minHeight={0} marginBottom={1}>
@@ -318,6 +334,7 @@ export function App(): ReactNode {
                   onPromptComplete={handlePromptComplete}
                   onOpenSettings={() => setIsSettingsOpen(true)}
                   onOpenHelp={() => setIsHelpOpen(true)}
+                  onOpenAgentSelect={handleAgentSwitchRequest}
                   focusTarget={focusTarget}
                 />
               )}
