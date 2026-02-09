@@ -15,3 +15,4 @@
 - 2026-02-09 22:25 - Added hidden agents, subagent runner, @mentions, and child session navigation.
 - 2026-02-09 22:50 - Expanded slash commands (connect/sessions/new/rename/models/details/thinking).
 - 2026-02-09 23:15 - Added /editor command and editor integration.
+- 2026-02-09 23:40 - Added model listing from ACP session capabilities.

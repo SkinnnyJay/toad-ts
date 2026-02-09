@@ -33,3 +33,4 @@
 - [X] Slash commands: /details + /thinking toggles
 - [X] Slash command: /editor
 - [X] Slash command: /themes placeholder
+- [X] /models listing from agent capabilities
