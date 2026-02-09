@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["node_modules", "dist", "scratchpad/**", "*.config.js", "*.config.ts"]
+    "ignore": ["node_modules", "dist", "scratchpad/**", "ref/**", "*.config.js", "*.config.ts"]
   },
   "formatter": {
     "enabled": true,

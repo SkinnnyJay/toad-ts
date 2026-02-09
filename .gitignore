@@ -48,3 +48,8 @@ Thumbs.db
 ./scratchpad/*
 ./data/*
 ref
+
+# Skills symlinks (broken links break Biome; fix links then remove this)
+skills/
+.cursor/skills/
+.claude/skills/
