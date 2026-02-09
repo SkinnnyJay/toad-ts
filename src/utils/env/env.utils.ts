@@ -82,6 +82,10 @@ export class EnvManager {
     return this.envCache.has(key);
   }
 
+  public getSnapshot(): Record<string, string | undefined> {
+    return Object.fromEntries(this.envCache);
+  }
+
   public getValue(key: string): string | undefined {
     return this.envCache.get(key);
   }

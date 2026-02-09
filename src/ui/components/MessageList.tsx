@@ -1,11 +1,12 @@
+import { LIMIT } from "@/config/limits";
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import type { Message } from "@/types/domain";
 import { MessageItem } from "@/ui/components/MessageItem";
 import { ScrollArea } from "@/ui/components/ScrollArea";
-import { memo, useMemo } from "react";
-import { TextAttributes } from "@opentui/core";
 import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
+import { TextAttributes } from "@opentui/core";
+import { type ReactNode, memo, useMemo } from "react";
 
 interface MessageListProps {
   messages: Message[];
@@ -22,7 +23,11 @@ const RESERVED_ROWS = {
 } as const;
 
 export const MessageList = memo(
-  ({ messages, maxMessages = 120, height }: MessageListProps): JSX.Element => {
+  ({
+    messages,
+    maxMessages = LIMIT.MESSAGE_LIST_MAX_MESSAGES,
+    height,
+  }: MessageListProps): ReactNode => {
     const terminal = useTerminalDimensions();
     const isEmpty = useMemo(() => messages.length === 0, [messages.length]);
 
@@ -42,7 +47,7 @@ export const MessageList = memo(
       RESERVED_ROWS.inputArea +
       RESERVED_ROWS.marginBetween +
       RESERVED_ROWS.chatHeader;
-    const rawHeight = height ?? Math.max(10, terminalRows - reservedSpace);
+    const rawHeight = height ?? Math.max(LIMIT.MIN_TERMINAL_ROWS, terminalRows - reservedSpace);
     const effectiveHeight = Math.max(8, Math.floor(rawHeight));
 
     if (isEmpty) {
@@ -53,8 +58,10 @@ export const MessageList = memo(
           flexDirection="column"
           justifyContent="flex-end"
           alignItems="flex-start"
-          paddingX={1}
-          paddingY={1}
+          paddingLeft={1}
+          paddingRight={1}
+          paddingTop={1}
+          paddingBottom={1}
           border={true}
           borderStyle="single"
           borderColor={COLOR.GRAY}
@@ -76,8 +83,10 @@ export const MessageList = memo(
         border={true}
         borderStyle="single"
         borderColor={COLOR.GRAY}
-        paddingX={1}
-        paddingY={1}
+        paddingLeft={1}
+        paddingRight={1}
+        paddingTop={1}
+        paddingBottom={1}
         flexDirection="column"
       >
         <ScrollArea

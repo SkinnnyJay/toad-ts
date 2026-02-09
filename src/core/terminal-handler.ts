@@ -3,6 +3,7 @@ import { isAbsolute, normalize, resolve } from "node:path";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { SIGNAL } from "@/constants/signals";
+import { EnvManager } from "@/utils/env/env.utils";
 
 export interface ExecOptions {
   cwd?: string;
@@ -21,7 +22,8 @@ export interface ExecResult {
 
 const shouldAllowEscape = (env?: NodeJS.ProcessEnv, override?: boolean): boolean => {
   if (override !== undefined) return override;
-  const raw = env?.[ENV_KEY.TOADSTOOL_ALLOW_ESCAPE] ?? process.env[ENV_KEY.TOADSTOOL_ALLOW_ESCAPE];
+  const source = env ?? EnvManager.getInstance().getSnapshot();
+  const raw = source[ENV_KEY.TOADSTOOL_ALLOW_ESCAPE];
   if (!raw) return false;
   const normalized = raw.trim().toLowerCase();
   return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
@@ -67,7 +69,7 @@ export class TerminalHandler {
       options.baseCwd ?? this.defaultCwd,
       allowEscape
     );
-    const env = { ...process.env, ...options.env };
+    const env = { ...EnvManager.getInstance().getSnapshot(), ...options.env };
     return new Promise<ExecResult>((resolve, reject) => {
       const child = spawn(command, args, { cwd, env });
       let stdout = "";

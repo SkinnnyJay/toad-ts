@@ -1,6 +1,7 @@
 import { COLOR } from "@/constants/colors";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import { TextAttributes } from "@opentui/core";
+import type { ReactNode } from "react";
 
 export interface ToolCallListItem {
   id: string;
@@ -30,7 +31,7 @@ const statusColor = (status: ToolCallListItem["status"]): string => {
   }
 };
 
-export function ToolCallList({ toolCalls }: ToolCallListProps): JSX.Element | null {
+export function ToolCallList({ toolCalls }: ToolCallListProps): ReactNode {
   if (toolCalls.length === 0) return null;
   return (
     <box flexDirection="column" gap={0}>

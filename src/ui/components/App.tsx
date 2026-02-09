@@ -34,9 +34,9 @@ import {
 } from "@/ui/hooks";
 import { Env, EnvManager } from "@/utils/env/env.utils";
 import { TextAttributes } from "@opentui/core";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
-export function App(): JSX.Element {
+export function App(): ReactNode {
   const [view, setView] = useState<View>(VIEW.AGENT_SELECT);
 
   const currentSessionId = useAppStore((state) => state.currentSessionId);
@@ -242,8 +242,10 @@ export function App(): JSX.Element {
               border={true}
               borderStyle="single"
               borderColor={COLOR.GRAY}
-              paddingX={1}
-              paddingY={1}
+              paddingLeft={1}
+              paddingRight={1}
+              paddingTop={1}
+              paddingBottom={1}
             >
               {isSessionsPopupOpen ? (
                 <SessionsPopup

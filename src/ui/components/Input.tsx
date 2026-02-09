@@ -1,3 +1,6 @@
+import type { SubmitEvent } from "@opentui/core";
+import type { ReactNode } from "react";
+
 interface InputProps {
   value: string;
   onChange: (value: string) => void;
@@ -12,7 +15,12 @@ export function Input({
   onSubmit,
   placeholder,
   focused = true,
-}: InputProps): JSX.Element {
+}: InputProps): ReactNode {
+  const handleSubmit = (value: string | SubmitEvent): void => {
+    if (typeof value !== "string") return;
+    onSubmit(value);
+  };
+
   return (
     <input
       value={value}
@@ -20,7 +28,7 @@ export function Input({
       focused={focused}
       onInput={onChange}
       onChange={onChange}
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit}
     />
   );
 }

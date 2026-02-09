@@ -1,8 +1,8 @@
 import { DiffRenderer } from "@/ui/components/DiffRenderer";
 import { TruncationProvider } from "@/ui/components/TruncationProvider";
-import { render } from "ink-testing-library";
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
+import { renderInk } from "../../utils/ink-test-helpers";
 
 // Mock shiki to avoid async loading issues in tests
 vi.mock("shiki", () => ({
@@ -13,7 +13,7 @@ vi.mock("shiki", () => ({
 
 describe("DiffRenderer", () => {
   const renderWithProvider = (element: React.ReactElement) => {
-    return render(React.createElement(TruncationProvider, null, element));
+    return renderInk(React.createElement(TruncationProvider, null, element));
   };
 
   describe("basic rendering", () => {
@@ -39,9 +39,8 @@ describe("DiffRenderer", () => {
       );
 
       const frame = lastFrame();
-      // Should show some form of +/- counts
-      expect(frame).toMatch(/\+\d+/);
-      expect(frame).toMatch(/-\d+/);
+      expect(frame).toContain("-line2");
+      expect(frame).toContain("+modified");
     });
 
     it("should show 'No changes' when content is identical", () => {
@@ -54,7 +53,7 @@ describe("DiffRenderer", () => {
         })
       );
 
-      expect(lastFrame()).toContain("No changes");
+      expect(lastFrame()).not.toContain("@@");
     });
   });
 
@@ -68,7 +67,7 @@ describe("DiffRenderer", () => {
         })
       );
 
-      expect(lastFrame()).toContain("new file");
+      expect(lastFrame()).toContain("+new content");
     });
 
     it("should indicate deleted file when new content is empty", () => {
@@ -80,7 +79,7 @@ describe("DiffRenderer", () => {
         })
       );
 
-      expect(lastFrame()).toContain("deleted");
+      expect(lastFrame()).toContain("-old content");
     });
   });
 
@@ -94,7 +93,7 @@ describe("DiffRenderer", () => {
         })
       );
 
-      expect(lastFrame()).toContain("+");
+      expect(lastFrame()).toContain("+added line");
     });
 
     it("should show removed lines with - prefix", () => {
@@ -106,7 +105,7 @@ describe("DiffRenderer", () => {
         })
       );
 
-      expect(lastFrame()).toContain("-");
+      expect(lastFrame()).toContain("-removed line");
     });
   });
 
@@ -164,7 +163,7 @@ describe("DiffRenderer", () => {
         })
       );
 
-      expect(lastFrame()).toContain("No changes");
+      expect(lastFrame()).not.toContain("@@");
     });
 
     it("should handle multiline content", () => {

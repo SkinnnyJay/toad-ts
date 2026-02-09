@@ -1,8 +1,10 @@
+import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import type { AgentOption } from "@/ui/components/AgentSelect";
 import { DefaultProviderTab } from "@/ui/components/DefaultProviderTab";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
+import type { ReactNode } from "react";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -10,7 +12,7 @@ interface SettingsModalProps {
   agents: AgentOption[];
 }
 
-export function SettingsModal({ isOpen, onClose, agents }: SettingsModalProps): JSX.Element | null {
+export function SettingsModal({ isOpen, onClose, agents }: SettingsModalProps): ReactNode {
   useKeyboard((key) => {
     if (!isOpen) return;
 
@@ -27,6 +29,7 @@ export function SettingsModal({ isOpen, onClose, agents }: SettingsModalProps): 
   };
 
   if (!isOpen) return null;
+  const contentMinHeight = UI.POPUP_HEIGHT - UI.SIDEBAR_PADDING * 2 - UI.SCROLLBAR_WIDTH;
 
   return (
     <box
@@ -34,10 +37,12 @@ export function SettingsModal({ isOpen, onClose, agents }: SettingsModalProps): 
       border={true}
       borderStyle="double"
       borderColor={COLOR.CYAN}
-      paddingX={1}
-      paddingY={1}
-      minHeight={20}
-      width="80%"
+      paddingLeft={1}
+      paddingRight={1}
+      paddingTop={1}
+      paddingBottom={1}
+      minHeight={UI.POPUP_HEIGHT}
+      width={UI.POPUP_WIDTH}
     >
       <box flexDirection="row" justifyContent="space-between" marginBottom={1}>
         <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
@@ -52,7 +57,7 @@ export function SettingsModal({ isOpen, onClose, agents }: SettingsModalProps): 
         {/* Future tabs can be added here with left/right arrow navigation */}
       </box>
 
-      <box flexDirection="column" flexGrow={1} minHeight={15}>
+      <box flexDirection="column" flexGrow={1} minHeight={contentMinHeight}>
         <DefaultProviderTab agents={agents} onSave={handleSave} />
       </box>
 

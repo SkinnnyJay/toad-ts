@@ -41,30 +41,24 @@ describe("useAppKeyboardShortcuts", () => {
 
   describe("isOptionBacktick", () => {
     it("returns true for Option+backtick escape sequence", () => {
-      // Option+` on macOS produces ESC followed by `
-      const escapeChar = String.fromCharCode(0x1b);
-      const optionBacktick = `${escapeChar}\``;
-
-      expect(isOptionBacktick(optionBacktick)).toBe(true);
+      expect(isOptionBacktick({ name: "`", option: true })).toBe(true);
     });
 
     it("returns false for regular backtick", () => {
-      expect(isOptionBacktick("`")).toBe(false);
+      expect(isOptionBacktick({ name: "`", option: false })).toBe(false);
     });
 
     it("returns false for escape alone", () => {
-      const escapeChar = String.fromCharCode(0x1b);
-      expect(isOptionBacktick(escapeChar)).toBe(false);
+      expect(isOptionBacktick({ name: "escape", option: true })).toBe(false);
     });
 
     it("returns false for other escape sequences", () => {
-      const escapeChar = String.fromCharCode(0x1b);
-      expect(isOptionBacktick(`${escapeChar}a`)).toBe(false);
-      expect(isOptionBacktick(`${escapeChar}1`)).toBe(false);
+      expect(isOptionBacktick({ name: "a", option: true })).toBe(false);
+      expect(isOptionBacktick({ name: "1", option: true })).toBe(false);
     });
 
     it("returns false for empty string", () => {
-      expect(isOptionBacktick("")).toBe(false);
+      expect(isOptionBacktick({ name: "", option: true })).toBe(false);
     });
   });
 

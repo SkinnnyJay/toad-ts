@@ -25,7 +25,7 @@ const TruncationContext = createContext<TruncationContextValue>({
 export const TRUNCATION_SHORTCUT_HINT =
   "Ctrl+↑/↓ select · Ctrl+Enter toggle · Ctrl+E expand · Ctrl+Shift+E collapse";
 
-export function TruncationProvider({ children }: { children: ReactNode }): JSX.Element {
+export function TruncationProvider({ children }: { children: ReactNode }): ReactNode {
   const [entries, setEntries] = useState<TruncationEntry[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
 

@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { ENCODING } from "@/constants/encodings";
 import { ERROR_CODE } from "@/constants/error-codes";
+import { SIDEBAR_TAB } from "@/constants/sidebar-tabs";
 
 import { AppStateSchema } from "@/types/domain";
 import { z } from "zod";
@@ -26,7 +27,7 @@ const defaultSnapshot: SessionSnapshot = SessionSnapshotSchema.parse({
   messages: {},
   plans: {},
   contextAttachments: {},
-  uiState: { sidebarTab: "files", accordionCollapsed: {} },
+  uiState: { sidebarTab: SIDEBAR_TAB.FILES, accordionCollapsed: {} },
 });
 
 const normalizeSnapshot = (snapshot?: SessionSnapshot): SessionSnapshot => {

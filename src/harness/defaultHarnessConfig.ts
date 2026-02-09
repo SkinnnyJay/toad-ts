@@ -2,6 +2,7 @@ import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import type { HarnessConfig, HarnessConfigResult } from "@/harness/harnessConfig";
 import { harnessConfigSchema } from "@/harness/harnessConfig";
+import { EnvManager } from "@/utils/env/env.utils";
 
 const DEFAULT_ARGS: string[] = [];
 
@@ -13,7 +14,7 @@ const parseArgs = (rawValue: string): string[] => {
 };
 
 export const createDefaultHarnessConfig = (
-  env: NodeJS.ProcessEnv = process.env
+  env: NodeJS.ProcessEnv = EnvManager.getInstance().getSnapshot()
 ): HarnessConfigResult => {
   const command = env[ENV_KEY.TOADSTOOL_CLAUDE_COMMAND] ?? HARNESS_DEFAULT.CLAUDE_COMMAND;
   const argsRaw = env[ENV_KEY.TOADSTOOL_CLAUDE_ARGS];

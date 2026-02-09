@@ -3,6 +3,7 @@ import { SESSION_MODE } from "@/constants/session-modes";
 import { type EnvSource, type McpConfigInput, parseMcpConfig } from "@/core/mcp-config";
 import type { AgentId, Session, SessionMode } from "@/types/domain";
 import { SessionSchema } from "@/types/domain";
+import { EnvManager } from "@/utils/env/env.utils";
 import type { NewSessionRequest, NewSessionResponse } from "@agentclientprotocol/sdk";
 
 export interface SessionClient {
@@ -45,7 +46,7 @@ export class SessionManager {
   async createSession(params: CreateSessionParams): Promise<Session> {
     const { cwd, agentId, title } = params;
     const now = params.now ?? Date.now();
-    const env = params.env ?? process.env;
+    const env = params.env ?? EnvManager.getInstance().getSnapshot();
     const mode = params.mode ?? parseSessionMode(env[ENV_KEY.TOADSTOOL_SESSION_MODE]);
     const mcpServers = parseMcpConfig(params.mcpConfig, env);
     const response = await this.client.newSession({ cwd, mcpServers });

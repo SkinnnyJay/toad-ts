@@ -1,11 +1,15 @@
-import { AGENT_STATUS } from "@/constants/agent-status";
 import { z } from "zod";
 
+import { AGENT_MESSAGE_TYPE } from "@/constants/agent-message-types";
+import { AGENT_STATUS } from "@/constants/agent-status";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { MCP_SERVER_TYPE } from "@/constants/mcp-server-types";
+import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { SESSION_MODE } from "@/constants/session-modes";
+import { SIDEBAR_TAB, SIDEBAR_TAB_VALUES } from "@/constants/sidebar-tabs";
+import { TASK_STATUS } from "@/constants/task-status";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 
 export const SessionIdSchema = z.string().min(1).brand<"SessionId">();
@@ -94,7 +98,11 @@ export const ContentBlockSchema = z.discriminatedUnion("type", [
 ]);
 export type ContentBlock = z.infer<typeof ContentBlockSchema>;
 
-export const MessageRoleSchema = z.enum(["user", "assistant", "system"]);
+export const MessageRoleSchema = z.enum([
+  MESSAGE_ROLE.USER,
+  MESSAGE_ROLE.ASSISTANT,
+  MESSAGE_ROLE.SYSTEM,
+]);
 export type MessageRole = z.infer<typeof MessageRoleSchema>;
 
 export const MessageSchema = z.object({
@@ -125,7 +133,7 @@ export type McpEnvVariable = z.infer<typeof McpEnvVariableSchema>;
 
 export const McpServerHttpSchema = z
   .object({
-    type: z.literal("http"),
+    type: z.literal(MCP_SERVER_TYPE.HTTP),
     name: z.string().min(1),
     url: z.string().min(1),
     headers: z.array(McpHeaderSchema).default([]),
@@ -167,7 +175,11 @@ export const SessionMetadataSchema = z
   .strict();
 export type SessionMetadata = z.infer<typeof SessionMetadataSchema>;
 
-export const SessionModeSchema = z.enum(["read-only", "auto", "full-access"]);
+export const SessionModeSchema = z.enum([
+  SESSION_MODE.READ_ONLY,
+  SESSION_MODE.AUTO,
+  SESSION_MODE.FULL_ACCESS,
+]);
 export type SessionMode = z.infer<typeof SessionModeSchema>;
 
 export const SessionSchema = z.object({
@@ -207,12 +219,12 @@ export const PlanIdSchema = z.string().min(1).brand<"PlanId">();
 export type PlanId = z.infer<typeof PlanIdSchema>;
 
 export const TaskStatusSchema = z.enum([
-  "pending",
-  "assigned",
-  "running",
-  "completed",
-  "failed",
-  "blocked",
+  TASK_STATUS.PENDING,
+  TASK_STATUS.ASSIGNED,
+  TASK_STATUS.RUNNING,
+  TASK_STATUS.COMPLETED,
+  TASK_STATUS.FAILED,
+  TASK_STATUS.BLOCKED,
 ]);
 export type TaskStatus = z.infer<typeof TaskStatusSchema>;
 
@@ -257,10 +269,8 @@ export const AppStateSchema = z.object({
   contextAttachments: z.record(SessionIdSchema, z.array(z.string()).default([])).default({}),
   uiState: z
     .object({
-      sidebarTab: z.enum(["files", "plan", "context", "sessions", "agent"]).default("files"),
-      accordionCollapsed: z
-        .record(z.enum(["files", "plan", "context", "sessions", "agent"]), z.boolean())
-        .default({}),
+      sidebarTab: z.enum(SIDEBAR_TAB_VALUES).default(SIDEBAR_TAB.FILES),
+      accordionCollapsed: z.record(z.enum(SIDEBAR_TAB_VALUES), z.boolean()).default({}),
     })
     .default({}),
 });
@@ -288,7 +298,13 @@ export type SubAgent = z.infer<typeof SubAgentSchema>;
 export const AgentMessageSchema = z.object({
   from: SubAgentIdSchema,
   to: SubAgentIdSchema.optional(), // undefined = broadcast
-  type: z.enum(["task_complete", "task_failed", "need_help", "share_result", "coordinate"]),
+  type: z.enum([
+    AGENT_MESSAGE_TYPE.TASK_COMPLETE,
+    AGENT_MESSAGE_TYPE.TASK_FAILED,
+    AGENT_MESSAGE_TYPE.NEED_HELP,
+    AGENT_MESSAGE_TYPE.SHARE_RESULT,
+    AGENT_MESSAGE_TYPE.COORDINATE,
+  ]),
   payload: z.record(z.unknown()),
   timestamp: z.number().nonnegative(),
 });

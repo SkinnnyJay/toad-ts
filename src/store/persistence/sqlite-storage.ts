@@ -66,7 +66,7 @@ export class SqliteStore {
         mode: {
           type: DataTypes.STRING,
           allowNull: true,
-          defaultValue: "auto",
+          defaultValue: SESSION_MODE.AUTO,
         },
       },
       {

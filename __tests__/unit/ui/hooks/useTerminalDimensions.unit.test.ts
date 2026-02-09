@@ -1,13 +1,12 @@
 import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
-import { Box, Text, render } from "ink";
 import React, { useEffect, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { renderInk } from "../../../utils/ink-test-helpers";
 
 /**
  * Tests for useTerminalDimensions hook logic.
- * Since the hook depends on ink's useStdout which requires a full Ink context,
- * we test the core logic patterns here.
+ * Since the hook depends on OpenTUI runtime, we test the core logic patterns here.
  */
 
 describe("useTerminalDimensions logic", () => {
@@ -132,7 +131,7 @@ describe("useTerminalDimensions integration", () => {
     vi.useRealTimers();
   });
 
-  // This tests the actual hook in a minimal Ink context
+  // This tests the actual hook in a minimal runtime context
   it("exports the hook correctly", async () => {
     const { useTerminalDimensions } = await import("@/ui/hooks/useTerminalDimensions");
     expect(typeof useTerminalDimensions).toBe("function");
@@ -149,10 +148,10 @@ describe("useTerminalDimensions integration", () => {
       useEffect(() => {
         capturedResult = dimensions;
       }, [dimensions]);
-      return React.createElement(Text, null, "test");
+      return React.createElement("text", null, "test");
     }
 
-    const { unmount } = render(React.createElement(TestComponent));
+    const { unmount } = renderInk(React.createElement(TestComponent));
 
     // Give React time to render
     await vi.advanceTimersByTimeAsync(0);

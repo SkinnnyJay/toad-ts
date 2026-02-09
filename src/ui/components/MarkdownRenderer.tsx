@@ -1,5 +1,5 @@
 import { SyntaxStyle } from "@opentui/core";
-import { memo, useMemo } from "react";
+import { type ReactNode, memo, useMemo } from "react";
 
 interface MarkdownRendererProps {
   markdown: string;
@@ -9,7 +9,7 @@ interface MarkdownRendererProps {
 export const MarkdownRenderer = memo(function MarkdownRenderer({
   markdown,
   streaming = false,
-}: MarkdownRendererProps): JSX.Element {
+}: MarkdownRendererProps): ReactNode {
   const syntaxStyle = useMemo(() => SyntaxStyle.create(), []);
 
   return (

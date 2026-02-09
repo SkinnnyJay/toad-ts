@@ -35,7 +35,7 @@ export const FOCUS_NUMBER_MAP: Record<string, FocusTarget> = {
  * Detects Option+backtick escape sequence.
  * On macOS, Option+` produces an escape sequence starting with 0x1b.
  */
-export const isOptionBacktick = (key: KeyEvent): boolean => {
+export const isOptionBacktick = (key: Pick<KeyEvent, "option" | "name">): boolean => {
   return key.option && key.name === "`";
 };
 

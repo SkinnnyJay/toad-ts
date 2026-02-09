@@ -1,6 +1,9 @@
 import { spawn } from "node:child_process";
 import { isAbsolute, normalize, resolve } from "node:path";
 
+import { ENV_KEY } from "@/constants/env-keys";
+import { SEARCH_GLOB_EXCLUDES } from "@/constants/ignore-patterns";
+import { EnvManager } from "@/utils/env/env.utils";
 import { rgPath } from "@vscode/ripgrep";
 import fg from "fast-glob";
 import fuzzysort from "fuzzysort";
@@ -23,11 +26,12 @@ export interface SearchOptions {
   exclude?: string[];
 }
 
-const DEFAULT_EXCLUDES = ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/.next/**"];
+const DEFAULT_EXCLUDES = SEARCH_GLOB_EXCLUDES;
 
 const shouldAllowEscape = (env?: NodeJS.ProcessEnv, override?: boolean): boolean => {
   if (override !== undefined) return override;
-  const raw = env?.TOADSTOOL_ALLOW_ESCAPE ?? process.env.TOADSTOOL_ALLOW_ESCAPE;
+  const source = env ?? EnvManager.getInstance().getSnapshot();
+  const raw = source[ENV_KEY.TOADSTOOL_ALLOW_ESCAPE];
   if (!raw) return false;
   const normalized = raw.trim().toLowerCase();
   return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
@@ -52,7 +56,7 @@ const normalizePath = (candidate: string, baseDir: string, allowEscape: boolean)
 export class SearchService {
   private readonly baseDir: string;
   private readonly allowEscape: boolean;
-  private readonly excludes: string[];
+  private readonly excludes: readonly string[];
 
   constructor(options: { baseDir?: string; allowEscape?: boolean; env?: NodeJS.ProcessEnv } = {}) {
     this.baseDir = resolveBase(options.baseDir);
@@ -67,7 +71,7 @@ export class SearchService {
     const base = resolveBase(options.baseDir ?? this.baseDir);
     const allowEscape = shouldAllowEscape(undefined, options.allowEscape ?? this.allowEscape);
     const globs = patterns.length ? patterns : ["**/*"];
-    const exclude = options.exclude ?? this.excludes;
+    const exclude = options.exclude ? [...options.exclude] : [...this.excludes];
     const results = await fg(globs, {
       cwd: base,
       dot: false,
@@ -116,7 +120,7 @@ export class SearchService {
   async buildIndex(patterns: string[] = ["**/*"], options: SearchOptions = {}): Promise<string[]> {
     const base = resolveBase(options.baseDir ?? this.baseDir);
     const allowEscape = shouldAllowEscape(undefined, options.allowEscape ?? this.allowEscape);
-    const exclude = options.exclude ?? this.excludes;
+    const exclude = options.exclude ? [...options.exclude] : [...this.excludes];
     const files = await fg(patterns, {
       cwd: base,
       dot: false,

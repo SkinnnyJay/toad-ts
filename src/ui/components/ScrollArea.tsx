@@ -23,7 +23,7 @@ export const ScrollArea = memo(function ScrollArea({
   focused = true,
   scrollX = false,
   scrollY = true,
-}: ScrollAreaProps): JSX.Element {
+}: ScrollAreaProps): ReactNode {
   return (
     <scrollbox
       height={height}

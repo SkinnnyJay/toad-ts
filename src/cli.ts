@@ -1,5 +1,6 @@
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
+import { createElement } from "react";
 
 import { App } from "@/ui/components/App";
 import { EnvManager } from "@/utils/env/env.utils";
@@ -10,4 +11,4 @@ const renderer = await createCliRenderer({
   exitOnCtrlC: true,
 });
 
-createRoot(renderer).render(<App />);
+createRoot(renderer).render(createElement(App));

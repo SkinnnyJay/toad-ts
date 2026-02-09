@@ -2,6 +2,7 @@ import { PassThrough, Readable, Writable } from "node:stream";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
+import { EnvManager } from "@/utils/env/env.utils";
 import {
   type Agent,
   AgentSideConnection,
@@ -190,6 +191,7 @@ describe("ClaudeCliHarnessAdapter", () => {
 
     process.env.TOADSTOOL_CLAUDE_COMMAND = "claude-code-acp";
     process.env.TOADSTOOL_CLAUDE_ARGS = "--experimental-acp --model sonnet";
+    EnvManager.resetInstance();
 
     const captured: ACPConnectionOptions[] = [];
     const adapter = new ClaudeCliHarnessAdapter({
@@ -215,6 +217,7 @@ describe("ClaudeCliHarnessAdapter", () => {
     } else {
       process.env.TOADSTOOL_CLAUDE_ARGS = originalArgs;
     }
+    EnvManager.resetInstance();
   });
 
   it("retries connection with backoff before succeeding", async () => {

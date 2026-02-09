@@ -1,4 +1,6 @@
 import { TIMEOUT } from "@/config/timeouts";
+import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { FALLBACK } from "@/constants/fallbacks";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import { useAppStore } from "@/store/app-store";
 import type { Message, ToolCallId } from "@/types/domain";
@@ -66,13 +68,13 @@ export const extractToolCallsFromMessages = (
 
   for (const message of messages) {
     for (const block of message.content) {
-      if (block.type === "tool_call") {
+      if (block.type === CONTENT_BLOCK_TYPE.TOOL_CALL) {
         const existing = prevToolCalls.get(block.toolCallId);
         const status = mapBlockStatusToToolStatus(block.status, existing?.status);
 
         const toolCall: ToolCall = {
           id: block.toolCallId,
-          name: block.name ?? "unknown",
+          name: block.name ?? FALLBACK.UNKNOWN,
           arguments: block.arguments ?? {},
           status,
           result: block.result,

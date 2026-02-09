@@ -1,3 +1,4 @@
+import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
 import { useTerminalDimensions as useOpenTUITerminalDimensions } from "@opentui/react";
@@ -7,9 +8,6 @@ export interface TerminalDimensions {
   rows: number;
   columns: number;
 }
-
-const MIN_ROWS = 10;
-const MIN_COLUMNS = 50;
 
 /**
  * Hook to track terminal dimensions with throttled resize handling.
@@ -33,8 +31,8 @@ export function useTerminalDimensions(): TerminalDimensions {
         resizeTimer = null;
         const nextRows = terminal.height ?? UI.TERMINAL_DEFAULT_ROWS;
         const nextCols = terminal.width ?? UI.TERMINAL_DEFAULT_COLUMNS;
-        const clampedRows = Math.max(MIN_ROWS, nextRows);
-        const clampedCols = Math.max(MIN_COLUMNS, nextCols);
+        const clampedRows = Math.max(LIMIT.MIN_TERMINAL_ROWS, nextRows);
+        const clampedCols = Math.max(LIMIT.MIN_TERMINAL_COLS, nextCols);
         if (clampedRows === lastRows && clampedCols === lastCols) {
           return;
         }

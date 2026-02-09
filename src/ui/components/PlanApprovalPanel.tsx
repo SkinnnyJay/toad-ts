@@ -1,18 +1,20 @@
+import { APPROVAL_DECISION, type ApprovalDecision } from "@/constants/approval-decisions";
 import { COLOR } from "@/constants/colors";
 import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { PLAN_STATUS } from "@/constants/plan-status";
+import { TASK_DECISION, type TaskDecision } from "@/constants/task-decisions";
 import { TASK_STATUS } from "@/constants/task-status";
 import type { Plan, PlanId, Task } from "@/types/domain";
 import { statusColor } from "@/ui/status-colors";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
-import { useCallback, useState } from "react";
+import { type ReactNode, useCallback, useState } from "react";
 
 export interface PlanApprovalPanelProps {
   plan: Plan;
   onApprove: (planId: PlanId) => void;
   onDeny: (planId: PlanId) => void;
-  onModifyTask?: (taskId: string, action: "approve" | "deny" | "skip") => void;
+  onModifyTask?: (taskId: string, action: TaskDecision) => void;
   autoApprove?: boolean;
   showTaskDetails?: boolean;
 }
@@ -43,27 +45,25 @@ export function PlanApprovalPanel({
   onModifyTask,
   autoApprove = false,
   showTaskDetails = true,
-}: PlanApprovalPanelProps): JSX.Element {
-  const [decision, setDecision] = useState<"approved" | "denied" | null>(null);
+}: PlanApprovalPanelProps): ReactNode {
+  const [decision, setDecision] = useState<ApprovalDecision | null>(null);
   const [selectedTaskIndex, setSelectedTaskIndex] = useState(0);
-  const [taskDecisions, setTaskDecisions] = useState<Map<string, "approve" | "deny" | "skip">>(
-    new Map()
-  );
+  const [taskDecisions, setTaskDecisions] = useState<Map<string, TaskDecision>>(new Map());
 
   const handleApprove = useCallback(() => {
     if (decision) return;
-    setDecision("approved");
+    setDecision(APPROVAL_DECISION.APPROVED);
     onApprove(plan.id);
   }, [decision, plan.id, onApprove]);
 
   const handleDeny = useCallback(() => {
     if (decision) return;
-    setDecision("denied");
+    setDecision(APPROVAL_DECISION.DENIED);
     onDeny(plan.id);
   }, [decision, plan.id, onDeny]);
 
   const handleTaskAction = useCallback(
-    (taskId: string, action: "approve" | "deny" | "skip") => {
+    (taskId: string, action: TaskDecision) => {
       setTaskDecisions((prev) => new Map(prev).set(taskId, action));
       onModifyTask?.(taskId, action);
     },
@@ -96,30 +96,26 @@ export function PlanApprovalPanel({
         if (key.name === KEYBOARD_INPUT.APPROVE_LOWER) {
           key.preventDefault();
           key.stopPropagation();
-          handleTaskAction(currentTask.id, "approve");
+          handleTaskAction(currentTask.id, TASK_DECISION.APPROVE);
           return;
         }
         if (key.name === KEYBOARD_INPUT.DENY_LOWER) {
           key.preventDefault();
           key.stopPropagation();
-          handleTaskAction(currentTask.id, "deny");
+          handleTaskAction(currentTask.id, TASK_DECISION.DENY);
           return;
         }
         if (key.name === KEYBOARD_INPUT.SKIP_LOWER) {
           key.preventDefault();
           key.stopPropagation();
-          handleTaskAction(currentTask.id, "skip");
+          handleTaskAction(currentTask.id, TASK_DECISION.SKIP);
           return;
         }
       }
     }
 
     // Plan-level actions
-    if (
-      key.name === KEYBOARD_INPUT.YES_LOWER ||
-      key.name === "return" ||
-      key.name === "linefeed"
-    ) {
+    if (key.name === KEYBOARD_INPUT.YES_LOWER || key.name === "return" || key.name === "linefeed") {
       key.preventDefault();
       key.stopPropagation();
       handleApprove();
@@ -151,7 +147,9 @@ export function PlanApprovalPanel({
           Plan: {plan.originalPrompt}
         </text>
         {decision && (
-          <text fg={decision === "approved" ? COLOR.GREEN : COLOR.RED}>({decision})</text>
+          <text
+            fg={decision === APPROVAL_DECISION.APPROVED ? COLOR.GREEN : COLOR.RED}
+          >{`(${decision})`}</text>
         )}
       </box>
 
@@ -172,9 +170,9 @@ export function PlanApprovalPanel({
                   {taskDecision && (
                     <span
                       fg={
-                        taskDecision === "approve"
+                        taskDecision === TASK_DECISION.APPROVE
                           ? COLOR.GREEN
-                          : taskDecision === "deny"
+                          : taskDecision === TASK_DECISION.DENY
                             ? COLOR.RED
                             : COLOR.GRAY
                       }

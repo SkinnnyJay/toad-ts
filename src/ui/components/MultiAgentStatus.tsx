@@ -4,13 +4,14 @@ import { COLOR } from "@/constants/colors";
 import { TASK_STATUS } from "@/constants/task-status";
 import type { Plan, SubAgent } from "@/types/domain";
 import { TextAttributes } from "@opentui/core";
+import type { ReactNode } from "react";
 
 interface MultiAgentStatusProps {
   plan: Plan;
   agents: SubAgent[];
 }
 
-export function MultiAgentStatus({ plan, agents }: MultiAgentStatusProps): JSX.Element {
+export function MultiAgentStatus({ plan, agents }: MultiAgentStatusProps): ReactNode {
   const completedTasks = plan.tasks.filter((t) => t.status === TASK_STATUS.COMPLETED).length;
   const totalTasks = plan.tasks.length;
   const activeAgents = agents.filter((a) => a.status === AGENT_STATUS.WORKING).length;
@@ -22,7 +23,8 @@ export function MultiAgentStatus({ plan, agents }: MultiAgentStatusProps): JSX.E
       borderStyle="single"
       borderColor={COLOR.CYAN}
       padding={1}
-      marginY={1}
+      marginTop={1}
+      marginBottom={1}
     >
       <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
         Multi-Agent Plan: {plan.originalPrompt.slice(0, LIMIT.STRING_TRUNCATE_MEDIUM)}
@@ -49,7 +51,7 @@ export function MultiAgentStatus({ plan, agents }: MultiAgentStatusProps): JSX.E
                     : COLOR.GRAY;
 
             return (
-              <box key={task.id} flexDirection="row" marginY={0}>
+              <box key={task.id} flexDirection="row" marginTop={0} marginBottom={0}>
                 <text fg={statusColor}>
                   {task.status === TASK_STATUS.COMPLETED
                     ? "✓"

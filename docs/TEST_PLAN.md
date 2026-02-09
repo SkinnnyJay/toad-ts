@@ -226,7 +226,7 @@ store.appendMessage({
 
 ## Next Steps
 
-1. ✅ Set up `ink-testing-library` utilities
+1. ✅ Set up OpenTUI test renderer utilities
 2. ✅ Document user stories
 3. ✅ Create test plan
 4. 🚧 Implement high-priority tests (message history, input history, session management)

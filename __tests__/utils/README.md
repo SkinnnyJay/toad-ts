@@ -2,9 +2,10 @@
 
 This directory contains shared test utilities for the TOADSTOOL test suite.
 
-## Ink Testing Library Utilities
+## OpenTUI Test Utilities
 
-The `ink-test-helpers.ts` file provides utilities for testing Ink components with `ink-testing-library`.
+The `ink-test-helpers.ts` file provides utilities for testing OpenTUI components using a lightweight
+React test renderer.
 
 ### Basic Usage
 
@@ -30,7 +31,7 @@ describe("MyComponent", () => {
 
 #### `renderInk(element, options?)`
 
-Renders an Ink component with default test terminal dimensions.
+Renders an OpenTUI component with default test terminal dimensions.
 
 ```typescript
 const { lastFrame, stdin, rerender, unmount } = renderInk(
@@ -143,6 +144,5 @@ it("updates state asynchronously", async () => {
 
 ## References
 
-- [ink-testing-library Documentation](https://github.com/vadimdemedes/ink-testing-library)
-- [Ink Documentation](https://github.com/vadimdemedes/ink)
+- [React Test Renderer Documentation](https://react.dev/reference/react-test-renderer)
 - [Vitest Documentation](https://vitest.dev)

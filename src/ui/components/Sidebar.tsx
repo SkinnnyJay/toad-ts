@@ -3,15 +3,16 @@ import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
 import { PLAN_STATUS } from "@/constants/plan-status";
+import { SIDEBAR_TAB_VALUES, type SidebarTab } from "@/constants/sidebar-tabs";
 import { useAppStore } from "@/store/app-store";
-import type { AppState, Plan, Session, SessionId } from "@/types/domain";
+import type { Plan, Session, SessionId } from "@/types/domain";
+import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
 import { TextAttributes } from "@opentui/core";
-import { useKeyboard } from "@opentui/react";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { type BoxProps, useKeyboard } from "@opentui/react";
+import { type ReactNode, memo, useCallback, useEffect, useMemo, useState } from "react";
 import { AccordionSection } from "./AccordionSection";
 import { FileTree } from "./FileTree";
 import { ScrollArea } from "./ScrollArea";
-import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
 
 // Helper function to truncate text with ellipsis
 const truncateText = (text: string, maxLength: number): string => {
@@ -22,7 +23,7 @@ const truncateText = (text: string, maxLength: number): string => {
 };
 
 interface SidebarProps {
-  width?: string | number;
+  width?: BoxProps["width"];
   height?: number;
   currentAgentName?: string;
   currentSessionId?: SessionId;
@@ -98,8 +99,8 @@ const SessionsSection = memo(
       return <text attributes={TextAttributes.DIM}>No sessions</text>;
     }
 
-    const prefixLength = 2 + 2 + 2; // "› " + "● " or "○ " + spacing
-    const safetyMargin = 2;
+    const prefixLength = `${"›"} ${"●"} `.length;
+    const safetyMargin = LIMIT.FILE_TREE_SAFETY_MARGIN;
     const maxSessionIdLength = Math.max(1, maxWidth - prefixLength - safetyMargin);
 
     return (
@@ -123,7 +124,9 @@ const SessionsSection = memo(
   }
 );
 
-type SidebarSection = Exclude<FocusTarget, typeof FOCUS_TARGET.CHAT>;
+type SidebarSection = SidebarTab;
+
+const SIDEBAR_TAB_SET = new Set<string>(SIDEBAR_TAB_VALUES);
 
 const sectionShortcuts: Record<SidebarSection, string> = {
   [FOCUS_TARGET.FILES]: "Cmd/Ctrl+F or Cmd/Ctrl+1",
@@ -134,7 +137,7 @@ const sectionShortcuts: Record<SidebarSection, string> = {
 };
 
 const isSidebarSection = (value: FocusTarget): value is SidebarSection =>
-  value !== FOCUS_TARGET.CHAT;
+  SIDEBAR_TAB_SET.has(value);
 
 export function Sidebar({
   width = "15%",
@@ -143,10 +146,10 @@ export function Sidebar({
   currentSessionId,
   onSelectSession,
   focusTarget = FOCUS_TARGET.CHAT,
-}: SidebarProps): JSX.Element {
+}: SidebarProps): ReactNode {
   const terminal = useTerminalDimensions();
   const terminalRows = terminal.rows ?? UI.TERMINAL_DEFAULT_ROWS;
-  const terminalWidth = terminal.columns ?? 80;
+  const terminalWidth = terminal.columns ?? UI.TERMINAL_DEFAULT_COLUMNS;
 
   const availableHeight = height ?? terminalRows - 5;
   const contentHeight = Math.max(8, availableHeight - 2);
@@ -164,7 +167,9 @@ export function Sidebar({
   const accordionCollapsed = useAppStore((state) => state.uiState.accordionCollapsed ?? {});
   const setAccordionCollapsed = useAppStore((state) => state.setAccordionCollapsed);
   const sessions = useMemo<Session[]>(() => {
-    const values = Object.values(sessionsById) as Session[];
+    const values = Object.values(sessionsById).filter(
+      (session): session is Session => session !== undefined
+    );
     return values.slice().sort((a, b) => b.updatedAt - a.updatedAt);
   }, [sessionsById]);
 
@@ -177,8 +182,8 @@ export function Sidebar({
 
   const toggleSection = useCallback(
     (section: SidebarSection) => {
-      setSidebarTab(section as AppState["uiState"]["sidebarTab"]);
-      setAccordionCollapsed(section as AppState["uiState"]["sidebarTab"], !isCollapsed(section));
+      setSidebarTab(section);
+      setAccordionCollapsed(section, !isCollapsed(section));
     },
     [isCollapsed, setAccordionCollapsed, setSidebarTab]
   );
@@ -193,6 +198,18 @@ export function Sidebar({
       setSessionIndex(foundIndex);
     }
   }, [activeSessionId, sessions]);
+
+  useEffect(() => {
+    if (sessions.length === 0) {
+      if (sessionIndex !== 0) {
+        setSessionIndex(0);
+      }
+      return;
+    }
+    if (sessionIndex >= sessions.length) {
+      setSessionIndex(sessions.length - 1);
+    }
+  }, [sessionIndex, sessions.length]);
 
   useKeyboard((key) => {
     const active = focusTarget ?? FOCUS_TARGET.CHAT;
@@ -240,19 +257,19 @@ export function Sidebar({
     }
   });
 
-  const sidebarWidthPercent = 0.15;
+  const sidebarWidthPercent = UI.SIDEBAR_WIDTH_RATIO;
   const sidebarWidth =
     typeof width === "number" ? width : Math.floor(terminalWidth * sidebarWidthPercent);
-  const sidebarPadding = 2;
-  const containerPadding = 2;
-  const scrollbarWidth = 1;
+  const sidebarPadding = UI.SIDEBAR_PADDING;
+  const containerPadding = UI.SIDEBAR_PADDING;
+  const scrollbarWidth = UI.SCROLLBAR_WIDTH;
   const maxSessionIdWidth = Math.max(
-    10,
+    LIMIT.FILE_TREE_PADDING,
     sidebarWidth - sidebarPadding - containerPadding - scrollbarWidth
   );
 
-  const filesHeight = Math.max(6, Math.floor(contentHeight * 0.55));
-  const sessionsHeight = Math.max(4, Math.floor(contentHeight * 0.25));
+  const filesHeight = Math.max(6, Math.floor(contentHeight * UI.SIDEBAR_FILES_RATIO));
+  const sessionsHeight = Math.max(4, Math.floor(contentHeight * UI.SIDEBAR_TASKS_RATIO));
 
   const contextAttachments = activeSessionId
     ? (contextAttachmentsBySession[activeSessionId] ?? [])
@@ -270,8 +287,10 @@ export function Sidebar({
       border={true}
       borderStyle="single"
       borderColor={COLOR.GRAY}
-      paddingX={1}
-      paddingY={1}
+      paddingLeft={1}
+      paddingRight={1}
+      paddingTop={1}
+      paddingBottom={1}
       gap={1}
     >
       <ScrollArea
@@ -320,7 +339,7 @@ export function Sidebar({
                   <box flexDirection="column" gap={0} minWidth={0} width="100%">
                     {displayedContext.map((file) => (
                       <text key={file} truncate={true}>
-                        • {truncateText(file, 60)}
+                        • {truncateText(file, LIMIT.SIDEBAR_TRUNCATE_LENGTH)}
                       </text>
                     ))}
                     {hiddenContextCount > 0 ? (

@@ -4,6 +4,7 @@ import path from "node:path";
 import { ENCODING } from "@/constants/encodings";
 import { ERROR_CODE } from "@/constants/error-codes";
 import { FILE_PATH } from "@/constants/file-paths";
+import { EnvManager } from "@/utils/env/env.utils";
 import { z } from "zod";
 
 const ENV_PATTERN = /\$(\w+)|\$\{([^}]+)\}/g;
@@ -73,16 +74,18 @@ const parseHarnessFile = (raw: unknown, filePath: string): HarnessFileConfig => 
 const readHarnessFile = async (filePath: string): Promise<HarnessFileConfig | null> => {
   try {
     const contents = await readFile(filePath, ENCODING.UTF8);
-    const parsed = JSON.parse(contents) as unknown;
+    const parsed: unknown = JSON.parse(contents);
     return parseHarnessFile(parsed, filePath);
   } catch (error) {
-    const code = (error as NodeJS.ErrnoException | undefined)?.code;
-    if (code === ERROR_CODE.ENOENT) {
+    if (isErrnoException(error) && error.code === ERROR_CODE.ENOENT) {
       return null;
     }
     throw error;
   }
 };
+
+const isErrnoException = (error: unknown): error is NodeJS.ErrnoException =>
+  typeof error === "object" && error !== null && "code" in error;
 
 const mergeDefinitions = (
   base: HarnessFileDefinition | undefined,
@@ -196,7 +199,7 @@ export const loadHarnessConfig = async (
     FILE_PATH.TOADSTOOL_DIR,
     DEFAULT_CONFIG_FILENAME
   );
-  const env = options.env ?? process.env;
+  const env = options.env ?? EnvManager.getInstance().getSnapshot();
 
   const [projectConfig, userConfig] = await Promise.all([
     readHarnessFile(projectPath),

@@ -10,6 +10,8 @@ export const TIMEOUT = {
   THROTTLE_MS: 100,
   MS_PER_SECOND: 1000,
   SESSION_BOOTSTRAP_MS: 8000,
+  STREAM_BUFFER_MS: 10,
+  MENTION_DEBOUNCE_MS: 150,
 } as const;
 
 // Re-export for convenience
@@ -25,4 +27,6 @@ export const {
   THROTTLE_MS,
   MS_PER_SECOND,
   SESSION_BOOTSTRAP_MS,
+  STREAM_BUFFER_MS,
+  MENTION_DEBOUNCE_MS,
 } = TIMEOUT;

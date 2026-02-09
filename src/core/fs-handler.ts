@@ -2,6 +2,7 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
 import { ENV_KEY } from "@/constants/env-keys";
 import { ERROR_CODE } from "@/constants/error-codes";
+import { EnvManager } from "@/utils/env/env.utils";
 
 export interface ReadFileOptions {
   encoding?: BufferEncoding;
@@ -22,14 +23,16 @@ export interface FsHandlerOptions {
 
 const shouldAllowEscape = (env?: NodeJS.ProcessEnv, override?: boolean): boolean => {
   if (override !== undefined) return override;
-  const raw = env?.[ENV_KEY.TOADSTOOL_ALLOW_ESCAPE] ?? process.env[ENV_KEY.TOADSTOOL_ALLOW_ESCAPE];
+  const source = env ?? EnvManager.getInstance().getSnapshot();
+  const raw = source[ENV_KEY.TOADSTOOL_ALLOW_ESCAPE];
   if (!raw) return false;
   const normalized = raw.trim().toLowerCase();
   return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
 };
 
 const resolveWorkSubdir = (env?: NodeJS.ProcessEnv): string | undefined => {
-  const raw = env?.[ENV_KEY.TOADSTOOL_WORK_SUBDIR] ?? process.env[ENV_KEY.TOADSTOOL_WORK_SUBDIR];
+  const source = env ?? EnvManager.getInstance().getSnapshot();
+  const raw = source[ENV_KEY.TOADSTOOL_WORK_SUBDIR];
   if (!raw) return undefined;
   const trimmed = raw.trim();
   if (trimmed === "") return undefined;
@@ -86,8 +89,9 @@ export class FsHandler {
       await stat(target);
       return true;
     } catch (error) {
-      const code = (error as NodeJS.ErrnoException | undefined)?.code;
-      if (code === ERROR_CODE.ENOENT) return false;
+      if (isErrnoException(error) && error.code === ERROR_CODE.ENOENT) {
+        return false;
+      }
       throw error;
     }
   }
@@ -105,3 +109,6 @@ export class FsHandler {
     return candidate;
   }
 }
+
+const isErrnoException = (error: unknown): error is NodeJS.ErrnoException =>
+  typeof error === "object" && error !== null && "code" in error;

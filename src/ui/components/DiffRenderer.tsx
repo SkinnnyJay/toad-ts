@@ -2,7 +2,7 @@ import { LIMIT } from "@/config/limits";
 import { DIFF_VIEW_MODE } from "@/constants/diff-types";
 import { diffColors } from "@/ui/theme";
 import { createTwoFilesPatch } from "diff";
-import { memo, useMemo } from "react";
+import { type ReactNode, memo, useMemo } from "react";
 
 interface DiffRendererProps {
   /** Content before the change */
@@ -26,7 +26,7 @@ export const DiffRenderer = memo(function DiffRenderer({
   language,
   viewMode = DIFF_VIEW_MODE.UNIFIED,
   contextLines = LIMIT.DIFF_CONTEXT_LINES,
-}: DiffRendererProps): JSX.Element {
+}: DiffRendererProps): ReactNode {
   const diff = useMemo(
     () =>
       createTwoFilesPatch(filename, filename, oldContent, newContent, "", "", {
@@ -43,8 +43,10 @@ export const DiffRenderer = memo(function DiffRenderer({
       border={true}
       borderStyle="rounded"
       borderColor={diffColors.border}
-      paddingX={1}
-      paddingY={1}
+      paddingLeft={1}
+      paddingRight={1}
+      paddingTop={1}
+      paddingBottom={1}
       gap={1}
     >
       <text fg={diffColors.header} bg={diffColors.headerBg}>

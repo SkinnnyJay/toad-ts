@@ -1,5 +1,6 @@
 import { MCP_SERVER_TYPE } from "@/constants/mcp-server-types";
 import { type McpServer, McpServerSchema } from "@/types/domain";
+import { EnvManager } from "@/utils/env/env.utils";
 import { z } from "zod";
 
 export type EnvSource = Record<string, string | undefined>;
@@ -54,7 +55,7 @@ const mcpServerInputSchema = z
 
 type McpServerInput = z.infer<typeof mcpServerInputSchema>;
 
-const mcpConfigSchema = z
+export const mcpConfigSchema = z
   .object({
     mcpServers: z.record(z.string().min(1), mcpServerInputSchema).default({}),
   })
@@ -78,7 +79,10 @@ export function expandEnvValue(value: string, env: EnvSource): string {
   return expanded.split(ESCAPED_DOLLAR).join("$");
 }
 
-export function parseMcpConfig(rawConfig: unknown, env: EnvSource = process.env): McpServer[] {
+export function parseMcpConfig(
+  rawConfig: unknown,
+  env: EnvSource = EnvManager.getInstance().getSnapshot()
+): McpServer[] {
   if (rawConfig === undefined || rawConfig === null) {
     return [];
   }

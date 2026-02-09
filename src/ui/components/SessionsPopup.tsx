@@ -1,11 +1,12 @@
 import { LIMIT } from "@/config/limits";
+import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { useAppStore } from "@/store/app-store";
-import type { SessionId } from "@/types/domain";
+import { type SessionId, SessionIdSchema } from "@/types/domain";
 import type { SelectOption } from "@opentui/core";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 interface SessionsPopupProps {
   isOpen: boolean;
@@ -13,11 +14,7 @@ interface SessionsPopupProps {
   onSelectSession: (sessionId: SessionId) => void;
 }
 
-export function SessionsPopup({
-  isOpen,
-  onClose,
-  onSelectSession,
-}: SessionsPopupProps): JSX.Element | null {
+export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopupProps): ReactNode {
   const sessions = useAppStore((state) => Object.values(state.sessions));
   const currentSessionId = useAppStore((state) => state.currentSessionId);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -68,10 +65,12 @@ export function SessionsPopup({
       border={true}
       borderStyle="double"
       borderColor={COLOR.CYAN}
-      paddingX={1}
-      paddingY={1}
-      minHeight={20}
-      width="80%"
+      paddingLeft={1}
+      paddingRight={1}
+      paddingTop={1}
+      paddingBottom={1}
+      minHeight={UI.POPUP_HEIGHT}
+      width={UI.POPUP_WIDTH}
     >
       <box flexDirection="row" justifyContent="space-between" marginBottom={1}>
         <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
@@ -90,10 +89,11 @@ export function SessionsPopup({
           focused={true}
           onChange={(index) => setSelectedIndex(index)}
           onSelect={(_index, option) => {
-            if (option?.value) {
-              onSelectSession(option.value as SessionId);
-              onClose();
-            }
+            if (!option?.value) return;
+            const parsed = SessionIdSchema.safeParse(option.value);
+            if (!parsed.success) return;
+            onSelectSession(parsed.data);
+            onClose();
           }}
           style={{ width: "100%" }}
         />

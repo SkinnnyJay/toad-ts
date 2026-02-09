@@ -6,6 +6,7 @@ import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { ENCODING } from "@/constants/encodings";
 import { FALLBACK } from "@/constants/fallbacks";
 import type { ConnectionStatus } from "@/types/domain";
+import { EnvManager } from "@/utils/env/env.utils";
 import { type Stream, ndJsonStream } from "@agentclientprotocol/sdk";
 import { EventEmitter } from "eventemitter3";
 
@@ -74,14 +75,14 @@ export class ACPConnection extends EventEmitter<ACPConnectionEvents> {
       return;
     }
     this.isDisconnecting = false;
-    this.setStatus("connecting");
+    this.setStatus(CONNECTION_STATUS.CONNECTING);
     this.attempt += 1;
 
     try {
       this.stderrLines.length = 0;
       const child = this.spawnFn(this.options.command, this.options.args ?? [], {
         cwd: this.options.cwd,
-        env: { ...process.env, ...this.options.env },
+        env: { ...EnvManager.getInstance().getSnapshot(), ...this.options.env },
       });
       this.child = child;
 
@@ -95,7 +96,22 @@ export class ACPConnection extends EventEmitter<ACPConnectionEvents> {
       });
 
       const input = Writable.toWeb(child.stdin);
-      const output = Readable.toWeb(child.stdout);
+      const outputReader = Readable.toWeb(child.stdout).getReader();
+      const output = new ReadableStream<Uint8Array>({
+        async pull(controller) {
+          const result = await outputReader.read();
+          if (result.done) {
+            controller.close();
+            return;
+          }
+          if (result.value) {
+            controller.enqueue(result.value);
+          }
+        },
+        cancel(reason) {
+          void outputReader.cancel(reason);
+        },
+      });
       this.stream = ndJsonStream(input, output);
 
       child.on("error", (error) => {
@@ -129,7 +145,7 @@ export class ACPConnection extends EventEmitter<ACPConnectionEvents> {
 
   async disconnect(): Promise<void> {
     if (!this.child) {
-      this.setStatus("disconnected");
+      this.setStatus(CONNECTION_STATUS.DISCONNECTED);
       return;
     }
     this.isDisconnecting = true;
@@ -146,7 +162,7 @@ export class ACPConnection extends EventEmitter<ACPConnectionEvents> {
     this.child = undefined;
     this.stream = undefined;
     this.isDisconnecting = false;
-    this.setStatus("disconnected");
+    this.setStatus(CONNECTION_STATUS.DISCONNECTED);
   }
 
   scheduleReconnect(): number {

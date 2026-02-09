@@ -4,6 +4,7 @@ import { PERSISTENCE_REQUEST_TYPE } from "@/constants/persistence-request-types"
 import { SessionSnapshotSchema } from "@/store/session-persistence";
 import { MessageSchema, SessionSchema } from "@/types/domain";
 import type { Message, Session } from "@/types/domain";
+import { EnvManager } from "@/utils/env/env.utils";
 import { nanoid } from "nanoid";
 
 import type { ChatQuery, PersistenceConfig, PersistenceProvider } from "./persistence-provider";
@@ -161,7 +162,7 @@ class SqliteDirectClient implements SqliteClient {
 export const createSqlitePersistenceProvider = (
   config: NonNullable<PersistenceConfig["sqlite"]>
 ): PersistenceProvider => {
-  const useWorker = process.env.NODE_ENV !== "test";
+  const useWorker = EnvManager.getInstance().getEnvironment() !== "test";
   const client: SqliteClient = useWorker
     ? new SqliteWorkerClient({ filePath: config.filePath })
     : new SqliteDirectClient(config.filePath);

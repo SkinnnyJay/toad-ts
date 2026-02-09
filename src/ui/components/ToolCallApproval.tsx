@@ -1,12 +1,13 @@
 import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
+import { APPROVAL_DECISION, type ApprovalDecision } from "@/constants/approval-decisions";
 import { COLOR } from "@/constants/colors";
 import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { PERMISSION, type Permission } from "@/constants/permissions";
 import type { ToolCallId } from "@/types/domain";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
-import { useCallback, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 
 export type PermissionProfile = Permission;
 
@@ -51,9 +52,9 @@ export function ToolCallApproval({
   onDeny,
   autoApproveTimeout = TIMEOUT.AUTO_APPROVE_DISABLED,
   defaultPermission = PERMISSION.ASK,
-}: ToolCallApprovalProps): JSX.Element | null {
+}: ToolCallApprovalProps): ReactNode {
   const [countdown, setCountdown] = useState(autoApproveTimeout);
-  const [decision, setDecision] = useState<"approved" | "denied" | null>(null);
+  const [decision, setDecision] = useState<ApprovalDecision | null>(null);
 
   const permission = request.permissionProfile ?? defaultPermission;
 
@@ -61,10 +62,10 @@ export function ToolCallApproval({
   useEffect(() => {
     if (permission === PERMISSION.ALLOW) {
       onApprove(request.id);
-      setDecision("approved");
+      setDecision(APPROVAL_DECISION.APPROVED);
     } else if (permission === PERMISSION.DENY) {
       onDeny(request.id);
-      setDecision("denied");
+      setDecision(APPROVAL_DECISION.DENIED);
     }
   }, [permission, request.id, onApprove, onDeny]);
 
@@ -76,7 +77,7 @@ export function ToolCallApproval({
       setCountdown((prev) => {
         if (prev <= 1) {
           onApprove(request.id);
-          setDecision("approved");
+          setDecision(APPROVAL_DECISION.APPROVED);
           return 0;
         }
         return prev - 1;
@@ -89,24 +90,20 @@ export function ToolCallApproval({
   const handleApprove = useCallback(() => {
     if (decision) return;
     onApprove(request.id);
-    setDecision("approved");
+    setDecision(APPROVAL_DECISION.APPROVED);
   }, [decision, request.id, onApprove]);
 
   const handleDeny = useCallback(() => {
     if (decision) return;
     onDeny(request.id);
-    setDecision("denied");
+    setDecision(APPROVAL_DECISION.DENIED);
   }, [decision, request.id, onDeny]);
 
   // Handle keyboard input
   useKeyboard((key) => {
     if (permission !== PERMISSION.ASK || decision) return;
 
-    if (
-      key.name === KEYBOARD_INPUT.YES_LOWER ||
-      key.name === "return" ||
-      key.name === "linefeed"
-    ) {
+    if (key.name === KEYBOARD_INPUT.YES_LOWER || key.name === "return" || key.name === "linefeed") {
       key.preventDefault();
       key.stopPropagation();
       handleApprove();
@@ -122,7 +119,7 @@ export function ToolCallApproval({
     if (decision) {
       return (
         <box>
-          <text fg={decision === "approved" ? COLOR.GREEN : COLOR.RED}>
+          <text fg={decision === APPROVAL_DECISION.APPROVED ? COLOR.GREEN : COLOR.RED}>
             ✓ Tool call "{request.name}" {decision}
           </text>
         </box>
@@ -151,9 +148,7 @@ export function ToolCallApproval({
       <box marginTop={1} flexDirection="row" gap={2}>
         <text fg={COLOR.GREEN}>[Y]es/Enter to approve</text>
         <text fg={COLOR.RED}>[N]o/Esc to deny</text>
-        {countdown > 0 && (
-          <text fg={COLOR.YELLOW}>(auto-approve in {countdown}s)</text>
-        )}
+        {countdown > 0 && <text fg={COLOR.YELLOW}>(auto-approve in {countdown}s)</text>}
       </box>
     </box>
   );

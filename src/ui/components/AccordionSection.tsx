@@ -1,6 +1,6 @@
 import { COLOR } from "@/constants/colors";
 import { TextAttributes } from "@opentui/core";
-import type { PropsWithChildren } from "react";
+import type { PropsWithChildren, ReactNode } from "react";
 
 interface AccordionSectionProps {
   title: string;
@@ -15,7 +15,7 @@ export function AccordionSection({
   shortcutHint,
   height,
   children,
-}: PropsWithChildren<AccordionSectionProps>): JSX.Element {
+}: PropsWithChildren<AccordionSectionProps>): ReactNode {
   const indicator = isCollapsed ? "▶" : "▼";
 
   return (
@@ -39,8 +39,10 @@ export function AccordionSection({
         border={true}
         borderStyle="single"
         borderColor={COLOR.GRAY}
-        paddingX={1}
-        paddingY={0}
+        paddingLeft={1}
+        paddingRight={1}
+        paddingTop={0}
+        paddingBottom={0}
         gap={0}
         width="100%"
         minHeight={3}
@@ -49,8 +51,10 @@ export function AccordionSection({
         <box
           justifyContent="flex-start"
           alignItems="center"
-          paddingX={0}
-          paddingY={0}
+          paddingLeft={0}
+          paddingRight={0}
+          paddingTop={0}
+          paddingBottom={0}
           width="100%"
           height={1}
           minHeight={1}

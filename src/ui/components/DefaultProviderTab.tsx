@@ -4,20 +4,25 @@ import type { AgentId } from "@/types/domain";
 import type { AgentOption } from "@/ui/components/AgentSelect";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
 interface DefaultProviderTabProps {
   agents: AgentOption[];
   onSave?: () => void;
 }
 
-export function DefaultProviderTab({ agents, onSave }: DefaultProviderTabProps): JSX.Element {
+type DefaultProviderOption = {
+  id?: AgentId;
+  name: string;
+};
+
+export function DefaultProviderTab({ agents, onSave }: DefaultProviderTabProps): ReactNode {
   const [index, setIndex] = useState(0);
   const [currentDefault, setCurrentDefault] = useState<AgentId | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
 
-  const options = useMemo(
-    () => [{ id: undefined as AgentId | undefined, name: "None" }, ...agents],
+  const options: DefaultProviderOption[] = useMemo(
+    () => [{ id: undefined, name: "None" }, ...agents],
     [agents]
   );
 
@@ -89,14 +94,14 @@ export function DefaultProviderTab({ agents, onSave }: DefaultProviderTabProps):
 
   if (isLoading) {
     return (
-      <box flexDirection="column" paddingY={1}>
+      <box flexDirection="column" paddingTop={1} paddingBottom={1}>
         <text attributes={TextAttributes.DIM}>Loading settings…</text>
       </box>
     );
   }
 
   return (
-    <box flexDirection="column" gap={1} paddingY={1}>
+    <box flexDirection="column" gap={1} paddingTop={1} paddingBottom={1}>
       <text attributes={TextAttributes.BOLD}>Default Provider</text>
       <text attributes={TextAttributes.DIM}>
         Select a default agent to use when starting the app.
@@ -109,7 +114,14 @@ export function DefaultProviderTab({ agents, onSave }: DefaultProviderTabProps):
           const displayName = option.id ? option.name : "None (show agent selection)";
 
           return (
-            <box key={option.id ?? "none"} flexDirection="row" paddingX={1} paddingY={0}>
+            <box
+              key={option.id ?? "none"}
+              flexDirection="row"
+              paddingLeft={1}
+              paddingRight={1}
+              paddingTop={0}
+              paddingBottom={0}
+            >
               <text fg={isSelected ? COLOR.GREEN : isCurrentDefault ? COLOR.CYAN : undefined}>
                 {isSelected ? "› " : "  "}
                 {isCurrentDefault && !isSelected ? "● " : "  "}

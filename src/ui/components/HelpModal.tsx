@@ -1,7 +1,10 @@
+import { LIMIT } from "@/config/limits";
+import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { COMMAND_DEFINITIONS } from "@/constants/command-definitions";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
+import type { ReactNode } from "react";
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -11,9 +14,12 @@ interface HelpModalProps {
 const calculateColumnWidths = (
   commands: typeof COMMAND_DEFINITIONS
 ): { command: number; description: number; args: number } => {
-  let maxCommand = 8; // "Command" header length
-  let maxDescription = 11; // "Description" header length
-  let maxArgs = 9; // "Arguments" header length
+  const commandHeader = "Command";
+  const descriptionHeader = "Description";
+  const argsHeader = "Arguments";
+  let maxCommand = commandHeader.length;
+  let maxDescription = Math.max(LIMIT.HELP_MAX_DESCRIPTION_WIDTH, descriptionHeader.length);
+  let maxArgs = argsHeader.length;
 
   for (const cmd of commands) {
     maxCommand = Math.max(maxCommand, cmd.name.length);
@@ -40,7 +46,7 @@ const formatRow = (
   return `${cmdPadded}  ${descPadded}  ${argsPadded}`;
 };
 
-export function HelpModal({ isOpen, onClose }: HelpModalProps): JSX.Element | null {
+export function HelpModal({ isOpen, onClose }: HelpModalProps): ReactNode {
   useKeyboard((key) => {
     if (!isOpen) return;
     if (key.name === "escape" || (key.ctrl && key.name === "s")) {
@@ -55,6 +61,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps): JSX.Element | nu
   const widths = calculateColumnWidths(COMMAND_DEFINITIONS);
   const header = formatRow("Command", "Description", "Arguments", widths);
   const separator = "─".repeat(header.length);
+  const contentMinHeight = UI.MODAL_HEIGHT - UI.SIDEBAR_PADDING * 2 - UI.SCROLLBAR_WIDTH;
 
   return (
     <box
@@ -62,10 +69,12 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps): JSX.Element | nu
       border={true}
       borderStyle="double"
       borderColor={COLOR.CYAN}
-      paddingX={1}
-      paddingY={1}
-      minHeight={20}
-      width="80%"
+      paddingLeft={1}
+      paddingRight={1}
+      paddingTop={1}
+      paddingBottom={1}
+      minHeight={UI.MODAL_HEIGHT}
+      width={UI.MODAL_WIDTH}
     >
       <box flexDirection="row" justifyContent="space-between" marginBottom={1}>
         <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
@@ -73,15 +82,13 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps): JSX.Element | nu
         </text>
       </box>
 
-      <box flexDirection="column" flexGrow={1} minHeight={15}>
+      <box flexDirection="column" flexGrow={1} minHeight={contentMinHeight}>
         <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
           {header}
         </text>
         <text attributes={TextAttributes.DIM}>{separator}</text>
         {COMMAND_DEFINITIONS.map((cmd) => (
-          <text key={cmd.name}>
-            {formatRow(cmd.name, cmd.description, cmd.args || "", widths)}
-          </text>
+          <text key={cmd.name}>{formatRow(cmd.name, cmd.description, cmd.args || "", widths)}</text>
         ))}
       </box>
 

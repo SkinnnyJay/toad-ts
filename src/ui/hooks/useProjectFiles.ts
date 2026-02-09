@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { LIMIT } from "@/config/limits";
+import { IGNORE_PATTERN } from "@/constants/ignore-patterns";
 import fg from "fast-glob";
 import ignore from "ignore";
 import { useEffect, useState } from "react";
@@ -14,7 +15,7 @@ export const createIgnoreFilter = async (
   cwd: string
 ): Promise<(relativePath: string) => boolean> => {
   const ig = ignore();
-  ig.add([".git", "node_modules", "dist", ".next"]);
+  ig.add(IGNORE_PATTERN.PROJECT_FILES);
   try {
     const gitignore = await readFile(path.join(cwd, ".gitignore"), "utf8");
     ig.add(gitignore);

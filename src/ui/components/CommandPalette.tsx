@@ -1,9 +1,10 @@
+import { LIMIT } from "@/config/limits";
 import { COLOR } from "@/constants/colors";
 import type { CommandDefinition } from "@/constants/command-definitions";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import fuzzysort from "fuzzysort";
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 interface CommandPaletteProps {
   commands: CommandDefinition[];
@@ -12,14 +13,12 @@ interface CommandPaletteProps {
   onSelect: (command: CommandDefinition) => void;
 }
 
-const MAX_RESULTS = 10;
-
 export function CommandPalette({
   commands,
   isOpen,
   onClose,
   onSelect,
-}: CommandPaletteProps): JSX.Element | null {
+}: CommandPaletteProps): ReactNode {
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState(0);
 
@@ -31,9 +30,13 @@ export function CommandPalette({
   }, [isOpen]);
 
   const results = useMemo(() => {
-    if (!query.trim()) return commands.slice(0, MAX_RESULTS).map((cmd) => ({ cmd, score: 0 }));
+    if (!query.trim())
+      return commands.slice(0, LIMIT.COMMAND_PALETTE_MAX_RESULTS).map((cmd) => ({
+        cmd,
+        score: 0,
+      }));
     const scored = fuzzysort.go(query, commands, {
-      limit: MAX_RESULTS,
+      limit: LIMIT.COMMAND_PALETTE_MAX_RESULTS,
       key: "name",
     });
     return scored.map((res) => ({ cmd: res.obj, score: res.score }));
@@ -94,8 +97,10 @@ export function CommandPalette({
       border={true}
       borderStyle="single"
       borderColor={COLOR.CYAN}
-      paddingX={1}
-      paddingY={1}
+      paddingLeft={1}
+      paddingRight={1}
+      paddingTop={1}
+      paddingBottom={1}
       width="100%"
       minHeight={5}
       gap={1}

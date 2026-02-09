@@ -9,6 +9,7 @@ import { nanoid } from "nanoid";
 
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { CONTENT_MODE } from "@/constants/content-modes";
+import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { STREAM_METADATA_KEY } from "@/constants/stream-metadata";
@@ -87,23 +88,13 @@ export class SessionStream {
         this.applySessionInfoUpdate(sessionId, update);
         return;
       case SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK:
-        this.handleContentChunk(
-          sessionId,
-          "assistant" as MessageRole,
-          update,
-          CONTENT_MODE.MESSAGE
-        );
+        this.handleContentChunk(sessionId, MESSAGE_ROLE.ASSISTANT, update, CONTENT_MODE.MESSAGE);
         return;
       case SESSION_UPDATE_TYPE.USER_MESSAGE_CHUNK:
-        this.handleContentChunk(sessionId, "user" as MessageRole, update, CONTENT_MODE.MESSAGE);
+        this.handleContentChunk(sessionId, MESSAGE_ROLE.USER, update, CONTENT_MODE.MESSAGE);
         return;
       case SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK:
-        this.handleContentChunk(
-          sessionId,
-          "assistant" as MessageRole,
-          update,
-          CONTENT_MODE.THOUGHT
-        );
+        this.handleContentChunk(sessionId, MESSAGE_ROLE.ASSISTANT, update, CONTENT_MODE.THOUGHT);
         return;
       case SESSION_UPDATE_TYPE.TOOL_CALL:
         this.handleToolCall(sessionId, update);
@@ -132,7 +123,7 @@ export class SessionStream {
     block: ContentBlock;
   }): void {
     const existing = this.store.getMessage(payload.messageId);
-    const role = this.messageRoles.get(payload.messageId) ?? ("assistant" as MessageRole);
+    const role = this.messageRoles.get(payload.messageId) ?? MESSAGE_ROLE.ASSISTANT;
     const sessionId = this.messageSessions.get(payload.messageId) ?? payload.sessionId;
 
     this.ensureSession(sessionId);
@@ -204,12 +195,12 @@ export class SessionStream {
     update: ToolCall & { sessionUpdate: typeof SESSION_UPDATE_TYPE.TOOL_CALL }
   ): void {
     const messageKey = this.buildStreamKey(sessionId, SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK);
-    const messageId = this.getOrCreateMessageId(messageKey, sessionId, "assistant");
+    const messageId = this.getOrCreateMessageId(messageKey, sessionId, MESSAGE_ROLE.ASSISTANT);
 
     this.handler.handle({
       sessionId,
       messageId,
-      role: "assistant",
+      role: MESSAGE_ROLE.ASSISTANT,
       content: this.mapToolCall(update),
       isFinal: false,
     });
@@ -220,12 +211,12 @@ export class SessionStream {
     update: ToolCallUpdate & { sessionUpdate: typeof SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE }
   ): void {
     const messageKey = this.buildStreamKey(sessionId, SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK);
-    const messageId = this.getOrCreateMessageId(messageKey, sessionId, "assistant");
+    const messageId = this.getOrCreateMessageId(messageKey, sessionId, MESSAGE_ROLE.ASSISTANT);
 
     this.handler.handle({
       sessionId,
       messageId,
-      role: "assistant",
+      role: MESSAGE_ROLE.ASSISTANT,
       content: this.mapToolCall(update),
       isFinal: false,
     });
@@ -246,7 +237,7 @@ export class SessionStream {
       messageIds: existing?.messageIds ?? [],
       createdAt: existing?.createdAt ?? now,
       updatedAt: Number.isNaN(updatedAt) ? now : updatedAt,
-      mode: existing?.mode ?? "auto",
+      mode: existing?.mode ?? SESSION_MODE.AUTO,
       metadata: existing?.metadata,
     };
 

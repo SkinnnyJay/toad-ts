@@ -2,8 +2,9 @@ import { COLOR } from "@/constants/colors";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { useAppStore } from "@/store/app-store";
 import { TextAttributes } from "@opentui/core";
+import type { ReactNode } from "react";
 
-export function StatusLine(): JSX.Element {
+export function StatusLine(): ReactNode {
   const status = useAppStore((state) => state.connectionStatus);
   const sessionId = useAppStore((state) => state.currentSessionId);
   const currentSession = useAppStore((state) =>

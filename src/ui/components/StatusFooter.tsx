@@ -1,15 +1,16 @@
 import { LIMIT } from "@/config/limits";
 import { COLOR } from "@/constants/colors";
-import type { FocusTarget } from "@/constants/focus-target";
-import type { ConnectionStatus, SessionId } from "@/types/domain";
+import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
+import type { ConnectionStatus, SessionId, SessionMode } from "@/types/domain";
 import { TextAttributes } from "@opentui/core";
+import type { ReactNode } from "react";
 
 export interface StatusFooterProps {
   taskProgress?: { completed: number; total: number };
   planProgress?: { completed: number; total: number };
   focusTarget?: FocusTarget;
   connectionStatus?: ConnectionStatus;
-  sessionMode?: string;
+  sessionMode?: SessionMode;
   sessionId?: SessionId;
   agentName?: string;
 }
@@ -31,12 +32,12 @@ const truncateMiddle = (value: string, max: number): string => {
 export function StatusFooter({
   taskProgress,
   planProgress,
-  focusTarget = "chat",
+  focusTarget = FOCUS_TARGET.CHAT,
   connectionStatus,
   sessionMode,
   sessionId,
   agentName,
-}: StatusFooterProps): JSX.Element {
+}: StatusFooterProps): ReactNode {
   const planText =
     planProgress && planProgress.total > 0
       ? `Plan ${planProgress.completed}/${planProgress.total}`
@@ -57,7 +58,7 @@ export function StatusFooter({
     trimmedAgent ? `Agent: ${trimmedAgent}` : undefined,
     sessionMode ? `Mode: ${sessionMode}` : undefined,
     trimmedSession ? `Session: ${trimmedSession}` : undefined,
-  ].filter(Boolean) as string[];
+  ].filter((value): value is string => Boolean(value));
 
   return (
     <box
@@ -66,8 +67,10 @@ export function StatusFooter({
       border={true}
       borderStyle="single"
       borderColor={COLOR.GRAY}
-      paddingX={1}
-      paddingY={0}
+      paddingLeft={1}
+      paddingRight={1}
+      paddingTop={0}
+      paddingBottom={0}
       gap={2}
       justifyContent="space-between"
       alignItems="center"

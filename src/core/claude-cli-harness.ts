@@ -18,6 +18,7 @@ import type {
 import { harnessConfigSchema } from "@/harness/harnessConfig";
 import type { ConnectionStatus } from "@/types/domain";
 import { retryWithBackoff } from "@/utils/async/retryWithBackoff";
+import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import type {
   AuthenticateRequest,
@@ -57,7 +58,8 @@ const parseArgs = (rawValue: string): string[] => {
 const addLocalBinToPath = (env: NodeJS.ProcessEnv, cwd?: string): NodeJS.ProcessEnv => {
   const baseDir = cwd ?? process.cwd();
   const localBin = join(baseDir, "node_modules", ".bin");
-  const pathValue = env.PATH ?? process.env.PATH ?? "";
+  const defaultEnv = EnvManager.getInstance().getSnapshot();
+  const pathValue = env[ENV_KEY.PATH] ?? defaultEnv[ENV_KEY.PATH] ?? "";
   if (!existsSync(localBin)) {
     return env;
   }
@@ -69,14 +71,14 @@ const addLocalBinToPath = (env: NodeJS.ProcessEnv, cwd?: string): NodeJS.Process
 
   return {
     ...env,
-    PATH: `${localBin}${delimiter}${pathValue}`,
+    [ENV_KEY.PATH]: `${localBin}${delimiter}${pathValue}`,
   };
 };
 
 const resolveDefaults = (
   options: ClaudeCliHarnessAdapterOptions
 ): { command: string; args: string[]; env: NodeJS.ProcessEnv } => {
-  const envDefaults = options.envDefaults ?? process.env;
+  const envDefaults = options.envDefaults ?? EnvManager.getInstance().getSnapshot();
   const commandFromEnv = envDefaults[ENV_KEY.TOADSTOOL_CLAUDE_COMMAND];
   const argsFromEnv = envDefaults[ENV_KEY.TOADSTOOL_CLAUDE_ARGS];
 
@@ -170,8 +172,8 @@ export class ClaudeCliHarnessAdapter
   }
 
   private isRetryableConnectionError(error: unknown): boolean {
-    if (typeof error === "object" && error !== null && "code" in error) {
-      const code = (error as NodeJS.ErrnoException).code;
+    if (isErrnoException(error)) {
+      const code = error.code;
       if (code === "ENOENT" || code === "EACCES") {
         return false;
       }
@@ -209,6 +211,9 @@ export const claudeCliHarnessAdapter: HarnessAdapter = {
       command: config.command,
       args: config.args,
       cwd: config.cwd,
-      env: { ...process.env, ...config.env },
+      env: { ...EnvManager.getInstance().getSnapshot(), ...config.env },
     }),
 };
+
+const isErrnoException = (error: unknown): error is NodeJS.ErrnoException =>
+  typeof error === "object" && error !== null && "code" in error;

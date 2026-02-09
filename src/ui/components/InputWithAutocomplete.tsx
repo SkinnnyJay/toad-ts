@@ -1,20 +1,22 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { LIMIT } from "@/config/limits";
+import { TIMEOUT } from "@/config/timeouts";
 import { COLOR } from "@/constants/colors";
 import { COMMAND_DEFINITIONS, type CommandDefinition } from "@/constants/command-definitions";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
+import { IGNORE_PATTERN } from "@/constants/ignore-patterns";
 import type {
   InputRenderable,
   KeyBinding as TextareaKeyBinding,
   TextareaRenderable,
 } from "@opentui/core";
-import { TextAttributes } from "@opentui/core";
+import { type SubmitEvent, TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import fg from "fast-glob";
 import fuzzysort from "fuzzysort";
 import ignore from "ignore";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export type SlashCommand = CommandDefinition;
 
@@ -35,13 +37,12 @@ export interface InputWithAutocompleteProps {
 const DEFAULT_COMMANDS: SlashCommand[] = COMMAND_DEFINITIONS;
 const MENTION_REGEX = /@([\w./-]*)$/;
 const MENTION_SUGGESTION_LIMIT = 8;
-const MENTION_DEBOUNCE_MS = 150;
 
 const toPosix = (value: string): string => value.split(path.sep).join("/");
 
 const createIgnoreFilter = async (cwd: string): Promise<(relativePath: string) => boolean> => {
   const ig = ignore();
-  ig.add([".git", "node_modules", "dist", ".next"]);
+  ig.add(IGNORE_PATTERN.PROJECT_FILES);
   try {
     const gitignore = await readFile(path.join(cwd, ".gitignore"), "utf8");
     ig.add(gitignore);
@@ -65,7 +66,7 @@ export function InputWithAutocomplete({
   multiline = false,
   enableMentions = true,
   focusTarget = FOCUS_TARGET.CHAT,
-}: InputWithAutocompleteProps): JSX.Element {
+}: InputWithAutocompleteProps): ReactNode {
   const inputRef = useRef<InputRenderable | null>(null);
   const textareaRef = useRef<TextareaRenderable | null>(null);
 
@@ -182,7 +183,7 @@ export function InputWithAutocomplete({
         limit: MENTION_SUGGESTION_LIMIT,
       });
       setMentionSuggestions(results.map((r) => r.target));
-    }, MENTION_DEBOUNCE_MS);
+    }, TIMEOUT.MENTION_DEBOUNCE_MS);
     return () => clearTimeout(handle);
   }, [enableMentions, filePaths, mentionQuery]);
 
@@ -294,7 +295,8 @@ export function InputWithAutocomplete({
   }, [onChange, value]);
 
   const handleSubmit = useCallback(
-    (submitted: string) => {
+    (submitted: string | SubmitEvent) => {
+      if (typeof submitted !== "string") return;
       onSubmit(submitted);
       onChange("");
       setCursorOffset(0);
@@ -302,12 +304,15 @@ export function InputWithAutocomplete({
     [onChange, onSubmit, setCursorOffset]
   );
 
-  const handleTextareaSubmit = useCallback(() => {
-    const submitted = textareaRef.current?.plainText ?? value;
-    onSubmit(submitted);
-    onChange("");
-    setCursorOffset(0);
-  }, [onChange, onSubmit, setCursorOffset, value]);
+  const handleTextareaSubmit = useCallback(
+    (_event: SubmitEvent) => {
+      const submitted = textareaRef.current?.plainText ?? value;
+      onSubmit(submitted);
+      onChange("");
+      setCursorOffset(0);
+    },
+    [onChange, onSubmit, setCursorOffset, value]
+  );
 
   return (
     <box flexDirection="column" flexGrow={1} minWidth={0}>
@@ -388,7 +393,8 @@ export function InputWithAutocomplete({
         borderStyle="single"
         paddingLeft={1}
         paddingRight={1}
-        paddingY={multiline ? 1 : 0}
+        paddingTop={multiline ? 1 : 0}
+        paddingBottom={multiline ? 1 : 0}
         minHeight={multiline ? 5 : 1}
         height={multiline ? undefined : 1}
         flexGrow={multiline ? 1 : undefined}

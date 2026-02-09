@@ -37,7 +37,7 @@ describe("Input History", () => {
     );
 
     // Component should render the value
-    // Note: ink-testing-library may not show the exact value in lastFrame
+    // Note: the OpenTUI test renderer may not show the exact value in lastFrame
     // but the component should accept it
     expect(lastFrame()).toBeTruthy();
   });
@@ -54,7 +54,7 @@ describe("Input History", () => {
       })
     );
 
-    // Note: ink-testing-library stdin.write("\r") should trigger Enter
+    // Note: the OpenTUI test renderer stdin.write("\r") should trigger Enter
     // But this requires proper simulation. For now, we test the component accepts the props.
     expect(onSubmit).toBeDefined();
   });
@@ -72,7 +72,7 @@ describe("Input History", () => {
     );
 
     // Should show autocomplete suggestions
-    // The exact behavior depends on ink-testing-library's ability to render autocomplete
+    // The exact behavior depends on the test renderer's ability to render autocomplete
     expect(lastFrame()).toBeTruthy();
   });
 });
@@ -80,7 +80,7 @@ describe("Input History", () => {
 /**
  * Note: Full input history navigation (↑/↓) tests would require:
  * 1. Input history state management in Chat component
- * 2. Proper keyboard event simulation in ink-testing-library
+ * 2. Proper keyboard event simulation in the OpenTUI test renderer
  *
  * Currently, InputWithAutocomplete doesn't implement history navigation.
  * This would need to be added to the Chat component to track and navigate

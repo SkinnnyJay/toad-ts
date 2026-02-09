@@ -5,7 +5,8 @@ import { ENV_KEY } from "@/constants/env-keys";
 import { ERROR_CODE } from "@/constants/error-codes";
 import { FILE_PATH } from "@/constants/file-paths";
 
-import type { McpConfigInput } from "@/core/mcp-config";
+import { type McpConfigInput, mcpConfigSchema } from "@/core/mcp-config";
+import { EnvManager } from "@/utils/env/env.utils";
 export interface McpConfigLoaderOptions {
   projectRoot?: string;
   configPath?: string;
@@ -15,7 +16,7 @@ export interface McpConfigLoaderOptions {
 export const loadMcpConfig = async (
   options: McpConfigLoaderOptions = {}
 ): Promise<McpConfigInput | null> => {
-  const env = options.env ?? process.env;
+  const env = options.env ?? EnvManager.getInstance().getSnapshot();
   const projectRoot = options.projectRoot ?? process.cwd();
   const configPath =
     options.configPath ??
@@ -24,12 +25,15 @@ export const loadMcpConfig = async (
 
   try {
     const contents = await readFile(configPath, ENCODING.UTF8);
-    return JSON.parse(contents) as McpConfigInput;
+    const parsed: unknown = JSON.parse(contents);
+    return mcpConfigSchema.parse(parsed);
   } catch (error) {
-    const code = (error as NodeJS.ErrnoException | undefined)?.code;
-    if (code === ERROR_CODE.ENOENT) {
+    if (isErrnoException(error) && error.code === ERROR_CODE.ENOENT) {
       return null;
     }
     throw error;
   }
 };
+
+const isErrnoException = (error: unknown): error is NodeJS.ErrnoException =>
+  typeof error === "object" && error !== null && "code" in error;

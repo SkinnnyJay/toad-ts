@@ -1,4 +1,6 @@
 import { LIMIT } from "@/config/limits";
+import { CONNECTION_STATUS } from "@/constants/connection-status";
+import { SIDEBAR_TAB } from "@/constants/sidebar-tabs";
 import { type SessionSnapshot, SessionSnapshotSchema } from "@/store/session-persistence";
 import { MessageSchema, SessionSchema } from "@/types/domain";
 import type {
@@ -39,13 +41,13 @@ export interface AppStore extends AppState {
 }
 
 const initialState: AppState = {
-  connectionStatus: "disconnected",
+  connectionStatus: CONNECTION_STATUS.DISCONNECTED,
   currentSessionId: undefined,
   sessions: {},
   messages: {},
   plans: {},
   contextAttachments: {},
-  uiState: { sidebarTab: "files", accordionCollapsed: {} },
+  uiState: { sidebarTab: SIDEBAR_TAB.FILES, accordionCollapsed: {} },
 };
 
 export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState"], get) => ({

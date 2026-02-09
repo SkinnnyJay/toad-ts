@@ -1,15 +1,17 @@
+import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
+import { RENDER_STAGE } from "@/constants/render-stage";
 import type { AgentId } from "@/types/domain";
+import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
-import { useEffect, useMemo, useState } from "react";
-import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 export interface AgentOption {
   id: AgentId;
   name: string;
   description?: string;
-  status?: "ready" | "loading" | "error";
+  status?: typeof RENDER_STAGE.READY | typeof RENDER_STAGE.LOADING | typeof RENDER_STAGE.ERROR;
 }
 
 interface AgentSelectProps {
@@ -17,11 +19,11 @@ interface AgentSelectProps {
   onSelect: (agent: AgentOption) => void;
 }
 
-export function AgentSelect({ agents, onSelect }: AgentSelectProps): JSX.Element {
+export function AgentSelect({ agents, onSelect }: AgentSelectProps): ReactNode {
   const terminal = useTerminalDimensions();
   const [index, setIndex] = useState(0);
 
-  const columns = terminal.columns ?? 80;
+  const columns = terminal.columns ?? UI.TERMINAL_DEFAULT_COLUMNS;
   const cols = useMemo(() => Math.max(1, Math.min(3, Math.floor(columns / 26))), [columns]);
   const cardWidth = useMemo(() => Math.max(18, Math.floor(columns / cols) - 6), [columns, cols]);
 
@@ -92,11 +94,11 @@ export function AgentSelect({ agents, onSelect }: AgentSelectProps): JSX.Element
 
   const statusIcon = (status?: AgentOption["status"]): { icon: string; color?: string } => {
     switch (status) {
-      case "ready":
+      case RENDER_STAGE.READY:
         return { icon: "●", color: COLOR.GREEN };
-      case "loading":
+      case RENDER_STAGE.LOADING:
         return { icon: "…", color: COLOR.CYAN };
-      case "error":
+      case RENDER_STAGE.ERROR:
         return { icon: "!", color: COLOR.RED };
       default:
         return { icon: "○", color: COLOR.GRAY };
@@ -119,8 +121,10 @@ export function AgentSelect({ agents, onSelect }: AgentSelectProps): JSX.Element
                   border={true}
                   borderStyle="single"
                   borderColor={selected ? COLOR.CYAN : COLOR.GRAY}
-                  paddingX={1}
-                  paddingY={0}
+                  paddingLeft={1}
+                  paddingRight={1}
+                  paddingTop={0}
+                  paddingBottom={0}
                   width={cardWidth}
                   flexDirection="column"
                   gap={0}
