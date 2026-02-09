@@ -38,11 +38,7 @@ export const editTool: ToolDefinition<EditToolOutput> = {
   execute: async (input, context) => {
     const parsed = EditInputSchema.parse(input);
     const content = await context.fs.read(parsed.path);
-    const { updated, replaced } = applyReplacement(
-      content,
-      parsed.old_string,
-      parsed.new_string
-    );
+    const { updated, replaced } = applyReplacement(content, parsed.old_string, parsed.new_string);
 
     if (!replaced) {
       return { ok: false, error: "Old string not found in file." };

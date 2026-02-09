@@ -230,6 +230,7 @@ export const Chat = memo(
                 [PERMISSION_PATTERN.EXEC]:
                   sessionMode === SESSION_MODE.FULL_ACCESS ? PERMISSION.ALLOW : PERMISSION.ASK,
                 [PERMISSION_PATTERN.TODO]: PERMISSION.ALLOW,
+                [PERMISSION_PATTERN.TASK]: PERMISSION.ALLOW,
                 [PERMISSION_PATTERN.ASK]: PERMISSION.ASK,
               }}
             />

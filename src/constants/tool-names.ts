@@ -10,6 +10,7 @@ export const TOOL_NAME = {
   TODO_READ: "todo_read",
   WEBFETCH: "fetch_web",
   QUESTION: "ask_question",
+  TASK_OUTPUT: "task_output",
 } as const;
 
 export type ToolName = (typeof TOOL_NAME)[keyof typeof TOOL_NAME];
@@ -26,4 +27,5 @@ export const {
   TODO_READ,
   WEBFETCH,
   QUESTION,
+  TASK_OUTPUT,
 } = TOOL_NAME;

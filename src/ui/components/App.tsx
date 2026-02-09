@@ -1,6 +1,7 @@
 import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
+import { BACKGROUND_TASK_STATUS } from "@/constants/background-task-status";
 import { COLOR } from "@/constants/colors";
 import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-marks";
 import { PERSISTENCE_WRITE_MODE } from "@/constants/persistence-write-modes";
@@ -12,6 +13,7 @@ import { mockHarnessAdapter } from "@/core/mock-harness";
 import { SessionStream } from "@/core/session-stream";
 import { HarnessRegistry } from "@/harness/harnessRegistry";
 import { useAppStore } from "@/store/app-store";
+import { useBackgroundTaskStore } from "@/store/background-task-store";
 import { createPersistenceConfig } from "@/store/persistence/persistence-config";
 import { PersistenceManager } from "@/store/persistence/persistence-manager";
 import { createPersistenceProvider } from "@/store/persistence/persistence-provider";
@@ -19,6 +21,7 @@ import type { SessionId } from "@/types/domain";
 import { AgentSelect } from "@/ui/components/AgentSelect";
 import type { AgentOption } from "@/ui/components/AgentSelect";
 import { AsciiBanner } from "@/ui/components/AsciiBanner";
+import { BackgroundTasksModal } from "@/ui/components/BackgroundTasksModal";
 import { Chat } from "@/ui/components/Chat";
 import { HelpModal } from "@/ui/components/HelpModal";
 import { LoadingScreen } from "@/ui/components/LoadingScreen";
@@ -138,7 +141,22 @@ export function App(): ReactNode {
     setIsSettingsOpen,
     isHelpOpen,
     setIsHelpOpen,
+    isBackgroundTasksOpen,
+    setIsBackgroundTasksOpen,
   } = useAppKeyboardShortcuts({ view });
+
+  const backgroundTasks = useBackgroundTaskStore((state) => state.tasks);
+  const taskProgress = useMemo(() => {
+    const tasks = Object.values(backgroundTasks);
+    if (tasks.length === 0) return undefined;
+    const completed = tasks.filter(
+      (task) =>
+        task.status === BACKGROUND_TASK_STATUS.COMPLETED ||
+        task.status === BACKGROUND_TASK_STATUS.FAILED ||
+        task.status === BACKGROUND_TASK_STATUS.CANCELLED
+    ).length;
+    return { completed, total: tasks.length };
+  }, [backgroundTasks]);
 
   // Plan progress calculation
   const plan = useMemo(() => {
@@ -268,6 +286,12 @@ export function App(): ReactNode {
                   onClose={() => setIsSessionsPopupOpen(false)}
                   onSelectSession={handleSelectSession}
                 />
+              ) : isBackgroundTasksOpen ? (
+                <BackgroundTasksModal
+                  isOpen={isBackgroundTasksOpen}
+                  onClose={() => setIsBackgroundTasksOpen(false)}
+                  tasks={Object.values(backgroundTasks)}
+                />
               ) : isSettingsOpen ? (
                 <SettingsModal
                   key="settings-modal"
@@ -301,7 +325,7 @@ export function App(): ReactNode {
           </box>
           <box flexShrink={0}>
             <StatusFooter
-              taskProgress={undefined}
+              taskProgress={taskProgress}
               planProgress={planProgress}
               focusTarget={focusTarget}
             />

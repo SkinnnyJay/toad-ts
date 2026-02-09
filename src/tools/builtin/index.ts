@@ -7,6 +7,7 @@ import { grepTool } from "./grep";
 import { listTool } from "./list";
 import { questionTool } from "./question";
 import { readTool } from "./read";
+import { taskOutputTool } from "./task-output";
 import { todoReadTool } from "./todo-read";
 import { todoWriteTool } from "./todo-write";
 import { webfetchTool } from "./webfetch";
@@ -20,6 +21,7 @@ export const createBuiltInTools = (): Array<ToolDefinition<unknown>> => [
   grepTool,
   globTool,
   listTool,
+  taskOutputTool,
   todoReadTool,
   todoWriteTool,
   webfetchTool,
@@ -34,6 +36,7 @@ export {
   grepTool,
   globTool,
   listTool,
+  taskOutputTool,
   todoReadTool,
   todoWriteTool,
   webfetchTool,

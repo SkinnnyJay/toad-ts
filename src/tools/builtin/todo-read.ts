@@ -27,9 +27,7 @@ export const todoReadTool: ToolDefinition<TodoItem[]> = {
   execute: async (input, context) => {
     const parsed = TodoReadInputSchema.parse(input);
     const items = await context.todoStore.list();
-    const filtered = parsed.status
-      ? items.filter((item) => item.status === parsed.status)
-      : items;
+    const filtered = parsed.status ? items.filter((item) => item.status === parsed.status) : items;
     return { ok: true, output: filtered };
   },
 };

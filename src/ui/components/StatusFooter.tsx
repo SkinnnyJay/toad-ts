@@ -18,6 +18,7 @@ export interface StatusFooterProps {
 const globalShortcuts = [
   { key: "^C", label: "Exit" },
   { key: "^P", label: "Commands" },
+  { key: "^B", label: "Tasks" },
   { key: "Esc", label: "Back to Chat" },
   { key: "Cmd+F", label: "Focus Files" },
   { key: "/help", label: "Panel Help" },

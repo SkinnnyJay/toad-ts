@@ -17,6 +17,8 @@ export interface UseAppKeyboardShortcutsResult {
   setIsSettingsOpen: (open: boolean) => void;
   isHelpOpen: boolean;
   setIsHelpOpen: (open: boolean) => void;
+  isBackgroundTasksOpen: boolean;
+  setIsBackgroundTasksOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
 }
 
 /**
@@ -50,6 +52,7 @@ export function useAppKeyboardShortcuts({
   const [isSessionsPopupOpen, setIsSessionsPopupOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isBackgroundTasksOpen, setIsBackgroundTasksOpen] = useState(false);
 
   useKeyboard((key) => {
     // Only handle shortcuts in chat view
@@ -87,6 +90,14 @@ export function useAppKeyboardShortcuts({
       return;
     }
 
+    // Ctrl+B toggles background tasks modal
+    if (key.ctrl && key.name === "b") {
+      key.preventDefault();
+      key.stopPropagation();
+      setIsBackgroundTasksOpen((prev) => !prev);
+      return;
+    }
+
     // Escape returns focus to chat
     if (key.name === "escape") {
       key.preventDefault();
@@ -112,5 +123,7 @@ export function useAppKeyboardShortcuts({
     setIsSettingsOpen,
     isHelpOpen,
     setIsHelpOpen,
+    isBackgroundTasksOpen,
+    setIsBackgroundTasksOpen,
   };
 }

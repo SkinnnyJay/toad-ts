@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { AGENT_MESSAGE_TYPE } from "@/constants/agent-message-types";
 import { AGENT_STATUS } from "@/constants/agent-status";
+import { BACKGROUND_TASK_STATUS } from "@/constants/background-task-status";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { MCP_SERVER_TYPE } from "@/constants/mcp-server-types";
@@ -243,6 +244,25 @@ export const TaskSchema = z.object({
   completedAt: z.number().optional(),
 });
 export type Task = z.infer<typeof TaskSchema>;
+
+export const BackgroundTaskIdSchema = z.string().min(1).brand<"BackgroundTaskId">();
+export type BackgroundTaskId = z.infer<typeof BackgroundTaskIdSchema>;
+
+export const BackgroundTaskSchema = z.object({
+  id: BackgroundTaskIdSchema,
+  command: z.string(),
+  status: z.enum([
+    BACKGROUND_TASK_STATUS.RUNNING,
+    BACKGROUND_TASK_STATUS.COMPLETED,
+    BACKGROUND_TASK_STATUS.FAILED,
+    BACKGROUND_TASK_STATUS.CANCELLED,
+  ]),
+  terminalId: z.string().min(1),
+  createdAt: z.number().nonnegative(),
+  startedAt: z.number().nonnegative(),
+  completedAt: z.number().optional(),
+});
+export type BackgroundTask = z.infer<typeof BackgroundTaskSchema>;
 
 export const PlanSchema = z.object({
   id: PlanIdSchema,

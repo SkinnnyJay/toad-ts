@@ -212,4 +212,38 @@ describe("Built-in tools", () => {
       }
     }
   });
+
+  it("runs background shell commands", async () => {
+    if (process.platform === "win32") {
+      return;
+    }
+    const runtime = createToolRuntime({ baseDir });
+    const result = await runtime.registry.execute(
+      TOOL_NAME.BASH,
+      { command: "echo background-ok", background: true },
+      runtime.context
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    if (typeof result.output === "object" && result.output !== null && "taskId" in result.output) {
+      const taskId = result.output.taskId;
+      await runtime.context.backgroundTasks.waitForTask(taskId);
+      const outputResult = await runtime.registry.execute(
+        TOOL_NAME.TASK_OUTPUT,
+        { taskId },
+        runtime.context
+      );
+      expect(outputResult.ok).toBe(true);
+      if (
+        outputResult.ok &&
+        typeof outputResult.output === "object" &&
+        outputResult.output !== null &&
+        "stdout" in outputResult.output &&
+        typeof outputResult.output.stdout === "string"
+      ) {
+        expect(outputResult.output.stdout).toContain("background-ok");
+      }
+    }
+  });
 });

@@ -8,11 +8,12 @@ export const PERMISSION_PATTERN = {
   EXEC: "exec_*",
   FETCH: "fetch_*",
   TODO: "todo_*",
+  TASK: "task_*",
   ASK: "ask_*",
 } as const;
 
 export type PermissionPattern = (typeof PERMISSION_PATTERN)[keyof typeof PERMISSION_PATTERN];
 
 // Re-export for convenience
-export const { READ, LIST, SEARCH, WRITE, EDIT, DELETE, EXEC, FETCH, TODO, ASK } =
+export const { READ, LIST, SEARCH, WRITE, EDIT, DELETE, EXEC, FETCH, TODO, TASK, ASK } =
   PERMISSION_PATTERN;

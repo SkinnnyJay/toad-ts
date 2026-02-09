@@ -5,6 +5,7 @@ import type { ToolName } from "@/constants/tool-names";
 import type { FsHandler } from "@/core/fs-handler";
 import type { SearchService } from "@/core/search/search-service";
 import type { TerminalHandler } from "@/core/terminal-handler";
+import type { BackgroundTaskManager } from "@/tools/background-task-manager";
 import type { ShellSessionManager } from "@/tools/shell-session";
 import type { TodoStore } from "@/tools/todo-store";
 
@@ -15,6 +16,7 @@ export interface ToolContext {
   readonly search: SearchService;
   readonly terminal: TerminalHandler;
   readonly shell: ShellSessionManager;
+  readonly backgroundTasks: BackgroundTaskManager;
   readonly todoStore: TodoStore;
   readonly fetcher: Fetcher;
   readonly baseDir: string;

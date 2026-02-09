@@ -1,4 +1,5 @@
 export { createBuiltInTools } from "@/tools/builtin";
+export { BackgroundTaskManager } from "@/tools/background-task-manager";
 export { createPermissionHandler } from "@/tools/permissions";
 export type { ToolPermissionOverrides } from "@/tools/permissions";
 export { ToolRegistry } from "@/tools/registry";
