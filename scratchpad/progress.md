@@ -2,7 +2,6 @@
 
 ## Current Focus
 - Phase 4A: App smoke test
-- Phase 4D: Performance foundations
 - Phase 4E: Manual smoke tests
 
 ## Status
