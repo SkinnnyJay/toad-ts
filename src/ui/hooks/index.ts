@@ -9,15 +9,9 @@
 export { useTerminalDimensions } from "./useTerminalDimensions";
 export type { TerminalDimensions } from "./useTerminalDimensions";
 
-export {
-  useSessionHydration,
-  buildAgentOptions,
-} from "./useSessionHydration";
-export type {
-  AgentInfo,
-  UseSessionHydrationResult,
-  UseSessionHydrationOptions,
-} from "./useSessionHydration";
+export { useSessionHydration, buildAgentOptions } from "./useSessionHydration";
+export type { UseSessionHydrationResult, UseSessionHydrationOptions } from "./useSessionHydration";
+export type { AgentInfo } from "@/agents/agent-manager";
 
 export {
   useHarnessConnection,

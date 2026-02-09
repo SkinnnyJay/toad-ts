@@ -1,3 +1,4 @@
+import type { AgentInfo } from "@/agents/agent-manager";
 import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
@@ -15,7 +16,6 @@ import type { HarnessRegistry } from "@/harness/harnessRegistry";
 import { useAppStore } from "@/store/app-store";
 import type { SessionId } from "@/types/domain";
 import { AgentIdSchema } from "@/types/domain";
-import type { AgentInfo } from "@/ui/hooks/useSessionHydration";
 import { withTimeout } from "@/utils/async/withTimeout";
 import { EnvManager } from "@/utils/env/env.utils";
 import { useEffect, useState } from "react";
@@ -101,9 +101,14 @@ export function useHarnessConnection({
       return;
     }
 
-    const adapter = harnessRegistry.get(harnessConfig.id);
+    const effectiveConfig: HarnessConfig = {
+      ...harnessConfig,
+      permissions: selectedAgent.permissions ?? harnessConfig.permissions,
+    };
+
+    const adapter = harnessRegistry.get(effectiveConfig.id);
     if (!adapter) {
-      onLoadErrorChange(`Harness adapter '${harnessConfig.id}' not registered.`);
+      onLoadErrorChange(`Harness adapter '${effectiveConfig.id}' not registered.`);
       onStageChange(RENDER_STAGE.ERROR);
       onStatusMessageChange("Harness adapter missing");
       return;
@@ -111,7 +116,7 @@ export function useHarnessConnection({
 
     const env = EnvManager.getInstance().getSnapshot();
     if (
-      harnessConfig.command.includes(HARNESS_DEFAULT.CLAUDE_COMMAND) &&
+      effectiveConfig.command.includes(HARNESS_DEFAULT.CLAUDE_COMMAND) &&
       !env[ENV_KEY.ANTHROPIC_API_KEY]
     ) {
       onLoadErrorChange(
@@ -123,7 +128,7 @@ export function useHarnessConnection({
       return;
     }
 
-    const runtime = adapter.createHarness(harnessConfig);
+    const runtime = adapter.createHarness(effectiveConfig);
     const detach = sessionStream.attach(runtime);
     const sessionManager = new SessionManager(runtime, useAppStore.getState());
 
@@ -167,10 +172,11 @@ export function useHarnessConnection({
         const session = await withTimeout(
           sessionManager.createSession({
             cwd: process.cwd(),
-            agentId: AgentIdSchema.parse(harnessConfig.id),
-            title: harnessConfig.name,
+            agentId: AgentIdSchema.parse(effectiveConfig.id),
+            title: effectiveConfig.name,
             mcpConfig,
             env,
+            mode: selectedAgent.sessionMode,
           }),
           "create session",
           TIMEOUT.SESSION_BOOTSTRAP_MS

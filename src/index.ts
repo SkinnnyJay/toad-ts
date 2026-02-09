@@ -32,3 +32,4 @@ export * from "@/store/persistence/search-engine";
 export * from "@/utils/credentials";
 export * from "@/harness";
 export * from "@/harness/defaultHarnessConfig";
+export * from "@/agents";

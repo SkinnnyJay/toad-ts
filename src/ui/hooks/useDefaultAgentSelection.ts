@@ -1,9 +1,9 @@
+import type { AgentInfo } from "@/agents/agent-manager";
 import { UI } from "@/config/ui";
 import { RENDER_STAGE, type RenderStage } from "@/constants/render-stage";
 import { VIEW, type View } from "@/constants/views";
 import { getDefaultProvider } from "@/store/settings/settings-manager";
 import type { AgentId } from "@/types/domain";
-import type { AgentInfo } from "@/ui/hooks/useSessionHydration";
 import { useEffect, useState } from "react";
 
 const clearScreen = (): void => {
