@@ -137,12 +137,13 @@ Flag:
 
 ### 2. Findings Table
 
-| ID | Category | Severity | Confidence | User Impact | Scale Risk | File | Summary |
-|----|----------|----------|------------|-------------|------------|------|---------|
+| ID  | Category | Severity | Confidence | User Impact | Scale Risk | File | Summary |
+| --- | -------- | -------- | ---------- | ----------- | ---------- | ---- | ------- |
 
 ### 3. Top Issues - Deep Dive (max 5)
 
 For each:
+
 - Root cause
 - How it breaks in real browsers
 - Why developers miss it
@@ -179,6 +180,7 @@ For each:
 ## Fail Conditions
 
 If repo is large:
+
 - Propose phased scan plan
 - Start with routing, data, state, rendering
 

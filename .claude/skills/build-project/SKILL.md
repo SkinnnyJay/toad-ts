@@ -1,28 +1,29 @@
 ---
 name: build-project
-description: Builds the project via npm run build, ensures successful compilation, and verifies dist/ output.
+description: Run the Next.js production build and fix any compilation errors. Use when verifying the project compiles cleanly.
 ---
 
 # Build Project
 
-You are tasked with building the project via `npm run build`.
+Run the production build and resolve any errors.
 
-## Responsibilities
+## Process
 
-- Run the TypeScript build
-- Ensure the build completes without errors
-- Verify `dist/` is generated and includes `index.js`
+1. Run `npm run build`
+2. If errors occur:
+   - Read each error carefully
+   - Fix TypeScript type errors (never use `any` as a shortcut)
+   - Fix import/module resolution issues
+   - Re-run build after each fix
+3. Verify build completes with exit code 0
 
-## Goal
+## Pass Criteria
 
-- Successful build with compiled JS output in `dist/`
+- `npm run build` completes successfully
+- `.next/` directory is generated with compiled output
+- No TypeScript errors or warnings
 
-## Pass criteria
-
-- `npm run build` completes with exit code 0
-- `dist/` exists and contains compiled files (including `index.js`)
-
-## Fail criteria
+## Fail Criteria
 
 - Build fails or emits TypeScript errors
-- `dist/` not generated or missing expected outputs
+- Unsafe fixes introduced (e.g., `any` types, eslint-disable comments)

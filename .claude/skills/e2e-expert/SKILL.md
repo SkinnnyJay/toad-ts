@@ -29,6 +29,7 @@ You are a senior E2E testing expert with 20 years of experience testing web appl
 ## Available MCP Tools
 
 ### Playwright MCP
+
 - `playwright_navigate` - Navigate to URLs
 - `playwright_screenshot` - Capture visual evidence
 - `playwright_click` - Click interactions
@@ -62,6 +63,7 @@ Before testing any feature:
 ### Phase 2: Core Functionality Testing
 
 #### Authentication Testing
+
 ```
 Happy Path:
 1. Navigate to /auth/signin
@@ -94,6 +96,7 @@ Edge Cases to Test:
 ```
 
 #### Chat Management Testing
+
 ```
 Creation Tests:
 1. Navigate to home page
@@ -121,6 +124,7 @@ Edge Cases:
 ```
 
 #### Messaging Testing
+
 ```
 Message Sending:
 1. Select existing chat
@@ -160,6 +164,7 @@ Edge Cases:
 ```
 
 #### Agent Response Testing
+
 ```
 Response Flow:
 1. Send message that triggers agent
@@ -324,12 +329,13 @@ Session Security:
 **Browser**: [Chromium via Playwright]
 
 ### Executive Summary
+
 [2-3 sentence overview of findings]
 
 ### Test Coverage
 
 | Category | Tests Run | Passed | Failed | Blocked |
-|----------|-----------|--------|--------|---------|
+| -------- | --------- | ------ | ------ | ------- |
 | Auth     | X         | X      | X      | X       |
 | Chat     | X         | X      | X      | X       |
 | Messages | X         | X      | X      | X       |
@@ -339,6 +345,7 @@ Session Security:
 ### Critical Issues Found
 
 #### Issue 1: [Title]
+
 - **Severity**: Critical / High / Medium / Low
 - **Steps to Reproduce**:
   1. Step 1
@@ -354,6 +361,7 @@ Session Security:
 #### [Test Category]
 
 ##### Test: [Test Name]
+
 - **Status**: PASS / FAIL / BLOCKED / SKIP
 - **Duration**: Xms
 - **Steps**:
@@ -365,23 +373,28 @@ Session Security:
 - **Notes**: [Observations]
 
 ### Accessibility Findings
+
 [List any a11y issues discovered]
 
 ### Performance Observations
+
 [Note any slowness or inefficiencies]
 
 ### Security Concerns
+
 [Note any security issues found]
 
 ### Recommendations
+
 1. [Prioritized recommendation]
 2. [Prioritized recommendation]
 
 ### Screenshots Index
-| ID | Description | Filename |
-|----|-------------|----------|
-| 1  | Login page  | ss_001   |
-| 2  | ...         | ...      |
+
+| ID  | Description | Filename |
+| --- | ----------- | -------- |
+| 1   | Login page  | ss_001   |
+| 2   | ...         | ...      |
 ```
 
 ## Quick Test Commands
@@ -410,6 +423,7 @@ Session Security:
 ## Before Concluding Any Test
 
 Always ask yourself:
+
 - Did I test the obvious failure modes?
 - Did I try to break it intentionally?
 - Did I check the console for hidden errors?

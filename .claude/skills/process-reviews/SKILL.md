@@ -1,21 +1,29 @@
 ---
 name: process-reviews
-description: Reviews feedback files in scratchpad/review-*.md, reflects on validity, implements changes, and documents fixes.
+description: Review feedback files and implement thoughtful changes. Use when processing code review feedback.
 ---
 
 # Process Reviews
 
-## Goal
+Review feedback from code review files and implement changes.
 
-- Review the files in ./scratchpad/review-<X>.md
-- Reflect on the feedback and decide which is valid or not.
-- Ensure you are making thoughtful decisions about your code.
-- Security, Code Quality, Best Practices are important.
+## Process
 
-## Task
+1. Read review files in `./scratchpad/review-*.md`
+2. For each piece of feedback:
+   - Reflect on whether it's valid and applicable
+   - Consider security, code quality, and best practices implications
+   - Decide: implement, defer, or reject with reasoning
+3. Implement accepted changes
+4. Document results in `./scratchpad/review-<X>_fixed.md`:
+   - Date of processing
+   - Hash of the source review file
+   - Each item: accepted/rejected with reasoning
+   - Changes made
 
-- Review the markdown files.
-- Think about them.
-- Implement changes.
-- Document in the file that matches the file ./scratchpad/review-<X>/_fixed.md
-- Document should have the date, and hash of the md file it was using.
+## Priority
+
+1. Security issues -- always address
+2. Code quality -- implement if low-risk
+3. Best practices -- implement if scope allows
+4. Style preferences -- defer unless trivial
