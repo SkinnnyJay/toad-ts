@@ -64,6 +64,7 @@ export interface SlashCommandDeps {
   toggleToolDetails?: () => boolean;
   toggleThinking?: () => boolean;
   openEditor?: (initialValue: string) => Promise<void>;
+  openThemes?: () => void;
   openMemoryFile?: (filePath: string) => Promise<boolean>;
   copyToClipboard?: (text: string) => Promise<boolean>;
   runCompaction?: (sessionId: SessionId) => Promise<SessionId | null>;
@@ -84,7 +85,8 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     command === SLASH_COMMAND.DOCTOR ||
     command === SLASH_COMMAND.DEBUG ||
     command === SLASH_COMMAND.STATS ||
-    command === SLASH_COMMAND.MEMORY;
+    command === SLASH_COMMAND.MEMORY ||
+    command === SLASH_COMMAND.THEMES;
   if (!deps.sessionId && !allowsWithoutSession) {
     deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
     return true;
@@ -447,6 +449,10 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       return true;
     }
     case SLASH_COMMAND.THEMES: {
+      if (deps.openThemes) {
+        deps.openThemes();
+        return true;
+      }
       deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.THEMES_NOT_AVAILABLE);
       return true;
     }

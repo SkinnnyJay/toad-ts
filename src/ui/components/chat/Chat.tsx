@@ -47,6 +47,7 @@ export interface ChatProps {
   onOpenHelp?: () => void;
   onOpenSessions?: () => void;
   onOpenAgentSelect?: () => void;
+  onOpenThemes?: () => void;
   subAgentRunner?: SubAgentRunner;
   focusTarget?: FocusTarget;
 }
@@ -62,6 +63,7 @@ export const Chat = memo(
     onOpenHelp,
     onOpenSessions,
     onOpenAgentSelect,
+    onOpenThemes,
     subAgentRunner,
     focusTarget = FOCUS_TARGET.CHAT,
   }: ChatProps): ReactNode => {
@@ -174,6 +176,8 @@ export const Chat = memo(
       onOpenHelp,
       onOpenSessions,
       onOpenEditor: handleOpenEditor,
+      onOpenAgentSelect,
+      onOpenThemes,
       client,
       agent,
       agents,

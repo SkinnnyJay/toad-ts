@@ -1,6 +1,7 @@
 import { LIMIT } from "@/config/limits";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { SIDEBAR_TAB } from "@/constants/sidebar-tabs";
+import { THEME } from "@/constants/themes";
 import { type SessionSnapshot, SessionSnapshotSchema } from "@/store/session-persistence";
 import { MessageSchema, SessionSchema } from "@/types/domain";
 import type {
@@ -41,6 +42,7 @@ export interface AppStore extends AppState {
   toggleToolDetails: () => void;
   setShowThinking: (value: boolean) => void;
   toggleThinking: () => void;
+  setTheme: (theme: AppState["uiState"]["theme"]) => void;
   hydrate: (snapshot: SessionSnapshot) => void;
   reset: () => void;
 }
@@ -57,6 +59,7 @@ const initialState: AppState = {
     accordionCollapsed: {},
     showToolDetails: true,
     showThinking: true,
+    theme: THEME.DEFAULT,
   },
 };
 
@@ -197,6 +200,10 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
   toggleThinking: () =>
     set((state) => ({
       uiState: { ...state.uiState, showThinking: !state.uiState.showThinking },
+    })),
+  setTheme: (theme) =>
+    set((state) => ({
+      uiState: { ...state.uiState, theme },
     })),
   hydrate: (snapshot) =>
     set(() => ({

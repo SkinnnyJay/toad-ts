@@ -11,6 +11,7 @@ import { PLAN_STATUS } from "@/constants/plan-status";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { SIDEBAR_TAB, SIDEBAR_TAB_VALUES } from "@/constants/sidebar-tabs";
 import { TASK_STATUS } from "@/constants/task-status";
+import { THEME } from "@/constants/themes";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 
 export const SessionIdSchema = z.string().min(1).brand<"SessionId">();
@@ -307,6 +308,7 @@ export const AppStateSchema = z.object({
       accordionCollapsed: z.record(z.enum(SIDEBAR_TAB_VALUES), z.boolean()).default({}),
       showToolDetails: z.boolean().default(true),
       showThinking: z.boolean().default(true),
+      theme: z.enum([THEME.DEFAULT, THEME.MIDNIGHT, THEME.SUNRISE]).default(THEME.DEFAULT),
     })
     .default({}),
 });

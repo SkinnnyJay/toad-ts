@@ -32,7 +32,7 @@
   - [X] Slash commands: /connect, /sessions, /new, /rename, /models
   - [X] Slash commands: /details + /thinking toggles
   - [X] Slash command: /editor (external editor)
-  - [X] Slash command: /themes placeholder
+  - [X] Slash command: /themes selector
   - [X] /models listing from agent capabilities
   - [X] Slash commands: /doctor, /debug, /context, /stats, /cost
   - [X] Slash command: /memory editing

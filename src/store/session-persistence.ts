@@ -3,6 +3,7 @@ import { dirname } from "node:path";
 import { ENCODING } from "@/constants/encodings";
 import { ERROR_CODE } from "@/constants/error-codes";
 import { SIDEBAR_TAB } from "@/constants/sidebar-tabs";
+import { THEME } from "@/constants/themes";
 
 import { AppStateSchema } from "@/types/domain";
 import { z } from "zod";
@@ -32,6 +33,7 @@ const defaultSnapshot: SessionSnapshot = SessionSnapshotSchema.parse({
     accordionCollapsed: {},
     showToolDetails: true,
     showThinking: true,
+    theme: THEME.DEFAULT,
   },
 });
 

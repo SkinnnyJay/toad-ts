@@ -25,6 +25,8 @@ export interface SlashCommandHandlerOptions {
   onOpenHelp?: () => void;
   onOpenSessions?: () => void;
   onOpenEditor?: (initialValue: string) => Promise<void>;
+  onOpenAgentSelect?: () => void;
+  onOpenThemes?: () => void;
   client?: HarnessRuntime | null;
   agent?: AgentInfo;
   agents?: AgentInfo[];
@@ -39,6 +41,8 @@ export const useSlashCommandHandler = ({
   onOpenHelp,
   onOpenSessions,
   onOpenEditor,
+  onOpenAgentSelect,
+  onOpenThemes,
   client,
   agent,
   agents = [],
@@ -112,7 +116,11 @@ export const useSlashCommandHandler = ({
         return true;
       }
       if (command === SLASH_COMMAND.CONNECT) {
-        onOpenSettings?.();
+        if (onOpenAgentSelect) {
+          onOpenAgentSelect();
+        } else {
+          onOpenSettings?.();
+        }
         return true;
       }
       return runSlashCommand(value, {
@@ -184,6 +192,7 @@ export const useSlashCommandHandler = ({
           return next;
         },
         openEditor: onOpenEditor,
+        openThemes: onOpenThemes,
         openMemoryFile,
         copyToClipboard,
         runCompaction,
@@ -208,6 +217,8 @@ export const useSlashCommandHandler = ({
       onOpenSettings,
       onOpenSessions,
       onOpenEditor,
+      onOpenAgentSelect,
+      onOpenThemes,
       client,
       agent,
       openMemoryFile,

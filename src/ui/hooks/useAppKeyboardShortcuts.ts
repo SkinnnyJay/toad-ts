@@ -21,6 +21,8 @@ export interface UseAppKeyboardShortcutsResult {
   setIsHelpOpen: (open: boolean) => void;
   isBackgroundTasksOpen: boolean;
   setIsBackgroundTasksOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+  isThemesOpen: boolean;
+  setIsThemesOpen: (open: boolean) => void;
 }
 
 /**
@@ -56,6 +58,7 @@ export function useAppKeyboardShortcuts({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isBackgroundTasksOpen, setIsBackgroundTasksOpen] = useState(false);
+  const [isThemesOpen, setIsThemesOpen] = useState(false);
   const leaderActive = useRef(false);
   const leaderTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -169,5 +172,7 @@ export function useAppKeyboardShortcuts({
     setIsHelpOpen,
     isBackgroundTasksOpen,
     setIsBackgroundTasksOpen,
+    isThemesOpen,
+    setIsThemesOpen,
   };
 }

@@ -30,6 +30,7 @@ import { SessionsPopup } from "@/ui/components/SessionsPopup";
 import { SettingsModal } from "@/ui/components/SettingsModal";
 import { Sidebar } from "@/ui/components/Sidebar";
 import { StatusFooter } from "@/ui/components/StatusFooter";
+import { ThemesModal } from "@/ui/components/ThemesModal";
 import {
   useAppKeyboardShortcuts,
   useDefaultAgentSelection,
@@ -37,6 +38,8 @@ import {
   useSessionHydration,
   useTerminalDimensions,
 } from "@/ui/hooks";
+import { ThemeProvider } from "@/ui/theme/theme-context";
+import { applyThemeColors } from "@/ui/theme/theme-definitions";
 import { Env, EnvManager } from "@/utils/env/env.utils";
 import { TextAttributes } from "@opentui/core";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -46,6 +49,7 @@ export function App(): ReactNode {
   const startupMeasured = useRef(false);
 
   const currentSessionId = useAppStore((state) => state.currentSessionId);
+  const theme = useAppStore((state) => state.uiState.theme);
   const getPlanBySession = useAppStore((state) => state.getPlanBySession);
   const setCurrentSession = useAppStore((state) => state.setCurrentSession);
   const sessionsById = useAppStore((state) => state.sessions);
@@ -178,6 +182,10 @@ export function App(): ReactNode {
   }, [setProgress, setStatusMessage]);
 
   useEffect(() => {
+    applyThemeColors(theme);
+  }, [theme]);
+
+  useEffect(() => {
     if (stage !== RENDER_STAGE.READY || startupMeasured.current) {
       return;
     }
@@ -281,15 +289,19 @@ export function App(): ReactNode {
     setIsHelpOpen,
     isBackgroundTasksOpen,
     setIsBackgroundTasksOpen,
+    isThemesOpen,
+    setIsThemesOpen,
   } = useAppKeyboardShortcuts({ view, onNavigateChildSession: navigateChildSession });
 
   // Render error state
   if (stage === RENDER_STAGE.ERROR) {
     return (
-      <box padding={1} flexDirection="column" gap={1}>
-        <text fg={COLOR.RED}>Error: {loadError ?? statusMessage}</text>
-        {loadError ? <text attributes={TextAttributes.DIM}>{loadError}</text> : null}
-      </box>
+      <ThemeProvider theme={theme}>
+        <box padding={1} flexDirection="column" gap={1}>
+          <text fg={COLOR.RED}>Error: {loadError ?? statusMessage}</text>
+          {loadError ? <text attributes={TextAttributes.DIM}>{loadError}</text> : null}
+        </box>
+      </ThemeProvider>
     );
   }
 
@@ -300,7 +312,11 @@ export function App(): ReactNode {
     !isHydrated ||
     !hasHarnesses
   ) {
-    return <LoadingScreen progress={progress} status={statusMessage} />;
+    return (
+      <ThemeProvider theme={theme}>
+        <LoadingScreen progress={progress} status={statusMessage} />
+      </ThemeProvider>
+    );
   }
 
   // Calculate layout dimensions
@@ -308,99 +324,109 @@ export function App(): ReactNode {
   const mainWidth = terminalDimensions.columns - sidebarWidth - LIMIT.LAYOUT_BORDER_PADDING;
 
   return (
-    <box flexDirection="column" height={terminalDimensions.rows}>
-      {view === VIEW.AGENT_SELECT && <AsciiBanner />}
-      {loadError ? (
-        <box flexDirection="column" gap={1}>
-          <text fg={COLOR.RED}>Error: {loadError}</text>
-          <text attributes={TextAttributes.DIM}>
-            Check that Claude CLI is installed and accessible
-          </text>
-        </box>
-      ) : null}
-      {view === VIEW.AGENT_SELECT ? (
-        <AgentSelect
-          agents={agentOptions}
-          onSelect={handleAgentSelect}
-          selectedId={selectedAgent?.id}
-          onCancel={selectedAgent ? handleAgentSelectCancel : undefined}
-        />
-      ) : (
-        <box flexDirection="column" height="100%" flexGrow={1} minHeight={0}>
-          <box flexDirection="row" flexGrow={1} minHeight={0} marginBottom={1}>
-            <Sidebar
-              width={sidebarWidth}
-              currentAgentName={selectedAgent?.name}
-              focusTarget={focusTarget}
-            />
-            <box
-              flexDirection="column"
-              width={mainWidth}
-              flexGrow={1}
-              border={true}
-              borderStyle="single"
-              borderColor={COLOR.GRAY}
-              paddingLeft={1}
-              paddingRight={1}
-              paddingTop={1}
-              paddingBottom={1}
-            >
-              {isSessionsPopupOpen ? (
-                <SessionsPopup
-                  isOpen={isSessionsPopupOpen}
-                  onClose={() => setIsSessionsPopupOpen(false)}
-                  onSelectSession={handleSelectSession}
-                />
-              ) : isBackgroundTasksOpen ? (
-                <BackgroundTasksModal
-                  isOpen={isBackgroundTasksOpen}
-                  onClose={() => setIsBackgroundTasksOpen(false)}
-                  tasks={Object.values(backgroundTasks)}
-                />
-              ) : isSettingsOpen ? (
-                <SettingsModal
-                  key="settings-modal"
-                  isOpen={isSettingsOpen}
-                  onClose={() => {
-                    setIsSettingsOpen(false);
-                  }}
-                  agents={agentOptions}
-                />
-              ) : isHelpOpen ? (
-                <HelpModal
-                  key="help-modal"
-                  isOpen={isHelpOpen}
-                  onClose={() => {
-                    setIsHelpOpen(false);
-                  }}
-                />
-              ) : (
-                <Chat
-                  key={`chat-${sessionId ?? "no-session"}`}
-                  sessionId={sessionId}
-                  agent={selectedAgent ?? undefined}
-                  agents={Array.from(agentInfoMap.values())}
-                  client={client}
-                  onPromptComplete={handlePromptComplete}
-                  onOpenSettings={() => setIsSettingsOpen(true)}
-                  onOpenHelp={() => setIsHelpOpen(true)}
-                  onOpenSessions={() => setIsSessionsPopupOpen(true)}
-                  onOpenAgentSelect={handleAgentSwitchRequest}
-                  subAgentRunner={subAgentRunner}
-                  focusTarget={focusTarget}
-                />
-              )}
+    <ThemeProvider theme={theme}>
+      <box key={`theme-${theme}`} flexDirection="column" height={terminalDimensions.rows}>
+        {view === VIEW.AGENT_SELECT && <AsciiBanner />}
+        {loadError ? (
+          <box flexDirection="column" gap={1}>
+            <text fg={COLOR.RED}>Error: {loadError}</text>
+            <text attributes={TextAttributes.DIM}>
+              Check that Claude CLI is installed and accessible
+            </text>
+          </box>
+        ) : null}
+        {view === VIEW.AGENT_SELECT ? (
+          <AgentSelect
+            agents={agentOptions}
+            onSelect={handleAgentSelect}
+            selectedId={selectedAgent?.id}
+            onCancel={selectedAgent ? handleAgentSelectCancel : undefined}
+          />
+        ) : (
+          <box flexDirection="column" height="100%" flexGrow={1} minHeight={0}>
+            <box flexDirection="row" flexGrow={1} minHeight={0} marginBottom={1}>
+              <Sidebar
+                width={sidebarWidth}
+                currentAgentName={selectedAgent?.name}
+                focusTarget={focusTarget}
+              />
+              <box
+                flexDirection="column"
+                width={mainWidth}
+                flexGrow={1}
+                border={true}
+                borderStyle="single"
+                borderColor={COLOR.GRAY}
+                paddingLeft={1}
+                paddingRight={1}
+                paddingTop={1}
+                paddingBottom={1}
+              >
+                {isSessionsPopupOpen ? (
+                  <SessionsPopup
+                    isOpen={isSessionsPopupOpen}
+                    onClose={() => setIsSessionsPopupOpen(false)}
+                    onSelectSession={handleSelectSession}
+                  />
+                ) : isBackgroundTasksOpen ? (
+                  <BackgroundTasksModal
+                    isOpen={isBackgroundTasksOpen}
+                    onClose={() => setIsBackgroundTasksOpen(false)}
+                    tasks={Object.values(backgroundTasks)}
+                  />
+                ) : isSettingsOpen ? (
+                  <SettingsModal
+                    key="settings-modal"
+                    isOpen={isSettingsOpen}
+                    onClose={() => {
+                      setIsSettingsOpen(false);
+                    }}
+                    agents={agentOptions}
+                  />
+                ) : isThemesOpen ? (
+                  <ThemesModal
+                    isOpen={isThemesOpen}
+                    onClose={() => {
+                      setIsThemesOpen(false);
+                    }}
+                  />
+                ) : isHelpOpen ? (
+                  <HelpModal
+                    key="help-modal"
+                    isOpen={isHelpOpen}
+                    onClose={() => {
+                      setIsHelpOpen(false);
+                    }}
+                  />
+                ) : (
+                  <Chat
+                    key={`chat-${sessionId ?? "no-session"}`}
+                    sessionId={sessionId}
+                    agent={selectedAgent ?? undefined}
+                    agents={Array.from(agentInfoMap.values())}
+                    client={client}
+                    onPromptComplete={handlePromptComplete}
+                    onOpenSettings={() => setIsSettingsOpen(true)}
+                    onOpenHelp={() => setIsHelpOpen(true)}
+                    onOpenSessions={() => setIsSessionsPopupOpen(true)}
+                    onOpenThemes={() => setIsThemesOpen(true)}
+                    onOpenAgentSelect={handleAgentSwitchRequest}
+                    subAgentRunner={subAgentRunner}
+                    focusTarget={focusTarget}
+                  />
+                )}
+              </box>
+            </box>
+            <box flexShrink={0}>
+              <StatusFooter
+                taskProgress={taskProgress}
+                planProgress={planProgress}
+                focusTarget={focusTarget}
+              />
             </box>
           </box>
-          <box flexShrink={0}>
-            <StatusFooter
-              taskProgress={taskProgress}
-              planProgress={planProgress}
-              focusTarget={focusTarget}
-            />
-          </box>
-        </box>
-      )}
-    </box>
+        )}
+      </box>
+    </ThemeProvider>
   );
 }
