@@ -57,6 +57,8 @@ describe("json persistence provider", () => {
           isStreaming: false,
         },
       },
+      plans: {},
+      contextAttachments: {},
     });
 
     await provider.save(snapshot);
@@ -97,6 +99,8 @@ describe("json persistence provider", () => {
           isStreaming: false,
         },
       },
+      plans: {},
+      contextAttachments: {},
     });
 
     await provider.save(snapshot);

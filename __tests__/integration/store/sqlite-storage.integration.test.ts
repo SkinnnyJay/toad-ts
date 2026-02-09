@@ -55,6 +55,8 @@ describe("SqliteStore Integration", () => {
           },
         },
         messages: {},
+        plans: {},
+        contextAttachments: {},
       };
 
       await store.saveSnapshot(snapshot);
@@ -91,6 +93,8 @@ describe("SqliteStore Integration", () => {
             isStreaming: false,
           },
         },
+        plans: {},
+        contextAttachments: {},
       };
 
       await store.saveSnapshot(snapshot);
@@ -128,6 +132,8 @@ describe("SqliteStore Integration", () => {
             isStreaming: false,
           },
         },
+        plans: {},
+        contextAttachments: {},
       };
 
       await store.saveSnapshot(snapshot);

@@ -1,14 +1,14 @@
-import { describe, expect, it } from "vitest";
-import type { HarnessAdapter, HarnessConfig } from "../../../src/harness/harnessAdapter";
-import { harnessConfigSchema } from "../../../src/harness/harnessConfig";
-import { HarnessRegistry } from "../../../src/harness/harnessRegistry";
+import { describe, expect, it, vi } from "vitest";
+import type { HarnessAdapter } from "../../../src/harness/harnessAdapter";
+import { type HarnessConfig, harnessConfigSchema } from "../../../src/harness/harnessConfig";
+import { HarnessRegistry, createHarnessRegistry } from "../../../src/harness/harnessRegistry";
 
 describe("HarnessRegistry", () => {
   const createMockAdapter = (id: string, name: string): HarnessAdapter<HarnessConfig> => ({
     id,
     name,
     configSchema: harnessConfigSchema,
-    createRuntime: vi.fn(),
+    createHarness: vi.fn(),
   });
 
   describe("constructor", () => {
@@ -49,6 +49,20 @@ describe("HarnessRegistry", () => {
 
       expect(registry.get("test")?.name).toBe("Adapter 2");
       expect(registry.list()).toHaveLength(1);
+    });
+  });
+
+  describe("createHarnessRegistry", () => {
+    it("should create registry with provided adapters", () => {
+      const adapter1 = createMockAdapter("adapter-1", "Adapter 1");
+      const adapter2 = createMockAdapter("adapter-2", "Adapter 2");
+
+      const registry = createHarnessRegistry([adapter1, adapter2]);
+
+      expect(registry).toBeInstanceOf(HarnessRegistry);
+      expect(registry.list()).toHaveLength(2);
+      expect(registry.get("adapter-1")).toBe(adapter1);
+      expect(registry.get("adapter-2")).toBe(adapter2);
     });
   });
 

@@ -7,6 +7,7 @@ import { PersistenceManager } from "../../../src/store/persistence/persistence-m
 import type { PersistenceProvider } from "../../../src/store/persistence/persistence-provider";
 import type { SessionSnapshot } from "../../../src/store/session-persistence";
 import { MessageIdSchema, SessionIdSchema } from "../../../src/types/domain";
+import { disableMockLogger, enableMockLogger } from "../../../src/utils/logging/logger.utils";
 
 describe("PersistenceManager", () => {
   const createMockProvider = (): PersistenceProvider => ({
@@ -14,7 +15,10 @@ describe("PersistenceManager", () => {
       currentSessionId: undefined,
       sessions: {},
       messages: {},
+      plans: {},
+      contextAttachments: {},
     }),
+
     save: vi.fn().mockResolvedValue(undefined),
     close: vi.fn().mockResolvedValue(undefined),
     search: vi.fn().mockResolvedValue([]),
@@ -49,6 +53,8 @@ describe("PersistenceManager", () => {
           },
         },
         messages: {},
+        plans: {},
+        contextAttachments: {},
       };
       (provider.load as ReturnType<typeof vi.fn>).mockResolvedValue(snapshot);
 
@@ -70,6 +76,8 @@ describe("PersistenceManager", () => {
         currentSessionId: undefined,
         sessions: {},
         messages: {},
+        plans: {},
+        contextAttachments: {},
       };
       (provider.load as ReturnType<typeof vi.fn>).mockResolvedValue(snapshot);
 
@@ -246,6 +254,26 @@ describe("PersistenceManager", () => {
       await manager.close();
 
       expect(provider.close).toHaveBeenCalled();
+    });
+  });
+
+  describe("error handling", () => {
+    it("should swallow and log save errors", async () => {
+      enableMockLogger();
+      const provider = createMockProvider();
+      (provider.save as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("disk full"));
+      const manager = new PersistenceManager(useAppStore, provider, {
+        writeMode: PERSISTENCE_WRITE_MODE.PER_MESSAGE,
+        batchDelay: 0,
+      });
+
+      manager.start();
+      useAppStore.getState().setConnectionStatus("connected");
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      manager.stop();
+      disableMockLogger();
+
+      expect(provider.save).toHaveBeenCalled();
     });
   });
 });

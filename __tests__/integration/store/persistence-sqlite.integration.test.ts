@@ -58,6 +58,8 @@ describe("sqlite persistence provider", () => {
           isStreaming: false,
         },
       },
+      plans: {},
+      contextAttachments: {},
     });
 
     await provider.save(snapshot);

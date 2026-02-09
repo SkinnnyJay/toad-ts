@@ -27,7 +27,6 @@ describe("SQLite Worker", () => {
       filePath: dbPath,
       writeMode: PERSISTENCE_WRITE_MODE.ON_SESSION_CHANGE,
       batchDelay: 100,
-      useWorker: true,
     });
 
     const snapshot = {
@@ -43,6 +42,8 @@ describe("SQLite Worker", () => {
         },
       },
       messages: {},
+      plans: {},
+      contextAttachments: {},
     };
 
     await provider.save(snapshot);
@@ -58,7 +59,6 @@ describe("SQLite Worker", () => {
       filePath: dbPath,
       writeMode: PERSISTENCE_WRITE_MODE.ON_SESSION_CHANGE,
       batchDelay: 100,
-      useWorker: false,
     });
 
     const snapshot = {
@@ -74,6 +74,8 @@ describe("SQLite Worker", () => {
         },
       },
       messages: {},
+      plans: {},
+      contextAttachments: {},
     };
 
     await provider.save(snapshot);
@@ -89,7 +91,6 @@ describe("SQLite Worker", () => {
       filePath: dbPath,
       writeMode: PERSISTENCE_WRITE_MODE.ON_SESSION_CHANGE,
       batchDelay: 100,
-      useWorker: true,
     });
 
     // Invalid snapshot should be handled - may throw or handle gracefully

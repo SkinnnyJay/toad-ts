@@ -11,7 +11,7 @@ import {
   ndJsonStream,
 } from "@agentclientprotocol/sdk";
 import { EventEmitter } from "eventemitter3";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { ACPConnectionLike } from "../../../src/core/acp-client";
 import type { ACPConnectionOptions } from "../../../src/core/acp-connection";
 import { ClaudeCliHarnessAdapter } from "../../../src/core/claude-cli-harness";
@@ -67,6 +67,75 @@ const createClientStream = (): Stream => {
     Readable.toWeb(output) as unknown as ReadableStream<Uint8Array>
   );
 };
+
+class FlakyConnection extends EventEmitter implements ACPConnectionLike {
+  connectionStatus: ConnectionStatus = CONNECTION_STATUS.DISCONNECTED;
+  private attempts = 0;
+
+  constructor(
+    private readonly stream: Stream,
+    private readonly failCount: number
+  ) {
+    super();
+  }
+
+  async connect(): Promise<void> {
+    this.attempts += 1;
+    if (this.attempts <= this.failCount) {
+      this.connectionStatus = CONNECTION_STATUS.ERROR;
+      this.emit("state", this.connectionStatus);
+      const error = new Error(`connect failed ${this.attempts}`);
+      throw Object.assign(error, { code: "ECONNREFUSED" });
+    }
+    this.connectionStatus = CONNECTION_STATUS.CONNECTED;
+    this.emit("state", this.connectionStatus);
+  }
+
+  async disconnect(): Promise<void> {
+    this.connectionStatus = CONNECTION_STATUS.DISCONNECTED;
+    this.emit("state", this.connectionStatus);
+  }
+
+  getStream(): Stream {
+    return this.stream;
+  }
+
+  get attemptCount(): number {
+    return this.attempts;
+  }
+}
+
+class FatalConnection extends EventEmitter implements ACPConnectionLike {
+  connectionStatus: ConnectionStatus = CONNECTION_STATUS.DISCONNECTED;
+  private attempts = 0;
+
+  constructor(
+    private readonly stream: Stream,
+    private readonly error: NodeJS.ErrnoException
+  ) {
+    super();
+  }
+
+  async connect(): Promise<void> {
+    this.attempts += 1;
+    this.connectionStatus = CONNECTION_STATUS.ERROR;
+    this.emit("state", this.connectionStatus);
+    throw this.error;
+  }
+
+  async disconnect(): Promise<void> {
+    this.connectionStatus = CONNECTION_STATUS.DISCONNECTED;
+    this.emit("state", this.connectionStatus);
+  }
+
+  getStream(): Stream {
+    return this.stream;
+  }
+
+  get attemptCount(): number {
+    return this.attempts;
+  }
+}
 
 describe("ClaudeCliHarnessAdapter", () => {
   it("connects and routes ACP session updates", async () => {
@@ -146,5 +215,29 @@ describe("ClaudeCliHarnessAdapter", () => {
     } else {
       process.env.TOADSTOOL_CLAUDE_ARGS = originalArgs;
     }
+  });
+
+  it("retries connection with backoff before succeeding", async () => {
+    vi.useFakeTimers();
+    const connection = new FlakyConnection(createClientStream(), 2);
+    const adapter = new ClaudeCliHarnessAdapter({ connection });
+
+    const connectPromise = adapter.connect();
+    await vi.runAllTimersAsync();
+
+    await expect(connectPromise).resolves.toBeUndefined();
+    expect(connection.attemptCount).toBe(3);
+    vi.useRealTimers();
+  });
+
+  it("stops retrying when error is not recoverable", async () => {
+    vi.useFakeTimers();
+    const enoentError = Object.assign(new Error("missing binary"), { code: "ENOENT" });
+    const connection = new FatalConnection(createClientStream(), enoentError);
+    const adapter = new ClaudeCliHarnessAdapter({ connection });
+
+    await expect(adapter.connect()).rejects.toThrow("missing binary");
+    expect(connection.attemptCount).toBe(1);
+    vi.useRealTimers();
   });
 });
