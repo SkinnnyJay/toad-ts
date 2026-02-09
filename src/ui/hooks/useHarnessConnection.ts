@@ -1,0 +1,224 @@
+import { LIMIT } from "@/config/limits";
+import { TIMEOUT } from "@/config/timeouts";
+import { UI } from "@/config/ui";
+import { CONNECTION_STATUS } from "@/constants/connection-status";
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
+import { RENDER_STAGE, type RenderStage } from "@/constants/render-stage";
+import { VIEW } from "@/constants/views";
+import { loadMcpConfig } from "@/core/mcp-config-loader";
+import { SessionManager } from "@/core/session-manager";
+import type { SessionStream } from "@/core/session-stream";
+import type { HarnessRuntime } from "@/harness/harnessAdapter";
+import type { HarnessConfig } from "@/harness/harnessConfig";
+import type { HarnessRegistry } from "@/harness/harnessRegistry";
+import { useAppStore } from "@/store/app-store";
+import type { SessionId } from "@/types/domain";
+import { AgentIdSchema } from "@/types/domain";
+import type { AgentInfo } from "@/ui/hooks/useSessionHydration";
+import { withTimeout } from "@/utils/async/withTimeout";
+import { useEffect, useState } from "react";
+
+const clearScreen = (): void => {
+  process.stdout.write("\x1b[3J\x1b[H\x1b[2J");
+};
+
+const isErrnoException = (error: unknown): error is NodeJS.ErrnoException => {
+  return typeof error === "object" && error !== null && "code" in error;
+};
+
+/**
+ * Formats harness errors into user-friendly messages.
+ */
+export const formatHarnessError = (
+  error: unknown,
+  context: { agentName?: string; command?: string }
+): string => {
+  const message = error instanceof Error ? error.message : String(error);
+  if (isErrnoException(error)) {
+    if (error.code === "ENOENT") {
+      const cmd = context.command ?? "claude-code";
+      return `Command '${cmd}' not found for ${context.agentName ?? "agent"}. Install it or update TOADSTOOL_CLAUDE_COMMAND.`;
+    }
+    if (error.code === "EACCES") {
+      const cmd = context.command ?? "agent command";
+      return `Permission denied starting ${context.agentName ?? "agent"} (${cmd}). Check executable permissions.`;
+    }
+  }
+  return context.agentName ? `Unable to connect to ${context.agentName}: ${message}` : message;
+};
+
+export interface UseHarnessConnectionOptions {
+  selectedAgent: AgentInfo | null;
+  harnessConfigs: Record<string, HarnessConfig>;
+  harnessRegistry: HarnessRegistry;
+  sessionStream: SessionStream;
+  onStageChange: (stage: RenderStage) => void;
+  onProgressChange: (progress: number | ((current: number) => number)) => void;
+  onStatusMessageChange: (message: string) => void;
+  onLoadErrorChange: (error: string | null) => void;
+  onViewChange: (view: typeof VIEW.CHAT | typeof VIEW.AGENT_SELECT) => void;
+}
+
+export interface UseHarnessConnectionResult {
+  client: HarnessRuntime | null;
+  sessionId: SessionId | undefined;
+}
+
+/**
+ * Hook to manage harness connection lifecycle.
+ * Handles connecting to the selected agent, creating sessions, and error handling.
+ */
+export function useHarnessConnection({
+  selectedAgent,
+  harnessConfigs,
+  harnessRegistry,
+  sessionStream,
+  onStageChange,
+  onProgressChange,
+  onStatusMessageChange,
+  onLoadErrorChange,
+  onViewChange,
+}: UseHarnessConnectionOptions): UseHarnessConnectionResult {
+  const [client, setClient] = useState<HarnessRuntime | null>(null);
+  const [sessionId, setSessionId] = useState<SessionId | undefined>(undefined);
+
+  const setConnectionStatus = useAppStore((state) => state.setConnectionStatus);
+  const setCurrentSession = useAppStore((state) => state.setCurrentSession);
+
+  useEffect(() => {
+    if (!selectedAgent) {
+      setClient(null);
+      return;
+    }
+
+    const harnessConfig = harnessConfigs[selectedAgent.harnessId];
+    if (!harnessConfig) {
+      onLoadErrorChange(`Harness '${selectedAgent.harnessId}' not configured.`);
+      onStageChange(RENDER_STAGE.ERROR);
+      onStatusMessageChange("Harness not configured");
+      return;
+    }
+
+    const adapter = harnessRegistry.get(harnessConfig.id);
+    if (!adapter) {
+      onLoadErrorChange(`Harness adapter '${harnessConfig.id}' not registered.`);
+      onStageChange(RENDER_STAGE.ERROR);
+      onStatusMessageChange("Harness adapter missing");
+      return;
+    }
+
+    if (
+      harnessConfig.command.includes(HARNESS_DEFAULT.CLAUDE_COMMAND) &&
+      !process.env.ANTHROPIC_API_KEY
+    ) {
+      onLoadErrorChange(
+        "Claude Code ACP adapter requires ANTHROPIC_API_KEY. Set it in your environment or .env file."
+      );
+      setConnectionStatus(CONNECTION_STATUS.ERROR);
+      onStageChange(RENDER_STAGE.ERROR);
+      onStatusMessageChange("Missing ANTHROPIC_API_KEY");
+      return;
+    }
+
+    const runtime = adapter.createHarness(harnessConfig);
+    const detach = sessionStream.attach(runtime);
+    const sessionManager = new SessionManager(runtime, useAppStore.getState());
+
+    runtime.on("state", (status) => setConnectionStatus(status));
+    runtime.on("error", (error) => {
+      const message = formatHarnessError(error, {
+        agentName: selectedAgent?.name ?? harnessConfig.name,
+        command: harnessConfig.command,
+      });
+      setConnectionStatus(CONNECTION_STATUS.ERROR);
+      onLoadErrorChange(message);
+      setCurrentSession(undefined);
+      onStageChange(RENDER_STAGE.ERROR);
+      onStatusMessageChange(message);
+    });
+
+    let active = true;
+    setSessionId(undefined);
+    setCurrentSession(undefined);
+    setClient(runtime);
+    onLoadErrorChange(null);
+    setConnectionStatus(CONNECTION_STATUS.CONNECTING);
+    onStageChange(RENDER_STAGE.CONNECTING);
+    onStatusMessageChange(`Connecting to ${selectedAgent.name}…`);
+    onProgressChange((current) => Math.max(current, UI.PROGRESS.CONNECTION_START));
+    clearScreen();
+
+    void (async () => {
+      try {
+        await withTimeout(runtime.connect(), "connect", TIMEOUT.SESSION_BOOTSTRAP_MS);
+        if (!active) return;
+        onStatusMessageChange("Initializing session…");
+        onProgressChange((current) => Math.max(current, UI.PROGRESS.CONNECTION_ESTABLISHED));
+
+        await withTimeout(runtime.initialize(), "initialize", TIMEOUT.SESSION_BOOTSTRAP_MS);
+        if (!active) return;
+        onStatusMessageChange("Preparing tools…");
+        onProgressChange((current) => Math.max(current, UI.PROGRESS.SESSION_READY));
+
+        const mcpConfig = await loadMcpConfig();
+        const session = await withTimeout(
+          sessionManager.createSession({
+            cwd: process.cwd(),
+            agentId: AgentIdSchema.parse(harnessConfig.id),
+            title: harnessConfig.name,
+            mcpConfig,
+            env: process.env,
+          }),
+          "create session",
+          TIMEOUT.SESSION_BOOTSTRAP_MS
+        );
+        if (!active) return;
+        setSessionId(session.id);
+        setCurrentSession(session.id);
+        onViewChange(VIEW.CHAT);
+        onProgressChange(UI.PROGRESS.COMPLETE);
+        onStatusMessageChange("Ready");
+        clearScreen();
+        onStageChange(RENDER_STAGE.READY);
+      } catch (error) {
+        if (active) {
+          const friendly = formatHarnessError(error, {
+            agentName: selectedAgent?.name ?? harnessConfig.name,
+            command: harnessConfig.command,
+          });
+          const retryNote =
+            LIMIT.MAX_CONNECTION_RETRIES > 1
+              ? ` (after ${LIMIT.MAX_CONNECTION_RETRIES} attempts)`
+              : "";
+          const errorMessage = `${friendly}${retryNote}`;
+          onLoadErrorChange(errorMessage);
+          setConnectionStatus(CONNECTION_STATUS.ERROR);
+          setCurrentSession(undefined);
+          onStageChange(RENDER_STAGE.ERROR);
+          onStatusMessageChange(errorMessage);
+        }
+      }
+    })();
+
+    return () => {
+      active = false;
+      detach();
+      void runtime.disconnect();
+      setClient(null);
+    };
+  }, [
+    harnessConfigs,
+    harnessRegistry,
+    selectedAgent,
+    sessionStream,
+    setConnectionStatus,
+    setCurrentSession,
+    onStageChange,
+    onProgressChange,
+    onStatusMessageChange,
+    onLoadErrorChange,
+    onViewChange,
+  ]);
+
+  return { client, sessionId };
+}

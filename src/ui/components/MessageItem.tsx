@@ -1,12 +1,14 @@
+import { LIMIT } from "@/config/limits";
 import { COLOR } from "@/constants/colors";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import type { ContentBlock as ChatContentBlock, Message as ChatMessage } from "@/types/domain";
 import { roleColor } from "@/ui/theme";
 import { Box, Text } from "ink";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { getHighlighter } from "shiki";
 import type { Highlighter } from "shiki";
+import stripAnsi from "strip-ansi";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { TRUNCATION_SHORTCUT_HINT, useTruncationToggle } from "./TruncationProvider";
 
@@ -14,14 +16,14 @@ interface MessageItemProps {
   message: ChatMessage;
 }
 
+const EXPAND_ALL = process.env.TOADSTOOL_EXPAND_ALL === "1";
+
 const formatTime = (timestamp?: number): string => {
   if (!timestamp) return "";
   return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
-import { LIMIT } from "@/config/limits";
-
-const EXPAND_ALL = process.env.TOADSTOOL_EXPAND_ALL === "1";
+const countLines = (text: string): number => stripAnsi(text ?? "").split(/\r?\n/).length;
 
 const mergeTextBlocks = (blocks: ChatContentBlock[]): ChatContentBlock[] => {
   const merged: ChatContentBlock[] = [];
@@ -43,10 +45,10 @@ const mergeTextBlocks = (blocks: ChatContentBlock[]): ChatContentBlock[] => {
 
 const countBlockLines = (block: ChatContentBlock): number => {
   if (block.type === CONTENT_BLOCK_TYPE.TEXT || block.type === CONTENT_BLOCK_TYPE.THINKING) {
-    return (block.text ?? "").split(/\r?\n/).length;
+    return countLines(block.text ?? "");
   }
   if (block.type === CONTENT_BLOCK_TYPE.CODE) {
-    return block.text.split(/\r?\n/).length;
+    return countLines(block.text);
   }
   return 1;
 };
@@ -147,9 +149,9 @@ function CodeBlock({
     visiblePlainLines.map((line) => [{ content: line, color: DEFAULT_CODE_COLOR }]);
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor={COLOR.GRAY} padding={1} gap={0}>
+    <Box flexDirection="column" borderStyle="round" borderColor={COLOR.BORDER} padding={1} gap={0}>
       {lang ? (
-        <Text color={COLOR.GRAY} dimColor>
+        <Text color={COLOR.DIM} dimColor>
           {lang}
         </Text>
       ) : null}
@@ -158,7 +160,7 @@ function CodeBlock({
         return (
           <Text key={lineKey}>
             {lineTokens.map((token) => {
-              const tokenKey = `${lineKey}-${token.color ?? "plain"}-${token.content}`;
+              const tokenKey = `${lineKey}-${token.color ?? DEFAULT_CODE_COLOR}-${token.content}`;
               return (
                 <Text key={tokenKey} color={token.color ?? DEFAULT_CODE_COLOR}>
                   {token.content === "" ? " " : token.content}
@@ -169,7 +171,7 @@ function CodeBlock({
         );
       })}
       {truncated > 0 ? (
-        <Text dimColor color={COLOR.GRAY}>
+        <Text dimColor color={COLOR.DIM}>
           {`${isActive ? "▶" : "•"} … ${truncated} more lines ${
             expanded ? "(expanded)" : "(collapsed)"
           } · ${TRUNCATION_SHORTCUT_HINT}`}
@@ -302,10 +304,42 @@ export const MessageItem = memo(({ message }: MessageItemProps): JSX.Element => 
     defaultExpanded: EXPAND_ALL,
   });
 
-  const displayedResponseBlocks = useMemo(() => {
-    if (!isLongOutput || longOutputExpanded) return responseBlocks;
-    return responseBlocks.slice(0, LIMIT.LONG_OUTPUT_PREVIEW_BLOCKS);
-  }, [isLongOutput, longOutputExpanded, responseBlocks]);
+  const {
+    previewBlocks: displayedResponseBlocks,
+    hiddenLineCount,
+    hiddenBlockCount,
+  } = useMemo(() => {
+    if (!isLongOutput) {
+      return { previewBlocks: responseBlocks, hiddenLineCount: 0, hiddenBlockCount: 0 };
+    }
+
+    if (longOutputExpanded) {
+      return {
+        previewBlocks: responseBlocks,
+        hiddenLineCount: 0,
+        hiddenBlockCount: 0,
+      };
+    }
+
+    const headCount = Math.max(
+      1,
+      Math.min(LIMIT.LONG_OUTPUT_PREVIEW_BLOCKS, responseBlocks.length)
+    );
+    const tailCount = Math.min(1, responseBlocks.length - headCount);
+    const headBlocks = responseBlocks.slice(0, headCount);
+    const tailBlocks = tailCount > 0 ? responseBlocks.slice(-tailCount) : [];
+    const previewBlocks = [...headBlocks, ...tailBlocks];
+
+    const previewLineCount = previewBlocks.reduce(
+      (total, block) => total + countBlockLines(block),
+      0
+    );
+    return {
+      previewBlocks,
+      hiddenLineCount: Math.max(0, totalResponseLines - previewLineCount),
+      hiddenBlockCount: Math.max(0, responseBlocks.length - previewBlocks.length),
+    };
+  }, [isLongOutput, longOutputExpanded, responseBlocks, totalResponseLines]);
 
   // Check if we have incomplete markdown (for streaming messages)
   const hasIncompleteMarkdown = useMemo(
@@ -323,57 +357,117 @@ export const MessageItem = memo(({ message }: MessageItemProps): JSX.Element => 
     [message.isStreaming, responseBlocks]
   );
 
+  const roleLabel = message.role === "assistant" ? "AGENT" : message.role.toUpperCase();
+  const roleBar = roleColor(message.role);
+
+  const estimateBlockLines = useCallback((block: ChatContentBlock): number => {
+    switch (block.type) {
+      case CONTENT_BLOCK_TYPE.TEXT:
+      case CONTENT_BLOCK_TYPE.THINKING:
+        return countLines(block.text ?? "");
+      case CONTENT_BLOCK_TYPE.CODE:
+        return Math.min(countLines(block.text ?? ""), LIMIT.MAX_BLOCK_LINES) + 1;
+      case CONTENT_BLOCK_TYPE.TOOL_CALL:
+        return 2;
+      case CONTENT_BLOCK_TYPE.RESOURCE_LINK:
+      case CONTENT_BLOCK_TYPE.RESOURCE:
+        return 1;
+      default:
+        return 1;
+    }
+  }, []);
+
+  const contentLineCount = useMemo(() => {
+    const headerLines = 1;
+    const toolLines = toolCallBlocks.reduce((sum, block) => sum + estimateBlockLines(block), 0);
+    const responseLines = displayedResponseBlocks.reduce(
+      (sum, block) => sum + estimateBlockLines(block),
+      0
+    );
+    const extras = (isLongOutput ? 1 : 0) + (hasIncompleteMarkdown ? 1 : 0);
+    return headerLines + toolLines + responseLines + extras;
+  }, [
+    displayedResponseBlocks,
+    estimateBlockLines,
+    hasIncompleteMarkdown,
+    isLongOutput,
+    toolCallBlocks,
+  ]);
+
+  const bar = useMemo(
+    () => Array.from({ length: Math.max(1, contentLineCount) }, () => "│").join("\n"),
+    [contentLineCount]
+  );
+
   return (
-    <Box flexDirection="column" width="100%" gap={0} marginY={1}>
-      <Box gap={1} marginBottom={1}>
-        <Text bold color={roleColor(message.role)}>
-          [{message.role.toUpperCase()}]
-        </Text>
-        <Text dimColor>{formatTime(message.createdAt)}</Text>
-        {message.isStreaming && (
-          <Text color={COLOR.CYAN} dimColor>
-            {" "}
-            (streaming…)
+    <Box flexDirection="row" width="100%" gap={1} marginY={0}>
+      <Box flexShrink={0}>
+        <Text color={roleBar}>{bar}</Text>
+      </Box>
+      <Box flexDirection="column" width="100%" gap={0}>
+        <Box gap={1} marginBottom={0} justifyContent="space-between" width="100%">
+          <Box gap={1}>
+            <Text bold color={roleBar}>
+              [{roleLabel}]
+            </Text>
+            {message.isStreaming && (
+              <Text color={COLOR.CYAN} dimColor>
+                ● streaming…
+              </Text>
+            )}
+          </Box>
+          <Text dimColor color={COLOR.DIM}>
+            {formatTime(message.createdAt)}
           </Text>
+        </Box>
+
+        {/* Render tool calls first (always visible) */}
+        {toolCallBlocks.length > 0 && (
+          <Box flexDirection="column" marginBottom={0} gap={0}>
+            {toolCallBlocks.map((block, idx) => (
+              <Box key={`${message.id}-tool-${idx}`} paddingLeft={1}>
+                <ContentBlockRenderer block={block} messageId={message.id} index={idx} />
+              </Box>
+            ))}
+          </Box>
+        )}
+
+        {/* Then render response text and other content */}
+        {displayedResponseBlocks.map((block, idx) => (
+          <Box key={`${message.id}-${block.type}-${idx}`} width="100%">
+            <ContentBlockRenderer block={block} messageId={message.id} index={idx} />
+          </Box>
+        ))}
+
+        {isLongOutput ? (
+          <Box marginTop={0}>
+            <Text dimColor color={COLOR.GRAY}>
+              {`${longOutputExpanded ? "▶" : "•"} long output ${
+                longOutputExpanded ? "(expanded)" : "(collapsed)"
+              }${
+                hiddenLineCount > 0 || hiddenBlockCount > 0
+                  ? ` · ${hiddenLineCount} hidden lines, ${hiddenBlockCount} hidden blocks`
+                  : ""
+              } · ${TRUNCATION_SHORTCUT_HINT}`}
+            </Text>
+            {!longOutputExpanded && hiddenBlockCount > 0 ? (
+              <Text
+                dimColor
+                color={COLOR.GRAY}
+              >{`Previewing head/tail (${displayedResponseBlocks.length}/${responseBlocks.length} blocks)`}</Text>
+            ) : null}
+          </Box>
+        ) : null}
+
+        {/* Show error if markdown is incomplete */}
+        {hasIncompleteMarkdown && (
+          <Box marginTop={1} borderStyle="round" borderColor={COLOR.YELLOW} padding={1}>
+            <Text color={COLOR.YELLOW}>
+              ⚠ Incomplete markdown detected - waiting for complete response…
+            </Text>
+          </Box>
         )}
       </Box>
-
-      {/* Render tool calls first */}
-      {toolCallBlocks.length > 0 && (
-        <Box flexDirection="column" marginBottom={1}>
-          {toolCallBlocks.map((block, idx) => (
-            <Box key={`${message.id}-tool-${idx}`} paddingLeft={1}>
-              <ContentBlockRenderer block={block} messageId={message.id} index={idx} />
-            </Box>
-          ))}
-        </Box>
-      )}
-
-      {/* Then render response text and other content */}
-      {displayedResponseBlocks.map((block, idx) => (
-        <Box key={`${message.id}-${block.type}-${idx}`} width="100%">
-          <ContentBlockRenderer block={block} messageId={message.id} index={idx} />
-        </Box>
-      ))}
-
-      {isLongOutput ? (
-        <Box marginTop={1}>
-          <Text dimColor color={COLOR.GRAY}>
-            {`${longOutputExpanded ? "▶" : "•"} long output ${
-              longOutputExpanded ? "(expanded)" : "(collapsed)"
-            } · ${TRUNCATION_SHORTCUT_HINT}`}
-          </Text>
-        </Box>
-      ) : null}
-
-      {/* Show error if markdown is incomplete */}
-      {hasIncompleteMarkdown && (
-        <Box marginTop={1} borderStyle="round" borderColor={COLOR.YELLOW} padding={1}>
-          <Text color={COLOR.YELLOW}>
-            ⚠ Incomplete markdown detected - waiting for complete response…
-          </Text>
-        </Box>
-      )}
     </Box>
   );
 });

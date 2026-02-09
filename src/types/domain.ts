@@ -254,6 +254,15 @@ export const AppStateSchema = z.object({
   sessions: z.record(SessionIdSchema, SessionSchema).default({}),
   messages: z.record(MessageIdSchema, MessageSchema).default({}),
   plans: z.record(PlanIdSchema, PlanSchema).default({}),
+  contextAttachments: z.record(SessionIdSchema, z.array(z.string()).default([])).default({}),
+  uiState: z
+    .object({
+      sidebarTab: z.enum(["files", "plan", "context", "sessions", "agent"]).default("files"),
+      accordionCollapsed: z
+        .record(z.enum(["files", "plan", "context", "sessions", "agent"]), z.boolean())
+        .default({}),
+    })
+    .default({}),
 });
 export type AppState = z.infer<typeof AppStateSchema>;
 

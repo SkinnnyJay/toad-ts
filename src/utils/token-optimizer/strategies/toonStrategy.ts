@@ -16,9 +16,7 @@ const ensureToonModule = async (): Promise<ToonModule> => {
   if (!toonModulePromise) {
     toonModulePromise = (async (): Promise<ToonModule> => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const toon = await import("@toon-format/toon");
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return toon as ToonModule;
       } catch {
         // @toon-format/toon package not available - return stub

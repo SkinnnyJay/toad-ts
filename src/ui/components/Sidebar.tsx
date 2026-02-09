@@ -1,11 +1,13 @@
 import { LIMIT } from "@/config/limits";
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
+import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { useAppStore } from "@/store/app-store";
-import type { Plan, Session, SessionId } from "@/types/domain";
+import type { AppState, Plan, Session, SessionId } from "@/types/domain";
 import { Box, Text, useInput, useStdout } from "ink";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { AccordionSection } from "./AccordionSection";
 import { FileTree } from "./FileTree";
 import { ScrollArea } from "./ScrollArea";
 
@@ -23,7 +25,7 @@ interface SidebarProps {
   currentAgentName?: string;
   currentSessionId?: SessionId;
   onSelectSession?: (sessionId: SessionId) => void;
-  focusTarget?: "files" | "plan" | "context" | "sessions" | "agent" | "chat";
+  focusTarget?: FocusTarget;
 }
 
 const PlanSection = memo(({ plan }: { plan?: Plan }) => {
@@ -92,8 +94,6 @@ const SessionsSection = memo(
       return <Text dimColor>No sessions</Text>;
     }
 
-    // Calculate available width for session IDs
-    // Account for: pointer (2 chars), status icon (2 chars), spacing (2 chars), safety margin (2 chars)
     const prefixLength = 2 + 2 + 2; // "› " + "● " or "○ " + spacing
     const safetyMargin = 2;
     const maxSessionIdLength = Math.max(1, maxWidth - prefixLength - safetyMargin);
@@ -119,13 +119,18 @@ const SessionsSection = memo(
   }
 );
 
-const tabs = [
-  { id: "files", icon: "F" },
-  { id: "plan", icon: "P" },
-  { id: "context", icon: "C" },
-  { id: "sessions", icon: "S" },
-  { id: "agent", icon: "A" },
-] as const;
+type SidebarSection = Exclude<FocusTarget, typeof FOCUS_TARGET.CHAT>;
+
+const sectionShortcuts: Record<SidebarSection, string> = {
+  [FOCUS_TARGET.FILES]: "Cmd/Ctrl+F or Cmd/Ctrl+1",
+  [FOCUS_TARGET.PLAN]: "Cmd/Ctrl+2",
+  [FOCUS_TARGET.CONTEXT]: "Cmd/Ctrl+3",
+  [FOCUS_TARGET.SESSIONS]: "Cmd/Ctrl+4",
+  [FOCUS_TARGET.AGENT]: "Cmd/Ctrl+5",
+};
+
+const isSidebarSection = (value: FocusTarget): value is SidebarSection =>
+  value !== FOCUS_TARGET.CHAT;
 
 export function Sidebar({
   width = "15%",
@@ -133,15 +138,14 @@ export function Sidebar({
   currentAgentName,
   currentSessionId,
   onSelectSession,
-  focusTarget = "chat",
+  focusTarget = FOCUS_TARGET.CHAT,
 }: SidebarProps): JSX.Element {
   const { stdout } = useStdout();
   const terminalRows = stdout?.rows ?? UI.TERMINAL_DEFAULT_ROWS;
   const terminalWidth = stdout?.columns ?? 80;
 
   const availableHeight = height ?? terminalRows - 5;
-  const tabBarHeight = 2;
-  const contentHeight = Math.max(8, availableHeight - tabBarHeight);
+  const contentHeight = Math.max(8, availableHeight - 2);
 
   const storeCurrentSessionId = useAppStore((state) => state.currentSessionId);
   const activeSessionId = currentSessionId ?? storeCurrentSessionId;
@@ -151,19 +155,29 @@ export function Sidebar({
   );
 
   const sessionsById = useAppStore((state) => state.sessions);
+  const contextAttachmentsBySession = useAppStore((state) => state.contextAttachments);
+  const setSidebarTab = useAppStore((state) => state.setSidebarTab);
+  const accordionCollapsed = useAppStore((state) => state.uiState.accordionCollapsed ?? {});
+  const setAccordionCollapsed = useAppStore((state) => state.setAccordionCollapsed);
   const sessions = useMemo<Session[]>(() => {
     const values = Object.values(sessionsById) as Session[];
     return values.slice().sort((a, b) => b.updatedAt - a.updatedAt);
   }, [sessionsById]);
 
   const [sessionIndex, setSessionIndex] = useState(0);
-  const [selectedTab, setSelectedTab] = useState<SidebarProps["focusTarget"]>("files");
 
-  useEffect(() => {
-    if (focusTarget && tabs.some((tab) => tab.id === focusTarget)) {
-      setSelectedTab(focusTarget);
-    }
-  }, [focusTarget]);
+  const isCollapsed = useCallback(
+    (section: SidebarSection): boolean => accordionCollapsed?.[section] ?? false,
+    [accordionCollapsed]
+  );
+
+  const toggleSection = useCallback(
+    (section: SidebarSection) => {
+      setSidebarTab(section as AppState["uiState"]["sidebarTab"]);
+      setAccordionCollapsed(section as AppState["uiState"]["sidebarTab"], !isCollapsed(section));
+    },
+    [isCollapsed, setAccordionCollapsed, setSidebarTab]
+  );
 
   useEffect(() => {
     if (!activeSessionId) {
@@ -177,28 +191,18 @@ export function Sidebar({
   }, [activeSessionId, sessions]);
 
   useInput((input, key) => {
-    // Tab navigation within sidebar when focused on sidebar targets
-    if (focusTarget !== "chat") {
-      if (key.leftArrow || input === "h") {
-        setSelectedTab((prev) => {
-          const currentIdx = tabs.findIndex((tab) => tab.id === prev);
-          const safeIdx = currentIdx >= 0 ? currentIdx : 0;
-          const nextIdx = (safeIdx - 1 + tabs.length) % tabs.length;
-          return tabs[nextIdx]?.id ?? prev;
-        });
-      }
-      if (key.rightArrow || input === "l") {
-        setSelectedTab((prev) => {
-          const currentIdx = tabs.findIndex((tab) => tab.id === prev);
-          const safeIdx = currentIdx >= 0 ? currentIdx : 0;
-          const nextIdx = (safeIdx + 1) % tabs.length;
-          return tabs[nextIdx]?.id ?? prev;
-        });
-      }
+    const active = focusTarget ?? FOCUS_TARGET.CHAT;
+
+    if ((key.return || input === " ") && isSidebarSection(active)) {
+      toggleSection(active);
+      return;
     }
 
-    // Sessions navigation when on Sessions tab
-    if (selectedTab === "sessions" && focusTarget === "sessions" && sessions.length > 0) {
+    if (
+      active === FOCUS_TARGET.SESSIONS &&
+      !isCollapsed(FOCUS_TARGET.SESSIONS) &&
+      sessions.length > 0
+    ) {
       if (key.upArrow) {
         setSessionIndex((prev) => Math.max(0, prev - 1));
         return;
@@ -221,124 +225,25 @@ export function Sidebar({
     }
   });
 
-  const tabContent = useMemo(() => {
-    switch (selectedTab) {
-      case "files": {
-        // Account for header text (1 line), padding, gap, and safety margin
-        const headerHeight = 1;
-        const containerPadding = 2; // padding={1} top and bottom
-        const gapSpacing = 1; // gap={1} between header and FileTree
-        const safetyMargin = 2; // Extra margin to prevent overflow
-        const fileTreeHeight = Math.max(
-          1,
-          contentHeight - headerHeight - containerPadding - gapSpacing - safetyMargin
-        );
-        return (
-          <ScrollArea
-            height={contentHeight}
-            showScrollbar={true}
-            isFocused={focusTarget === "files"}
-          >
-            <Box
-              padding={1}
-              paddingTop={0}
-              paddingBottom={1}
-              gap={1}
-              flexDirection="column"
-              flexGrow={1}
-              minHeight={0}
-            >
-              <Text color={COLOR.GRAY} bold>
-                Files
-              </Text>
-              <FileTree
-                isFocused={focusTarget === "files"}
-                height={fileTreeHeight}
-                textSize="small"
-              />
-            </Box>
-          </ScrollArea>
-        );
-      }
-      case "plan":
-        return (
-          <ScrollArea height={contentHeight} showScrollbar={true}>
-            <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
-              <Text color={COLOR.GRAY} bold>
-                Plan
-              </Text>
-              <PlanSection plan={plan} />
-            </Box>
-          </ScrollArea>
-        );
-      case "context":
-        return (
-          <ScrollArea height={contentHeight} showScrollbar={true}>
-            <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
-              <Text color={COLOR.GRAY} bold>
-                Context
-              </Text>
-              <Text dimColor>No context files attached</Text>
-            </Box>
-          </ScrollArea>
-        );
-      case "sessions": {
-        // Calculate available width for session IDs
-        const sidebarWidthPercent = 0.15; // 15% default
-        const sidebarWidth = Math.floor(terminalWidth * sidebarWidthPercent);
-        const sidebarPadding = 2; // paddingX={1} on both sides
-        const containerPadding = 2; // padding={1} on left side
-        const scrollbarWidth = 1; // Reserve space for scrollbar
-        const maxSessionIdWidth = Math.max(
-          10,
-          sidebarWidth - sidebarPadding - containerPadding - scrollbarWidth
-        );
-        return (
-          <ScrollArea
-            height={contentHeight}
-            showScrollbar={true}
-            isFocused={focusTarget === "sessions"}
-          >
-            <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
-              <Text color={COLOR.GRAY} bold>
-                Sessions
-              </Text>
-              <SessionsSection
-                sessions={sessions}
-                currentSessionId={activeSessionId}
-                selectedIndex={sessionIndex}
-                maxWidth={maxSessionIdWidth}
-              />
-            </Box>
-          </ScrollArea>
-        );
-      }
-      case "agent":
-        return (
-          <ScrollArea height={contentHeight} showScrollbar={true}>
-            <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
-              <Text color={COLOR.GRAY} bold>
-                Sub-agents
-              </Text>
-              <AgentsSection currentAgentName={currentAgentName} />
-            </Box>
-          </ScrollArea>
-        );
+  const sidebarWidthPercent = 0.15;
+  const sidebarWidth =
+    typeof width === "number" ? width : Math.floor(terminalWidth * sidebarWidthPercent);
+  const sidebarPadding = 2;
+  const containerPadding = 2;
+  const scrollbarWidth = 1;
+  const maxSessionIdWidth = Math.max(
+    10,
+    sidebarWidth - sidebarPadding - containerPadding - scrollbarWidth
+  );
 
-      default:
-        return null;
-    }
-  }, [
-    selectedTab,
-    focusTarget,
-    contentHeight,
-    plan,
-    sessions,
-    activeSessionId,
-    sessionIndex,
-    currentAgentName,
-    terminalWidth,
-  ]);
+  const filesHeight = Math.max(6, Math.floor(contentHeight * 0.55));
+  const sessionsHeight = Math.max(4, Math.floor(contentHeight * 0.25));
+
+  const contextAttachments = activeSessionId
+    ? (contextAttachmentsBySession[activeSessionId] ?? [])
+    : [];
+  const displayedContext = contextAttachments.slice(0, LIMIT.SIDEBAR_TASKS_DISPLAY);
+  const hiddenContextCount = Math.max(0, contextAttachments.length - displayedContext.length);
 
   return (
     <Box
@@ -353,19 +258,96 @@ export function Sidebar({
       paddingY={1}
       gap={1}
     >
-      <Box flexDirection="row" gap={2}>
-        {tabs.map((tab) => {
-          const isActive = tab.id === selectedTab;
-          return (
-            <Text key={tab.id} color={isActive ? COLOR.CYAN : COLOR.GRAY} bold={isActive}>
-              {isActive ? "▸ " : "  "} {tab.icon}{" "}
-            </Text>
-          );
-        })}
-      </Box>
-      <Box flexDirection="column" flexGrow={1} minHeight={0}>
-        {tabContent}
-      </Box>
+      <ScrollArea
+        height={contentHeight}
+        showScrollbar={true}
+        estimatedLinesPerItem={2}
+        isFocused={focusTarget !== FOCUS_TARGET.CHAT}
+      >
+        <Box flexDirection="column" gap={1} minHeight={0}>
+          <AccordionSection
+            title="Files"
+            isCollapsed={isCollapsed(FOCUS_TARGET.FILES)}
+            shortcutHint={sectionShortcuts[FOCUS_TARGET.FILES]}
+            height={filesHeight + 2}
+          >
+            {!isCollapsed(FOCUS_TARGET.FILES) ? (
+              <FileTree
+                isFocused={focusTarget === FOCUS_TARGET.FILES}
+                height={filesHeight}
+                textSize="small"
+              />
+            ) : null}
+          </AccordionSection>
+
+          <AccordionSection
+            title="Plan"
+            isCollapsed={isCollapsed(FOCUS_TARGET.PLAN)}
+            shortcutHint={sectionShortcuts[FOCUS_TARGET.PLAN]}
+          >
+            {!isCollapsed(FOCUS_TARGET.PLAN) ? (
+              <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
+                <PlanSection plan={plan} />
+              </Box>
+            ) : null}
+          </AccordionSection>
+
+          <AccordionSection
+            title="Context"
+            isCollapsed={isCollapsed(FOCUS_TARGET.CONTEXT)}
+            shortcutHint={sectionShortcuts[FOCUS_TARGET.CONTEXT]}
+          >
+            {!isCollapsed(FOCUS_TARGET.CONTEXT) ? (
+              <Box padding={1} paddingTop={0} gap={1} flexDirection="column" minHeight={0}>
+                {displayedContext.length === 0 ? (
+                  <Text dimColor>No context files attached</Text>
+                ) : (
+                  <Box flexDirection="column" gap={0} minWidth={0} width="100%">
+                    {displayedContext.map((file) => (
+                      <Text key={file} wrap="truncate-end">
+                        • {truncateText(file, 60)}
+                      </Text>
+                    ))}
+                    {hiddenContextCount > 0 ? (
+                      <Text dimColor>{`… ${hiddenContextCount} more`}</Text>
+                    ) : null}
+                  </Box>
+                )}
+              </Box>
+            ) : null}
+          </AccordionSection>
+
+          <AccordionSection
+            title="Sessions"
+            isCollapsed={isCollapsed(FOCUS_TARGET.SESSIONS)}
+            shortcutHint={sectionShortcuts[FOCUS_TARGET.SESSIONS]}
+            height={sessionsHeight + 2}
+          >
+            {!isCollapsed(FOCUS_TARGET.SESSIONS) ? (
+              <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
+                <SessionsSection
+                  sessions={sessions}
+                  currentSessionId={activeSessionId}
+                  selectedIndex={sessionIndex}
+                  maxWidth={maxSessionIdWidth}
+                />
+              </Box>
+            ) : null}
+          </AccordionSection>
+
+          <AccordionSection
+            title="Sub-agents"
+            isCollapsed={isCollapsed(FOCUS_TARGET.AGENT)}
+            shortcutHint={sectionShortcuts[FOCUS_TARGET.AGENT]}
+          >
+            {!isCollapsed(FOCUS_TARGET.AGENT) ? (
+              <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
+                <AgentsSection currentAgentName={currentAgentName} />
+              </Box>
+            ) : null}
+          </AccordionSection>
+        </Box>
+      </ScrollArea>
     </Box>
   );
 }

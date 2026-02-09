@@ -107,6 +107,10 @@ export class ACPClient extends EventEmitter<ACPClientEvents> implements Client {
     this.emit("sessionUpdate", params);
   }
 
+  get connectionStatus(): ConnectionStatus {
+    return this.connection.connectionStatus;
+  }
+
   private requireConnection(): ClientSideConnection {
     if (!this.clientConnection) {
       throw new Error("ACP client not connected");

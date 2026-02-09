@@ -1,4 +1,5 @@
 import { PERSISTENCE_WRITE_MODE } from "@/constants/persistence-write-modes";
+import { createClassLogger } from "@/utils/logging/logger.utils";
 import type { StoreApi } from "zustand";
 
 import type { AppStore } from "@/store/app-store";
@@ -43,6 +44,7 @@ export class PersistenceManager {
   private unsubscribe: (() => void) | null = null;
   private debounceTimer: NodeJS.Timeout | null = null;
   private lastMetrics: SnapshotMetrics | null = null;
+  private readonly logger = createClassLogger("PersistenceManager");
 
   constructor(
     private readonly store: StoreApi<AppStore>,
@@ -116,7 +118,16 @@ export class PersistenceManager {
     }
 
     this.debounceTimer = setTimeout(() => {
-      void this.provider.save(snapshot);
+      void this.persistSnapshot(snapshot);
     }, this.options.batchDelay);
+  }
+
+  private async persistSnapshot(snapshot: SessionSnapshot): Promise<void> {
+    try {
+      await this.provider.save(snapshot);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error("Failed to persist session snapshot", { error: message });
+    }
   }
 }

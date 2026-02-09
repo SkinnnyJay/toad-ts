@@ -1,10 +1,15 @@
 import { existsSync } from "node:fs";
 import { delimiter, join } from "node:path";
+import { LIMIT } from "@/config/limits";
+import { TIMEOUT } from "@/config/timeouts";
+import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 
-import { ACPClient, type ACPClientOptions, type ACPConnectionLike } from "@/core/acp-client";
+import { createAcpAgentPort } from "@/core/acp-agent-port";
+import type { ACPClientOptions, ACPConnectionLike } from "@/core/acp-client";
 import { ACPConnection, type ACPConnectionOptions } from "@/core/acp-connection";
+import type { AgentPort } from "@/core/agent-port";
 import type {
   HarnessAdapter,
   HarnessRuntime,
@@ -12,6 +17,8 @@ import type {
 } from "@/harness/harnessAdapter";
 import { harnessConfigSchema } from "@/harness/harnessConfig";
 import type { ConnectionStatus } from "@/types/domain";
+import { retryWithBackoff } from "@/utils/async/retryWithBackoff";
+import { createClassLogger } from "@/utils/logging/logger.utils";
 import type {
   AuthenticateRequest,
   AuthenticateResponse,
@@ -89,7 +96,8 @@ export class ClaudeCliHarnessAdapter
   public readonly command: string;
   public readonly args: readonly string[];
   private readonly connection: ACPConnectionLike;
-  private readonly client: ACPClient;
+  private readonly client: AgentPort;
+  private readonly logger = createClassLogger("ClaudeCliHarnessAdapter");
 
   constructor(options: ClaudeCliHarnessAdapterOptions = {}) {
     super();
@@ -111,7 +119,10 @@ export class ClaudeCliHarnessAdapter
       (options.connectionFactory
         ? options.connectionFactory(connectionOptions)
         : new ACPConnection(connectionOptions));
-    this.client = new ACPClient(this.connection, options.clientOptions);
+    this.client = createAcpAgentPort({
+      connection: this.connection,
+      clientOptions: options.clientOptions,
+    });
 
     this.client.on("state", (status) => this.emit("state", status));
     this.client.on("sessionUpdate", (update) => this.emit("sessionUpdate", update));
@@ -124,11 +135,48 @@ export class ClaudeCliHarnessAdapter
   }
 
   async connect(): Promise<void> {
-    await this.client.connect();
+    try {
+      await retryWithBackoff(
+        async (attempt) => {
+          if (attempt > 1) {
+            this.emit("state", CONNECTION_STATUS.CONNECTING);
+          }
+          await this.client.connect();
+        },
+        {
+          maxAttempts: LIMIT.MAX_CONNECTION_RETRIES,
+          baseMs: TIMEOUT.BACKOFF_BASE_MS,
+          capMs: TIMEOUT.BACKOFF_CAP_MS,
+          shouldRetry: (error) => this.isRetryableConnectionError(error),
+          onRetry: ({ attempt, delayMs, error }) => {
+            this.logger.warn("Harness connect failed; retrying", {
+              attempt,
+              delayMs,
+              error: error.message,
+            });
+          },
+        }
+      );
+    } catch (error) {
+      this.logger.error("Harness connect failed", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
   }
 
   async disconnect(): Promise<void> {
     await this.client.disconnect();
+  }
+
+  private isRetryableConnectionError(error: unknown): boolean {
+    if (typeof error === "object" && error !== null && "code" in error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (code === "ENOENT" || code === "EACCES") {
+        return false;
+      }
+    }
+    return true;
   }
 
   async initialize(params?: Partial<InitializeRequest>): Promise<InitializeResponse> {

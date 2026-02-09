@@ -1,7 +1,7 @@
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { Box, Text, useInput, useStdout } from "ink";
-import React, { type ReactNode, useCallback, useEffect, useState, useMemo } from "react";
+import React, { memo, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
 interface ScrollAreaProps {
   children: ReactNode;
@@ -14,7 +14,7 @@ interface ScrollAreaProps {
   showScrollHints?: boolean; // Show scroll hints (not implemented yet)
 }
 
-export function ScrollArea({
+export const ScrollArea = memo(function ScrollArea({
   children,
   height,
   showScrollbar = true,
@@ -42,25 +42,31 @@ export function ScrollArea({
     [isControlled, onScrollChange]
   );
 
-  // Get terminal dimensions
+  // Get terminal dimensions (clamped to avoid negative heights on rapid resize)
   const terminalRows = stdout?.rows ?? UI.TERMINAL_DEFAULT_ROWS;
 
-  // Use provided height or calculate from terminal
-  const effectiveHeight = height ?? Math.max(5, terminalRows - 20);
+  const normalizedHeight = useMemo(() => {
+    const requestedHeight = height ?? Math.max(5, terminalRows - 20);
+    return Math.max(3, Math.floor(requestedHeight));
+  }, [height, terminalRows]);
 
   // Convert children to array - memoize to prevent recreation on every render
   const childArray = useMemo(() => React.Children.toArray(children).filter(Boolean), [children]);
   const totalItems = childArray.length;
 
   // Calculate how many items can fit in the visible area
-  // This is crucial - we need to actually limit what's shown
-  // For FileTree, each item is exactly 1 line, so visibleItems = effectiveHeight
-  // For other content (like messages), we divide by estimatedLinesPerItem
-  const visibleItems = Math.max(1, Math.floor(effectiveHeight / estimatedLinesPerItem));
+  const safeEstimated = Math.max(1, Math.floor(estimatedLinesPerItem));
+  const visibleItems = Math.max(1, Math.floor(normalizedHeight / safeEstimated));
   const maxScrollOffset = Math.max(0, totalItems - visibleItems);
 
   // Clamp scrollOffset to valid range
   const clampedScrollOffset = Math.max(0, Math.min(scrollOffset, maxScrollOffset));
+
+  useEffect(() => {
+    if (!isControlled && clampedScrollOffset !== scrollOffset) {
+      setScrollOffset(clampedScrollOffset);
+    }
+  }, [clampedScrollOffset, isControlled, scrollOffset, setScrollOffset]);
 
   // Auto-scroll to bottom when new messages arrive (if user hasn't manually scrolled)
   // Only auto-scroll in uncontrolled mode
@@ -114,7 +120,7 @@ export function ScrollArea({
   // Calculate scrollbar properties
   const needsScrollbar = totalItems > visibleItems;
   // Scrollbar height should match the effective height (number of visible lines)
-  const scrollbarHeight = Math.max(1, Math.floor(effectiveHeight));
+  const scrollbarHeight = Math.max(1, normalizedHeight);
   const thumbSize =
     needsScrollbar && totalItems > 0
       ? Math.max(1, Math.round((visibleItems / totalItems) * scrollbarHeight))
@@ -133,12 +139,12 @@ export function ScrollArea({
   }, [scrollbarHeight]);
 
   return (
-    <Box flexDirection="row" width="100%" height={effectiveHeight} overflow="hidden" minWidth={0}>
+    <Box flexDirection="row" width="100%" height={normalizedHeight} overflow="hidden" minWidth={0}>
       <Box
         flexDirection="column"
         flexGrow={1}
         flexShrink={1}
-        height={effectiveHeight}
+        height={normalizedHeight}
         overflow="hidden"
         minWidth={0}
         minHeight={0}
@@ -148,7 +154,7 @@ export function ScrollArea({
         {visibleChildren}
       </Box>
       {showScrollbar && needsScrollbar && (
-        <Box flexDirection="column" marginLeft={1} flexShrink={0} height={effectiveHeight}>
+        <Box flexDirection="column" marginLeft={1} flexShrink={0} height={normalizedHeight}>
           {scrollbarItems.map(({ id, index: i }) => (
             <Text
               key={id}
@@ -161,4 +167,6 @@ export function ScrollArea({
       )}
     </Box>
   );
-}
+});
+
+ScrollArea.displayName = "ScrollArea";

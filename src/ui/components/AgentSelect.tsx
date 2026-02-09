@@ -1,6 +1,6 @@
 import { COLOR } from "@/constants/colors";
 import type { AgentId } from "@/types/domain";
-import { Box, Text, useInput } from "ink";
+import { Box, Text, useInput, useStdout } from "ink";
 import { useEffect, useMemo, useState } from "react";
 
 export interface AgentOption {
@@ -16,12 +16,33 @@ interface AgentSelectProps {
 }
 
 export function AgentSelect({ agents, onSelect }: AgentSelectProps): JSX.Element {
+  const { stdout } = useStdout();
   const [index, setIndex] = useState(0);
+
+  const columns = stdout?.columns ?? 80;
+  const cols = useMemo(() => Math.max(1, Math.min(3, Math.floor(columns / 26))), [columns]);
+  const cardWidth = useMemo(() => Math.max(18, Math.floor(columns / cols) - 6), [columns, cols]);
 
   useInput((input, key) => {
     if (agents.length === 0) return;
-    if (key.upArrow) setIndex((prev) => (prev - 1 + agents.length) % agents.length);
-    if (key.downArrow) setIndex((prev) => (prev + 1) % agents.length);
+
+    if (key.upArrow || input === "k") {
+      setIndex((prev) => (prev - cols + agents.length) % agents.length);
+      return;
+    }
+    if (key.downArrow || input === "j") {
+      setIndex((prev) => (prev + cols) % agents.length);
+      return;
+    }
+    if (key.leftArrow || input === "h") {
+      setIndex((prev) => (prev - 1 + agents.length) % agents.length);
+      return;
+    }
+    if (key.rightArrow || input === "l") {
+      setIndex((prev) => (prev + 1) % agents.length);
+      return;
+    }
+
     if (/^[1-9]$/.test(input)) {
       const num = Number(input) - 1;
       if (num >= 0 && num < agents.length) {
@@ -46,13 +67,12 @@ export function AgentSelect({ agents, onSelect }: AgentSelectProps): JSX.Element
   }, [agents.length, index]);
 
   const rows = useMemo(() => {
-    const cols = 3;
     const chunked: AgentOption[][] = [];
     for (let i = 0; i < agents.length; i += cols) {
       chunked.push(agents.slice(i, i + cols));
     }
     return chunked;
-  }, [agents]);
+  }, [agents, cols]);
 
   if (agents.length === 0) {
     return <Text dimColor>No agents available</Text>;
@@ -88,7 +108,7 @@ export function AgentSelect({ agents, onSelect }: AgentSelectProps): JSX.Element
                   borderColor={selected ? COLOR.CYAN : COLOR.GRAY}
                   paddingX={1}
                   paddingY={0}
-                  width={24}
+                  width={cardWidth}
                   flexDirection="column"
                   gap={0}
                 >

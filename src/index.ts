@@ -12,6 +12,8 @@ export * from "@/core/session-manager";
 export * from "@/core/fs-handler";
 export * from "@/core/terminal-handler";
 export * from "@/core/search/search-service";
+export * from "@/core/agent-port";
+export * from "@/core/acp-agent-port";
 export * from "@/store/app-store";
 export * from "@/store/session-persistence";
 export * from "@/store/persistence/persistence-config";

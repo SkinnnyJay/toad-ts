@@ -126,5 +126,5 @@ export class LoggerSingleton {
   }
 }
 
-export const Logger = LoggerSingleton;
-export const Log: Logger = createClassLogger("Log");
+export const LoggerInstance = LoggerSingleton;
+export const LogInstance: Logger = createClassLogger("Log");

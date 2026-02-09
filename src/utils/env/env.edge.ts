@@ -21,13 +21,7 @@
  * @param defaultValue - Default value to return if variable is not set
  * @returns The environment variable value or default
  */
-export function getEdgeEnv(key: string, defaultValue: string): string;
-export function getEdgeEnv(key: string, defaultValue: number): number;
-export function getEdgeEnv(key: string, defaultValue: boolean): boolean;
-export function getEdgeEnv(
-  key: string,
-  defaultValue: string | number | boolean
-): string | number | boolean {
+export function getEdgeEnv<T extends string | number | boolean>(key: string, defaultValue: T): T {
   const value: string | undefined = process.env[key];
 
   if (value === undefined) {
@@ -36,15 +30,15 @@ export function getEdgeEnv(
 
   if (typeof defaultValue === "number") {
     const parsedValue: number = Number(value);
-    return Number.isNaN(parsedValue) ? defaultValue : parsedValue;
+    return (Number.isNaN(parsedValue) ? defaultValue : parsedValue) as T;
   }
 
   if (typeof defaultValue === "boolean") {
     const normalizedValue: string = value.toLowerCase();
-    return normalizedValue === "true" || normalizedValue === "1";
+    return (normalizedValue === "true" || normalizedValue === "1") as T;
   }
 
-  return value;
+  return value as T;
 }
 
 /**

@@ -1,0 +1,114 @@
+/**
+ * UI Hooks
+ *
+ * Reusable hooks extracted from UI components for better testability,
+ * reusability, and separation of concerns.
+ */
+
+// App.tsx hooks
+export { useTerminalDimensions } from "./useTerminalDimensions";
+export type { TerminalDimensions } from "./useTerminalDimensions";
+
+export {
+  useSessionHydration,
+  buildAgentOptions,
+} from "./useSessionHydration";
+export type {
+  AgentInfo,
+  UseSessionHydrationResult,
+  UseSessionHydrationOptions,
+} from "./useSessionHydration";
+
+export {
+  useHarnessConnection,
+  formatHarnessError,
+} from "./useHarnessConnection";
+export type {
+  UseHarnessConnectionOptions,
+  UseHarnessConnectionResult,
+} from "./useHarnessConnection";
+
+export { useDefaultAgentSelection } from "./useDefaultAgentSelection";
+export type {
+  UseDefaultAgentSelectionOptions,
+  UseDefaultAgentSelectionResult,
+} from "./useDefaultAgentSelection";
+
+export {
+  useAppKeyboardShortcuts,
+  FOCUS_NUMBER_MAP,
+  isOptionBacktick,
+} from "./useAppKeyboardShortcuts";
+export type {
+  UseAppKeyboardShortcutsOptions,
+  UseAppKeyboardShortcutsResult,
+} from "./useAppKeyboardShortcuts";
+
+// InputWithAutocomplete.tsx hooks
+export {
+  useProjectFiles,
+  createIgnoreFilter,
+} from "./useProjectFiles";
+export type {
+  UseProjectFilesResult,
+  UseProjectFilesOptions,
+} from "./useProjectFiles";
+
+export {
+  useMentionSuggestions,
+  extractMentionQuery,
+} from "./useMentionSuggestions";
+export type {
+  UseMentionSuggestionsOptions,
+  UseMentionSuggestionsResult,
+} from "./useMentionSuggestions";
+
+// ToolCallManager.tsx hooks
+export {
+  useToolCalls,
+  mapBlockStatusToToolStatus,
+  extractToolCallsFromMessages,
+} from "./useToolCalls";
+export type {
+  ToolCall,
+  UseToolCallsResult,
+} from "./useToolCalls";
+
+export { useToolApprovals } from "./useToolApprovals";
+export type {
+  UseToolApprovalsOptions,
+  UseToolApprovalsResult,
+} from "./useToolApprovals";
+
+// ScrollArea.tsx hooks
+export {
+  useScrollState,
+  calculateScrollbarProps,
+} from "./useScrollState";
+export type {
+  UseScrollStateOptions,
+  UseScrollStateResult,
+} from "./useScrollState";
+
+// Sidebar.tsx hooks
+export {
+  useAccordionState,
+  isSidebarSection,
+} from "./useAccordionState";
+export type { UseAccordionStateResult } from "./useAccordionState";
+
+export { useSessionNavigation } from "./useSessionNavigation";
+export type {
+  UseSessionNavigationOptions,
+  UseSessionNavigationResult,
+} from "./useSessionNavigation";
+
+// Chat.tsx hooks
+export {
+  useSlashCommands,
+  parseSlashCommand,
+} from "./useSlashCommands";
+export type {
+  UseSlashCommandsOptions,
+  UseSlashCommandsResult,
+} from "./useSlashCommands";

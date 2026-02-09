@@ -1,5 +1,5 @@
-import type { SessionSnapshot } from "@/store/session-persistence";
-import { SessionSnapshotSchema } from "@/store/session-persistence";
+import { LIMIT } from "@/config/limits";
+import { type SessionSnapshot, SessionSnapshotSchema } from "@/store/session-persistence";
 import { MessageSchema, SessionSchema } from "@/types/domain";
 import type {
   AppState,
@@ -27,6 +27,13 @@ export interface AppStore extends AppState {
   clearMessagesForSession: (sessionId: SessionId) => void;
   upsertPlan: (plan: Plan) => void;
   getPlanBySession: (sessionId: SessionId) => Plan | undefined;
+  setContextAttachments: (sessionId: SessionId, attachments: string[]) => void;
+  getContextAttachments: (sessionId: SessionId) => string[];
+  setSidebarTab: (tab: AppState["uiState"]["sidebarTab"]) => void;
+  getSidebarTab: () => AppState["uiState"]["sidebarTab"];
+  getAccordionCollapsed: () => AppState["uiState"]["accordionCollapsed"];
+  setAccordionCollapsed: (section: AppState["uiState"]["sidebarTab"], isCollapsed: boolean) => void;
+  toggleAccordionSection: (section: AppState["uiState"]["sidebarTab"]) => void;
   hydrate: (snapshot: SessionSnapshot) => void;
   reset: () => void;
 }
@@ -37,6 +44,8 @@ const initialState: AppState = {
   sessions: {},
   messages: {},
   plans: {},
+  contextAttachments: {},
+  uiState: { sidebarTab: "files", accordionCollapsed: {} },
 };
 
 export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState"], get) => ({
@@ -105,6 +114,40 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
     const plans = Object.values(get().plans) as Plan[];
     return plans.find((plan) => plan.sessionId === sessionId);
   },
+  setContextAttachments: (sessionId, attachments) =>
+    set((state) => ({
+      contextAttachments: {
+        ...state.contextAttachments,
+        [sessionId]: attachments.slice(0, LIMIT.MAX_FILES),
+      },
+    })),
+  getContextAttachments: (sessionId) => get().contextAttachments[sessionId] ?? [],
+  setSidebarTab: (tab) => set((state) => ({ uiState: { ...state.uiState, sidebarTab: tab } })),
+  getSidebarTab: () => get().uiState.sidebarTab,
+  getAccordionCollapsed: () => get().uiState.accordionCollapsed ?? {},
+  setAccordionCollapsed: (section, isCollapsed) =>
+    set((state) => ({
+      uiState: {
+        ...state.uiState,
+        accordionCollapsed: {
+          ...(state.uiState.accordionCollapsed ?? {}),
+          [section]: isCollapsed,
+        },
+      },
+    })),
+  toggleAccordionSection: (section) =>
+    set((state) => {
+      const current = state.uiState.accordionCollapsed?.[section] ?? false;
+      return {
+        uiState: {
+          ...state.uiState,
+          accordionCollapsed: {
+            ...(state.uiState.accordionCollapsed ?? {}),
+            [section]: !current,
+          },
+        },
+      } as Partial<AppState>;
+    }),
   hydrate: (snapshot) =>
     set(() => ({
       ...initialState,
@@ -116,6 +159,7 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
       sessions: {},
       messages: {},
       plans: {},
+      contextAttachments: {},
     })),
 }));
 

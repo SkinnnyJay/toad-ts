@@ -16,9 +16,7 @@ const ensureTonlModule = async (): Promise<TonlModule> => {
   if (!tonlModulePromise) {
     tonlModulePromise = (async (): Promise<TonlModule> => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const tonl = await import("tonl");
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return tonl as TonlModule;
       } catch {
         // tonl package not available - return stub

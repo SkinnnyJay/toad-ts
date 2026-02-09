@@ -1,7 +1,10 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { COLOR } from "@/constants/colors";
 import { COMMAND_DEFINITIONS, type CommandDefinition } from "@/constants/command-definitions";
 import fg from "fast-glob";
 import fuzzysort from "fuzzysort";
+import ignore from "ignore";
 import { Box, Text, useInput } from "ink";
 import { useEffect, useMemo, useState } from "react";
 
@@ -27,6 +30,21 @@ import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
 const DEFAULT_COMMANDS: SlashCommand[] = COMMAND_DEFINITIONS;
 const MENTION_REGEX = /@([\w./-]*)$/;
 const MENTION_SUGGESTION_LIMIT = 8;
+const MENTION_DEBOUNCE_MS = 150;
+
+const toPosix = (value: string): string => value.split(path.sep).join("/");
+
+const createIgnoreFilter = async (cwd: string): Promise<(relativePath: string) => boolean> => {
+  const ig = ignore();
+  ig.add([".git", "node_modules", "dist", ".next"]);
+  try {
+    const gitignore = await readFile(path.join(cwd, ".gitignore"), "utf8");
+    ig.add(gitignore);
+  } catch (_error) {
+    // ignore missing .gitignore
+  }
+  return (relativePath: string): boolean => ig.ignores(toPosix(relativePath));
+};
 
 export function InputWithAutocomplete({
   value,
@@ -42,6 +60,7 @@ export function InputWithAutocomplete({
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [filePaths, setFilePaths] = useState<string[]>([]);
+  const [mentionSuggestions, setMentionSuggestions] = useState<string[]>([]);
   const [isLoadingFiles, setIsLoadingFiles] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
 
@@ -52,14 +71,16 @@ export function InputWithAutocomplete({
     const loadFiles = async () => {
       try {
         setIsLoadingFiles(true);
+        const cwd = process.cwd();
+        const shouldIgnore = await createIgnoreFilter(cwd);
         const files = await fg("**/*", {
-          cwd: process.cwd(),
+          cwd,
           onlyFiles: true,
           dot: false,
-          ignore: ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/.next/**"],
         });
         if (cancelled) return;
-        setFilePaths(files.slice(0, LIMIT.MAX_FILES));
+        const filtered = files.filter((file) => !shouldIgnore(file)).slice(0, LIMIT.MAX_FILES);
+        setFilePaths(filtered);
       } catch (error) {
         if (cancelled) return;
         const message = error instanceof Error ? error.message : String(error);
@@ -97,13 +118,22 @@ export function InputWithAutocomplete({
     return match ? match[1] : null;
   }, [cursorPosition, enableMentions, value]);
 
-  const mentionSuggestions = useMemo(() => {
-    if (!enableMentions || !mentionQuery) return [];
-    if (filePaths.length === 0) return [];
-    const results = fuzzysort.go(mentionQuery, filePaths, {
-      limit: MENTION_SUGGESTION_LIMIT,
-    });
-    return results.map((r) => r.target);
+  useEffect(() => {
+    if (!enableMentions || !mentionQuery) {
+      setMentionSuggestions([]);
+      return;
+    }
+    if (filePaths.length === 0) {
+      setMentionSuggestions([]);
+      return;
+    }
+    const handle = setTimeout(() => {
+      const results = fuzzysort.go(mentionQuery, filePaths, {
+        limit: MENTION_SUGGESTION_LIMIT,
+      });
+      setMentionSuggestions(results.map((r) => r.target));
+    }, MENTION_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
   }, [enableMentions, filePaths, mentionQuery]);
 
   // Show/hide autocomplete based on input

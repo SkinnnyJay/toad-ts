@@ -13,6 +13,7 @@ import { SESSION_MODE } from "@/constants/session-modes";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { STREAM_METADATA_KEY } from "@/constants/stream-metadata";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
+import type { AgentPort } from "@/core/agent-port";
 import { MessageHandler } from "@/core/message-handler";
 import type { AppStore } from "@/store/app-store";
 import {
@@ -50,11 +51,6 @@ export interface SessionStreamOptions {
   messageIdFactory?: () => MessageId;
 }
 
-export interface SessionUpdateSource {
-  on(event: "sessionUpdate", handler: (update: SessionNotification) => void): void;
-  off(event: "sessionUpdate", handler: (update: SessionNotification) => void): void;
-}
-
 export class SessionStream {
   private readonly handler: MessageHandler;
   private readonly now: () => number;
@@ -76,10 +72,10 @@ export class SessionStream {
     this.handler.on("done", (payload) => this.handleDone(payload));
   }
 
-  attach(source: SessionUpdateSource): () => void {
+  attach(port: AgentPort): () => void {
     const handler = (update: SessionNotification) => this.handleSessionUpdate(update);
-    source.on("sessionUpdate", handler);
-    return () => source.off("sessionUpdate", handler);
+    port.on("sessionUpdate", handler);
+    return () => port.off("sessionUpdate", handler);
   }
 
   handleSessionUpdate(notification: SessionNotification): void {
@@ -207,42 +203,32 @@ export class SessionStream {
     sessionId: SessionId,
     update: ToolCall & { sessionUpdate: typeof SESSION_UPDATE_TYPE.TOOL_CALL }
   ): void {
-    const toolCallId = ToolCallIdSchema.parse(update.toolCallId);
-    const key = this.buildStreamKey(sessionId, update.sessionUpdate, toolCallId);
-    const messageId = this.getOrCreateMessageId(key, sessionId, "assistant");
+    const messageKey = this.buildStreamKey(sessionId, SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK);
+    const messageId = this.getOrCreateMessageId(messageKey, sessionId, "assistant");
 
     this.handler.handle({
       sessionId,
       messageId,
       role: "assistant",
       content: this.mapToolCall(update),
-      isFinal: this.shouldFinalizeToolStatus(update.status),
+      isFinal: false,
     });
-
-    if (this.shouldFinalizeToolStatus(update.status)) {
-      this.finalizeStream(key, messageId, sessionId);
-    }
   }
 
   private handleToolCallUpdate(
     sessionId: SessionId,
     update: ToolCallUpdate & { sessionUpdate: typeof SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE }
   ): void {
-    const toolCallId = ToolCallIdSchema.parse(update.toolCallId);
-    const key = this.buildStreamKey(sessionId, SESSION_UPDATE_TYPE.TOOL_CALL, toolCallId);
-    const messageId = this.getOrCreateMessageId(key, sessionId, "assistant");
+    const messageKey = this.buildStreamKey(sessionId, SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK);
+    const messageId = this.getOrCreateMessageId(messageKey, sessionId, "assistant");
 
     this.handler.handle({
       sessionId,
       messageId,
       role: "assistant",
       content: this.mapToolCall(update),
-      isFinal: this.shouldFinalizeToolStatus(update.status),
+      isFinal: false,
     });
-
-    if (this.shouldFinalizeToolStatus(update.status)) {
-      this.finalizeStream(key, messageId, sessionId);
-    }
   }
 
   private applySessionInfoUpdate(
@@ -332,9 +318,6 @@ export class SessionStream {
    * Note: Uses ACP SDK status strings ("completed", "failed", "in_progress") which are external
    * protocol types. These are acceptable as literals per project rules for external library types.
    */
-  private shouldFinalizeToolStatus(status?: ToolCallStatus | null): boolean {
-    return status === "completed" || status === "failed"; // ACP SDK statuses, not our constants
-  }
 
   private mapContentBlock(
     block: ACPContentBlock,

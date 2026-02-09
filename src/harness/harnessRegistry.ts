@@ -28,3 +28,7 @@ export class HarnessRegistry<TConfig extends HarnessConfig = HarnessConfig> {
     return Array.from(this.adapters.values());
   }
 }
+
+export const createHarnessRegistry = <TConfig extends HarnessConfig = HarnessConfig>(
+  adapters?: Iterable<HarnessAdapter<TConfig>>
+): HarnessRegistry<TConfig> => new HarnessRegistry<TConfig>(adapters);
