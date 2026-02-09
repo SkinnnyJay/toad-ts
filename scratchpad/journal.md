@@ -11,3 +11,4 @@
 - 2026-02-09 20:30 - Added interactive shell execution with renderer suspend/resume.
 - 2026-02-09 20:55 - Added per-harness tool permission overrides.
 - 2026-02-09 21:20 - Added agent manager with build/plan agents and markdown agent config loader.
+- 2026-02-09 21:50 - Added Tab agent switching and per-agent model/temperature wiring.

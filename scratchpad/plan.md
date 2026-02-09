@@ -20,6 +20,8 @@
 - [ ] Phase 6 tasks (see PLAN.md)
   - [X] Agent manager + built-in build/plan agents
   - [X] Markdown agent config loader (.opencode/agents)
+  - [X] Tab key agent switching in TUI
+  - [X] Per-agent model/temperature config
 
 ## Phase 7: Slash Commands & UX Polish
 - [ ] Phase 7 tasks (see PLAN.md)

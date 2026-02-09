@@ -23,3 +23,5 @@
 - [X] Per-harness tool permission overrides
 - [X] Agent manager + build/plan agents
 - [X] Markdown agent config loader
+- [X] Tab key agent switching
+- [X] Per-agent model/temperature config
