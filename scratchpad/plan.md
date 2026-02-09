@@ -8,12 +8,13 @@
 - [ ] 4E: Test Migration & Verification
 
 ## Phase 5: Tool System & Shell Integration
-- [ ] Phase 5 tasks (see PLAN.md)
+- [X] Phase 5 tasks (see PLAN.md)
   - [X] Tool registry + built-in tool implementations
   - [X] ACP tool host + permission handler wiring
   - [X] Shell background tasks + task output UX
   - [X] Shell auto-detect + tab completion
   - [X] Interactive shell apps + shell mode UX
+  - [X] Per-harness tool permission overrides
 
 ## Phase 6: Agent Execution Engine
 - [ ] Phase 6 tasks (see PLAN.md)

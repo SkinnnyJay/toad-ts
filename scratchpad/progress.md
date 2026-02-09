@@ -3,7 +3,7 @@
 ## Current Focus
 - Phase 4A: App smoke test
 - Phase 4E: Manual smoke tests
-- Phase 5: Tool system & shell integration
+- Phase 6: Agent execution engine
 
 ## Status
 - [X] Install Bun
@@ -20,3 +20,4 @@
 - [X] Shell background tasks + task output UX
 - [X] Shell auto-detect + tab completion
 - [X] Interactive shell apps + shell mode UX
+- [X] Per-harness tool permission overrides
