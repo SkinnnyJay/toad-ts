@@ -27,7 +27,12 @@ const defaultSnapshot: SessionSnapshot = SessionSnapshotSchema.parse({
   messages: {},
   plans: {},
   contextAttachments: {},
-  uiState: { sidebarTab: SIDEBAR_TAB.FILES, accordionCollapsed: {} },
+  uiState: {
+    sidebarTab: SIDEBAR_TAB.FILES,
+    accordionCollapsed: {},
+    showToolDetails: true,
+    showThinking: true,
+  },
 });
 
 const normalizeSnapshot = (snapshot?: SessionSnapshot): SessionSnapshot => {

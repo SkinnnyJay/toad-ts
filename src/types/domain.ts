@@ -294,6 +294,8 @@ export const AppStateSchema = z.object({
     .object({
       sidebarTab: z.enum(SIDEBAR_TAB_VALUES).default(SIDEBAR_TAB.FILES),
       accordionCollapsed: z.record(z.enum(SIDEBAR_TAB_VALUES), z.boolean()).default({}),
+      showToolDetails: z.boolean().default(true),
+      showThinking: z.boolean().default(true),
     })
     .default({}),
 });

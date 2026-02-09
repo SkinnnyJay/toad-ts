@@ -384,6 +384,7 @@ export function App(): ReactNode {
                   onPromptComplete={handlePromptComplete}
                   onOpenSettings={() => setIsSettingsOpen(true)}
                   onOpenHelp={() => setIsHelpOpen(true)}
+                  onOpenSessions={() => setIsSessionsPopupOpen(true)}
                   onOpenAgentSelect={handleAgentSwitchRequest}
                   subAgentRunner={subAgentRunner}
                   focusTarget={focusTarget}

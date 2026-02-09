@@ -3,6 +3,7 @@ import { COLOR } from "@/constants/colors";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { ENV_KEY } from "@/constants/env-keys";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
+import { useAppStore } from "@/store/app-store";
 import type { ContentBlock as ChatContentBlock, Message as ChatMessage } from "@/types/domain";
 import { TRUNCATION_SHORTCUT_HINT, useTruncationToggle } from "@/ui/components/TruncationProvider";
 import { roleColor } from "@/ui/theme";
@@ -54,7 +55,24 @@ const countBlockLines = (block: ChatContentBlock): number => {
 };
 
 export const MessageItem = memo(({ message }: MessageItemProps): ReactNode => {
-  const mergedBlocks = useMemo(() => mergeTextBlocks(message.content), [message.content]);
+  const showToolDetails = useAppStore((state) => state.uiState.showToolDetails);
+  const showThinking = useAppStore((state) => state.uiState.showThinking);
+
+  const visibleBlocks = useMemo(
+    () =>
+      message.content.filter((block) => {
+        if (!showToolDetails && block.type === CONTENT_BLOCK_TYPE.TOOL_CALL) {
+          return false;
+        }
+        if (!showThinking && block.type === CONTENT_BLOCK_TYPE.THINKING) {
+          return false;
+        }
+        return true;
+      }),
+    [message.content, showThinking, showToolDetails]
+  );
+
+  const mergedBlocks = useMemo(() => mergeTextBlocks(visibleBlocks), [visibleBlocks]);
 
   const toolCallBlocks = useMemo(
     () => mergedBlocks.filter((block) => block.type === CONTENT_BLOCK_TYPE.TOOL_CALL),

@@ -76,11 +76,18 @@ describe("useSlashCommands", () => {
 
   describe("slash command constants", () => {
     it("has expected command values", () => {
+      expect(SLASH_COMMAND.CONNECT).toBe("/connect");
       expect(SLASH_COMMAND.HELP).toBe("/help");
+      expect(SLASH_COMMAND.DETAILS).toBe("/details");
       expect(SLASH_COMMAND.MODE).toBe("/mode");
+      expect(SLASH_COMMAND.MODELS).toBe("/models");
+      expect(SLASH_COMMAND.NEW).toBe("/new");
       expect(SLASH_COMMAND.CLEAR).toBe("/clear");
       expect(SLASH_COMMAND.PLAN).toBe("/plan");
+      expect(SLASH_COMMAND.RENAME).toBe("/rename");
+      expect(SLASH_COMMAND.SESSIONS).toBe("/sessions");
       expect(SLASH_COMMAND.SETTINGS).toBe("/settings");
+      expect(SLASH_COMMAND.THINKING).toBe("/thinking");
     });
   });
 
@@ -127,6 +134,12 @@ describe("useSlashCommands", () => {
       const { command } = parseSlashCommand("/settings");
 
       expect(command).toBe(SLASH_COMMAND.SETTINGS);
+    });
+
+    it("identifies sessions command", () => {
+      const { command } = parseSlashCommand("/sessions");
+
+      expect(command).toBe(SLASH_COMMAND.SESSIONS);
     });
   });
 

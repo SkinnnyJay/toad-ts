@@ -43,6 +43,7 @@ export interface ChatProps {
   onPromptComplete?: (sessionId: SessionId) => void;
   onOpenSettings?: () => void;
   onOpenHelp?: () => void;
+  onOpenSessions?: () => void;
   onOpenAgentSelect?: () => void;
   subAgentRunner?: SubAgentRunner;
   focusTarget?: FocusTarget;
@@ -57,6 +58,7 @@ export const Chat = memo(
     onPromptComplete,
     onOpenSettings,
     onOpenHelp,
+    onOpenSessions,
     onOpenAgentSelect,
     subAgentRunner,
     focusTarget = FOCUS_TARGET.CHAT,
@@ -147,6 +149,9 @@ export const Chat = memo(
       appendSystemMessage,
       onOpenSettings,
       onOpenHelp,
+      onOpenSessions,
+      client,
+      agent,
     });
 
     const shellCompletion = useMemo(

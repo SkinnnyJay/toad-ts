@@ -36,6 +36,10 @@ export interface AppStore extends AppState {
   getAccordionCollapsed: () => AppState["uiState"]["accordionCollapsed"];
   setAccordionCollapsed: (section: AppState["uiState"]["sidebarTab"], isCollapsed: boolean) => void;
   toggleAccordionSection: (section: AppState["uiState"]["sidebarTab"]) => void;
+  setShowToolDetails: (value: boolean) => void;
+  toggleToolDetails: () => void;
+  setShowThinking: (value: boolean) => void;
+  toggleThinking: () => void;
   hydrate: (snapshot: SessionSnapshot) => void;
   reset: () => void;
 }
@@ -47,7 +51,12 @@ const initialState: AppState = {
   messages: {},
   plans: {},
   contextAttachments: {},
-  uiState: { sidebarTab: SIDEBAR_TAB.FILES, accordionCollapsed: {} },
+  uiState: {
+    sidebarTab: SIDEBAR_TAB.FILES,
+    accordionCollapsed: {},
+    showToolDetails: true,
+    showThinking: true,
+  },
 };
 
 export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState"], get) => ({
@@ -150,6 +159,22 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
         },
       } as Partial<AppState>;
     }),
+  setShowToolDetails: (value) =>
+    set((state) => ({
+      uiState: { ...state.uiState, showToolDetails: value },
+    })),
+  toggleToolDetails: () =>
+    set((state) => ({
+      uiState: { ...state.uiState, showToolDetails: !state.uiState.showToolDetails },
+    })),
+  setShowThinking: (value) =>
+    set((state) => ({
+      uiState: { ...state.uiState, showThinking: value },
+    })),
+  toggleThinking: () =>
+    set((state) => ({
+      uiState: { ...state.uiState, showThinking: !state.uiState.showThinking },
+    })),
   hydrate: (snapshot) =>
     set(() => ({
       ...initialState,

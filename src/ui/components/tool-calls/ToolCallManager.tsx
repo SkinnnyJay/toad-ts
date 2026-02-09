@@ -51,6 +51,7 @@ export function ToolCallManager({
 }: ToolCallManagerProps): ReactNode {
   const getMessagesForSession = useAppStore((state) => state.getMessagesForSession);
   const currentSessionId = useAppStore((state) => state.currentSessionId);
+  const showToolDetails = useAppStore((state) => state.uiState.showToolDetails);
 
   const [toolCalls, setToolCalls] = useState<Map<ToolCallId, ToolCall>>(new Map());
   const [pendingApprovals, setPendingApprovals] = useState<Set<ToolCallId>>(new Set());
@@ -182,7 +183,8 @@ export function ToolCallManager({
     [toolCalls]
   );
 
-  const hasContent = approvalTool || activeCalls.length > 0 || recentCalls.length > 0;
+  const hasContent =
+    approvalTool || (showToolDetails && (activeCalls.length > 0 || recentCalls.length > 0));
 
   if (!hasContent) return null;
 
@@ -208,7 +210,7 @@ export function ToolCallManager({
         />
       )}
 
-      {activeCalls.length > 0 && (
+      {showToolDetails && activeCalls.length > 0 && (
         <box flexDirection="column">
           <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
             Active Tools:
@@ -219,7 +221,7 @@ export function ToolCallManager({
         </box>
       )}
 
-      {recentCalls.length > 0 && (
+      {showToolDetails && recentCalls.length > 0 && (
         <box flexDirection="column">
           <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
             Recent:
