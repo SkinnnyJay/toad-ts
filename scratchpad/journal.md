@@ -16,3 +16,4 @@
 - 2026-02-09 22:50 - Expanded slash commands (connect/sessions/new/rename/models/details/thinking).
 - 2026-02-09 23:15 - Added /editor command and editor integration.
 - 2026-02-09 23:40 - Added model listing from ACP session capabilities.
+- 2026-02-10 00:10 - Added diagnostics slash commands (/doctor, /debug, /context, /stats, /cost).

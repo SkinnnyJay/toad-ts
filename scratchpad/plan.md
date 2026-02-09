@@ -34,6 +34,7 @@
   - [X] Slash command: /editor (external editor)
   - [X] Slash command: /themes placeholder
   - [X] /models listing from agent capabilities
+  - [X] Slash commands: /doctor, /debug, /context, /stats, /cost
 
 ## Phase 8: Checkpointing & Undo/Redo
 - [ ] Phase 8 tasks (see PLAN.md)

@@ -34,3 +34,4 @@
 - [X] Slash command: /editor
 - [X] Slash command: /themes placeholder
 - [X] /models listing from agent capabilities
+- [X] Slash commands: /doctor, /debug, /context, /stats, /cost
