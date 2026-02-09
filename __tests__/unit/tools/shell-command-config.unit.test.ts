@@ -34,6 +34,7 @@ describe("shell command config", () => {
     if (!match) return;
     expect(match.command).toBe("ls -la");
     expect(match.explicit).toBe(true);
+    expect(match.interactive).toBe(false);
   });
 
   it("detects background shell commands", () => {
@@ -44,6 +45,7 @@ describe("shell command config", () => {
     if (!match) return;
     expect(match.command).toBe("git status");
     expect(match.background).toBe(true);
+    expect(match.interactive).toBe(false);
   });
 
   it("auto-detects configured commands", () => {
@@ -55,6 +57,7 @@ describe("shell command config", () => {
     if (!match) return;
     expect(match.command).toBe("git status");
     expect(match.explicit).toBe(false);
+    expect(match.interactive).toBe(false);
   });
 
   it("respects auto-detect toggle", () => {
@@ -70,5 +73,14 @@ describe("shell command config", () => {
     const config = getShellCommandConfig(env);
     const match = parseShellCommandInput("/help", config);
     expect(match).toBeNull();
+  });
+
+  it("marks interactive commands", () => {
+    const env = new Env(EnvManager.getInstance());
+    const config = getShellCommandConfig(env);
+    const match = parseShellCommandInput("!vim README.md", config);
+    expect(match).not.toBeNull();
+    if (!match) return;
+    expect(match.interactive).toBe(true);
   });
 });

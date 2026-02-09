@@ -6,6 +6,7 @@ import { SESSION_MODE } from "@/constants/session-modes";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import { TOOL_NAME } from "@/constants/tool-names";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
+import type { InteractiveShellResult } from "@/tools/interactive-shell";
 import type { ToolRuntime } from "@/tools/runtime";
 import type { ShellCommandConfig } from "@/tools/shell-command-config";
 import { parseShellCommandInput } from "@/tools/shell-command-config";
@@ -27,6 +28,7 @@ export interface MessageSenderOptions {
   appendSystemMessage: (text: string) => void;
   toolRuntime: ToolRuntime;
   shellCommandConfig: ShellCommandConfig;
+  runInteractiveShell: (command: string, cwd?: string) => Promise<InteractiveShellResult>;
 }
 
 export interface MessageSenderResult {
@@ -47,6 +49,7 @@ export const useMessageSender = ({
   appendSystemMessage,
   toolRuntime,
   shellCommandConfig,
+  runInteractiveShell,
 }: MessageSenderOptions): MessageSenderResult => {
   const [modeWarning, setModeWarning] = useState<string | null>(null);
 
@@ -64,6 +67,10 @@ export const useMessageSender = ({
           setModeWarning(CHAT_MESSAGE.READ_ONLY_WARNING);
           appendSystemMessage(CHAT_MESSAGE.READ_ONLY_WARNING);
           return;
+        }
+
+        if (shellMatch.interactive && shellMatch.background) {
+          appendSystemMessage(CHAT_MESSAGE.INTERACTIVE_BACKGROUND_WARNING);
         }
 
         setModeWarning(null);
@@ -88,6 +95,43 @@ export const useMessageSender = ({
           createdAt: now,
           isStreaming: true,
         });
+
+        if (shellMatch.interactive) {
+          void runInteractiveShell(shellMatch.command)
+            .then((result) => {
+              const succeeded = result.exitCode === 0;
+              updateMessage({
+                messageId,
+                patch: {
+                  content: [
+                    {
+                      ...toolCallBlock,
+                      status: succeeded ? TOOL_CALL_STATUS.SUCCEEDED : TOOL_CALL_STATUS.FAILED,
+                      result,
+                    },
+                  ],
+                  isStreaming: false,
+                },
+              });
+              appendSystemMessage(CHAT_MESSAGE.INTERACTIVE_SHELL_COMPLETE);
+            })
+            .catch((error) => {
+              updateMessage({
+                messageId,
+                patch: {
+                  content: [
+                    {
+                      ...toolCallBlock,
+                      status: TOOL_CALL_STATUS.FAILED,
+                      result: { error: error instanceof Error ? error.message : String(error) },
+                    },
+                  ],
+                  isStreaming: false,
+                },
+              });
+            });
+          return;
+        }
 
         void toolRuntime.registry
           .execute(
@@ -170,6 +214,7 @@ export const useMessageSender = ({
       client,
       sessionId,
       onResetInput,
+      runInteractiveShell,
       shellCommandConfig,
       toolRuntime.context,
       toolRuntime.registry,

@@ -20,6 +20,12 @@ vi.mock("@opentui/core", () => {
 });
 
 vi.mock("@opentui/react", () => {
+  const rendererMock = {
+    suspend: vi.fn(),
+    resume: vi.fn(),
+    requestRender: vi.fn(),
+  };
+
   return {
     useKeyboard: (handler: (event: { name: string }) => void): void => {
       const handlerRef = React.useRef(handler);
@@ -31,6 +37,7 @@ vi.mock("@opentui/react", () => {
       }, []);
     },
     useTerminalDimensions: () => terminalRuntime.get(),
+    useRenderer: () => rendererMock,
     createRoot: () => ({
       render: () => undefined,
     }),

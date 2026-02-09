@@ -13,6 +13,7 @@ import { PLAN_STATUS } from "@/constants/plan-status";
 import { SESSION_MODE } from "@/constants/session-modes";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { useAppStore } from "@/store/app-store";
+import { runInteractiveShellCommand } from "@/tools/interactive-shell";
 import { createToolRuntime } from "@/tools/runtime";
 import { getShellCommandConfig, isShellCommandInput } from "@/tools/shell-command-config";
 import type { AgentId, Message, SessionId } from "@/types/domain";
@@ -27,7 +28,7 @@ import { TruncationProvider } from "@/ui/components/TruncationProvider";
 import { roleColor } from "@/ui/theme";
 import { Env, EnvManager } from "@/utils/env/env.utils";
 import { getRepoInfo } from "@/utils/git/git-info.utils";
-import { useKeyboard } from "@opentui/react";
+import { useKeyboard, useRenderer } from "@opentui/react";
 import { type ReactNode, memo, useCallback, useMemo, useState } from "react";
 import { useMessageSender } from "./MessageSender";
 import { useSlashCommandHandler } from "./SlashCommandHandler";
@@ -81,6 +82,11 @@ export const Chat = memo(
       []
     );
     const shellCommandConfig = useMemo(() => getShellCommandConfig(env), [env]);
+    const renderer = useRenderer();
+    const runInteractiveShell = useCallback(
+      (command: string, cwd?: string) => runInteractiveShellCommand({ command, cwd, renderer }),
+      [renderer]
+    );
     const repoInfo = useMemo(() => {
       // Read format from environment variable, default to "full"
       const formatEnv = env.getString(ENV_KEY.TOADSTOOL_UI_PROJECT_FOLDER_PATH_RENDER);
@@ -157,6 +163,7 @@ export const Chat = memo(
       appendSystemMessage,
       toolRuntime,
       shellCommandConfig,
+      runInteractiveShell,
     });
 
     const handleCommandSelect = useCallback(

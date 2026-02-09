@@ -207,6 +207,14 @@ export function InputWithAutocomplete({
     setSelectedIndex(0);
   }, [value, commandSuggestions]);
 
+  useEffect(() => {
+    if (!shellCompletion || !shellCompletion.isShellInput(value)) {
+      setShellSuggestions([]);
+      setShellIndex(0);
+      setShellAnchor(null);
+    }
+  }, [shellCompletion, value]);
+
   const hasMentionSuggestions = mentionSuggestions.length > 0;
 
   const getShellTokenContext = useCallback(() => {
@@ -360,7 +368,7 @@ export function InputWithAutocomplete({
       }
     }
 
-    if (key.name === "tab") {
+    if (key.name === "tab" && shellCompletion?.isShellInput(value)) {
       key.preventDefault();
       key.stopPropagation();
       void handleShellTab();
@@ -399,8 +407,15 @@ export function InputWithAutocomplete({
     [onChange, onSubmit, setCursorOffset, value]
   );
 
+  const shellModeActive = shellCompletion?.isShellInput(value) ?? false;
+
   return (
     <box flexDirection="column" flexGrow={1} minWidth={0}>
+      {shellModeActive ? (
+        <text fg={COLOR.YELLOW} attributes={TextAttributes.DIM}>
+          Shell mode active (Tab to complete, add & for background)
+        </text>
+      ) : null}
       {showAutocomplete && commandSuggestions.length > 0 && (
         <box
           flexDirection="column"

@@ -1,9 +1,10 @@
 import { ENV_KEY } from "@/constants/env-keys";
-import { SHELL_COMMANDS } from "@/constants/shell-commands";
+import { SHELL_COMMANDS, SHELL_INTERACTIVE_COMMANDS } from "@/constants/shell-commands";
 import type { Env } from "@/utils/env/env.utils";
 
 export interface ShellCommandConfig {
   commands: string[];
+  interactiveCommands: string[];
   autoDetect: boolean;
 }
 
@@ -11,11 +12,12 @@ export interface ShellCommandMatch {
   command: string;
   background: boolean;
   explicit: boolean;
+  interactive: boolean;
 }
 
-const parseCommandList = (raw: string | undefined): string[] => {
-  if (!raw) {
-    return [...SHELL_COMMANDS];
+const parseCommandList = (raw: string | undefined, fallback: readonly string[]): string[] => {
+  if (!raw || raw.trim().length === 0) {
+    return [...fallback];
   }
   return raw
     .split(/[,\s]+/)
@@ -28,9 +30,13 @@ const normalizeCommands = (commands: string[]): string[] =>
 
 export const getShellCommandConfig = (env: Env): ShellCommandConfig => {
   const rawCommands = env.getString(ENV_KEY.TOADSTOOL_SHELL_COMMANDS);
-  const commands = normalizeCommands(parseCommandList(rawCommands));
+  const rawInteractive = env.getString(ENV_KEY.TOADSTOOL_SHELL_INTERACTIVE_COMMANDS);
+  const commands = normalizeCommands(parseCommandList(rawCommands, SHELL_COMMANDS));
+  const interactiveCommands = normalizeCommands(
+    parseCommandList(rawInteractive, SHELL_INTERACTIVE_COMMANDS)
+  );
   const autoDetect = env.getBoolean(ENV_KEY.TOADSTOOL_SHELL_AUTO_DETECT, true);
-  return { commands, autoDetect };
+  return { commands, interactiveCommands, autoDetect };
 };
 
 const extractBackgroundFlag = (rawCommand: string): { command: string; background: boolean } => {
@@ -40,6 +46,17 @@ const extractBackgroundFlag = (rawCommand: string): { command: string; backgroun
     return { command, background: true };
   }
   return { command: trimmed, background: false };
+};
+
+export const isInteractiveShellCommand = (command: string, config: ShellCommandConfig): boolean => {
+  const parts = command.trim().split(/\s+/);
+  if (parts.length === 0) return false;
+  let head = parts[0]?.toLowerCase();
+  if (head === "sudo" && parts.length > 1) {
+    head = parts[1]?.toLowerCase();
+  }
+  if (!head) return false;
+  return config.interactiveCommands.includes(head);
 };
 
 export const parseShellCommandInput = (
@@ -55,7 +72,12 @@ export const parseShellCommandInput = (
     const raw = trimmed.slice(1).trim();
     const { command, background } = extractBackgroundFlag(raw);
     if (!command) return null;
-    return { command, background, explicit: true };
+    return {
+      command,
+      background,
+      explicit: true,
+      interactive: isInteractiveShellCommand(command, config),
+    };
   }
 
   if (!config.autoDetect) {
@@ -70,7 +92,12 @@ export const parseShellCommandInput = (
 
   const { command, background } = extractBackgroundFlag(trimmed);
   if (!command) return null;
-  return { command, background, explicit: false };
+  return {
+    command,
+    background,
+    explicit: false,
+    interactive: isInteractiveShellCommand(command, config),
+  };
 };
 
 export const isShellCommandInput = (input: string, config: ShellCommandConfig): boolean =>

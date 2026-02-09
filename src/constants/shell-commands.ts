@@ -19,3 +19,16 @@ export const SHELL_COMMANDS = [
 ] as const;
 
 export type ShellCommand = (typeof SHELL_COMMANDS)[number];
+
+export const SHELL_INTERACTIVE_COMMANDS = [
+  "vim",
+  "vi",
+  "nano",
+  "less",
+  "top",
+  "htop",
+  "man",
+  "ssh",
+] as const;
+
+export type ShellInteractiveCommand = (typeof SHELL_INTERACTIVE_COMMANDS)[number];

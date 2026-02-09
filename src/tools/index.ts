@@ -1,9 +1,11 @@
 export { createBuiltInTools } from "@/tools/builtin";
 export { BackgroundTaskManager } from "@/tools/background-task-manager";
+export { runInteractiveShellCommand } from "@/tools/interactive-shell";
 export { createPermissionHandler } from "@/tools/permissions";
 export type { ToolPermissionOverrides } from "@/tools/permissions";
 export {
   getShellCommandConfig,
+  isInteractiveShellCommand,
   isShellCommandInput,
   parseShellCommandInput,
 } from "@/tools/shell-command-config";
