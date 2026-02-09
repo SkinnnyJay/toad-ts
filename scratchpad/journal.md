@@ -10,3 +10,4 @@
 - 2026-02-09 20:05 - Added shell command auto-detect and tab completion in chat input.
 - 2026-02-09 20:30 - Added interactive shell execution with renderer suspend/resume.
 - 2026-02-09 20:55 - Added per-harness tool permission overrides.
+- 2026-02-09 21:20 - Added agent manager with build/plan agents and markdown agent config loader.

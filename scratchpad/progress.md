@@ -21,3 +21,5 @@
 - [X] Shell auto-detect + tab completion
 - [X] Interactive shell apps + shell mode UX
 - [X] Per-harness tool permission overrides
+- [X] Agent manager + build/plan agents
+- [X] Markdown agent config loader

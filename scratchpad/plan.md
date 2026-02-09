@@ -18,6 +18,8 @@
 
 ## Phase 6: Agent Execution Engine
 - [ ] Phase 6 tasks (see PLAN.md)
+  - [X] Agent manager + built-in build/plan agents
+  - [X] Markdown agent config loader (.opencode/agents)
 
 ## Phase 7: Slash Commands & UX Polish
 - [ ] Phase 7 tasks (see PLAN.md)
