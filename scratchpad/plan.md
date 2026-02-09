@@ -29,6 +29,8 @@
 
 ## Phase 7: Slash Commands & UX Polish
 - [ ] Phase 7 tasks (see PLAN.md)
+  - [X] Slash commands: /connect, /sessions, /new, /rename, /models
+  - [X] Slash commands: /details + /thinking toggles
 
 ## Phase 8: Checkpointing & Undo/Redo
 - [ ] Phase 8 tasks (see PLAN.md)

@@ -3,7 +3,7 @@
 ## Current Focus
 - Phase 4A: App smoke test
 - Phase 4E: Manual smoke tests
-- Phase 6: Agent execution engine
+- Phase 7: Slash commands & UX polish
 
 ## Status
 - [X] Install Bun
@@ -29,3 +29,5 @@
 - [X] Subagent runner for @mention invocation
 - [X] @agent mention syntax in input
 - [X] Child session navigation
+- [X] Slash commands: /connect, /sessions, /new, /rename, /models
+- [X] Slash commands: /details + /thinking toggles
