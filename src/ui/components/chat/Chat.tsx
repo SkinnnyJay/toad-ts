@@ -13,6 +13,8 @@ import { PLAN_STATUS } from "@/constants/plan-status";
 import { SESSION_MODE } from "@/constants/session-modes";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { useAppStore } from "@/store/app-store";
+import { createToolRuntime } from "@/tools/runtime";
+import { getShellCommandConfig, isShellCommandInput } from "@/tools/shell-command-config";
 import type { AgentId, Message, SessionId } from "@/types/domain";
 import { MessageIdSchema, SessionIdSchema } from "@/types/domain";
 import { CommandPalette } from "@/ui/components/CommandPalette";
@@ -70,6 +72,15 @@ export const Chat = memo(
     }, [sessionId]);
 
     const env = useMemo(() => new Env(EnvManager.getInstance()), []);
+    const toolRuntime = useMemo(
+      () =>
+        createToolRuntime({
+          baseDir: process.cwd(),
+          env: EnvManager.getInstance().getSnapshot(),
+        }),
+      []
+    );
+    const shellCommandConfig = useMemo(() => getShellCommandConfig(env), [env]);
     const repoInfo = useMemo(() => {
       // Read format from environment variable, default to "full"
       const formatEnv = env.getString(ENV_KEY.TOADSTOOL_UI_PROJECT_FOLDER_PATH_RENDER);
@@ -124,15 +135,28 @@ export const Chat = memo(
       onOpenHelp,
     });
 
+    const shellCompletion = useMemo(
+      () => ({
+        isShellInput: (value: string) => isShellCommandInput(value, shellCommandConfig),
+        getCompletions: (prefix: string) => toolRuntime.context.shell.complete(prefix),
+      }),
+      [shellCommandConfig, toolRuntime]
+    );
+
+    const updateMessage = useAppStore((state) => state.updateMessage);
     const { handleSubmit, modeWarning } = useMessageSender({
       sessionMode,
       sessionId,
       effectiveSessionId,
       client,
       appendMessage,
+      updateMessage,
       onPromptComplete,
       handleSlashCommand,
       onResetInput: () => setInputValue(""),
+      appendSystemMessage,
+      toolRuntime,
+      shellCommandConfig,
     });
 
     const handleCommandSelect = useCallback(
@@ -255,6 +279,7 @@ export const Chat = memo(
               focusTarget={focusTarget}
               slashCommands={COMMAND_DEFINITIONS}
               placeholder="Type a message or / for commands…"
+              shellCompletion={shellCompletion}
             />
           </box>
         </box>

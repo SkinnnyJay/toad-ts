@@ -23,6 +23,7 @@ export * from "@/tools/terminal-manager";
 export * from "@/tools/todo-store";
 export * from "@/tools/shell-session";
 export * from "@/store/app-store";
+export * from "@/store/background-task-store";
 export * from "@/store/session-persistence";
 export * from "@/store/persistence/persistence-config";
 export * from "@/store/persistence/persistence-manager";

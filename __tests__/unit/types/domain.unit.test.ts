@@ -1,6 +1,7 @@
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { describe, expect, it } from "vitest";
 import {
+  BackgroundTaskSchema,
   ContentBlockSchema,
   MessageRoleSchema,
   MessageSchema,
@@ -47,5 +48,17 @@ describe("domain schemas", () => {
     });
     expect(link.type).toBe(CONTENT_BLOCK_TYPE.RESOURCE_LINK);
     expect(resource.type).toBe(CONTENT_BLOCK_TYPE.RESOURCE);
+  });
+
+  it("parses background task records", () => {
+    const task = BackgroundTaskSchema.parse({
+      id: "task-1",
+      command: "echo hi",
+      status: "running",
+      terminalId: "term-1",
+      createdAt: Date.now(),
+      startedAt: Date.now(),
+    });
+    expect(task.status).toBe("running");
   });
 });

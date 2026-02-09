@@ -32,6 +32,12 @@ export interface InputWithAutocompleteProps {
   enableMentions?: boolean;
   /** Focus target - only process input when focusTarget is "chat". Default: "chat". */
   focusTarget?: FocusTarget;
+  shellCompletion?: ShellCompletionProvider;
+}
+
+export interface ShellCompletionProvider {
+  isShellInput: (value: string) => boolean;
+  getCompletions: (prefix: string) => Promise<string[]>;
 }
 
 const DEFAULT_COMMANDS: SlashCommand[] = COMMAND_DEFINITIONS;
@@ -66,6 +72,7 @@ export function InputWithAutocomplete({
   multiline = false,
   enableMentions = true,
   focusTarget = FOCUS_TARGET.CHAT,
+  shellCompletion,
 }: InputWithAutocompleteProps): ReactNode {
   const inputRef = useRef<InputRenderable | null>(null);
   const textareaRef = useRef<TextareaRenderable | null>(null);
@@ -77,6 +84,13 @@ export function InputWithAutocomplete({
   const [mentionSuggestions, setMentionSuggestions] = useState<string[]>([]);
   const [isLoadingFiles, setIsLoadingFiles] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [shellSuggestions, setShellSuggestions] = useState<string[]>([]);
+  const [shellIndex, setShellIndex] = useState(0);
+  const [shellAnchor, setShellAnchor] = useState<{
+    prefix: string;
+    start: number;
+    end: number;
+  } | null>(null);
 
   const activeInput = multiline ? textareaRef.current : inputRef.current;
 
@@ -195,6 +209,71 @@ export function InputWithAutocomplete({
 
   const hasMentionSuggestions = mentionSuggestions.length > 0;
 
+  const getShellTokenContext = useCallback(() => {
+    const beforeCursor = value.slice(0, cursorPosition);
+    const match = beforeCursor.match(/(\S+)$/);
+    if (!match) return null;
+    const token = match[1];
+    if (!token) return null;
+    const start = beforeCursor.length - token.length;
+    const end = cursorPosition;
+    if (token.startsWith("!")) {
+      const prefix = token.slice(1);
+      return { prefix, start: start + 1, end };
+    }
+    return { prefix: token, start, end };
+  }, [cursorPosition, value]);
+
+  const applyShellCompletion = useCallback(
+    (suggestion: string, context: { start: number; end: number }) => {
+      const before = value.slice(0, context.start);
+      const after = value.slice(context.end);
+      const nextValue = `${before}${suggestion}${after}`;
+      onChange(nextValue);
+      setCursorOffset(context.start + suggestion.length);
+    },
+    [onChange, setCursorOffset, value]
+  );
+
+  const handleShellTab = useCallback(async () => {
+    if (!shellCompletion || !shellCompletion.isShellInput(value)) return;
+    const context = getShellTokenContext();
+    if (!context || context.prefix.length === 0) return;
+
+    const shouldReuse =
+      shellAnchor &&
+      shellAnchor.prefix === context.prefix &&
+      shellAnchor.start === context.start &&
+      shellAnchor.end === context.end &&
+      shellSuggestions.length > 0;
+
+    if (shouldReuse) {
+      const nextIndex = (shellIndex + 1) % shellSuggestions.length;
+      const suggestion = shellSuggestions[nextIndex];
+      if (suggestion) {
+        applyShellCompletion(suggestion, context);
+        setShellIndex(nextIndex);
+      }
+      return;
+    }
+
+    const suggestions = await shellCompletion.getCompletions(context.prefix);
+    const [first] = suggestions;
+    if (!first) return;
+    setShellSuggestions(suggestions);
+    setShellIndex(0);
+    setShellAnchor(context);
+    applyShellCompletion(first, context);
+  }, [
+    applyShellCompletion,
+    getShellTokenContext,
+    shellAnchor,
+    shellCompletion,
+    shellIndex,
+    shellSuggestions,
+    value,
+  ]);
+
   const applyCommandSuggestion = useCallback(
     (name: string, args?: string) => {
       const newValue = name + (args ? " " : "");
@@ -279,6 +358,12 @@ export function InputWithAutocomplete({
         setSelectedIndex(0);
         return;
       }
+    }
+
+    if (key.name === "tab") {
+      key.preventDefault();
+      key.stopPropagation();
+      void handleShellTab();
     }
   });
 

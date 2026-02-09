@@ -301,4 +301,18 @@ export class ShellSessionManager {
     }
     return this.session.execute(command, options);
   }
+
+  async complete(prefix: string): Promise<string[]> {
+    if (!prefix) return [];
+    if (process.platform === "win32") return [];
+
+    const escaped = prefix.replace(/(["\\$`])/g, "\\$1");
+    const completionCommand = `compgen -cdf -- "${escaped}"`;
+    const result = await this.execute(completionCommand);
+    const lines = result.stdout
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+    return lines.slice(0, LIMIT.SHELL_COMPLETION_MAX_RESULTS);
+  }
 }
