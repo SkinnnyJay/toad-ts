@@ -5,7 +5,7 @@ export const SLASH_COMMAND_MESSAGE = {
   NO_ACTIVE_SESSION: "No active session for slash command.",
   NO_ACTIVE_CLIENT: "No active agent connection for slash command.",
   HELP_SUMMARY:
-    "Commands: /help, /connect, /sessions, /new, /rename, /editor, /mode <read-only|auto|full-access>, /models <id>, /details, /thinking, /themes, /clear, /plan <title>",
+    "Commands: /help, /connect, /sessions, /new, /rename, /editor, /mode <read-only|auto|full-access>, /models <id>, /details, /thinking, /themes, /context, /doctor, /debug, /stats, /cost, /clear, /plan <title>",
   INVALID_MODE: "Invalid mode. Use read-only, auto, or full-access.",
   NO_SESSION_TO_UPDATE: "No session to update mode.",
   SESSION_CLEARED: "Session messages cleared.",
@@ -15,6 +15,13 @@ export const SLASH_COMMAND_MESSAGE = {
   EDITOR_NOT_CONFIGURED: "No editor configured (set VISUAL or EDITOR).",
   EDITOR_EMPTY: "Editor closed without content.",
   THEMES_NOT_AVAILABLE: "Theme selection is not yet available.",
+  COMPACT_NOT_AVAILABLE: "Compaction is not yet available.",
+  MEMORY_NOT_AVAILABLE: "Memory editing is not yet available.",
+  COPY_NOT_AVAILABLE: "Clipboard copy is not yet available.",
+  SHARE_NOT_AVAILABLE: "Session sharing is not yet available.",
+  UNDO_NOT_AVAILABLE: "Undo is not yet available.",
+  REDO_NOT_AVAILABLE: "Redo is not yet available.",
+  REWIND_NOT_AVAILABLE: "Rewind is not yet available.",
 } as const;
 
 export const formatModeUpdatedMessage = (mode: SessionMode): string => `Mode updated to ${mode}.`;
@@ -71,6 +78,19 @@ export const formatToolDetailsMessage = (enabled: boolean): string =>
 
 export const formatThinkingMessage = (enabled: boolean): string =>
   `Thinking blocks ${enabled ? "shown" : "hidden"}.`;
+
+export const formatDoctorMessage = (lines: string[]): string =>
+  `Doctor check:\n${lines.join("\n")}`;
+
+export const formatDebugMessage = (lines: string[]): string => `Debug info:\n${lines.join("\n")}`;
+
+export const formatContextMessage = (lines: string[]): string =>
+  `Context usage:\n${lines.join("\n")}`;
+
+export const formatStatsMessage = (lines: string[]): string =>
+  `Session stats:\n${lines.join("\n")}`;
+
+export const formatCostMessage = (lines: string[]): string => `Cost estimate:\n${lines.join("\n")}`;
 
 export const formatUnknownCommandMessage = (command: string): string =>
   `Unknown command: ${command}`;
