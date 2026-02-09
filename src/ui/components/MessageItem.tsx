@@ -4,10 +4,8 @@ import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import type { ContentBlock as ChatContentBlock, Message as ChatMessage } from "@/types/domain";
 import { roleColor } from "@/ui/theme";
-import { Box, Text } from "ink";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { getHighlighter } from "shiki";
-import type { Highlighter } from "shiki";
+import { SyntaxStyle, TextAttributes } from "@opentui/core";
+import { memo, useCallback, useMemo } from "react";
 import stripAnsi from "strip-ansi";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { TRUNCATION_SHORTCUT_HINT, useTruncationToggle } from "./TruncationProvider";
@@ -54,69 +52,6 @@ const countBlockLines = (block: ChatContentBlock): number => {
 };
 
 type CodeContentBlock = Extract<ChatContentBlock, { type: typeof CONTENT_BLOCK_TYPE.CODE }>;
-type HighlightToken = { content: string; color?: string };
-type HighlightLine = HighlightToken[];
-
-const DEFAULT_CODE_COLOR = COLOR.GREEN;
-
-let highlighterPromise: Promise<Highlighter> | null = null;
-const getSharedHighlighter = (): Promise<Highlighter> => {
-  if (!highlighterPromise) {
-    highlighterPromise = getHighlighter({
-      themes: ["github-dark"],
-      langs: ["typescript", "javascript", "tsx", "ts", "js", "json", "bash", "python", "markdown"],
-    });
-  }
-  return highlighterPromise;
-};
-
-const hashLineTokens = (line: HighlightLine): string =>
-  line.map((token) => `${token.color ?? "plain"}:${token.content}`).join("|");
-
-const useHighlightedCode = (code: string, language?: string): HighlightLine[] | null => {
-  const [lines, setLines] = useState<HighlightLine[] | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    getSharedHighlighter()
-      .then((highlighter) => {
-        if (cancelled) return;
-        try {
-          const codeToTokensFn = (highlighter as unknown as { codeToTokens?: unknown })
-            .codeToTokens;
-          if (typeof codeToTokensFn !== "function") {
-            setLines(null);
-            return;
-          }
-          const safeLang = language && language.length > 0 ? language : "text";
-          const tokenLines = codeToTokensFn.call(highlighter, code, {
-            lang: safeLang as never,
-            theme: "github-dark",
-          }) as unknown as Array<HighlightLine>;
-          setLines(
-            tokenLines.map((line) =>
-              line.map((token) => ({
-                content: token.content,
-                color: token.color,
-              }))
-            )
-          );
-        } catch {
-          setLines(null);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setLines(null);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [code, language]);
-
-  return lines;
-};
-
 function CodeBlock({
   block,
   messageId,
@@ -136,48 +71,33 @@ function CodeBlock({
     defaultExpanded: EXPAND_ALL,
   });
 
-  const highlighted = useHighlightedCode(block.text, lang);
-  const visiblePlainLines =
-    expanded || truncated === 0 ? lines : lines.slice(0, LIMIT.MAX_BLOCK_LINES);
-  const visibleHighlighted = highlighted
-    ? expanded || truncated === 0
-      ? highlighted
-      : highlighted.slice(0, LIMIT.MAX_BLOCK_LINES)
-    : null;
-  const linesToRender: HighlightLine[] =
-    visibleHighlighted ??
-    visiblePlainLines.map((line) => [{ content: line, color: DEFAULT_CODE_COLOR }]);
+  const visibleContent =
+    expanded || truncated === 0 ? block.text : lines.slice(0, LIMIT.MAX_BLOCK_LINES).join("\n");
+  const syntaxStyle = useMemo(() => SyntaxStyle.create(), []);
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor={COLOR.BORDER} padding={1} gap={0}>
+    <box flexDirection="column" border={true} borderStyle="rounded" borderColor={COLOR.BORDER} padding={1} gap={0}>
       {lang ? (
-        <Text color={COLOR.DIM} dimColor>
+        <text fg={COLOR.DIM} attributes={TextAttributes.DIM}>
           {lang}
-        </Text>
+        </text>
       ) : null}
-      {linesToRender.map((lineTokens) => {
-        const lineKey = `${messageId}-code-${index}-${hashLineTokens(lineTokens)}`;
-        return (
-          <Text key={lineKey}>
-            {lineTokens.map((token) => {
-              const tokenKey = `${lineKey}-${token.color ?? DEFAULT_CODE_COLOR}-${token.content}`;
-              return (
-                <Text key={tokenKey} color={token.color ?? DEFAULT_CODE_COLOR}>
-                  {token.content === "" ? " " : token.content}
-                </Text>
-              );
-            })}
-          </Text>
-        );
-      })}
+      <code
+        content={visibleContent}
+        filetype={lang || undefined}
+        syntaxStyle={syntaxStyle}
+        wrapMode="none"
+        conceal={true}
+        style={{ width: "100%" }}
+      />
       {truncated > 0 ? (
-        <Text dimColor color={COLOR.DIM}>
+        <text fg={COLOR.DIM} attributes={TextAttributes.DIM}>
           {`${isActive ? "▶" : "•"} … ${truncated} more lines ${
             expanded ? "(expanded)" : "(collapsed)"
           } · ${TRUNCATION_SHORTCUT_HINT}`}
-        </Text>
+        </text>
       ) : null}
-    </Box>
+    </box>
   );
 }
 
@@ -185,27 +105,21 @@ const ContentBlockRenderer = memo(function ContentBlockRenderer({
   block,
   messageId,
   index,
+  isStreaming,
 }: {
   block: ChatContentBlock;
   messageId: string;
   index: number;
+  isStreaming: boolean;
 }): JSX.Element {
   switch (block.type) {
     case CONTENT_BLOCK_TYPE.TEXT:
       return (
-        <MarkdownRenderer
-          markdown={block.text ?? ""}
-          collapseAfter={LIMIT.MAX_BLOCK_LINES}
-          expandTruncated={EXPAND_ALL}
-          blockIdPrefix={`${messageId}-md-${index}`}
-          blockLabel="Markdown block"
-        />
+        <MarkdownRenderer markdown={block.text ?? ""} streaming={isStreaming} />
       );
     case CONTENT_BLOCK_TYPE.THINKING:
       return (
-        <Text dimColor italic>
-          {block.text}
-        </Text>
+        <text attributes={TextAttributes.DIM | TextAttributes.ITALIC}>{block.text}</text>
       );
     case CONTENT_BLOCK_TYPE.CODE:
       return <CodeBlock block={block} messageId={messageId} index={index} />;
@@ -231,44 +145,32 @@ const ContentBlockRenderer = memo(function ContentBlockRenderer({
               : "pending";
 
       return (
-        <Box flexDirection="column" gap={0}>
-          <Box gap={1}>
-            <Text color={statusColor}>[tool-call: {label}]</Text>
-            <Text color={statusColor} dimColor>
+        <box flexDirection="column" gap={0}>
+          <box gap={1}>
+            <text fg={statusColor}>[tool-call: {label}]</text>
+            <text fg={statusColor} attributes={TextAttributes.DIM}>
               {statusText}
-            </Text>
-          </Box>
+            </text>
+          </box>
           {block.arguments && Object.keys(block.arguments).length > 0 && (
-            <Text dimColor color={COLOR.GRAY}>
+            <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
               - {JSON.stringify(block.arguments).substring(0, 50)}…
-            </Text>
+            </text>
           )}
-        </Box>
+        </box>
       );
     }
     case CONTENT_BLOCK_TYPE.RESOURCE_LINK:
-      return (
-        <Text>
-          {block.name} (<Text dimColor>{block.uri}</Text>)
-        </Text>
-      );
+      return <text>{`${block.name} (${block.uri})`}</text>;
     case CONTENT_BLOCK_TYPE.RESOURCE: {
       const resource = block.resource;
       if ("text" in resource) {
-        return (
-          <Text>
-            Resource {resource.uri}: {resource.text}
-          </Text>
-        );
+        return <text>{`Resource ${resource.uri}: ${resource.text}`}</text>;
       }
-      return (
-        <Text>
-          Resource {resource.uri}: [binary {resource.mimeType ?? "data"}]
-        </Text>
-      );
+      return <text>{`Resource ${resource.uri}: [binary ${resource.mimeType ?? "data"}]`}</text>;
     }
     default:
-      return <Text />;
+      return <text />;
   }
 });
 
@@ -400,48 +302,56 @@ export const MessageItem = memo(({ message }: MessageItemProps): JSX.Element => 
   );
 
   return (
-    <Box flexDirection="row" width="100%" gap={1} marginY={0}>
-      <Box flexShrink={0}>
-        <Text color={roleBar}>{bar}</Text>
-      </Box>
-      <Box flexDirection="column" width="100%" gap={0}>
-        <Box gap={1} marginBottom={0} justifyContent="space-between" width="100%">
-          <Box gap={1}>
-            <Text bold color={roleBar}>
+    <box flexDirection="row" width="100%" gap={1} marginY={0}>
+      <box flexShrink={0}>
+        <text fg={roleBar}>{bar}</text>
+      </box>
+      <box flexDirection="column" width="100%" gap={0}>
+        <box gap={1} marginBottom={0} justifyContent="space-between" width="100%">
+          <box gap={1}>
+            <text fg={roleBar} attributes={TextAttributes.BOLD}>
               [{roleLabel}]
-            </Text>
+            </text>
             {message.isStreaming && (
-              <Text color={COLOR.CYAN} dimColor>
+              <text fg={COLOR.CYAN} attributes={TextAttributes.DIM}>
                 ● streaming…
-              </Text>
+              </text>
             )}
-          </Box>
-          <Text dimColor color={COLOR.DIM}>
+          </box>
+          <text fg={COLOR.DIM} attributes={TextAttributes.DIM}>
             {formatTime(message.createdAt)}
-          </Text>
-        </Box>
+          </text>
+        </box>
 
-        {/* Render tool calls first (always visible) */}
         {toolCallBlocks.length > 0 && (
-          <Box flexDirection="column" marginBottom={0} gap={0}>
+          <box flexDirection="column" marginBottom={0} gap={0}>
             {toolCallBlocks.map((block, idx) => (
-              <Box key={`${message.id}-tool-${idx}`} paddingLeft={1}>
-                <ContentBlockRenderer block={block} messageId={message.id} index={idx} />
-              </Box>
+              <box key={`${message.id}-tool-${idx}`} paddingLeft={1}>
+                <ContentBlockRenderer
+                  block={block}
+                  messageId={message.id}
+                  index={idx}
+                  isStreaming={Boolean(message.isStreaming)}
+                />
+              </box>
             ))}
-          </Box>
+          </box>
         )}
 
-        {/* Then render response text and other content */}
         {displayedResponseBlocks.map((block, idx) => (
-          <Box key={`${message.id}-${block.type}-${idx}`} width="100%">
-            <ContentBlockRenderer block={block} messageId={message.id} index={idx} />
-          </Box>
+          <box key={`${message.id}-${block.type}-${idx}`} width="100%">
+            <ContentBlockRenderer
+              block={block}
+              messageId={message.id}
+              index={idx}
+              isStreaming={Boolean(message.isStreaming)}
+            />
+          </box>
         ))}
 
         {isLongOutput ? (
-          <Box marginTop={0}>
-            <Text dimColor color={COLOR.GRAY}>
+          <box marginTop={0}>
+            <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
               {`${longOutputExpanded ? "▶" : "•"} long output ${
                 longOutputExpanded ? "(expanded)" : "(collapsed)"
               }${
@@ -449,26 +359,25 @@ export const MessageItem = memo(({ message }: MessageItemProps): JSX.Element => 
                   ? ` · ${hiddenLineCount} hidden lines, ${hiddenBlockCount} hidden blocks`
                   : ""
               } · ${TRUNCATION_SHORTCUT_HINT}`}
-            </Text>
+            </text>
             {!longOutputExpanded && hiddenBlockCount > 0 ? (
-              <Text
-                dimColor
-                color={COLOR.GRAY}
-              >{`Previewing head/tail (${displayedResponseBlocks.length}/${responseBlocks.length} blocks)`}</Text>
+              <text
+                fg={COLOR.GRAY}
+                attributes={TextAttributes.DIM}
+              >{`Previewing head/tail (${displayedResponseBlocks.length}/${responseBlocks.length} blocks)`}</text>
             ) : null}
-          </Box>
+          </box>
         ) : null}
 
-        {/* Show error if markdown is incomplete */}
         {hasIncompleteMarkdown && (
-          <Box marginTop={1} borderStyle="round" borderColor={COLOR.YELLOW} padding={1}>
-            <Text color={COLOR.YELLOW}>
+          <box marginTop={1} border={true} borderStyle="rounded" borderColor={COLOR.YELLOW} padding={1}>
+            <text fg={COLOR.YELLOW}>
               ⚠ Incomplete markdown detected - waiting for complete response…
-            </Text>
-          </Box>
+            </text>
+          </box>
         )}
-      </Box>
-    </Box>
+      </box>
+    </box>
   );
 });
 

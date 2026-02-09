@@ -1,12 +1,20 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { LIMIT } from "@/config/limits";
 import { COLOR } from "@/constants/colors";
 import { COMMAND_DEFINITIONS, type CommandDefinition } from "@/constants/command-definitions";
+import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
+import type {
+  InputRenderable,
+  KeyBinding as TextareaKeyBinding,
+  TextareaRenderable,
+} from "@opentui/core";
+import { TextAttributes } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
 import fg from "fast-glob";
 import fuzzysort from "fuzzysort";
 import ignore from "ignore";
-import { Box, Text, useInput } from "ink";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export type SlashCommand = CommandDefinition;
 
@@ -23,9 +31,6 @@ export interface InputWithAutocompleteProps {
   /** Focus target - only process input when focusTarget is "chat". Default: "chat". */
   focusTarget?: FocusTarget;
 }
-
-import { LIMIT } from "@/config/limits";
-import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
 
 const DEFAULT_COMMANDS: SlashCommand[] = COMMAND_DEFINITIONS;
 const MENTION_REGEX = /@([\w./-]*)$/;
@@ -46,6 +51,11 @@ const createIgnoreFilter = async (cwd: string): Promise<(relativePath: string) =
   return (relativePath: string): boolean => ig.ignores(toPosix(relativePath));
 };
 
+const TEXTAREA_KEYBINDINGS: TextareaKeyBinding[] = [
+  { name: "return", shift: true, action: "newline" },
+  { name: "return", ctrl: true, action: "submit" },
+];
+
 export function InputWithAutocomplete({
   value,
   onChange,
@@ -56,6 +66,9 @@ export function InputWithAutocomplete({
   enableMentions = true,
   focusTarget = FOCUS_TARGET.CHAT,
 }: InputWithAutocompleteProps): JSX.Element {
+  const inputRef = useRef<InputRenderable | null>(null);
+  const textareaRef = useRef<TextareaRenderable | null>(null);
+
   const [cursorPosition, setCursorPosition] = useState(value.length);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -63,6 +76,31 @@ export function InputWithAutocomplete({
   const [mentionSuggestions, setMentionSuggestions] = useState<string[]>([]);
   const [isLoadingFiles, setIsLoadingFiles] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
+
+  const activeInput = multiline ? textareaRef.current : inputRef.current;
+
+  const updateCursor = useCallback(() => {
+    const offset = activeInput?.cursorOffset;
+    if (typeof offset === "number") {
+      setCursorPosition(offset);
+    }
+  }, [activeInput]);
+
+  const setCursorOffset = useCallback(
+    (offset: number) => {
+      setCursorPosition(offset);
+      queueMicrotask(() => {
+        if (multiline) {
+          if (textareaRef.current) {
+            textareaRef.current.cursorOffset = offset;
+          }
+        } else if (inputRef.current) {
+          inputRef.current.cursorOffset = offset;
+        }
+      });
+    },
+    [multiline]
+  );
 
   // Load project file list for @ mentions (basic ignore for node_modules/.git)
   useEffect(() => {
@@ -98,10 +136,22 @@ export function InputWithAutocomplete({
     };
   }, [enableMentions]);
 
-  // Update cursor position when value changes externally
   useEffect(() => {
-    setCursorPosition(value.length);
-  }, [value]);
+    if (cursorPosition > value.length) {
+      setCursorPosition(value.length);
+    }
+  }, [cursorPosition, value.length]);
+
+  useEffect(() => {
+    if (!multiline) return;
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    if (textarea.plainText !== value) {
+      textarea.replaceText(value);
+      textarea.cursorOffset = value.length;
+      setCursorPosition(value.length);
+    }
+  }, [multiline, value]);
 
   // Calculate autocomplete suggestions for slash commands
   const commandSuggestions = useMemo(() => {
@@ -144,238 +194,197 @@ export function InputWithAutocomplete({
 
   const hasMentionSuggestions = mentionSuggestions.length > 0;
 
-  // Handle keyboard input
-  useInput((input, key) => {
-    // Only process input when focus is on chat
-    if (focusTarget !== FOCUS_TARGET.CHAT) {
-      return;
-    }
-    // Navigation inside suggestion lists
+  const applyCommandSuggestion = useCallback(
+    (name: string, args?: string) => {
+      const newValue = name + (args ? " " : "");
+      onChange(newValue);
+      setCursorOffset(newValue.length);
+      setShowAutocomplete(false);
+    },
+    [onChange, setCursorOffset]
+  );
+
+  const applyMentionSuggestion = useCallback(
+    (selected: string) => {
+      const before = value.slice(0, cursorPosition);
+      const after = value.slice(cursorPosition);
+      const replaced = before.replace(MENTION_REGEX, `@${selected} `) + after;
+      const newCursor = before.replace(MENTION_REGEX, `@${selected} `).length;
+      onChange(replaced);
+      setCursorOffset(newCursor);
+      setSelectedIndex(0);
+    },
+    [cursorPosition, onChange, setCursorOffset, value]
+  );
+
+  useKeyboard((key) => {
+    if (focusTarget !== FOCUS_TARGET.CHAT) return;
+
     if (showAutocomplete && commandSuggestions.length > 0) {
-      if (key.upArrow) {
+      if (key.name === "up") {
+        key.preventDefault();
+        key.stopPropagation();
         setSelectedIndex((prev) => (prev > 0 ? prev - 1 : commandSuggestions.length - 1));
         return;
       }
-      if (key.downArrow) {
+      if (key.name === "down") {
+        key.preventDefault();
+        key.stopPropagation();
         setSelectedIndex((prev) => (prev < commandSuggestions.length - 1 ? prev + 1 : 0));
         return;
       }
-      if (key.tab || (key.return && commandSuggestions.length > 0)) {
+      if (key.name === "tab" || key.name === "return" || key.name === "linefeed") {
+        key.preventDefault();
+        key.stopPropagation();
         const selected = commandSuggestions[selectedIndex];
         if (selected) {
-          const newValue = selected.name + (selected.args ? " " : "");
-          onChange(newValue);
-          setCursorPosition(newValue.length);
-          setShowAutocomplete(false);
+          applyCommandSuggestion(selected.name, selected.args);
         }
         return;
       }
-      if (key.escape) {
+      if (key.name === "escape") {
+        key.preventDefault();
+        key.stopPropagation();
         setShowAutocomplete(false);
         return;
       }
     }
 
     if (hasMentionSuggestions) {
-      if (key.upArrow) {
+      if (key.name === "up") {
+        key.preventDefault();
+        key.stopPropagation();
         setSelectedIndex((prev) => (prev > 0 ? prev - 1 : mentionSuggestions.length - 1));
         return;
       }
-      if (key.downArrow) {
+      if (key.name === "down") {
+        key.preventDefault();
+        key.stopPropagation();
         setSelectedIndex((prev) => (prev < mentionSuggestions.length - 1 ? prev + 1 : 0));
         return;
       }
-      if (key.tab || key.return) {
+      if (key.name === "tab" || key.name === "return" || key.name === "linefeed") {
+        key.preventDefault();
+        key.stopPropagation();
         const selected = mentionSuggestions[selectedIndex];
         if (selected) {
-          const before = value.slice(0, cursorPosition);
-          const after = value.slice(cursorPosition);
-          const replaced = before.replace(MENTION_REGEX, `@${selected} `) + after;
-          const newCursor = before.replace(MENTION_REGEX, `@${selected} `).length;
-          onChange(replaced);
-          setCursorPosition(newCursor);
+          applyMentionSuggestion(selected);
         }
         return;
       }
-      if (key.escape) {
+      if (key.name === "escape") {
+        key.preventDefault();
+        key.stopPropagation();
         setSelectedIndex(0);
         return;
       }
     }
-
-    // Submit vs newline behavior
-    if (key.return) {
-      const wantsNewline = multiline && (key.shift || key.meta);
-      if (wantsNewline) {
-        const newValue = `${value.slice(0, cursorPosition)}\n${value.slice(cursorPosition)}`;
-        onChange(newValue);
-        setCursorPosition((prev) => prev + 1);
-        return;
-      }
-      // Default: submit on Enter (and Ctrl+Enter)
-      onSubmit(value);
-      onChange("");
-      setCursorPosition(0);
-      return;
-    }
-
-    if (key.leftArrow) {
-      setCursorPosition((prev) => Math.max(0, prev - 1));
-      return;
-    }
-
-    if (key.rightArrow) {
-      setCursorPosition((prev) => Math.min(value.length, prev + 1));
-      return;
-    }
-
-    if (key.backspace || key.delete) {
-      if (cursorPosition > 0) {
-        const newValue = value.slice(0, cursorPosition - 1) + value.slice(cursorPosition);
-        onChange(newValue);
-        setCursorPosition((prev) => Math.max(0, prev - 1));
-      }
-      return;
-    }
-
-    // Handle regular character input
-    // Don't capture input if modifier keys are pressed (Command, Ctrl, Shift)
-    // Also don't capture escape sequences (Option/Alt key combinations on macOS)
-    // This prevents numbers from appearing when using Command+number or Option+number shortcuts
-    const isEscapeSequence = input.length >= 2 && input.charCodeAt(0) === 0x1b;
-    const isModifierKey = key.ctrl || key.meta || key.shift;
-
-    if (input && !isModifierKey && !isEscapeSequence) {
-      const newValue = value.slice(0, cursorPosition) + input + value.slice(cursorPosition);
-      onChange(newValue);
-      setCursorPosition((prev) => prev + input.length);
-    }
   });
 
-  // Format display value with cursor (supports multiline)
-  const displayValue = useMemo(() => {
-    if (value.length === 0) {
-      return <Text dimColor>{placeholder}</Text>;
-    }
+  const handleInput = useCallback(
+    (nextValue: string) => {
+      onChange(nextValue);
+    },
+    [onChange]
+  );
 
-    if (multiline) {
-      // Split by newlines and render each line
-      const lines = value.split("\n");
-      const beforeLines = value.slice(0, cursorPosition).split("\n");
-      const lineIndex = beforeLines.length - 1;
-      const charIndex = beforeLines[lineIndex]?.length ?? 0;
+  const handleTextareaChange = useCallback(() => {
+    const nextValue = textareaRef.current?.plainText ?? value;
+    onChange(nextValue);
+  }, [onChange, value]);
 
-      return (
-        <>
-          {lines.map((line, idx) => {
-            const lineKey = `line-${idx}-${line.slice(0, 10)}`;
-            if (idx === lineIndex) {
-              // Current line with cursor
-              const before = line.slice(0, charIndex);
-              const after = line.slice(charIndex);
-              const cursor = <Text inverse> </Text>;
-              return (
-                <Text key={lineKey}>
-                  {before}
-                  {cursor}
-                  {after}
-                </Text>
-              );
-            }
-            return <Text key={lineKey}>{line}</Text>;
-          })}
-        </>
-      );
-    }
+  const handleSubmit = useCallback(
+    (submitted: string) => {
+      onSubmit(submitted);
+      onChange("");
+      setCursorOffset(0);
+    },
+    [onChange, onSubmit, setCursorOffset]
+  );
 
-    // Single line mode
-    const before = value.slice(0, cursorPosition);
-    const after = value.slice(cursorPosition);
-    const cursor = <Text inverse> </Text>;
-
-    return (
-      <>
-        <Text>{before}</Text>
-        {cursor}
-        <Text>{after}</Text>
-      </>
-    );
-  }, [value, cursorPosition, placeholder, multiline]);
+  const handleTextareaSubmit = useCallback(() => {
+    const submitted = textareaRef.current?.plainText ?? value;
+    onSubmit(submitted);
+    onChange("");
+    setCursorOffset(0);
+  }, [onChange, onSubmit, setCursorOffset, value]);
 
   return (
-    <Box flexDirection="column" flexGrow={1} minWidth={0}>
-      {/* Slash command suggestions */}
+    <box flexDirection="column" flexGrow={1} minWidth={0}>
       {showAutocomplete && commandSuggestions.length > 0 && (
-        <Box
+        <box
           flexDirection="column"
+          border={true}
           borderStyle="single"
           borderColor={COLOR.CYAN}
           marginBottom={1}
           paddingLeft={1}
           paddingRight={1}
         >
-          <Text color={COLOR.CYAN} bold>
+          <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
             Commands:
-          </Text>
+          </text>
           {commandSuggestions.map((cmd, index) => (
-            <Box key={cmd.name} paddingLeft={1}>
-              <Text
-                color={index === selectedIndex ? COLOR.YELLOW : COLOR.WHITE}
-                bold={index === selectedIndex}
+            <box key={cmd.name} paddingLeft={1}>
+              <text
+                fg={index === selectedIndex ? COLOR.YELLOW : COLOR.WHITE}
+                attributes={index === selectedIndex ? TextAttributes.BOLD : 0}
               >
                 {index === selectedIndex ? "▶ " : "  "}
                 {cmd.name}
-              </Text>
-              {cmd.args && <Text color={COLOR.GRAY}> {cmd.args}</Text>}
-              <Text color={COLOR.GRAY} dimColor>{` - ${cmd.description}`}</Text>
-            </Box>
+              </text>
+              {cmd.args ? <text fg={COLOR.GRAY}> {cmd.args}</text> : null}
+              <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>{` - ${cmd.description}`}</text>
+            </box>
           ))}
-          <Box marginTop={1}>
-            <Text dimColor color={COLOR.GRAY}>
+          <box marginTop={1}>
+            <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
               ↑↓ Navigate · Tab/Enter Select · Esc Cancel
-            </Text>
-          </Box>
-        </Box>
+            </text>
+          </box>
+        </box>
       )}
 
-      {/* @ mention suggestions */}
       {enableMentions && hasMentionSuggestions && (
-        <Box
+        <box
           flexDirection="column"
+          border={true}
           borderStyle="single"
           borderColor={COLOR.GREEN}
           marginBottom={1}
           paddingLeft={1}
           paddingRight={1}
         >
-          <Text color={COLOR.GREEN} bold>
+          <text fg={COLOR.GREEN} attributes={TextAttributes.BOLD}>
             Files:
-          </Text>
+          </text>
           {mentionSuggestions.map((file, index) => (
-            <Box key={file} paddingLeft={1}>
-              <Text
-                color={index === selectedIndex ? COLOR.YELLOW : COLOR.WHITE}
-                bold={index === selectedIndex}
+            <box key={file} paddingLeft={1}>
+              <text
+                fg={index === selectedIndex ? COLOR.YELLOW : COLOR.WHITE}
+                attributes={index === selectedIndex ? TextAttributes.BOLD : 0}
               >
                 {index === selectedIndex ? "▶ " : "  "}@{file}
-              </Text>
-            </Box>
+              </text>
+            </box>
           ))}
           {isLoadingFiles ? (
-            <Text dimColor>Loading files…</Text>
+            <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
+              Loading files…
+            </text>
           ) : fileError ? (
-            <Text color={COLOR.RED}>{fileError}</Text>
+            <text fg={COLOR.RED}>{fileError}</text>
           ) : null}
-          <Box marginTop={1}>
-            <Text dimColor color={COLOR.GRAY}>
+          <box marginTop={1}>
+            <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
               ↑↓ Navigate · Tab/Enter Insert · Esc Cancel
-            </Text>
-          </Box>
-        </Box>
+            </text>
+          </box>
+        </box>
       )}
 
-      {/* Input field */}
-      <Box
+      <box
+        border={true}
         borderStyle="single"
         paddingLeft={1}
         paddingRight={1}
@@ -386,9 +395,32 @@ export function InputWithAutocomplete({
         minWidth={0}
         flexDirection={multiline ? "column" : "row"}
       >
-        {!multiline && <Text>› </Text>}
-        {displayValue}
-      </Box>
-    </Box>
+        {!multiline && <text fg={COLOR.GRAY}>› </text>}
+        {multiline ? (
+          <textarea
+            ref={textareaRef}
+            initialValue={value}
+            focused={focusTarget === FOCUS_TARGET.CHAT}
+            onContentChange={handleTextareaChange}
+            onCursorChange={updateCursor}
+            onSubmit={handleTextareaSubmit}
+            keyBindings={TEXTAREA_KEYBINDINGS}
+            style={{ width: "100%" }}
+          />
+        ) : (
+          <input
+            ref={inputRef}
+            value={value}
+            placeholder={placeholder}
+            focused={focusTarget === FOCUS_TARGET.CHAT}
+            onInput={handleInput}
+            onChange={handleInput}
+            onSubmit={handleSubmit}
+            onCursorChange={updateCursor}
+            style={{ width: "100%" }}
+          />
+        )}
+      </box>
+    </box>
   );
 }

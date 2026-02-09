@@ -1,6 +1,7 @@
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
 import { VIEW, type View } from "@/constants/views";
-import { useInput } from "ink";
+import type { KeyEvent } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
 import { useState } from "react";
 
 export interface UseAppKeyboardShortcutsOptions {
@@ -34,8 +35,8 @@ export const FOCUS_NUMBER_MAP: Record<string, FocusTarget> = {
  * Detects Option+backtick escape sequence.
  * On macOS, Option+` produces an escape sequence starting with 0x1b.
  */
-export const isOptionBacktick = (input: string): boolean => {
-  return input.length >= 2 && input.charCodeAt(0) === 0x1b && input.slice(1) === "`";
+export const isOptionBacktick = (key: KeyEvent): boolean => {
+  return key.option && key.name === "`";
 };
 
 /**
@@ -50,42 +51,54 @@ export function useAppKeyboardShortcuts({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
-  useInput((input, key) => {
+  useKeyboard((key) => {
     // Only handle shortcuts in chat view
     if (view !== VIEW.CHAT) return;
 
     // Option+` (backtick) to focus back on chat
-    if (isOptionBacktick(input)) {
+    if (isOptionBacktick(key)) {
+      key.preventDefault();
+      key.stopPropagation();
       setFocusTarget(FOCUS_TARGET.CHAT);
       return;
     }
 
     // Command/Ctrl+number sets focus (1=Files, 2=Plan, 3=Context, 4=Sessions, 5=Sub-agents)
-    if ((key.meta || key.ctrl) && /^[1-5]$/.test(input)) {
-      setFocusTarget(FOCUS_NUMBER_MAP[input] ?? FOCUS_TARGET.CHAT);
+    if ((key.meta || key.ctrl) && /^[1-5]$/.test(key.name)) {
+      key.preventDefault();
+      key.stopPropagation();
+      setFocusTarget(FOCUS_NUMBER_MAP[key.name] ?? FOCUS_TARGET.CHAT);
       return;
     }
 
     // Cmd/Ctrl+F focuses Files panel
-    if ((key.meta || key.ctrl) && (input === "f" || input === "F")) {
+    if ((key.meta || key.ctrl) && key.name === "f") {
+      key.preventDefault();
+      key.stopPropagation();
       setFocusTarget(FOCUS_TARGET.FILES);
       return;
     }
 
     // Cmd/Ctrl+? or Cmd/Ctrl+/ opens help
-    if ((key.meta || key.ctrl) && (input === "?" || input === "/")) {
+    if ((key.meta || key.ctrl) && (key.name === "?" || key.name === "/")) {
+      key.preventDefault();
+      key.stopPropagation();
       setIsHelpOpen(true);
       return;
     }
 
     // Escape returns focus to chat
-    if (key.escape) {
+    if (key.name === "escape") {
+      key.preventDefault();
+      key.stopPropagation();
       setFocusTarget(FOCUS_TARGET.CHAT);
       return;
     }
 
     // Ctrl+S toggles sessions popup
-    if (key.ctrl && (input === "s" || input === "S")) {
+    if (key.ctrl && key.name === "s") {
+      key.preventDefault();
+      key.stopPropagation();
       setIsSessionsPopupOpen((prev) => !prev);
     }
   });

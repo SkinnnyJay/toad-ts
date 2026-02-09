@@ -33,17 +33,8 @@ import {
   useTerminalDimensions,
 } from "@/ui/hooks";
 import { Env, EnvManager } from "@/utils/env/env.utils";
-import { Box, Text } from "ink";
-import { TerminalInfoProvider } from "ink-picture";
+import { TextAttributes } from "@opentui/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
-
-// Ensure value import is retained for JSX runtime
-const statusFooterComponent = StatusFooter;
-void statusFooterComponent;
-
-const clearScreen = (): void => {
-  process.stdout.write("\x1b[3J\x1b[H\x1b[2J");
-};
 
 export function App(): JSX.Element {
   const [view, setView] = useState<View>(VIEW.AGENT_SELECT);
@@ -161,9 +152,8 @@ export function App(): JSX.Element {
   }, [plan]);
   void planProgress;
 
-  // Clear screen on mount
+  // Set initial load status on mount
   useEffect(() => {
-    clearScreen();
     setProgress(5);
     setStatusMessage("Loading TOADSTOOL…");
   }, [setProgress, setStatusMessage]);
@@ -203,10 +193,10 @@ export function App(): JSX.Element {
   // Render error state
   if (stage === RENDER_STAGE.ERROR) {
     return (
-      <Box padding={1} flexDirection="column" gap={1}>
-        <Text color={COLOR.RED}>Error: {loadError ?? statusMessage}</Text>
-        {loadError ? <Text dimColor>{loadError}</Text> : null}
-      </Box>
+      <box padding={1} flexDirection="column" gap={1}>
+        <text fg={COLOR.RED}>Error: {loadError ?? statusMessage}</text>
+        {loadError ? <text attributes={TextAttributes.DIM}>{loadError}</text> : null}
+      </box>
     );
   }
 
@@ -225,81 +215,82 @@ export function App(): JSX.Element {
   const mainWidth = terminalDimensions.columns - sidebarWidth - LIMIT.LAYOUT_BORDER_PADDING;
 
   return (
-    <TerminalInfoProvider>
-      <Box flexDirection="column" height={terminalDimensions.rows}>
-        {view === VIEW.AGENT_SELECT && <AsciiBanner />}
-        {loadError ? (
-          <Box flexDirection="column" gap={1}>
-            <Text color={COLOR.RED}>Error: {loadError}</Text>
-            <Text dimColor>Check that Claude CLI is installed and accessible</Text>
-          </Box>
-        ) : null}
-        {view === VIEW.AGENT_SELECT ? (
-          <AgentSelect agents={agentOptions} onSelect={handleAgentSelect} />
-        ) : (
-          <Box flexDirection="column" height="100%" flexGrow={1} minHeight={0}>
-            <Box flexDirection="row" flexGrow={1} minHeight={0} marginBottom={1}>
-              <Sidebar
-                width={sidebarWidth}
-                currentAgentName={selectedAgent?.name}
-                focusTarget={focusTarget}
-              />
-              <Box
-                flexDirection="column"
-                width={mainWidth}
-                flexGrow={1}
-                borderStyle="single"
-                borderColor={COLOR.GRAY}
-                paddingX={1}
-                paddingY={1}
-              >
-                {isSessionsPopupOpen ? (
-                  <SessionsPopup
-                    isOpen={isSessionsPopupOpen}
-                    onClose={() => setIsSessionsPopupOpen(false)}
-                    onSelectSession={handleSelectSession}
-                  />
-                ) : isSettingsOpen ? (
-                  <SettingsModal
-                    key="settings-modal"
-                    isOpen={isSettingsOpen}
-                    onClose={() => {
-                      setIsSettingsOpen(false);
-                    }}
-                    agents={agentOptions}
-                  />
-                ) : isHelpOpen ? (
-                  <HelpModal
-                    key="help-modal"
-                    isOpen={isHelpOpen}
-                    onClose={() => {
-                      setIsHelpOpen(false);
-                    }}
-                  />
-                ) : (
-                  <Chat
-                    key={`chat-${sessionId ?? "no-session"}`}
-                    sessionId={sessionId}
-                    agent={selectedAgent ?? undefined}
-                    client={client}
-                    onPromptComplete={handlePromptComplete}
-                    onOpenSettings={() => setIsSettingsOpen(true)}
-                    onOpenHelp={() => setIsHelpOpen(true)}
-                    focusTarget={focusTarget}
-                  />
-                )}
-              </Box>
-            </Box>
-            <Box flexShrink={0}>
-              <StatusFooter
-                taskProgress={undefined}
-                planProgress={planProgress}
-                focusTarget={focusTarget}
-              />
-            </Box>
-          </Box>
-        )}
-      </Box>
-    </TerminalInfoProvider>
+    <box flexDirection="column" height={terminalDimensions.rows}>
+      {view === VIEW.AGENT_SELECT && <AsciiBanner />}
+      {loadError ? (
+        <box flexDirection="column" gap={1}>
+          <text fg={COLOR.RED}>Error: {loadError}</text>
+          <text attributes={TextAttributes.DIM}>
+            Check that Claude CLI is installed and accessible
+          </text>
+        </box>
+      ) : null}
+      {view === VIEW.AGENT_SELECT ? (
+        <AgentSelect agents={agentOptions} onSelect={handleAgentSelect} />
+      ) : (
+        <box flexDirection="column" height="100%" flexGrow={1} minHeight={0}>
+          <box flexDirection="row" flexGrow={1} minHeight={0} marginBottom={1}>
+            <Sidebar
+              width={sidebarWidth}
+              currentAgentName={selectedAgent?.name}
+              focusTarget={focusTarget}
+            />
+            <box
+              flexDirection="column"
+              width={mainWidth}
+              flexGrow={1}
+              border={true}
+              borderStyle="single"
+              borderColor={COLOR.GRAY}
+              paddingX={1}
+              paddingY={1}
+            >
+              {isSessionsPopupOpen ? (
+                <SessionsPopup
+                  isOpen={isSessionsPopupOpen}
+                  onClose={() => setIsSessionsPopupOpen(false)}
+                  onSelectSession={handleSelectSession}
+                />
+              ) : isSettingsOpen ? (
+                <SettingsModal
+                  key="settings-modal"
+                  isOpen={isSettingsOpen}
+                  onClose={() => {
+                    setIsSettingsOpen(false);
+                  }}
+                  agents={agentOptions}
+                />
+              ) : isHelpOpen ? (
+                <HelpModal
+                  key="help-modal"
+                  isOpen={isHelpOpen}
+                  onClose={() => {
+                    setIsHelpOpen(false);
+                  }}
+                />
+              ) : (
+                <Chat
+                  key={`chat-${sessionId ?? "no-session"}`}
+                  sessionId={sessionId}
+                  agent={selectedAgent ?? undefined}
+                  client={client}
+                  onPromptComplete={handlePromptComplete}
+                  onOpenSettings={() => setIsSettingsOpen(true)}
+                  onOpenHelp={() => setIsHelpOpen(true)}
+                  focusTarget={focusTarget}
+                />
+              )}
+            </box>
+          </box>
+          <box flexShrink={0}>
+            <StatusFooter
+              taskProgress={undefined}
+              planProgress={planProgress}
+              focusTarget={focusTarget}
+            />
+          </box>
+        </box>
+      )}
+    </box>
   );
 }

@@ -2,7 +2,7 @@ import { LIMIT } from "@/config/limits";
 import { COLOR } from "@/constants/colors";
 import type { FocusTarget } from "@/constants/focus-target";
 import type { ConnectionStatus, SessionId } from "@/types/domain";
-import { Box, Text } from "ink";
+import { TextAttributes } from "@opentui/core";
 
 export interface StatusFooterProps {
   taskProgress?: { completed: number; total: number };
@@ -60,9 +60,10 @@ export function StatusFooter({
   ].filter(Boolean) as string[];
 
   return (
-    <Box
+    <box
       width="100%"
       flexDirection="row"
+      border={true}
       borderStyle="single"
       borderColor={COLOR.GRAY}
       paddingX={1}
@@ -71,31 +72,31 @@ export function StatusFooter({
       justifyContent="space-between"
       alignItems="center"
     >
-      <Box flexDirection="row" gap={2}>
+      <box flexDirection="row" gap={2}>
         {globalShortcuts.map((sc) => (
-          <Text key={sc.key}>
-            <Text bold color={COLOR.CYAN}>
+          <text key={sc.key}>
+            <span fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
               {sc.key}
-            </Text>{" "}
+            </span>{" "}
             {sc.label}
-          </Text>
+          </text>
         ))}
-      </Box>
-      <Box flexDirection="row" gap={2}>
-        <Text>
-          <Text bold color={COLOR.YELLOW}>
+      </box>
+      <box flexDirection="row" gap={2}>
+        <text>
+          <span fg={COLOR.YELLOW} attributes={TextAttributes.BOLD}>
             Focus:
-          </Text>{" "}
+          </span>{" "}
           {focusTarget}
-        </Text>
+        </text>
         {statusParts.map((part) => (
-          <Text key={part} color={COLOR.GRAY}>
+          <text key={part} fg={COLOR.GRAY}>
             {part}
-          </Text>
+          </text>
         ))}
-        {planText ? <Text color={COLOR.GRAY}>{planText}</Text> : null}
-        {taskText ? <Text color={COLOR.GRAY}>{taskText}</Text> : null}
-      </Box>
-    </Box>
+        {planText ? <text fg={COLOR.GRAY}>{planText}</text> : null}
+        {taskText ? <text fg={COLOR.GRAY}>{taskText}</text> : null}
+      </box>
+    </box>
   );
 }

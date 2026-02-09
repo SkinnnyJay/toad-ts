@@ -1,7 +1,8 @@
 import { COLOR } from "@/constants/colors";
 import type { CommandDefinition } from "@/constants/command-definitions";
+import { TextAttributes } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
 import fuzzysort from "fuzzysort";
-import { Box, Text, useInput } from "ink";
 import { useEffect, useMemo, useState } from "react";
 
 interface CommandPaletteProps {
@@ -38,25 +39,33 @@ export function CommandPalette({
     return scored.map((res) => ({ cmd: res.obj, score: res.score }));
   }, [commands, query]);
 
-  useInput((input, key) => {
+  useKeyboard((key) => {
     if (!isOpen) return;
 
-    if (key.escape) {
+    if (key.name === "escape") {
+      key.preventDefault();
+      key.stopPropagation();
       onClose();
       return;
     }
 
-    if (key.upArrow) {
+    if (key.name === "up") {
+      key.preventDefault();
+      key.stopPropagation();
       setIndex((prev) => Math.max(0, prev - 1));
       return;
     }
 
-    if (key.downArrow) {
+    if (key.name === "down") {
+      key.preventDefault();
+      key.stopPropagation();
       setIndex((prev) => Math.min(results.length - 1, prev + 1));
       return;
     }
 
-    if (key.return) {
+    if (key.name === "return" || key.name === "linefeed") {
+      key.preventDefault();
+      key.stopPropagation();
       const selected = results[index]?.cmd;
       if (selected) {
         onSelect(selected);
@@ -66,12 +75,12 @@ export function CommandPalette({
     }
 
     // Simple query typing (no cursor support here)
-    if (input && !key.ctrl && !key.meta) {
-      setQuery((prev) => `${prev}${input}`);
+    if (!key.ctrl && !key.meta && key.name.length === 1 && key.name !== " ") {
+      setQuery((prev) => `${prev}${key.name}`);
       return;
     }
 
-    if (key.backspace || key.delete) {
+    if (key.name === "backspace" || key.name === "delete") {
       setQuery((prev) => prev.slice(0, -1));
       return;
     }
@@ -80,8 +89,9 @@ export function CommandPalette({
   if (!isOpen) return null;
 
   return (
-    <Box
+    <box
       flexDirection="column"
+      border={true}
       borderStyle="single"
       borderColor={COLOR.CYAN}
       paddingX={1}
@@ -90,18 +100,18 @@ export function CommandPalette({
       minHeight={5}
       gap={1}
     >
-      <Text color={COLOR.CYAN} bold>
+      <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
         Command Palette
-      </Text>
-      <Text>{query || "Type to search commands…"}</Text>
-      <Box flexDirection="column" gap={0}>
+      </text>
+      <text>{query || "Type to search commands…"}</text>
+      <box flexDirection="column" gap={0}>
         {results.map(({ cmd }, idx) => (
-          <Text key={cmd.name} color={idx === index ? COLOR.YELLOW : undefined}>
+          <text key={cmd.name} fg={idx === index ? COLOR.YELLOW : undefined}>
             {idx === index ? "› " : "  "}
             {cmd.name} {cmd.args ?? ""} — {cmd.description}
-          </Text>
+          </text>
         ))}
-      </Box>
-    </Box>
+      </box>
+    </box>
   );
 }

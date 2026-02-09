@@ -1,7 +1,9 @@
 import { COLOR } from "@/constants/colors";
 import type { AgentId } from "@/types/domain";
-import { Box, Text, useInput, useStdout } from "ink";
+import { TextAttributes } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
 import { useEffect, useMemo, useState } from "react";
+import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
 
 export interface AgentOption {
   id: AgentId;
@@ -16,35 +18,43 @@ interface AgentSelectProps {
 }
 
 export function AgentSelect({ agents, onSelect }: AgentSelectProps): JSX.Element {
-  const { stdout } = useStdout();
+  const terminal = useTerminalDimensions();
   const [index, setIndex] = useState(0);
 
-  const columns = stdout?.columns ?? 80;
+  const columns = terminal.columns ?? 80;
   const cols = useMemo(() => Math.max(1, Math.min(3, Math.floor(columns / 26))), [columns]);
   const cardWidth = useMemo(() => Math.max(18, Math.floor(columns / cols) - 6), [columns, cols]);
 
-  useInput((input, key) => {
+  useKeyboard((key) => {
     if (agents.length === 0) return;
 
-    if (key.upArrow || input === "k") {
+    if (key.name === "up" || key.name === "k") {
+      key.preventDefault();
+      key.stopPropagation();
       setIndex((prev) => (prev - cols + agents.length) % agents.length);
       return;
     }
-    if (key.downArrow || input === "j") {
+    if (key.name === "down" || key.name === "j") {
+      key.preventDefault();
+      key.stopPropagation();
       setIndex((prev) => (prev + cols) % agents.length);
       return;
     }
-    if (key.leftArrow || input === "h") {
+    if (key.name === "left" || key.name === "h") {
+      key.preventDefault();
+      key.stopPropagation();
       setIndex((prev) => (prev - 1 + agents.length) % agents.length);
       return;
     }
-    if (key.rightArrow || input === "l") {
+    if (key.name === "right" || key.name === "l") {
+      key.preventDefault();
+      key.stopPropagation();
       setIndex((prev) => (prev + 1) % agents.length);
       return;
     }
 
-    if (/^[1-9]$/.test(input)) {
-      const num = Number(input) - 1;
+    if (/^[1-9]$/.test(key.name)) {
+      const num = Number(key.name) - 1;
       if (num >= 0 && num < agents.length) {
         const candidate = agents[num];
         if (candidate) {
@@ -54,7 +64,9 @@ export function AgentSelect({ agents, onSelect }: AgentSelectProps): JSX.Element
       }
       return;
     }
-    if (key.return) {
+    if (key.name === "return" || key.name === "linefeed") {
+      key.preventDefault();
+      key.stopPropagation();
       const selected = agents[index];
       if (selected) onSelect(selected);
     }
@@ -75,7 +87,7 @@ export function AgentSelect({ agents, onSelect }: AgentSelectProps): JSX.Element
   }, [agents, cols]);
 
   if (agents.length === 0) {
-    return <Text dimColor>No agents available</Text>;
+    return <text attributes={TextAttributes.DIM}>No agents available</text>;
   }
 
   const statusIcon = (status?: AgentOption["status"]): { icon: string; color?: string } => {
@@ -92,18 +104,19 @@ export function AgentSelect({ agents, onSelect }: AgentSelectProps): JSX.Element
   };
 
   return (
-    <Box flexDirection="column" gap={1}>
-      <Text>Pick an agent (1-9 quick-select):</Text>
-      <Box flexDirection="column" gap={1}>
+    <box flexDirection="column" gap={1}>
+      <text>Pick an agent (1-9 quick-select):</text>
+      <box flexDirection="column" gap={1}>
         {rows.map((row, rowIdx) => (
-          <Box key={row.map((a) => a.id).join("|") || `row-${rowIdx}`} flexDirection="row" gap={2}>
+          <box key={row.map((a) => a.id).join("|") || `row-${rowIdx}`} flexDirection="row" gap={2}>
             {row.map((agent, colIdx) => {
               const idx = rowIdx * 3 + colIdx;
               const selected = idx === index;
               const { icon, color } = statusIcon(agent.status);
               return (
-                <Box
+                <box
                   key={agent.id}
+                  border={true}
                   borderStyle="single"
                   borderColor={selected ? COLOR.CYAN : COLOR.GRAY}
                   paddingX={1}
@@ -112,23 +125,23 @@ export function AgentSelect({ agents, onSelect }: AgentSelectProps): JSX.Element
                   flexDirection="column"
                   gap={0}
                 >
-                  <Text>
-                    <Text color={COLOR.YELLOW}>{idx + 1}.</Text> {agent.name}
-                  </Text>
-                  <Text color={color}>
+                  <text>
+                    <span fg={COLOR.YELLOW}>{idx + 1}.</span> {agent.name}
+                  </text>
+                  <text fg={color}>
                     {icon} {agent.status ?? "unknown"}
-                  </Text>
+                  </text>
                   {agent.description ? (
-                    <Text dimColor wrap="wrap">
+                    <text attributes={TextAttributes.DIM} wrapMode="word">
                       {agent.description}
-                    </Text>
+                    </text>
                   ) : null}
-                </Box>
+                </box>
               );
             })}
-          </Box>
+          </box>
         ))}
-      </Box>
-    </Box>
+      </box>
+    </box>
   );
 }

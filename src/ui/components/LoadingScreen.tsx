@@ -1,6 +1,5 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { Box, Text } from "ink";
 import { memo, useEffect, useState } from "react";
 
 const PROGRESS_BAR_WIDTH = 40;
@@ -27,14 +26,14 @@ const StaticArt = memo(
     return (
       <>
         {logoArt && (
-          <Box flexDirection="column" alignItems="center" marginBottom={1}>
-            <Text>{logoArt}</Text>
-          </Box>
+          <box flexDirection="column" alignItems="center" marginBottom={1}>
+            <text>{logoArt}</text>
+          </box>
         )}
         {textArt && (
-          <Box flexDirection="column" alignItems="center" marginBottom={2}>
-            <Text>{textArt}</Text>
-          </Box>
+          <box flexDirection="column" alignItems="center" marginBottom={2}>
+            <text>{textArt}</text>
+          </box>
         )}
       </>
     );
@@ -85,7 +84,7 @@ export function LoadingScreen({ progress, status }: LoadingScreenProps): JSX.Ele
     : 0;
 
   return (
-    <Box
+    <box
       flexDirection="column"
       justifyContent="center"
       alignItems="center"
@@ -93,10 +92,10 @@ export function LoadingScreen({ progress, status }: LoadingScreenProps): JSX.Ele
       width="100%"
     >
       <StaticArt logoArt={logoArt} textArt={textArt} />
-      <Box flexDirection="column" alignItems="center">
-        {status ? <Text>{status}</Text> : null}
-        <Text>{renderProgressBar(clampedProgress)}</Text>
-      </Box>
-    </Box>
+      <box flexDirection="column" alignItems="center">
+        {status ? <text>{status}</text> : null}
+        <text>{renderProgressBar(clampedProgress)}</text>
+      </box>
+    </box>
   );
 }

@@ -1,6 +1,6 @@
 import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
-import { useStdout } from "ink";
+import { useTerminalDimensions as useOpenTUITerminalDimensions } from "@opentui/react";
 import { useEffect, useState } from "react";
 
 export interface TerminalDimensions {
@@ -16,23 +16,23 @@ const MIN_COLUMNS = 50;
  * Returns clamped dimensions that update on terminal resize events.
  */
 export function useTerminalDimensions(): TerminalDimensions {
-  const { stdout } = useStdout();
+  const terminal = useOpenTUITerminalDimensions();
   const [dimensions, setDimensions] = useState<TerminalDimensions>({
-    rows: stdout?.rows ?? UI.TERMINAL_DEFAULT_ROWS,
-    columns: stdout?.columns ?? UI.TERMINAL_DEFAULT_COLUMNS,
+    rows: terminal.height ?? UI.TERMINAL_DEFAULT_ROWS,
+    columns: terminal.width ?? UI.TERMINAL_DEFAULT_COLUMNS,
   });
 
   useEffect(() => {
     let resizeTimer: NodeJS.Timeout | null = null;
-    let lastRows = stdout?.rows ?? UI.TERMINAL_DEFAULT_ROWS;
-    let lastCols = stdout?.columns ?? UI.TERMINAL_DEFAULT_COLUMNS;
+    let lastRows = terminal.height ?? UI.TERMINAL_DEFAULT_ROWS;
+    let lastCols = terminal.width ?? UI.TERMINAL_DEFAULT_COLUMNS;
 
     const handleResize = () => {
       if (resizeTimer) return;
       resizeTimer = setTimeout(() => {
         resizeTimer = null;
-        const nextRows = stdout?.rows ?? UI.TERMINAL_DEFAULT_ROWS;
-        const nextCols = stdout?.columns ?? UI.TERMINAL_DEFAULT_COLUMNS;
+        const nextRows = terminal.height ?? UI.TERMINAL_DEFAULT_ROWS;
+        const nextCols = terminal.width ?? UI.TERMINAL_DEFAULT_COLUMNS;
         const clampedRows = Math.max(MIN_ROWS, nextRows);
         const clampedCols = Math.max(MIN_COLUMNS, nextCols);
         if (clampedRows === lastRows && clampedCols === lastCols) {
@@ -44,18 +44,13 @@ export function useTerminalDimensions(): TerminalDimensions {
       }, TIMEOUT.THROTTLE_MS);
     };
 
-    stdout?.on("resize", handleResize);
+    handleResize();
     return () => {
       if (resizeTimer) {
         clearTimeout(resizeTimer);
       }
-      if (stdout?.off) {
-        stdout.off("resize", handleResize);
-      } else if (stdout?.removeListener) {
-        stdout.removeListener("resize", handleResize);
-      }
     };
-  }, [stdout]);
+  }, [terminal.height, terminal.width]);
 
   return dimensions;
 }

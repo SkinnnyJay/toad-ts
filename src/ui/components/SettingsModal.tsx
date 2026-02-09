@@ -1,7 +1,8 @@
 import { COLOR } from "@/constants/colors";
 import type { AgentOption } from "@/ui/components/AgentSelect";
 import { DefaultProviderTab } from "@/ui/components/DefaultProviderTab";
-import { Box, Text, useInput } from "ink";
+import { TextAttributes } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -10,17 +11,15 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ isOpen, onClose, agents }: SettingsModalProps): JSX.Element | null {
-  useInput(
-    (input, key) => {
-      if (!isOpen) return;
+  useKeyboard((key) => {
+    if (!isOpen) return;
 
-      if (key.escape || (key.ctrl && input === "s")) {
-        onClose();
-        return;
-      }
-    },
-    { isActive: isOpen }
-  );
+    if (key.name === "escape" || (key.ctrl && key.name === "s")) {
+      key.preventDefault();
+      key.stopPropagation();
+      onClose();
+    }
+  });
 
   const handleSave = (): void => {
     // Settings are saved automatically in DefaultProviderTab
@@ -30,8 +29,9 @@ export function SettingsModal({ isOpen, onClose, agents }: SettingsModalProps): 
   if (!isOpen) return null;
 
   return (
-    <Box
+    <box
       flexDirection="column"
+      border={true}
       borderStyle="double"
       borderColor={COLOR.CYAN}
       paddingX={1}
@@ -39,26 +39,28 @@ export function SettingsModal({ isOpen, onClose, agents }: SettingsModalProps): 
       minHeight={20}
       width="80%"
     >
-      <Box flexDirection="row" justifyContent="space-between" marginBottom={1}>
-        <Text bold color={COLOR.CYAN}>
+      <box flexDirection="row" justifyContent="space-between" marginBottom={1}>
+        <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
           Settings (Esc/Ctrl+S to close)
-        </Text>
-      </Box>
+        </text>
+      </box>
 
-      <Box flexDirection="row" marginBottom={1} borderStyle="single" borderBottom={true}>
-        <Text color={COLOR.CYAN} bold>
+      <box flexDirection="row" marginBottom={1} borderStyle="single" border={["bottom"]}>
+        <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
           Default Provider
-        </Text>
+        </text>
         {/* Future tabs can be added here with left/right arrow navigation */}
-      </Box>
+      </box>
 
-      <Box flexDirection="column" flexGrow={1} minHeight={15}>
+      <box flexDirection="column" flexGrow={1} minHeight={15}>
         <DefaultProviderTab agents={agents} onSave={handleSave} />
-      </Box>
+      </box>
 
-      <Box marginTop={1} paddingTop={1} borderStyle="single" borderTop={true}>
-        <Text dimColor>↑/↓: Navigate | Enter: Select | Esc/Ctrl+S: Close</Text>
-      </Box>
-    </Box>
+      <box marginTop={1} paddingTop={1} borderStyle="single" border={["top"]}>
+        <text attributes={TextAttributes.DIM}>
+          ↑/↓: Navigate | Enter: Select | Esc/Ctrl+S: Close
+        </text>
+      </box>
+    </box>
   );
 }

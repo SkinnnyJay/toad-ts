@@ -29,7 +29,7 @@ import { PlanPanel } from "@/ui/components/PlanPanel";
 import { ToolCallManager } from "@/ui/components/ToolCallManager";
 import { roleColor } from "@/ui/theme";
 import { getRepoInfo } from "@/utils/git/git-info.utils";
-import { Box, Text, useInput } from "ink";
+import { useKeyboard } from "@opentui/react";
 import { nanoid } from "nanoid";
 import { memo, useCallback, useMemo, useState } from "react";
 import { CommandPalette } from "./CommandPalette";
@@ -191,11 +191,15 @@ export const Chat = memo(
       };
     }, []);
 
-    useInput((input, key) => {
-      if (key.ctrl && (input === "p" || input === "P")) {
+    useKeyboard((key) => {
+      if (key.ctrl && key.name === "p") {
+        key.preventDefault();
+        key.stopPropagation();
         setPaletteOpen((prev) => !prev);
       }
-      if (isPaletteOpen && key.escape) {
+      if (isPaletteOpen && key.name === "escape") {
+        key.preventDefault();
+        key.stopPropagation();
         setPaletteOpen(false);
       }
     });
@@ -368,32 +372,32 @@ export const Chat = memo(
 
     return (
       <TruncationProvider>
-        <Box flexDirection="column" height="100%">
+        <box flexDirection="column" height="100%">
           {/* Fixed header section */}
-          <Box flexDirection="column" flexShrink={0}>
-            <Box flexDirection="row" alignItems="center" gap={1}>
+          <box flexDirection="column" flexShrink={0}>
+            <box flexDirection="row" alignItems="center" gap={1}>
               {/* <AppIcon size="small" /> */}
-              <Text>
+              <text>
                 {repoInfo.path}
                 {repoInfo.branch ? (
                   <>
-                    :<Text color={COLOR.CYAN}>{repoInfo.branch}</Text>
+                    :<span fg={COLOR.CYAN}>{repoInfo.branch}</span>
                   </>
                 ) : null}{" "}
                 · Session: {effectiveSessionId} {agent ? `· Agent: ${agent.name}` : ""} · Mode:{" "}
                 {sessionMode} · Status:{" "}
-                <Text
-                  color={
+                <span
+                  fg={
                     connectionStatus === CONNECTION_STATUS.CONNECTED
                       ? roleColor("assistant")
                       : COLOR.YELLOW
                   }
                 >
                   {connectionStatus}
-                </Text>
-              </Text>
-            </Box>
-            {modeWarning ? <Text color={COLOR.YELLOW}>{modeWarning}</Text> : null}
+                </span>
+              </text>
+            </box>
+            {modeWarning ? <text fg={COLOR.YELLOW}>{modeWarning}</text> : null}
             {plan ? (
               plan.status === PLAN_STATUS.PLANNING ? (
                 <PlanApprovalPanel
@@ -447,13 +451,13 @@ export const Chat = memo(
                   sessionMode === SESSION_MODE.FULL_ACCESS ? PERMISSION.ALLOW : PERMISSION.ASK,
               }}
             />
-          </Box>
+          </box>
           {/* Message area - fixed height container */}
-          <Box flexGrow={1} minHeight={0} overflow="hidden" height="100%">
+          <box flexGrow={1} minHeight={0} overflow="hidden" height="100%">
             <MessageList messages={messages} />
-          </Box>
+          </box>
           {/* Fixed footer section - input pinned to bottom */}
-          <Box flexDirection="column" flexShrink={0}>
+          <box flexDirection="column" flexShrink={0}>
             <CommandPalette
               commands={commandList}
               isOpen={isPaletteOpen}
@@ -468,8 +472,8 @@ export const Chat = memo(
               slashCommands={commandList}
               focusTarget={focusTarget}
             />
-          </Box>
-        </Box>
+          </box>
+        </box>
       </TruncationProvider>
     );
   }

@@ -4,7 +4,8 @@ import { PLAN_STATUS } from "@/constants/plan-status";
 import { TASK_STATUS } from "@/constants/task-status";
 import type { Plan, PlanId, Task } from "@/types/domain";
 import { statusColor } from "@/ui/status-colors";
-import { Box, Text, useInput } from "ink";
+import { TextAttributes } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
 import { useCallback, useState } from "react";
 
 export interface PlanApprovalPanelProps {
@@ -70,17 +71,21 @@ export function PlanApprovalPanel({
   );
 
   // Handle keyboard input
-  useInput((input, key) => {
+  useKeyboard((key) => {
     // Only handle input if plan is in planning state and not yet decided
     if (plan.status !== PLAN_STATUS.PLANNING || decision) return;
 
     // Navigate through tasks
     if (showTaskDetails && plan.tasks.length > 0) {
-      if (key.upArrow) {
+      if (key.name === "up") {
+        key.preventDefault();
+        key.stopPropagation();
         setSelectedTaskIndex((prev) => (prev > 0 ? prev - 1 : plan.tasks.length - 1));
         return;
       }
-      if (key.downArrow) {
+      if (key.name === "down") {
+        key.preventDefault();
+        key.stopPropagation();
         setSelectedTaskIndex((prev) => (prev < plan.tasks.length - 1 ? prev + 1 : 0));
         return;
       }
@@ -88,15 +93,21 @@ export function PlanApprovalPanel({
       // Task-specific actions
       const currentTask = plan.tasks[selectedTaskIndex];
       if (currentTask) {
-        if (input === KEYBOARD_INPUT.APPROVE_LOWER || input === KEYBOARD_INPUT.APPROVE_UPPER) {
+        if (key.name === KEYBOARD_INPUT.APPROVE_LOWER) {
+          key.preventDefault();
+          key.stopPropagation();
           handleTaskAction(currentTask.id, "approve");
           return;
         }
-        if (input === KEYBOARD_INPUT.DENY_LOWER || input === KEYBOARD_INPUT.DENY_UPPER) {
+        if (key.name === KEYBOARD_INPUT.DENY_LOWER) {
+          key.preventDefault();
+          key.stopPropagation();
           handleTaskAction(currentTask.id, "deny");
           return;
         }
-        if (input === KEYBOARD_INPUT.SKIP_LOWER || input === KEYBOARD_INPUT.SKIP_UPPER) {
+        if (key.name === KEYBOARD_INPUT.SKIP_LOWER) {
+          key.preventDefault();
+          key.stopPropagation();
           handleTaskAction(currentTask.id, "skip");
           return;
         }
@@ -104,13 +115,17 @@ export function PlanApprovalPanel({
     }
 
     // Plan-level actions
-    if (input === KEYBOARD_INPUT.YES_LOWER || input === KEYBOARD_INPUT.YES_UPPER || key.return) {
-      handleApprove();
-    } else if (
-      input === KEYBOARD_INPUT.NO_LOWER ||
-      input === KEYBOARD_INPUT.NO_UPPER ||
-      key.escape
+    if (
+      key.name === KEYBOARD_INPUT.YES_LOWER ||
+      key.name === "return" ||
+      key.name === "linefeed"
     ) {
+      key.preventDefault();
+      key.stopPropagation();
+      handleApprove();
+    } else if (key.name === KEYBOARD_INPUT.NO_LOWER || key.name === "escape") {
+      key.preventDefault();
+      key.stopPropagation();
       handleDeny();
     }
   });
@@ -123,127 +138,124 @@ export function PlanApprovalPanel({
   const isAwaitingApproval = plan.status === PLAN_STATUS.PLANNING && !decision;
 
   return (
-    <Box
+    <box
       flexDirection="column"
-      borderStyle="round"
+      border={true}
+      borderStyle="rounded"
       borderColor={isAwaitingApproval ? COLOR.YELLOW : COLOR.CYAN}
       padding={1}
     >
-      {/* Plan header */}
-      <Box flexDirection="row" gap={1}>
-        {isAwaitingApproval && <Text color={COLOR.YELLOW}>⚠</Text>}
-        <Text bold color={statusColor(plan.status)}>
+      <box flexDirection="row" gap={1}>
+        {isAwaitingApproval && <text fg={COLOR.YELLOW}>⚠</text>}
+        <text fg={statusColor(plan.status)} attributes={TextAttributes.BOLD}>
           Plan: {plan.originalPrompt}
-        </Text>
+        </text>
         {decision && (
-          <Text color={decision === "approved" ? COLOR.GREEN : COLOR.RED}>({decision})</Text>
+          <text fg={decision === "approved" ? COLOR.GREEN : COLOR.RED}>({decision})</text>
         )}
-      </Box>
+      </box>
 
-      {/* Status */}
-      <Text color={statusColor(plan.status)}>Status: {plan.status}</Text>
+      <text fg={statusColor(plan.status)}>Status: {plan.status}</text>
 
-      {/* Tasks */}
       {showTaskDetails && plan.tasks.length > 0 && (
-        <Box flexDirection="column" marginTop={1}>
-          <Text color="cyan">Tasks:</Text>
+        <box flexDirection="column" marginTop={1}>
+          <text fg={COLOR.CYAN}>Tasks:</text>
           {plan.tasks.map((task, index) => {
             const taskDecision = taskDecisions.get(task.id);
             const isSelected = index === selectedTaskIndex && isAwaitingApproval;
 
             return (
-              <Box key={task.id} paddingLeft={1}>
-                <Text color={isSelected ? "yellow" : statusColor(task.status)}>
+              <box key={task.id} paddingLeft={1}>
+                <text fg={isSelected ? COLOR.YELLOW : statusColor(task.status)}>
                   {isSelected ? "▶ " : "  "}
                   {taskStatusIcon(task.status)} {task.title}
                   {taskDecision && (
-                    <Text
-                      color={
+                    <span
+                      fg={
                         taskDecision === "approve"
-                          ? "green"
+                          ? COLOR.GREEN
                           : taskDecision === "deny"
-                            ? "red"
-                            : "gray"
+                            ? COLOR.RED
+                            : COLOR.GRAY
                       }
                     >
                       {" "}
                       [{taskDecision}]
-                    </Text>
+                    </span>
                   )}
-                </Text>
-              </Box>
+                </text>
+              </box>
             );
           })}
-        </Box>
+        </box>
       )}
 
-      {/* Dependencies visualization */}
       {showTaskDetails && plan.tasks.some((t) => t.dependencies.length > 0) && (
-        <Box flexDirection="column" marginTop={1}>
-          <Text dimColor color={COLOR.GRAY}>
+        <box flexDirection="column" marginTop={1}>
+          <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
             Dependencies:
-          </Text>
+          </text>
           {plan.tasks
             .filter((t) => t.dependencies.length > 0)
             .map((task) => (
-              <Box key={task.id} paddingLeft={1}>
-                <Text color={COLOR.GRAY} dimColor>
+              <box key={task.id} paddingLeft={1}>
+                <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
                   {task.title} → {task.dependencies.join(", ")}
-                </Text>
-              </Box>
+                </text>
+              </box>
             ))}
-        </Box>
+        </box>
       )}
 
-      {/* Approval prompt */}
       {isAwaitingApproval && (
-        <Box marginTop={1} flexDirection="column">
-          <Text color="yellow" bold>
+        <box marginTop={1} flexDirection="column">
+          <text fg={COLOR.YELLOW} attributes={TextAttributes.BOLD}>
             Review and approve this plan?
-          </Text>
-          <Box flexDirection="row" gap={2}>
-            <Text color="green">[Y]es/Enter - Approve plan</Text>
-            <Text color="red">[N]o/Esc - Deny plan</Text>
-          </Box>
+          </text>
+          <box flexDirection="row" gap={2}>
+            <text fg={COLOR.GREEN}>[Y]es/Enter - Approve plan</text>
+            <text fg={COLOR.RED}>[N]o/Esc - Deny plan</text>
+          </box>
           {showTaskDetails && plan.tasks.length > 0 && (
-            <Box flexDirection="column" marginTop={1}>
-              <Text color="cyan">Task controls:</Text>
-              <Box paddingLeft={1} flexDirection="row" gap={2}>
-                <Text color="gray">↑↓ Navigate</Text>
-                <Text color="green">[A]pprove</Text>
-                <Text color="red">[D]eny</Text>
-                <Text color="gray">[S]kip</Text>
-              </Box>
-            </Box>
+            <box flexDirection="column" marginTop={1}>
+              <text fg={COLOR.CYAN}>Task controls:</text>
+              <box paddingLeft={1} flexDirection="row" gap={2}>
+                <text fg={COLOR.GRAY}>↑↓ Navigate</text>
+                <text fg={COLOR.GREEN}>[A]pprove</text>
+                <text fg={COLOR.RED}>[D]eny</text>
+                <text fg={COLOR.GRAY}>[S]kip</text>
+              </box>
+            </box>
           )}
-        </Box>
+        </box>
       )}
 
-      {/* Execution progress */}
       {plan.status === PLAN_STATUS.EXECUTING && (
-        <Box marginTop={1}>
-          <Text color={COLOR.BLUE}>
+        <box marginTop={1}>
+          <text fg={COLOR.BLUE}>
             ⟳ Executing… {plan.tasks.filter((t) => t.status === TASK_STATUS.COMPLETED).length}/
             {plan.tasks.length} tasks completed
-          </Text>
-        </Box>
+          </text>
+        </box>
       )}
 
-      {/* Completion summary */}
       {(plan.status === PLAN_STATUS.COMPLETED || plan.status === PLAN_STATUS.FAILED) && (
-        <Box marginTop={1} flexDirection="column">
-          <Text color={plan.status === PLAN_STATUS.COMPLETED ? COLOR.GREEN : COLOR.RED} bold>
+        <box marginTop={1} flexDirection="column">
+          <text
+            fg={plan.status === PLAN_STATUS.COMPLETED ? COLOR.GREEN : COLOR.RED}
+            attributes={TextAttributes.BOLD}
+          >
             {plan.status === PLAN_STATUS.COMPLETED ? "✓ Plan completed" : "✗ Plan failed"}
-          </Text>
+          </text>
           {plan.tasks.length > 0 && (
-            <Text color={COLOR.GRAY}>
+            <text fg={COLOR.GRAY}>
               Completed: {plan.tasks.filter((t) => t.status === TASK_STATUS.COMPLETED).length} |
               Failed: {plan.tasks.filter((t) => t.status === TASK_STATUS.FAILED).length} | Blocked:{" "}
               {plan.tasks.filter((t) => t.status === TASK_STATUS.BLOCKED).length}
-            </Text>
+            </text>
           )}
-        </Box>
+        </box>
       )}
-    </Box>
+    </box>
   );
 }

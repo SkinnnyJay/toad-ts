@@ -1,6 +1,7 @@
 import { COLOR } from "@/constants/colors";
 import { COMMAND_DEFINITIONS } from "@/constants/command-definitions";
-import { Box, Text, useInput } from "ink";
+import { TextAttributes } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -40,17 +41,14 @@ const formatRow = (
 };
 
 export function HelpModal({ isOpen, onClose }: HelpModalProps): JSX.Element | null {
-  useInput(
-    (input, key) => {
-      if (!isOpen) return;
-
-      if (key.escape || (key.ctrl && input === "s")) {
-        onClose();
-        return;
-      }
-    },
-    { isActive: isOpen }
-  );
+  useKeyboard((key) => {
+    if (!isOpen) return;
+    if (key.name === "escape" || (key.ctrl && key.name === "s")) {
+      key.preventDefault();
+      key.stopPropagation();
+      onClose();
+    }
+  });
 
   if (!isOpen) return null;
 
@@ -59,8 +57,9 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps): JSX.Element | nu
   const separator = "─".repeat(header.length);
 
   return (
-    <Box
+    <box
       flexDirection="column"
+      border={true}
       borderStyle="double"
       borderColor={COLOR.CYAN}
       paddingX={1}
@@ -68,25 +67,27 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps): JSX.Element | nu
       minHeight={20}
       width="80%"
     >
-      <Box flexDirection="row" justifyContent="space-between" marginBottom={1}>
-        <Text bold color={COLOR.CYAN}>
+      <box flexDirection="row" justifyContent="space-between" marginBottom={1}>
+        <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
           Available Commands (Esc/Ctrl+S to close)
-        </Text>
-      </Box>
+        </text>
+      </box>
 
-      <Box flexDirection="column" flexGrow={1} minHeight={15}>
-        <Text color={COLOR.CYAN} bold>
+      <box flexDirection="column" flexGrow={1} minHeight={15}>
+        <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
           {header}
-        </Text>
-        <Text dimColor>{separator}</Text>
+        </text>
+        <text attributes={TextAttributes.DIM}>{separator}</text>
         {COMMAND_DEFINITIONS.map((cmd) => (
-          <Text key={cmd.name}>{formatRow(cmd.name, cmd.description, cmd.args || "", widths)}</Text>
+          <text key={cmd.name}>
+            {formatRow(cmd.name, cmd.description, cmd.args || "", widths)}
+          </text>
         ))}
-      </Box>
+      </box>
 
-      <Box marginTop={1} paddingTop={1} borderStyle="single" borderTop={true}>
-        <Text dimColor>Esc/Ctrl+S: Close</Text>
-      </Box>
-    </Box>
+      <box marginTop={1} paddingTop={1} borderStyle="single" border={["top"]}>
+        <text attributes={TextAttributes.DIM}>Esc/Ctrl+S: Close</text>
+      </box>
+    </box>
   );
 }

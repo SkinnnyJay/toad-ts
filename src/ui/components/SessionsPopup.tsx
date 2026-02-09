@@ -2,8 +2,10 @@ import { LIMIT } from "@/config/limits";
 import { COLOR } from "@/constants/colors";
 import { useAppStore } from "@/store/app-store";
 import type { SessionId } from "@/types/domain";
-import { Box, Text, useInput } from "ink";
-import { useMemo, useState } from "react";
+import type { SelectOption } from "@opentui/core";
+import { TextAttributes } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
+import { useEffect, useMemo, useState } from "react";
 
 interface SessionsPopupProps {
   isOpen: boolean;
@@ -27,41 +29,43 @@ export function SessionsPopup({
       .sort((a, b) => b.updatedAt - a.updatedAt);
   }, [sessions]);
 
-  useInput((input, key) => {
+  const options = useMemo<SelectOption[]>(() => {
+    return sortedSessions.map((session) => {
+      const sessionTitle = session.title || session.id.slice(0, LIMIT.ID_TRUNCATE_LENGTH);
+      const createdAt = new Date(session.createdAt).toLocaleString();
+      const updatedAt = new Date(session.updatedAt).toLocaleString();
+      const agentLabel = session.agentId?.slice(0, LIMIT.ID_TRUNCATE_LENGTH) || "N/A";
+      return {
+        name: sessionTitle,
+        description: `Agent: ${agentLabel} · Created: ${createdAt} · Updated: ${updatedAt}`,
+        value: session.id,
+      };
+    });
+  }, [sortedSessions]);
+
+  useEffect(() => {
+    if (!currentSessionId) return;
+    const idx = sortedSessions.findIndex((session) => session.id === currentSessionId);
+    if (idx >= 0) {
+      setSelectedIndex(idx);
+    }
+  }, [currentSessionId, sortedSessions]);
+
+  useKeyboard((key) => {
     if (!isOpen) return;
-
-    if (key.escape || (key.ctrl && input === "s")) {
+    if (key.name === "escape" || (key.ctrl && key.name === "s")) {
+      key.preventDefault();
+      key.stopPropagation();
       onClose();
-      return;
-    }
-
-    if (sortedSessions.length === 0) return;
-
-    if (key.upArrow) {
-      setSelectedIndex((prev) => (prev > 0 ? prev - 1 : sortedSessions.length - 1));
-      return;
-    }
-
-    if (key.downArrow) {
-      setSelectedIndex((prev) => (prev < sortedSessions.length - 1 ? prev + 1 : 0));
-      return;
-    }
-
-    if (key.return) {
-      const selected = sortedSessions[selectedIndex];
-      if (selected) {
-        onSelectSession(selected.id);
-        onClose();
-      }
-      return;
     }
   });
 
   if (!isOpen) return null;
 
   return (
-    <Box
+    <box
       flexDirection="column"
+      border={true}
       borderStyle="double"
       borderColor={COLOR.CYAN}
       paddingX={1}
@@ -69,47 +73,36 @@ export function SessionsPopup({
       minHeight={20}
       width="80%"
     >
-      <Box flexDirection="row" justifyContent="space-between" marginBottom={1}>
-        <Text bold color={COLOR.CYAN}>
+      <box flexDirection="row" justifyContent="space-between" marginBottom={1}>
+        <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
           Sessions (Ctrl+S to close)
-        </Text>
-        <Text dimColor>
+        </text>
+        <text attributes={TextAttributes.DIM}>
           {sortedSessions.length} session{sortedSessions.length !== 1 ? "s" : ""}
-        </Text>
-      </Box>
+        </text>
+      </box>
       {sortedSessions.length === 0 ? (
-        <Text dimColor>No sessions available</Text>
+        <text attributes={TextAttributes.DIM}>No sessions available</text>
       ) : (
-        <Box flexDirection="column" gap={0}>
-          {sortedSessions.map((session, i) => {
-            const isSelected = i === selectedIndex;
-            const isCurrent = session.id === currentSessionId;
-            const sessionTitle = session.title || session.id.slice(0, LIMIT.ID_TRUNCATE_LENGTH);
-            const createdAt = new Date(session.createdAt).toLocaleString();
-            const updatedAt = new Date(session.updatedAt).toLocaleString();
-
-            return (
-              <Box key={session.id} flexDirection="column" paddingX={1} paddingY={0}>
-                <Text color={isCurrent ? COLOR.CYAN : isSelected ? COLOR.WHITE : undefined}>
-                  {isSelected ? "› " : "  "}
-                  {isCurrent ? "● " : "  "}
-                  {sessionTitle}
-                </Text>
-                <Text dimColor>
-                  {"  "}Agent: {session.agentId?.slice(0, LIMIT.ID_TRUNCATE_LENGTH) || "N/A"} |
-                  Created: {createdAt} | Updated: {updatedAt}
-                </Text>
-                <Text dimColor>
-                  {"  "}Messages: {session.messageIds.length} | Mode: {session.mode}
-                </Text>
-              </Box>
-            );
-          })}
-        </Box>
+        <select
+          options={options}
+          selectedIndex={selectedIndex}
+          focused={true}
+          onChange={(index) => setSelectedIndex(index)}
+          onSelect={(_index, option) => {
+            if (option?.value) {
+              onSelectSession(option.value as SessionId);
+              onClose();
+            }
+          }}
+          style={{ width: "100%" }}
+        />
       )}
-      <Box marginTop={1} paddingTop={1} borderStyle="single" borderTop={true}>
-        <Text dimColor>↑/↓: Navigate | Enter: Select | Esc/Ctrl+S: Close</Text>
-      </Box>
-    </Box>
+      <box marginTop={1} paddingTop={1} borderStyle="single" border={["top"]}>
+        <text attributes={TextAttributes.DIM}>
+          ↑/↓: Navigate | Enter: Select | Esc/Ctrl+S: Close
+        </text>
+      </box>
+    </box>
   );
 }

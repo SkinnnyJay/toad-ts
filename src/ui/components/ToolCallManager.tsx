@@ -7,8 +7,8 @@ import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import { useAppStore } from "@/store/app-store";
 import type { ToolCallId } from "@/types/domain";
 import { type PermissionProfile, ToolCallApproval } from "@/ui/components/ToolCallApproval";
-import type { BoxProps } from "ink";
-import { Box, Text } from "ink";
+import { TextAttributes } from "@opentui/core";
+import type { BoxProps } from "@opentui/react";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { DiffRenderer } from "./DiffRenderer";
 import { MarkdownRenderer } from "./MarkdownRenderer";
@@ -172,20 +172,20 @@ const LogBlock = memo(function LogBlock({
     expanded || !isLong ? lines : lines.slice(0, LIMIT.LONG_OUTPUT_LINE_THRESHOLD);
 
   return (
-    <Box flexDirection="column" gap={0} paddingLeft={2}>
-      <Text color={color} bold>
+    <box flexDirection="column" gap={0} paddingLeft={2}>
+      <text fg={color} attributes={TextAttributes.BOLD}>
         {label}
-      </Text>
+      </text>
       {visibleLines.map((line) => (
-        <Text key={`${truncateId}-${line.slice(0, 32)}`}>{line || " "}</Text>
+        <text key={`${truncateId}-${line.slice(0, 32)}`}>{line || " "}</text>
       ))}
 
       {isLong ? (
-        <Text dimColor color={COLOR.GRAY}>
+        <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
           {`${isActive ? "▶" : "•"} showing ${visibleLines.length}/${lines.length} lines (${expanded ? "expanded" : "collapsed"}) · ${TRUNCATION_SHORTCUT_HINT}`}
-        </Text>
+        </text>
       ) : null}
-    </Box>
+    </box>
   );
 });
 
@@ -198,14 +198,14 @@ const formatDuration = (start: Date, end: Date): string => {
 
 // Memoized component for active tools to prevent re-renders
 const ActiveToolItem = memo(({ tool }: { tool: ToolCall }) => (
-  <Box paddingLeft={1}>
-    <Text color={COLOR.YELLOW}>
+  <box paddingLeft={1}>
+    <text fg={COLOR.YELLOW}>
       ⟳ {tool.name} {tool.status === TOOL_CALL_STATUS.RUNNING ? "(running…)" : "(approved)"}
-    </Text>
+    </text>
     {tool.startedAt && tool.status === TOOL_CALL_STATUS.SUCCEEDED && tool.completedAt && (
-      <Text color={COLOR.GRAY}> ({formatDuration(tool.startedAt, tool.completedAt)})</Text>
+      <text fg={COLOR.GRAY}> ({formatDuration(tool.startedAt, tool.completedAt)})</text>
     )}
-  </Box>
+  </box>
 ));
 ActiveToolItem.displayName = "ActiveToolItem";
 
@@ -224,7 +224,6 @@ const FileEditDiffOutput = memo(function FileEditDiffOutput({
       oldContent={editInfo.oldContent}
       newContent={editInfo.newContent}
       filename={editInfo.filename}
-      id={`${toolId}-diff`}
     />
   );
 });
@@ -250,22 +249,21 @@ const ToolResultOutput = memo(
     // Render diff for file edit tools
     if (fileEditInfo) {
       return (
-        <Box flexDirection="column" gap={0}>
+        <box flexDirection="column" gap={0}>
           <FileEditDiffOutput toolId={toolId} editInfo={fileEditInfo} />
-          {/* Also show any result message if present */}
           {typeof result === "string" && result.trim().length > 0 && (
-            <Text color={COLOR.GRAY} dimColor>
+            <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
               {result}
-            </Text>
+            </text>
           )}
-        </Box>
+        </box>
       );
     }
 
     if (isShellLikeResult(result)) {
       const { stdout, stderr, exitCode } = result;
       return (
-        <Box flexDirection="column" gap={0}>
+        <box flexDirection="column" gap={0}>
           <LogBlock
             label="STDOUT"
             content={stdout}
@@ -279,24 +277,18 @@ const ToolResultOutput = memo(
             truncateId={`${toolId}-stderr`}
           />
           {exitCode !== undefined ? (
-            <Text color={COLOR.GRAY} dimColor>{`Exit: ${exitCode}`}</Text>
+            <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>{`Exit: ${exitCode}`}</text>
           ) : null}
-        </Box>
+        </box>
       );
     }
 
     // Render markdown-ish tool outputs when present
     if (typeof result === "string" && result.trim().length > 0) {
       return (
-        <Box flexDirection="column" gap={0}>
-          <MarkdownRenderer
-            markdown={result}
-            collapseAfter={UI.VISIBLE_RESULT_LINES}
-            expandTruncated={EXPAND_ALL}
-            blockIdPrefix={`${toolId}-result-md`}
-            blockLabel="Tool result"
-          />
-        </Box>
+        <box flexDirection="column" gap={0}>
+          <MarkdownRenderer markdown={result} />
+        </box>
       );
     }
 
@@ -312,16 +304,16 @@ const ToolResultOutput = memo(
       expanded || truncatedHead === 0 ? lines : lines.slice(-UI.VISIBLE_RESULT_LINES);
 
     return (
-      <Box flexDirection="column" gap={0}>
+      <box flexDirection="column" gap={0}>
         {visibleLines.map((line) => (
-          <Text key={`${toolId}-line-${line.slice(0, 32)}`}>{line || " "}</Text>
+          <text key={`${toolId}-line-${line.slice(0, 32)}`}>{line || " "}</text>
         ))}
         {truncatedHead > 0 ? (
-          <Text dimColor color={COLOR.GRAY}>
+          <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
             {`${isActive ? "▶" : "•"} showing ${visibleLines.length}/${lines.length} lines (${expanded ? "expanded" : "collapsed"}) · ${TRUNCATION_SHORTCUT_HINT}`}
-          </Text>
+          </text>
         ) : null}
-      </Box>
+      </box>
     );
   }
 );
@@ -329,10 +321,10 @@ ToolResultOutput.displayName = "ToolResultOutput";
 
 // Memoized component for recent tool calls
 const RecentToolItem = memo(({ tool }: { tool: ToolCall }) => (
-  <Box paddingLeft={1} flexDirection="column">
-    <Box>
-      <Text
-        color={
+  <box paddingLeft={1} flexDirection="column">
+    <box>
+      <text
+        fg={
           tool.status === TOOL_CALL_STATUS.SUCCEEDED
             ? COLOR.GREEN
             : tool.status === TOOL_CALL_STATUS.FAILED
@@ -346,30 +338,30 @@ const RecentToolItem = memo(({ tool }: { tool: ToolCall }) => (
             ? "✗"
             : "⊘"}{" "}
         {tool.name}
-      </Text>
+      </text>
       {tool.startedAt && tool.completedAt && (
-        <Text color={COLOR.GRAY}> ({formatDuration(tool.startedAt, tool.completedAt)})</Text>
+        <text fg={COLOR.GRAY}> ({formatDuration(tool.startedAt, tool.completedAt)})</text>
       )}
-    </Box>
+    </box>
     {tool.result !== undefined && tool.result !== null && (
-      <Box paddingLeft={2} flexDirection="column" gap={0}>
-        <Text color={COLOR.GRAY} dimColor>
+      <box paddingLeft={2} flexDirection="column" gap={0}>
+        <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
           →
-        </Text>
+        </text>
         <ToolResultOutput
           toolId={tool.id}
           toolName={tool.name}
           toolArgs={tool.arguments}
           result={tool.result}
         />
-      </Box>
+      </box>
     )}
     {tool.error && (
-      <Box paddingLeft={2}>
-        <Text color={COLOR.RED}>Error: {tool.error}</Text>
-      </Box>
+      <box paddingLeft={2}>
+        <text fg={COLOR.RED}>Error: {tool.error}</text>
+      </box>
     )}
-  </Box>
+  </box>
 ));
 RecentToolItem.displayName = "RecentToolItem";
 
@@ -524,7 +516,7 @@ export function ToolCallManager({
   if (!hasContent) return null;
 
   return (
-    <Box flexDirection="column" gap={1} {...boxProps}>
+    <box flexDirection="column" gap={1} {...boxProps}>
       {/* Approval prompt */}
       {approvalTool && (
         <ToolCallApproval
@@ -548,27 +540,27 @@ export function ToolCallManager({
 
       {/* Active tool calls */}
       {activeCalls.length > 0 && (
-        <Box flexDirection="column">
-          <Text color={COLOR.CYAN} bold>
+        <box flexDirection="column">
+          <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
             Active Tools:
-          </Text>
+          </text>
           {activeCalls.map((tool) => (
             <ActiveToolItem key={tool.id} tool={tool} />
           ))}
-        </Box>
+        </box>
       )}
 
       {/* Recent completions */}
       {recentCalls.length > 0 && (
-        <Box flexDirection="column">
-          <Text color={COLOR.GRAY} dimColor>
+        <box flexDirection="column">
+          <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
             Recent:
-          </Text>
+          </text>
           {recentCalls.map((tool) => (
             <RecentToolItem key={tool.id} tool={tool} />
           ))}
-        </Box>
+        </box>
       )}
-    </Box>
+    </box>
   );
 }

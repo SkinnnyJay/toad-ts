@@ -1,7 +1,7 @@
 import { COLOR } from "@/constants/colors";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { useAppStore } from "@/store/app-store";
-import { Box, Text } from "ink";
+import { TextAttributes } from "@opentui/core";
 
 export function StatusLine(): JSX.Element {
   const status = useAppStore((state) => state.connectionStatus);
@@ -12,10 +12,12 @@ export function StatusLine(): JSX.Element {
   const mode = currentSession?.mode ?? SESSION_MODE.AUTO;
 
   return (
-    <Box flexDirection="row" gap={2}>
-      <Text color={COLOR.YELLOW}>Status: {status}</Text>
-      <Text dimColor>{sessionId ? `Session ${sessionId}` : "No session"}</Text>
-      <Text dimColor>Mode: {mode}</Text>
-    </Box>
+    <box flexDirection="row" gap={2}>
+      <text fg={COLOR.YELLOW}>Status: {status}</text>
+      <text attributes={TextAttributes.DIM}>
+        {sessionId ? `Session ${sessionId}` : "No session"}
+      </text>
+      <text attributes={TextAttributes.DIM}>Mode: {mode}</text>
+    </box>
   );
 }

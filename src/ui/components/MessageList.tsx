@@ -1,13 +1,11 @@
-import { LIMIT } from "@/config/limits";
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
-import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import type { Message } from "@/types/domain";
 import { MessageItem } from "@/ui/components/MessageItem";
 import { ScrollArea } from "@/ui/components/ScrollArea";
-import { Box, Text, useStdout } from "ink";
 import { memo, useMemo } from "react";
-import stripAnsi from "strip-ansi";
+import { TextAttributes } from "@opentui/core";
+import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
 
 interface MessageListProps {
   messages: Message[];
@@ -25,7 +23,7 @@ const RESERVED_ROWS = {
 
 export const MessageList = memo(
   ({ messages, maxMessages = 120, height }: MessageListProps): JSX.Element => {
-    const { stdout } = useStdout();
+    const terminal = useTerminalDimensions();
     const isEmpty = useMemo(() => messages.length === 0, [messages.length]);
 
     const limitedMessages = useMemo(() => {
@@ -33,34 +31,12 @@ export const MessageList = memo(
       return messages.slice(-maxMessages);
     }, [maxMessages, messages]);
 
-    const estimatedLinesPerItem = useMemo(() => {
-      if (limitedMessages.length === 0) return 1;
-      const totalLines = limitedMessages.reduce((sum, message) => {
-        const blockLines = message.content.reduce((blockSum, block) => {
-          if (
-            block.type === CONTENT_BLOCK_TYPE.TEXT ||
-            block.type === CONTENT_BLOCK_TYPE.THINKING
-          ) {
-            return blockSum + stripAnsi(block.text ?? "").split(/\r?\n/).length;
-          }
-          if (block.type === CONTENT_BLOCK_TYPE.CODE) {
-            const codeLines = stripAnsi(block.text ?? "").split(/\r?\n/).length;
-            return blockSum + Math.min(codeLines, LIMIT.MAX_BLOCK_LINES);
-          }
-          return blockSum + 1;
-        }, 0);
-        return sum + Math.max(1, blockLines);
-      }, 0);
-      const average = totalLines / limitedMessages.length;
-      return Math.max(1, Math.min(Math.round(average), 12));
-    }, [limitedMessages]);
-
     const messageElements = useMemo(
       () => limitedMessages.map((message) => <MessageItem key={message.id} message={message} />),
       [limitedMessages]
     );
 
-    const terminalRows = stdout?.rows ?? UI.TERMINAL_DEFAULT_ROWS;
+    const terminalRows = terminal.rows ?? UI.TERMINAL_DEFAULT_ROWS;
     const reservedSpace =
       RESERVED_ROWS.statusFooter +
       RESERVED_ROWS.inputArea +
@@ -71,7 +47,7 @@ export const MessageList = memo(
 
     if (isEmpty) {
       return (
-        <Box
+        <box
           width="100%"
           height={effectiveHeight}
           flexDirection="column"
@@ -79,11 +55,14 @@ export const MessageList = memo(
           alignItems="flex-start"
           paddingX={1}
           paddingY={1}
+          border={true}
           borderStyle="single"
           borderColor={COLOR.GRAY}
         >
-          <Text color={COLOR.GRAY}>No messages yet</Text>
-        </Box>
+          <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
+            No messages yet
+          </text>
+        </box>
       );
     }
 
@@ -91,9 +70,10 @@ export const MessageList = memo(
     const scrollAreaHeight = Math.max(3, effectiveHeight - 4);
 
     return (
-      <Box
+      <box
         width="100%"
         height={effectiveHeight}
+        border={true}
         borderStyle="single"
         borderColor={COLOR.GRAY}
         paddingX={1}
@@ -102,13 +82,14 @@ export const MessageList = memo(
       >
         <ScrollArea
           height={scrollAreaHeight}
-          showScrollbar={true}
-          isFocused={true}
-          estimatedLinesPerItem={estimatedLinesPerItem}
+          stickyScroll={true}
+          stickyStart="bottom"
+          viewportCulling={true}
+          focused={true}
         >
           {messageElements}
         </ScrollArea>
-      </Box>
+      </box>
     );
   }
 );

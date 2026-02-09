@@ -2,9 +2,11 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { COLOR } from "@/constants/colors";
 import ignore from "ignore";
-import { Box, Text, useInput, useStdout } from "ink";
+import { TextAttributes } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
 import { useEffect, useMemo, useState } from "react";
 import { ScrollArea } from "./ScrollArea";
+import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
 
 interface FileTreeNode {
   name: string;
@@ -93,7 +95,7 @@ export function FileTree({
   height,
   textSize = "normal",
 }: FileTreeProps): JSX.Element {
-  const { stdout } = useStdout();
+  const terminal = useTerminalDimensions();
   const [nodes, setNodes] = useState<FileTreeNode[]>([]);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -193,7 +195,7 @@ export function FileTree({
   // Sidebar is 15% of terminal width by default, with paddingX={1} (2 chars)
   // FileTree is inside a Box with padding={1} (2 more chars on each side = 4 total)
   // So we need: sidebar width - sidebar padding - filetree container padding
-  const terminalWidth = stdout?.columns ?? 80;
+  const terminalWidth = terminal.columns ?? 80;
   const sidebarWidthPercent = 0.15; // 15% default
   const sidebarWidth = Math.floor(terminalWidth * sidebarWidthPercent);
   const sidebarPadding = 2; // paddingX={1} on both sides
@@ -206,10 +208,13 @@ export function FileTree({
 
   // Render visible items (wrapped in ScrollArea) - memoize to prevent recreation
   // Must be called before early returns to follow Rules of Hooks
-  const fileTreeItems = useMemo(
-    () =>
-      visible.map(({ node, depth }, idx) => {
-        const isSelected = idx === selectedIndex;
+  const fileTreeItems = useMemo(() => {
+    const start = Math.max(0, Math.min(scrollOffset, visible.length));
+    const end = Math.min(visible.length, start + visibleItems);
+    const slice = visible.slice(start, end);
+    return slice.map(({ node, depth }, idx) => {
+        const actualIndex = start + idx;
+        const isSelected = actualIndex === selectedIndex;
         const isExpanded = node.isDir && expanded.has(node.path);
         const icon = node.isDir ? (isExpanded ? "▼" : "▶") : "•";
         const pointer = isSelected ? "› " : "  ";
@@ -254,27 +259,35 @@ export function FileTree({
         const truncatedName = truncateFileName(node.name, maxFileNameLength);
 
         return (
-          <Box key={node.path} width="100%" overflow="hidden" minWidth={0}>
-            <Text color={isSelected ? COLOR.CYAN : undefined} dimColor={isSmallText && !isSelected}>
+          <box key={node.path} width="100%" overflow="hidden" minWidth={0}>
+            <text
+              fg={isSelected ? COLOR.CYAN : undefined}
+              attributes={isSmallText && !isSelected ? TextAttributes.DIM : 0}
+            >
               {pointer}
               {treePrefix}
               {icon} {truncatedName}
-            </Text>
-          </Box>
+            </text>
+          </box>
         );
-      }),
-    [visible, selectedIndex, expanded, isSmallText, availableWidth]
-  );
+      });
+  }, [availableWidth, expanded, isSmallText, scrollOffset, selectedIndex, visible, visibleItems]);
 
-  useInput((_input, key) => {
+  useKeyboard((key) => {
     if (!isFocused || isLoading || error) return;
-    if (key.upArrow) {
+    if (key.name === "up") {
+      key.preventDefault();
+      key.stopPropagation();
       setSelectedIndex((prev) => Math.max(0, prev - 1));
     }
-    if (key.downArrow) {
+    if (key.name === "down") {
+      key.preventDefault();
+      key.stopPropagation();
       setSelectedIndex((prev) => Math.min(visible.length - 1, prev + 1));
     }
-    if (key.return || _input === " ") {
+    if (key.name === "return" || key.name === "linefeed" || key.name === "space") {
+      key.preventDefault();
+      key.stopPropagation();
       const entry = visible[selectedIndex];
       if (entry?.node.isDir) {
         setExpanded((prev) => {
@@ -292,29 +305,36 @@ export function FileTree({
 
   if (isLoading) {
     return (
-      <Box flexDirection="column" paddingY={1} gap={0} width="100%" overflow="hidden" minWidth={0}>
-        <Text dimColor={isSmallText} wrap="wrap">
+      <box flexDirection="column" paddingY={1} gap={0} width="100%" overflow="hidden" minWidth={0}>
+        <text
+          attributes={isSmallText ? TextAttributes.DIM : 0}
+          wrapMode="word"
+        >
           Loading files…
-        </Text>
-      </Box>
+        </text>
+      </box>
     );
   }
 
   if (error) {
     return (
-      <Box flexDirection="column" paddingY={1} gap={0} width="100%" overflow="hidden" minWidth={0}>
-        <Text color={COLOR.RED} dimColor={isSmallText} wrap="wrap">
+      <box flexDirection="column" paddingY={1} gap={0} width="100%" overflow="hidden" minWidth={0}>
+        <text
+          fg={COLOR.RED}
+          attributes={isSmallText ? TextAttributes.DIM : 0}
+          wrapMode="word"
+        >
           Failed to load files
-        </Text>
-        <Text dimColor wrap="wrap">
+        </text>
+        <text attributes={TextAttributes.DIM} wrapMode="word">
           {error}
-        </Text>
-      </Box>
+        </text>
+      </box>
     );
   }
 
   return (
-    <Box
+    <box
       width="100%"
       overflow="hidden"
       paddingX={0}
@@ -329,15 +349,11 @@ export function FileTree({
     >
       <ScrollArea
         height={scrollAreaHeight}
-        showScrollbar={true}
-        isFocused={isFocused}
-        scrollOffset={scrollOffset}
-        onScrollChange={setScrollOffset}
-        estimatedLinesPerItem={1}
-        showScrollHints={false}
+        viewportCulling={true}
+        focused={isFocused}
       >
         {fileTreeItems}
       </ScrollArea>
-    </Box>
+    </box>
   );
 }

@@ -5,11 +5,13 @@ import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { useAppStore } from "@/store/app-store";
 import type { AppState, Plan, Session, SessionId } from "@/types/domain";
-import { Box, Text, useInput, useStdout } from "ink";
+import { TextAttributes } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { AccordionSection } from "./AccordionSection";
 import { FileTree } from "./FileTree";
 import { ScrollArea } from "./ScrollArea";
+import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
 
 // Helper function to truncate text with ellipsis
 const truncateText = (text: string, maxLength: number): string => {
@@ -29,42 +31,44 @@ interface SidebarProps {
 }
 
 const PlanSection = memo(({ plan }: { plan?: Plan }) => {
-  if (!plan) return <Text dimColor>No plan</Text>;
+  if (!plan) return <text attributes={TextAttributes.DIM}>No plan</text>;
   const statusIcon =
     plan.status === PLAN_STATUS.COMPLETED ? "✓" : plan.status === PLAN_STATUS.FAILED ? "✗" : "⟳";
 
   return (
-    <Box flexDirection="column" gap={0} width="100%" overflow="hidden" minWidth={0}>
-      <Text wrap="wrap">
+    <box flexDirection="column" gap={0} width="100%" overflow="hidden" minWidth={0}>
+      <text wrapMode="word">
         {statusIcon} {plan.originalPrompt}
-      </Text>
+      </text>
       {plan.tasks.slice(0, LIMIT.SIDEBAR_TASKS_DISPLAY).map((task) => (
-        <Text key={task.id} dimColor wrap="wrap">
+        <text key={task.id} attributes={TextAttributes.DIM} wrapMode="word">
           {task.status === PLAN_STATUS.COMPLETED
             ? "✓"
             : task.status === PLAN_STATUS.FAILED
               ? "✗"
               : "⟳"}{" "}
           {task.title}
-        </Text>
+        </text>
       ))}
-      {plan.tasks.length > LIMIT.SIDEBAR_TASKS_DISPLAY ? <Text dimColor>…</Text> : null}
-    </Box>
+      {plan.tasks.length > LIMIT.SIDEBAR_TASKS_DISPLAY ? (
+        <text attributes={TextAttributes.DIM}>…</text>
+      ) : null}
+    </box>
   );
 });
 
 const AgentsSection = memo(({ currentAgentName }: { currentAgentName?: string }) => {
   if (!currentAgentName) {
     return (
-      <Box width="100%" overflow="hidden" minWidth={0}>
-        <Text dimColor wrap="wrap">
+      <box width="100%" overflow="hidden" minWidth={0}>
+        <text attributes={TextAttributes.DIM} wrapMode="word">
           No agent selected
-        </Text>
-      </Box>
+        </text>
+      </box>
     );
   }
   return (
-    <Box
+    <box
       flexDirection="column"
       gap={0}
       width="100%"
@@ -73,8 +77,8 @@ const AgentsSection = memo(({ currentAgentName }: { currentAgentName?: string })
       minHeight={0}
       flexGrow={1}
     >
-      <Text wrap="wrap">{currentAgentName}</Text>
-    </Box>
+      <text wrapMode="word">{currentAgentName}</text>
+    </box>
   );
 });
 
@@ -91,7 +95,7 @@ const SessionsSection = memo(
     maxWidth: number;
   }) => {
     if (sessions.length === 0) {
-      return <Text dimColor>No sessions</Text>;
+      return <text attributes={TextAttributes.DIM}>No sessions</text>;
     }
 
     const prefixLength = 2 + 2 + 2; // "› " + "● " or "○ " + spacing
@@ -99,22 +103,22 @@ const SessionsSection = memo(
     const maxSessionIdLength = Math.max(1, maxWidth - prefixLength - safetyMargin);
 
     return (
-      <Box flexDirection="column" gap={0} width="100%" overflow="hidden" minWidth={0}>
+      <box flexDirection="column" gap={0} width="100%" overflow="hidden" minWidth={0}>
         {sessions.map((session, idx) => {
           const isCurrent = session.id === currentSessionId;
           const isSelected = idx === selectedIndex;
           const truncatedId = truncateText(session.id, maxSessionIdLength);
           return (
-            <Text
+            <text
               key={session.id}
-              color={isSelected ? COLOR.CYAN : isCurrent ? COLOR.GREEN : undefined}
-              dimColor={!isSelected && !isCurrent}
+              fg={isSelected ? COLOR.CYAN : isCurrent ? COLOR.GREEN : undefined}
+              attributes={!isSelected && !isCurrent ? TextAttributes.DIM : 0}
             >
               {isSelected ? "›" : " "} {isCurrent ? "●" : "○"} {truncatedId}
-            </Text>
+            </text>
           );
         })}
-      </Box>
+      </box>
     );
   }
 );
@@ -140,9 +144,9 @@ export function Sidebar({
   onSelectSession,
   focusTarget = FOCUS_TARGET.CHAT,
 }: SidebarProps): JSX.Element {
-  const { stdout } = useStdout();
-  const terminalRows = stdout?.rows ?? UI.TERMINAL_DEFAULT_ROWS;
-  const terminalWidth = stdout?.columns ?? 80;
+  const terminal = useTerminalDimensions();
+  const terminalRows = terminal.rows ?? UI.TERMINAL_DEFAULT_ROWS;
+  const terminalWidth = terminal.columns ?? 80;
 
   const availableHeight = height ?? terminalRows - 5;
   const contentHeight = Math.max(8, availableHeight - 2);
@@ -190,10 +194,15 @@ export function Sidebar({
     }
   }, [activeSessionId, sessions]);
 
-  useInput((input, key) => {
+  useKeyboard((key) => {
     const active = focusTarget ?? FOCUS_TARGET.CHAT;
 
-    if ((key.return || input === " ") && isSidebarSection(active)) {
+    if (
+      (key.name === "return" || key.name === "linefeed" || key.name === "space") &&
+      isSidebarSection(active)
+    ) {
+      key.preventDefault();
+      key.stopPropagation();
       toggleSection(active);
       return;
     }
@@ -203,15 +212,21 @@ export function Sidebar({
       !isCollapsed(FOCUS_TARGET.SESSIONS) &&
       sessions.length > 0
     ) {
-      if (key.upArrow) {
+      if (key.name === "up") {
+        key.preventDefault();
+        key.stopPropagation();
         setSessionIndex((prev) => Math.max(0, prev - 1));
         return;
       }
-      if (key.downArrow) {
+      if (key.name === "down") {
+        key.preventDefault();
+        key.stopPropagation();
         setSessionIndex((prev) => Math.min(sessions.length - 1, prev + 1));
         return;
       }
-      if (key.return) {
+      if (key.name === "return" || key.name === "linefeed") {
+        key.preventDefault();
+        key.stopPropagation();
         const chosen = sessions[sessionIndex];
         if (chosen) {
           if (onSelectSession) {
@@ -246,12 +261,13 @@ export function Sidebar({
   const hiddenContextCount = Math.max(0, contextAttachments.length - displayedContext.length);
 
   return (
-    <Box
+    <box
       width={width}
       height={height}
       flexDirection="column"
       flexGrow={height === undefined ? 1 : undefined}
       minHeight={0}
+      border={true}
       borderStyle="single"
       borderColor={COLOR.GRAY}
       paddingX={1}
@@ -260,11 +276,10 @@ export function Sidebar({
     >
       <ScrollArea
         height={contentHeight}
-        showScrollbar={true}
-        estimatedLinesPerItem={2}
-        isFocused={focusTarget !== FOCUS_TARGET.CHAT}
+        viewportCulling={true}
+        focused={focusTarget !== FOCUS_TARGET.CHAT}
       >
-        <Box flexDirection="column" gap={1} minHeight={0}>
+        <box flexDirection="column" gap={1} minHeight={0}>
           <AccordionSection
             title="Files"
             isCollapsed={isCollapsed(FOCUS_TARGET.FILES)}
@@ -286,9 +301,9 @@ export function Sidebar({
             shortcutHint={sectionShortcuts[FOCUS_TARGET.PLAN]}
           >
             {!isCollapsed(FOCUS_TARGET.PLAN) ? (
-              <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
+              <box padding={1} paddingTop={0} gap={1} flexDirection="column">
                 <PlanSection plan={plan} />
-              </Box>
+              </box>
             ) : null}
           </AccordionSection>
 
@@ -298,22 +313,22 @@ export function Sidebar({
             shortcutHint={sectionShortcuts[FOCUS_TARGET.CONTEXT]}
           >
             {!isCollapsed(FOCUS_TARGET.CONTEXT) ? (
-              <Box padding={1} paddingTop={0} gap={1} flexDirection="column" minHeight={0}>
+              <box padding={1} paddingTop={0} gap={1} flexDirection="column" minHeight={0}>
                 {displayedContext.length === 0 ? (
-                  <Text dimColor>No context files attached</Text>
+                  <text attributes={TextAttributes.DIM}>No context files attached</text>
                 ) : (
-                  <Box flexDirection="column" gap={0} minWidth={0} width="100%">
+                  <box flexDirection="column" gap={0} minWidth={0} width="100%">
                     {displayedContext.map((file) => (
-                      <Text key={file} wrap="truncate-end">
+                      <text key={file} truncate={true}>
                         • {truncateText(file, 60)}
-                      </Text>
+                      </text>
                     ))}
                     {hiddenContextCount > 0 ? (
-                      <Text dimColor>{`… ${hiddenContextCount} more`}</Text>
+                      <text attributes={TextAttributes.DIM}>{`… ${hiddenContextCount} more`}</text>
                     ) : null}
-                  </Box>
+                  </box>
                 )}
-              </Box>
+              </box>
             ) : null}
           </AccordionSection>
 
@@ -324,14 +339,14 @@ export function Sidebar({
             height={sessionsHeight + 2}
           >
             {!isCollapsed(FOCUS_TARGET.SESSIONS) ? (
-              <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
+              <box padding={1} paddingTop={0} gap={1} flexDirection="column">
                 <SessionsSection
                   sessions={sessions}
                   currentSessionId={activeSessionId}
                   selectedIndex={sessionIndex}
                   maxWidth={maxSessionIdWidth}
                 />
-              </Box>
+              </box>
             ) : null}
           </AccordionSection>
 
@@ -341,13 +356,13 @@ export function Sidebar({
             shortcutHint={sectionShortcuts[FOCUS_TARGET.AGENT]}
           >
             {!isCollapsed(FOCUS_TARGET.AGENT) ? (
-              <Box padding={1} paddingTop={0} gap={1} flexDirection="column">
+              <box padding={1} paddingTop={0} gap={1} flexDirection="column">
                 <AgentsSection currentAgentName={currentAgentName} />
-              </Box>
+              </box>
             ) : null}
           </AccordionSection>
-        </Box>
+        </box>
       </ScrollArea>
-    </Box>
+    </box>
   );
 }

@@ -1,5 +1,5 @@
 import { COLOR } from "@/constants/colors";
-import { Box, Text } from "ink";
+import { TextAttributes } from "@opentui/core";
 import type { PropsWithChildren } from "react";
 
 interface AccordionSectionProps {
@@ -19,9 +19,9 @@ export function AccordionSection({
   const indicator = isCollapsed ? "▶" : "▼";
 
   return (
-    <Box flexDirection="column" marginBottom={1} gap={0}>
+    <box flexDirection="column" marginBottom={1} gap={0}>
       {shortcutHint ? (
-        <Box
+        <box
           flexDirection="row"
           justifyContent="flex-end"
           marginBottom={0}
@@ -29,13 +29,14 @@ export function AccordionSection({
           height={1}
           minHeight={1}
         >
-          <Text dimColor color={COLOR.GRAY}>
+          <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
             {shortcutHint}
-          </Text>
-        </Box>
+          </text>
+        </box>
       ) : null}
-      <Box
+      <box
         flexDirection="column"
+        border={true}
         borderStyle="single"
         borderColor={COLOR.GRAY}
         paddingX={1}
@@ -45,7 +46,7 @@ export function AccordionSection({
         minHeight={3}
         height={height}
       >
-        <Box
+        <box
           justifyContent="flex-start"
           alignItems="center"
           paddingX={0}
@@ -54,12 +55,12 @@ export function AccordionSection({
           height={1}
           minHeight={1}
         >
-          <Text bold>
+          <text attributes={TextAttributes.BOLD}>
             {indicator} {title}
-          </Text>
-        </Box>
+          </text>
+        </box>
         {!isCollapsed ? (
-          <Box
+          <box
             marginTop={0}
             marginBottom={0}
             paddingTop={0}
@@ -71,9 +72,9 @@ export function AccordionSection({
             height={height ? height - 1 : undefined}
           >
             {children}
-          </Box>
+          </box>
         ) : null}
-      </Box>
-    </Box>
+      </box>
+    </box>
   );
 }

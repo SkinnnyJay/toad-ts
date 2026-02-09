@@ -4,8 +4,8 @@ import { COLOR } from "@/constants/colors";
 import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { PERMISSION, type Permission } from "@/constants/permissions";
 import type { ToolCallId } from "@/types/domain";
-import type { BoxProps } from "ink";
-import { Box, Text, useInput } from "ink";
+import { TextAttributes } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
 import { useCallback, useEffect, useState } from "react";
 
 export type PermissionProfile = Permission;
@@ -18,7 +18,7 @@ export interface ToolCallRequest {
   permissionProfile?: PermissionProfile;
 }
 
-export interface ToolCallApprovalProps extends BoxProps {
+export interface ToolCallApprovalProps {
   request: ToolCallRequest;
   onApprove: (id: ToolCallId) => void;
   onDeny: (id: ToolCallId) => void;
@@ -51,7 +51,6 @@ export function ToolCallApproval({
   onDeny,
   autoApproveTimeout = TIMEOUT.AUTO_APPROVE_DISABLED,
   defaultPermission = PERMISSION.ASK,
-  ...boxProps
 }: ToolCallApprovalProps): JSX.Element | null {
   const [countdown, setCountdown] = useState(autoApproveTimeout);
   const [decision, setDecision] = useState<"approved" | "denied" | null>(null);
@@ -100,16 +99,20 @@ export function ToolCallApproval({
   }, [decision, request.id, onDeny]);
 
   // Handle keyboard input
-  useInput((input, key) => {
+  useKeyboard((key) => {
     if (permission !== PERMISSION.ASK || decision) return;
 
-    if (input === KEYBOARD_INPUT.YES_LOWER || input === KEYBOARD_INPUT.YES_UPPER || key.return) {
-      handleApprove();
-    } else if (
-      input === KEYBOARD_INPUT.NO_LOWER ||
-      input === KEYBOARD_INPUT.NO_UPPER ||
-      key.escape
+    if (
+      key.name === KEYBOARD_INPUT.YES_LOWER ||
+      key.name === "return" ||
+      key.name === "linefeed"
     ) {
+      key.preventDefault();
+      key.stopPropagation();
+      handleApprove();
+    } else if (key.name === KEYBOARD_INPUT.NO_LOWER || key.name === "escape") {
+      key.preventDefault();
+      key.stopPropagation();
       handleDeny();
     }
   });
@@ -118,38 +121,40 @@ export function ToolCallApproval({
   if (permission !== PERMISSION.ASK || decision) {
     if (decision) {
       return (
-        <Box {...boxProps}>
-          <Text color={decision === "approved" ? COLOR.GREEN : COLOR.RED}>
+        <box>
+          <text fg={decision === "approved" ? COLOR.GREEN : COLOR.RED}>
             ✓ Tool call "{request.name}" {decision}
-          </Text>
-        </Box>
+          </text>
+        </box>
       );
     }
     return null;
   }
 
   return (
-    <Box flexDirection="column" padding={1} borderStyle="round" {...boxProps}>
-      <Box flexDirection="row" gap={1}>
-        <Text color={COLOR.YELLOW}>⚡</Text>
-        <Text bold>Tool Request: {request.name}</Text>
-      </Box>
+    <box flexDirection="column" padding={1} border={true} borderStyle="rounded">
+      <box flexDirection="row" gap={1}>
+        <text fg={COLOR.YELLOW}>⚡</text>
+        <text attributes={TextAttributes.BOLD}>Tool Request: {request.name}</text>
+      </box>
 
       {request.description && (
-        <Text color={COLOR.GRAY} wrap="wrap">
+        <text fg={COLOR.GRAY} wrapMode="word">
           {request.description}
-        </Text>
+        </text>
       )}
 
-      <Box marginTop={1}>
-        <Text color={COLOR.CYAN}>Arguments: {formatArguments(request.arguments)}</Text>
-      </Box>
+      <box marginTop={1}>
+        <text fg={COLOR.CYAN}>Arguments: {formatArguments(request.arguments)}</text>
+      </box>
 
-      <Box marginTop={1} flexDirection="row" gap={2}>
-        <Text color={COLOR.GREEN}>[Y]es/Enter to approve</Text>
-        <Text color={COLOR.RED}>[N]o/Esc to deny</Text>
-        {countdown > 0 && <Text color={COLOR.YELLOW}>(auto-approve in {countdown}s)</Text>}
-      </Box>
-    </Box>
+      <box marginTop={1} flexDirection="row" gap={2}>
+        <text fg={COLOR.GREEN}>[Y]es/Enter to approve</text>
+        <text fg={COLOR.RED}>[N]o/Esc to deny</text>
+        {countdown > 0 && (
+          <text fg={COLOR.YELLOW}>(auto-approve in {countdown}s)</text>
+        )}
+      </box>
+    </box>
   );
 }
