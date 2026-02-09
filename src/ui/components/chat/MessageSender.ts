@@ -79,11 +79,12 @@ export const useMessageSender = ({
         const now = Date.now();
         const toolCallId = ToolCallIdSchema.parse(`tool-${nanoid(LIMIT.NANOID_LENGTH)}`);
         const messageId = MessageIdSchema.parse(`tool-msg-${now}-${nanoid(LIMIT.NANOID_LENGTH)}`);
+        const background = shellMatch.interactive ? false : shellMatch.background;
         const toolCallBlock = {
           type: CONTENT_BLOCK_TYPE.TOOL_CALL,
           toolCallId,
           name: TOOL_NAME.BASH,
-          arguments: { command: shellMatch.command, background: shellMatch.background },
+          arguments: { command: shellMatch.command, background },
           status: TOOL_CALL_STATUS.RUNNING,
         } as const;
 
@@ -134,11 +135,7 @@ export const useMessageSender = ({
         }
 
         void toolRuntime.registry
-          .execute(
-            TOOL_NAME.BASH,
-            { command: shellMatch.command, background: shellMatch.background },
-            toolRuntime.context
-          )
+          .execute(TOOL_NAME.BASH, { command: shellMatch.command, background }, toolRuntime.context)
           .then((result) => {
             const status = result.ok
               ? shellMatch.background

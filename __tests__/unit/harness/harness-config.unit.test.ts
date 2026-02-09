@@ -103,6 +103,41 @@ describe("harnessConfig", () => {
     expect(result.harness.cwd).toBe("/tmp/project");
   });
 
+  it("merges permission overrides", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "claude",
+      harnesses: {
+        claude: {
+          name: "Claude",
+          command: "claude",
+          permissions: {
+            read: "allow",
+            execute: "ask",
+          },
+        },
+      },
+    });
+
+    await writeHarnessFile(userRoot, {
+      harnesses: {
+        claude: {
+          permissions: {
+            execute: "deny",
+          },
+        },
+      },
+    });
+
+    const result = await loadHarnessConfig({ projectRoot, homedir: userRoot });
+    expect(result.harness.permissions).toEqual({
+      read: "allow",
+      execute: "deny",
+    });
+  });
+
   it("uses CLI config path overrides", async () => {
     projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
     userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));

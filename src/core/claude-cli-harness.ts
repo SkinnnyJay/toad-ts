@@ -214,7 +214,7 @@ export const claudeCliHarnessAdapter: HarnessAdapter = {
     const clientOptions: ACPClientOptions = {
       toolHost,
       clientCapabilities: toolHost.capabilities,
-      permissionHandler: createPermissionHandler(),
+      permissionHandler: createPermissionHandler(config.permissions),
     };
 
     return new ClaudeCliHarnessAdapter({
