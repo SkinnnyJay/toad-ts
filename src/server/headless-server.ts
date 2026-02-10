@@ -1,5 +1,6 @@
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import { SERVER_CONFIG } from "@/config/server";
+import { HTTP_STATUS } from "@/constants/http-status";
 import { SERVER_EVENT } from "@/constants/server-events";
 import { claudeCliHarnessAdapter } from "@/core/claude-cli-harness";
 import { codexCliHarnessAdapter } from "@/core/codex-cli-harness";
@@ -87,13 +88,13 @@ export const startHeadlessServer = async (
   const server = http.createServer(async (req, res) => {
     try {
       if (!req.url || !req.method) {
-        sendError(res, 400, "Invalid request.");
+        sendError(res, HTTP_STATUS.BAD_REQUEST, "Invalid request.");
         return;
       }
       const url = new URL(req.url, `http://${req.headers.host ?? "localhost"}`);
 
       if (req.method === "GET" && url.pathname === "/health") {
-        sendJson(res, 200, { status: "ok" });
+        sendJson(res, HTTP_STATUS.OK, { status: "ok" });
         return;
       }
 
@@ -103,12 +104,12 @@ export const startHeadlessServer = async (
         const harnessId = payload.harnessId ?? harnessConfigResult.harnessId;
         const harnessConfig = harnessConfigResult.harnesses[harnessId];
         if (!harnessConfig) {
-          sendError(res, 404, `Unknown harness: ${harnessId}`);
+          sendError(res, HTTP_STATUS.NOT_FOUND, `Unknown harness: ${harnessId}`);
           return;
         }
         const adapter = harnessRegistry.get(harnessId);
         if (!adapter) {
-          sendError(res, 404, `No adapter registered for ${harnessId}`);
+          sendError(res, HTTP_STATUS.NOT_FOUND, `No adapter registered for ${harnessId}`);
           return;
         }
         const runtime = adapter.createHarness(harnessConfig);
@@ -133,24 +134,24 @@ export const startHeadlessServer = async (
           timestamp: Date.now(),
           payload: { sessionId: session.id },
         });
-        sendJson(res, 200, { sessionId: session.id });
+        sendJson(res, HTTP_STATUS.OK, { sessionId: session.id });
         return;
       }
 
       if (req.method === "POST" && url.pathname.startsWith("/sessions/")) {
         const [_, __, sessionId, action] = url.pathname.split("/");
         if (!sessionId || action !== "prompt") {
-          sendError(res, 404, "Unknown endpoint.");
+          sendError(res, HTTP_STATUS.NOT_FOUND, "Unknown endpoint.");
           return;
         }
         const parsedSession = SessionIdSchema.safeParse(sessionId);
         if (!parsedSession.success) {
-          sendError(res, 400, "Invalid session id.");
+          sendError(res, HTTP_STATUS.BAD_REQUEST, "Invalid session id.");
           return;
         }
         const runtime = runtimes.get(parsedSession.data);
         if (!runtime) {
-          sendError(res, 404, "Session not found.");
+          sendError(res, HTTP_STATUS.NOT_FOUND, "Session not found.");
           return;
         }
         const raw = await parseJson(req);
@@ -159,23 +160,23 @@ export const startHeadlessServer = async (
           sessionId: parsedSession.data,
           prompt: [{ type: "text", text: payload.prompt }],
         });
-        sendJson(res, 200, response);
+        sendJson(res, HTTP_STATUS.OK, response);
         return;
       }
 
       if (req.method === "GET" && url.pathname.startsWith("/sessions/")) {
         const [_, __, sessionId, resource] = url.pathname.split("/");
         if (!sessionId || resource !== "messages") {
-          sendError(res, 404, "Unknown endpoint.");
+          sendError(res, HTTP_STATUS.NOT_FOUND, "Unknown endpoint.");
           return;
         }
         const parsedSession = SessionIdSchema.safeParse(sessionId);
         if (!parsedSession.success) {
-          sendError(res, 400, "Invalid session id.");
+          sendError(res, HTTP_STATUS.BAD_REQUEST, "Invalid session id.");
           return;
         }
         const messages = store.getState().getMessagesForSession(parsedSession.data);
-        sendJson(res, 200, { messages });
+        sendJson(res, HTTP_STATUS.OK, { messages });
         return;
       }
 
@@ -186,16 +187,16 @@ export const startHeadlessServer = async (
         return;
       }
 
-      sendError(res, 404, "Not found.");
+      sendError(res, HTTP_STATUS.NOT_FOUND, "Not found.");
     } catch (error) {
       if (error instanceof ZodError || error instanceof SyntaxError) {
-        sendError(res, 400, error.message);
+        sendError(res, HTTP_STATUS.BAD_REQUEST, error.message);
         return;
       }
       logger.error("Server request failed", {
         error: error instanceof Error ? error.message : String(error),
       });
-      sendError(res, 500, "Server error.");
+      sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, "Server error.");
     }
   });
 
