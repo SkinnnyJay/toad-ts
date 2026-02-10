@@ -141,29 +141,29 @@ describe("MyFeature", () => {
 
 ### Run All Tests
 ```bash
-npm test
+bun run test
 ```
 
 ### Run by Type
 ```bash
-npm run test:unit          # Unit tests only
-npm run test:integration   # Integration tests only
-npm run test:e2e           # E2E tests only
+bun run test:unit          # Unit tests only
+bun run test:integration   # Integration tests only
+bun run test:e2e           # E2E tests only
 ```
 
 ### Run Specific Test File
 ```bash
-npm test -- __tests__/unit/ui/chat-components.unit.test.ts
+bun run test -- __tests__/unit/ui/chat-components.unit.test.ts
 ```
 
 ### Watch Mode
 ```bash
-npm run test:watch
+bun run test:watch
 ```
 
 ### Coverage Report
 ```bash
-npm run test:coverage
+bun run test:coverage
 ```
 
 ---

@@ -3,7 +3,7 @@
 > **Terminal Orchestration for AI Development** - The best of OpenCode + TOAD + Claude Code, unified in TypeScript.
 
 **Created**: 2026-02-09
-**Status**: Phase 3 Complete (~50% of planned features)
+**Status**: Phase 4 in progress (smoke test + 4E verification pending)
 **Inspirations**:
 - [OpenCode](https://opencode.ai) (95k+ stars) - Full-featured open-source TUI coding agent
 - [TOAD](https://github.com/batrachianai/toad) (2.1k stars) - Universal AI terminal interface by Will McGugan (Rich/Textual creator)
@@ -316,63 +316,63 @@ Beyond combining features, TOADSTOOL should have its own identity:
 #### 1. Agent System
 
 **OpenCode:**
-- Build agent (full access, default)
-- Plan agent (read-only analysis)
-- General subagent (multi-step tasks)
-- Explore subagent (fast read-only search)
-- Compaction agent (hidden, auto-compacts context)
-- Title agent (hidden, auto-generates session titles)
-- Summary agent (hidden, creates session summaries)
-- Agent switching via Tab key
-- `@agent` mention to invoke subagents
-- JSON + Markdown agent definition files
-- Per-agent model, temperature, tools, permissions
-- Custom agent creation via `opencode agent create`
+- [ ] Build agent (full access, default)
+- [ ] Plan agent (read-only analysis)
+- [ ] General subagent (multi-step tasks)
+- [ ] Explore subagent (fast read-only search)
+- [ ] Compaction agent (hidden, auto-compacts context)
+- [ ] Title agent (hidden, auto-generates session titles)
+- [ ] Summary agent (hidden, creates session summaries)
+- [ ] Agent switching via Tab key
+- [ ] `@agent` mention to invoke subagents
+- [ ] JSON + Markdown agent definition files
+- [ ] Per-agent model, temperature, tools, permissions
+- [ ] Custom agent creation via `opencode agent create`
 
 **TOADSTOOL:**
-- Types defined in `domain.ts` (SubAgent, Plan, Task)
-- HarnessRegistry with adapter pattern
-- Agent selection UI with fuzzy search
-- NO agent switching (Tab key not mapped)
-- NO subagent invocation
-- NO hidden system agents (compaction, title, summary)
-- NO Markdown agent files
-- NO per-agent tool/permission overrides
+- [ ] Types defined in `domain.ts` (SubAgent, Plan, Task)
+- [ ] HarnessRegistry with adapter pattern
+- [ ] Agent selection UI with fuzzy search
+- [ ] NO agent switching (Tab key not mapped)
+- [ ] NO subagent invocation
+- [ ] NO hidden system agents (compaction, title, summary)
+- [ ] NO Markdown agent files
+- [ ] NO per-agent tool/permission overrides
 
 **Gap:** ~70% missing. Types exist but no execution engine.
 
 #### 2. Tool System
 
 **OpenCode built-in tools:**
-- `bash` - Execute shell commands
-- `edit` - String replacement edits
-- `write` - Create/overwrite files
-- `read` - Read file contents (with line ranges)
-- `grep` - Regex search via ripgrep
-- `glob` - File pattern matching
-- `list` - Directory listing
-- `lsp` - Language server protocol (experimental)
-- `patch` - Apply diff patches
-- `todowrite` - Create/update task lists
-- `todoread` - Query task lists
-- `webfetch` - Fetch web content
-- `websearch` - Search web via Exa AI
-- `question` - Ask user questions
-- `skill` - Load skill files
-- Custom tools via config
+- [ ] `bash` - Execute shell commands
+- [ ] `edit` - String replacement edits
+- [ ] `write` - Create/overwrite files
+- [ ] `read` - Read file contents (with line ranges)
+- [ ] `grep` - Regex search via ripgrep
+- [ ] `glob` - File pattern matching
+- [ ] `list` - Directory listing
+- [ ] `lsp` - Language server protocol (experimental)
+- [ ] `patch` - Apply diff patches
+- [ ] `todowrite` - Create/update task lists
+- [ ] `todoread` - Query task lists
+- [ ] `webfetch` - Fetch web content
+- [ ] `websearch` - Search web via Exa AI
+- [ ] `question` - Ask user questions
+- [ ] `skill` - Load skill files
+- [ ] Custom tools via config
 
 **TOADSTOOL:**
-- ToolCallManager renders tool calls
-- ToolCallApproval flow exists
-- TerminalHandler for bash (not integrated)
-- FsHandler for file operations (not integrated)
-- SearchService (ripgrep + AST) exists but not exposed as tool
-- NO read/write/edit/patch as agent tools
-- NO todowrite/todoread
-- NO webfetch/websearch
-- NO question tool
-- NO skill tool
-- NO custom tool definitions
+- [ ] ToolCallManager renders tool calls
+- [ ] ToolCallApproval flow exists
+- [ ] TerminalHandler for bash (not integrated)
+- [ ] FsHandler for file operations (not integrated)
+- [ ] SearchService (ripgrep + AST) exists but not exposed as tool
+- [ ] NO read/write/edit/patch as agent tools
+- [ ] NO todowrite/todoread
+- [ ] NO webfetch/websearch
+- [ ] NO question tool
+- [ ] NO skill tool
+- [ ] NO custom tool definitions
 
 **Gap:** ~80% missing. Infrastructure exists but tools not wired to agents.
 
@@ -419,240 +419,240 @@ Beyond combining features, TOADSTOOL should have its own identity:
 #### 4. Configuration System
 
 **OpenCode:**
-- `opencode.json` / `opencode.jsonc` (JSON with Comments)
-- Remote config via `.well-known/opencode`
-- Global config: `~/.config/opencode/opencode.json`
-- Project config: `opencode.json` in project root
-- Custom path via `OPENCODE_CONFIG` env var
-- Inline config via `OPENCODE_CONFIG_CONTENT` env var
-- Config merging with precedence order
-- JSON Schema at `opencode.ai/config.json`
-- Variable substitution: `{env:VAR}`, `{file:path}`
-- Sections: tui, server, tools, models, themes, agents, commands, keybinds, permissions, compaction, watcher, mcp, plugins, formatters, instructions, share
+- [ ] `opencode.json` / `opencode.jsonc` (JSON with Comments)
+- [ ] Remote config via `.well-known/opencode`
+- [ ] Global config: `~/.config/opencode/opencode.json`
+- [ ] Project config: `opencode.json` in project root
+- [ ] Custom path via `OPENCODE_CONFIG` env var
+- [ ] Inline config via `OPENCODE_CONFIG_CONTENT` env var
+- [ ] Config merging with precedence order
+- [ ] JSON Schema at `opencode.ai/config.json`
+- [ ] Variable substitution: `{env:VAR}`, `{file:path}`
+- [ ] Sections: tui, server, tools, models, themes, agents, commands, keybinds, permissions, compaction, watcher, mcp, plugins, formatters, instructions, share
 
 **TOADSTOOL:**
-- `~/.config/toadstool/config.json` (basic)
-- Settings manager with Zod schema
-- Environment variables for key configuration
-- NO config merging
-- NO JSON Schema
-- NO variable substitution
-- NO per-project config
-- NO remote config
-- LIMITED sections (agents, defaults)
+- [ ] `~/.config/toadstool/config.json` (basic)
+- [ ] Settings manager with Zod schema
+- [ ] Environment variables for key configuration
+- [ ] NO config merging
+- [ ] NO JSON Schema
+- [ ] NO variable substitution
+- [ ] NO per-project config
+- [ ] NO remote config
+- [ ] LIMITED sections (agents, defaults)
 
 **Gap:** ~60% missing. Needs full config system overhaul.
 
 #### 5. Provider System
 
 **OpenCode:**
-- 75+ providers via AI SDK + Models.dev
-- `/connect` command for adding providers
-- Provider-specific options (baseURL, timeout, headers)
-- Custom providers via `npm` field
-- Local model support (Ollama, LM Studio, llama.cpp)
-- OAuth flow (GitHub Copilot, Anthropic, GitLab)
-- `enabled_providers` / `disabled_providers`
-- `small_model` for lightweight tasks (title gen, etc.)
+- [ ] 75+ providers via AI SDK + Models.dev
+- [ ] `/connect` command for adding providers
+- [ ] Provider-specific options (baseURL, timeout, headers)
+- [ ] Custom providers via `npm` field
+- [ ] Local model support (Ollama, LM Studio, llama.cpp)
+- [ ] OAuth flow (GitHub Copilot, Anthropic, GitLab)
+- [ ] `enabled_providers` / `disabled_providers`
+- [ ] `small_model` for lightweight tasks (title gen, etc.)
 
 **TOADSTOOL:**
-- Claude CLI harness adapter (primary)
-- Mock harness for testing
-- HarnessRegistry for multiple adapters
-- ACP client for JSON-RPC communication
-- Auth flow with credential stores (keytar, encrypted disk, memory)
-- NO `/connect` UI
-- NO provider-specific config options
-- NO local model support
-- NO OAuth flows
-- NO `small_model` concept
+- [ ] Claude CLI harness adapter (primary)
+- [ ] Mock harness for testing
+- [ ] HarnessRegistry for multiple adapters
+- [ ] ACP client for JSON-RPC communication
+- [ ] Auth flow with credential stores (keytar, encrypted disk, memory)
+- [ ] NO `/connect` UI
+- [ ] NO provider-specific config options
+- [ ] NO local model support
+- [ ] NO OAuth flows
+- [ ] NO `small_model` concept
 
 **Gap:** ~50% missing. Good foundation, needs provider breadth.
 
 #### 6. Keybind System
 
 **OpenCode:**
-- Leader key pattern (`ctrl+x` as leader)
-- `ctrl+x c` = compact, `ctrl+x d` = details, etc.
-- Fully configurable via `keybinds` in config
-- Tab to switch agents
-- Navigation between child sessions (Leader+Left/Right)
+- [ ] Leader key pattern (`ctrl+x` as leader)
+- [ ] `ctrl+x c` = compact, `ctrl+x d` = details, etc.
+- [ ] Fully configurable via `keybinds` in config
+- [ ] Tab to switch agents
+- [ ] Navigation between child sessions (Leader+Left/Right)
 
 **TOADSTOOL:**
-- Hardcoded in `useAppKeyboardShortcuts.ts`
-- `Ctrl+P` = switch provider
-- `Ctrl+N` = new session
-- `Ctrl+L` = clear screen
-- `Escape` = cancel
-- `Ctrl+C` = exit
-- NO leader key pattern
-- NO configurable keybinds
-- NO Tab agent switching
-- NO child session navigation
+- [ ] Hardcoded in `useAppKeyboardShortcuts.ts`
+- [ ] `Ctrl+P` = switch provider
+- [ ] `Ctrl+N` = new session
+- [ ] `Ctrl+L` = clear screen
+- [ ] `Escape` = cancel
+- [ ] `Ctrl+C` = exit
+- [ ] NO leader key pattern
+- [ ] NO configurable keybinds
+- [ ] NO Tab agent switching
+- [ ] NO child session navigation
 
 #### 7. Rules & Instructions System
 
 **OpenCode:**
-- `AGENTS.md` loaded by traversing up to git root
-- `CLAUDE.md` as fallback
-- Global rules at `~/.config/opencode/AGENTS.md`
-- `instructions` config array (files, globs, remote URLs)
-- `/init` command to scan project and generate AGENTS.md
-- Claude Code compatibility (disable via env var)
+- [ ] `AGENTS.md` loaded by traversing up to git root
+- [ ] `CLAUDE.md` as fallback
+- [ ] Global rules at `~/.config/opencode/AGENTS.md`
+- [ ] `instructions` config array (files, globs, remote URLs)
+- [ ] `/init` command to scan project and generate AGENTS.md
+- [ ] Claude Code compatibility (disable via env var)
 
 **TOADSTOOL:**
-- `.cursorrules` exists with project instructions
-- `AGENTS.md` and `CLAUDE.md` exist but loaded manually
-- NO automatic rules traversal
-- NO `/init` command
-- NO config-based instructions
-- NO remote URL instructions
+- [ ] `.cursorrules` exists with project instructions
+- [ ] `AGENTS.md` and `CLAUDE.md` exist but loaded manually
+- [ ] NO automatic rules traversal
+- [ ] NO `/init` command
+- [ ] NO config-based instructions
+- [ ] NO remote URL instructions
 
 **Gap:** ~80% missing. Files exist but no automatic discovery/loading system.
 
 #### 8. Skills System
 
 **OpenCode:**
-- `SKILL.md` discovery in `.opencode/skills/`, `.claude/skills/`, `~/.config/opencode/skills/`
-- `skill` tool for on-demand loading by agents
-- Frontmatter validation (name, description, license)
-- Skill permissions (allow/deny/ask with glob patterns)
-- Per-agent skill permission overrides
-- Ability to disable skill tool entirely per agent
+- [ ] `SKILL.md` discovery in `.opencode/skills/`, `.claude/skills/`, `~/.config/opencode/skills/`
+- [ ] `skill` tool for on-demand loading by agents
+- [ ] Frontmatter validation (name, description, license)
+- [ ] Skill permissions (allow/deny/ask with glob patterns)
+- [ ] Per-agent skill permission overrides
+- [ ] Ability to disable skill tool entirely per agent
 
 **TOADSTOOL:**
-- `.claude/skills/` directory exists with many skill files
-- Skills listed in agent_skills section
-- NO `skill` tool
-- NO automatic discovery
-- NO permission system for skills
+- [ ] `.claude/skills/` directory exists with many skill files
+- [ ] Skills listed in agent_skills section
+- [ ] NO `skill` tool
+- [ ] NO automatic discovery
+- [ ] NO permission system for skills
 
 **Gap:** ~70% missing. Content exists, no loading infrastructure.
 
 #### 9. Custom Tools
 
 **OpenCode:**
-- `.opencode/tools/*.ts` custom tool files
-- `tool()` helper with Zod schema args
-- Context injection (agent, sessionID, directory, worktree)
-- Multi-export files create `<file>_<export>` tools
-- Tools written in any language (TypeScript definition wraps them)
+- [ ] `.opencode/tools/*.ts` custom tool files
+- [ ] `tool()` helper with Zod schema args
+- [ ] Context injection (agent, sessionID, directory, worktree)
+- [ ] Multi-export files create `<file>_<export>` tools
+- [ ] Tools written in any language (TypeScript definition wraps them)
 
 **TOADSTOOL:**
-- NO custom tool files
-- NO tool definition helper
-- NO runtime tool loading
+- [ ] NO custom tool files
+- [ ] NO tool definition helper
+- [ ] NO runtime tool loading
 
 **Gap:** 100% missing.
 
 #### 10. Server / API Mode
 
 **OpenCode:**
-- `opencode serve` headless HTTP server
-- Full OpenAPI 3.1 spec
-- Client-server architecture (TUI is just another client)
-- SSE event stream
-- TUI control API (for IDE plugins)
-- Basic auth support
-- mDNS discovery
-- CORS configuration
+- [ ] `opencode serve` headless HTTP server
+- [ ] Full OpenAPI 3.1 spec
+- [ ] Client-server architecture (TUI is just another client)
+- [ ] SSE event stream
+- [ ] TUI control API (for IDE plugins)
+- [ ] Basic auth support
+- [ ] mDNS discovery
+- [ ] CORS configuration
 
 **TOADSTOOL:**
-- NO server mode
-- NO HTTP API
-- NO IDE integration protocol
-- NO event streaming for external clients
+- [ ] NO server mode
+- [ ] NO HTTP API
+- [ ] NO IDE integration protocol
+- [ ] NO event streaming for external clients
 
 **Gap:** 100% missing.
 
 #### 11. Session Management (Extended)
 
 **OpenCode:**
-- Session CRUD (create, list, get, delete, rename)
-- Session forking (branch at any message)
-- Session timeline (chronological navigation)
-- Session diff (all file changes in session)
-- Session summarize (via summary agent)
-- Session share/unshare
-- Session export to Markdown
-- Child session navigation (subagent sessions)
-- Auto-title generation (via title agent)
+- [ ] Session CRUD (create, list, get, delete, rename)
+- [ ] Session forking (branch at any message)
+- [ ] Session timeline (chronological navigation)
+- [ ] Session diff (all file changes in session)
+- [ ] Session summarize (via summary agent)
+- [ ] Session share/unshare
+- [ ] Session export to Markdown
+- [ ] Child session navigation (subagent sessions)
+- [ ] Auto-title generation (via title agent)
 
 **TOADSTOOL:**
-- Session create, list, switch
-- Session persistence (SQLite + JSON)
-- Session export (basic)
-- NO forking
-- NO timeline
-- NO diff view
-- NO summarize
-- NO share
-- NO child session navigation
-- NO auto-title
+- [ ] Session create, list, switch
+- [ ] Session persistence (SQLite + JSON)
+- [ ] Session export (basic)
+- [ ] NO forking
+- [ ] NO timeline
+- [ ] NO diff view
+- [ ] NO summarize
+- [ ] NO share
+- [ ] NO child session navigation
+- [ ] NO auto-title
 
 **Gap:** ~60% missing.
 
 #### 12. Input System
 
 **OpenCode:**
-- Full readline/emacs keybindings (ctrl+a/e/b/f/k/u/w/d/t)
-- Text selection (shift+arrows, word-level)
-- Multi-line input (shift+enter)
-- Input undo/redo (ctrl+z/ctrl+shift+z)
-- Clipboard paste (ctrl+v)
-- Input history (up/down arrows)
-- @ file mention with fuzzy autocomplete
-- / slash command autocomplete
-- ! bash command shortcut
+- [ ] Full readline/emacs keybindings (ctrl+a/e/b/f/k/u/w/d/t)
+- [ ] Text selection (shift+arrows, word-level)
+- [ ] Multi-line input (shift+enter)
+- [ ] Input undo/redo (ctrl+z/ctrl+shift+z)
+- [ ] Clipboard paste (ctrl+v)
+- [ ] Input history (up/down arrows)
+- [ ] @ file mention with fuzzy autocomplete
+- [ ] / slash command autocomplete
+- [ ] ! bash command shortcut
 
 **TOADSTOOL:**
-- `InputWithAutocomplete.tsx` component
-- Basic @ mention autocomplete
-- Basic / command autocomplete
-- NO readline keybindings
-- NO text selection
-- NO input undo/redo
-- NO input history navigation
-- LIMITED multi-line support
+- [ ] `InputWithAutocomplete.tsx` component
+- [ ] Basic @ mention autocomplete
+- [ ] Basic / command autocomplete
+- [ ] NO readline keybindings
+- [ ] NO text selection
+- [ ] NO input undo/redo
+- [ ] NO input history navigation
+- [ ] LIMITED multi-line support
 
 **Gap:** ~60% missing.
 
 #### 13. MCP Integration
 
 **OpenCode:**
-- stdio, SSE, and remote transport types
-- Dynamic add/remove MCP servers at runtime
-- MCP tools exposed as agent tools
-- Per-MCP permission control
-- Environment variable substitution in config
-- MCP status monitoring API
+- [ ] stdio, SSE, and remote transport types
+- [ ] Dynamic add/remove MCP servers at runtime
+- [ ] MCP tools exposed as agent tools
+- [ ] Per-MCP permission control
+- [ ] Environment variable substitution in config
+- [ ] MCP status monitoring API
 
 **TOADSTOOL:**
-- Basic MCP session concept in `mcp-session.integration.test.ts`
-- MCP mentioned in `.cursor/mcp.json`
-- NO runtime MCP management
-- NO MCP tool exposure to agents
-- NO multi-transport support
+- [ ] Basic MCP session concept in `mcp-session.integration.test.ts`
+- [ ] MCP mentioned in `.cursor/mcp.json`
+- [ ] NO runtime MCP management
+- [ ] NO MCP tool exposure to agents
+- [ ] NO multi-transport support
 
 **Gap:** ~80% missing.
 
 #### 14. Distribution & CI/CD
 
 **OpenCode:**
-- npm package
-- brew tap
-- Install script
-- Auto-update checks
-- Desktop app (Electron)
-- GitHub Actions CI
+- [ ] npm package
+- [ ] brew tap
+- [ ] Install script
+- [ ] Auto-update checks
+- [ ] Desktop app (Electron)
+- [ ] GitHub Actions CI
 
 **TOADSTOOL:**
-- `bin` field in package.json
-- NO npm publish setup
-- NO brew formula
-- NO install script
-- NO auto-update
-- NO CI pipeline
+- [ ] `bin` field in package.json
+- [ ] NO npm publish setup
+- [ ] NO brew formula
+- [ ] NO install script
+- [ ] NO auto-update
+- [ ] NO CI pipeline
 
 **Gap:** ~90% missing.
 
@@ -707,20 +707,20 @@ Beyond combining features, TOADSTOOL should have its own identity:
 #### 3. Type Safety Issues (~180+ instances)
 
 **`as` type assertions (100+):**
-- `session-stream.ts` - `as MessageRole` (3 instances)
-- `app-store.ts` - `as Array<[string, Message]>`, `as AppState["messages"]`
-- `DiffRenderer.tsx` - `as unknown as` chain (complex cast)
-- `MessageItem.tsx` - `as ChatContentBlock`, `as unknown as` chain
-- `ToolCallManager.tsx` - `as string` (4 instances)
-- Many more across persistence and token optimizer modules
+- [ ] `session-stream.ts` - `as MessageRole` (3 instances)
+- [ ] `app-store.ts` - `as Array<[string, Message]>`, `as AppState["messages"]`
+- [ ] `DiffRenderer.tsx` - `as unknown as` chain (complex cast)
+- [ ] `MessageItem.tsx` - `as ChatContentBlock`, `as unknown as` chain
+- [ ] `ToolCallManager.tsx` - `as string` (4 instances)
+- [ ] Many more across persistence and token optimizer modules
 
 **Non-null assertions `!` (80+):**
-- `FileTree.tsx` - 6 instances
-- `App.tsx` - 4 instances
-- `ToolCallManager.tsx` - 10 instances
-- `MessageItem.tsx` - 8 instances
-- `Sidebar.tsx` - 7 instances
-- `Chat.tsx` - 10 instances
+- [ ] `FileTree.tsx` - 6 instances
+- [ ] `App.tsx` - 4 instances
+- [ ] `ToolCallManager.tsx` - 10 instances
+- [ ] `MessageItem.tsx` - 8 instances
+- [ ] `Sidebar.tsx` - 7 instances
+- [ ] `Chat.tsx` - 10 instances
 
 **Recommended fix:** Add proper type narrowing with discriminated unions, use `satisfies` operator, add null-safe access patterns.
 
@@ -736,16 +736,16 @@ Beyond combining features, TOADSTOOL should have its own identity:
 
 #### 5. Deep Nesting (4+ levels)
 
-- `Chat.tsx:231-293` - Switch statement with nested ifs
-- `ToolCallManager.tsx:398-443` - Nested forEach with conditionals
-- `DiffRenderer.tsx:367-406` - Nested map with conditionals
-- `MessageItem.tsx:158-172` - Nested map with nested map
+- [ ] `Chat.tsx:231-293` - Switch statement with nested ifs
+- [ ] `ToolCallManager.tsx:398-443` - Nested forEach with conditionals
+- [ ] `DiffRenderer.tsx:367-406` - Nested map with conditionals
+- [ ] `MessageItem.tsx:158-172` - Nested map with nested map
 
 #### 6. Missing Error Handling
 
-- `FileTree.tsx:64` - `buildTree` async function has no try/catch
-- `MessageItem.tsx:31` - `merged[merged.length - 1]` unchecked array access
-- `Sidebar.tsx:215` - `sessions[sessionIndex]` could be out of bounds
+- [ ] `FileTree.tsx:64` - `buildTree` async function has no try/catch
+- [ ] `MessageItem.tsx:31` - `merged[merged.length - 1]` unchecked array access
+- [ ] `Sidebar.tsx:215` - `sessions[sessionIndex]` could be out of bounds
 
 ---
 
@@ -920,12 +920,12 @@ The input area is the primary interaction point. It must feel as responsive as a
 | **Quick switch** | Enter to switch primary agent (same as Tab key) |
 
 #### Sidebar Resize
-- Default width: 15% of terminal width
-- Minimum: 20 columns
-- Can be collapsed entirely with keybind (Ctrl+B or leader key)
-- Files section: 55% of sidebar height
-- Tasks section: 25% of sidebar height
-- Agents section: 20% of sidebar height
+- [ ] Default width: 15% of terminal width
+- [ ] Minimum: 20 columns
+- [ ] Can be collapsed entirely with keybind (Ctrl+B or leader key)
+- [ ] Files section: 55% of sidebar height
+- [ ] Tasks section: 25% of sidebar height
+- [ ] Agents section: 20% of sidebar height
 
 ### Modals & Popups
 
@@ -986,10 +986,10 @@ Navigate with Up/Down, Enter to switch, `D` to delete, `N` for new.
 
 #### Command Palette (`/` or `Ctrl+X`)
 Quick action search - fuzzy matches across:
-- All slash commands
-- Recent sessions
-- Available agents
-- Settings
+- [ ] All slash commands
+- [ ] Recent sessions
+- [ ] Available agents
+- [ ] Settings
 
 #### Model Selector (`/models` or `Ctrl+X M`)
 | Column | Content |
@@ -1124,10 +1124,10 @@ User sends message -> Agent responds -> Agent calls edit/write tools
 5. UI: show "Redone."
 
 #### Edge Cases
-- Undo when no messages exist -> show error
-- Undo when user has uncommitted changes -> warn, offer to stash first
-- Multiple consecutive undos -> pop multiple entries
-- Redo after new message (invalidates redo stack) -> clear redo stack
+- [ ] Undo when no messages exist -> show error
+- [ ] Undo when user has uncommitted changes -> warn, offer to stash first
+- [ ] Multiple consecutive undos -> pop multiple entries
+- [ ] Redo after new message (invalidates redo stack) -> clear redo stack
 
 ### 2. Context Compaction System
 
@@ -1162,9 +1162,9 @@ Context usage drops, conversation continues
 ```
 
 #### Context Tracking UI
-- Status footer shows `45k/128k` with color coding
-- Green (<50%), Yellow (50-80%), Red (>80%)
-- When compaction runs: brief "Compacting context..." indicator
+- [ ] Status footer shows `45k/128k` with color coding
+- [ ] Green (<50%), Yellow (50-80%), Red (>80%)
+- [ ] When compaction runs: brief "Compacting context..." indicator
 
 ### 3. Todo System
 
@@ -1179,10 +1179,10 @@ interface Todo {
 ```
 
 #### Agent Integration
-- Agent calls `todowrite` tool to create/update task lists
-- Agent calls `todoread` tool to check current state
-- Todos are session-scoped (each session has its own list)
-- Persisted to storage alongside session data
+- [ ] Agent calls `todowrite` tool to create/update task lists
+- [ ] Agent calls `todoread` tool to check current state
+- [ ] Todos are session-scoped (each session has its own list)
+- [ ] Persisted to storage alongside session data
 
 #### UI Display (Sidebar TASKS tab)
 ```
@@ -1210,9 +1210,9 @@ TASKS (3 active)
 3. Confirmation shown in chat
 
 #### Privacy
-- Default: `"manual"` - user must explicitly share
-- Option: `"auto"` - new sessions auto-shared
-- Option: `"disabled"` - sharing disabled entirely
+- [ ] Default: `"manual"` - user must explicitly share
+- [ ] Option: `"auto"` - new sessions auto-shared
+- [ ] Option: `"disabled"` - sharing disabled entirely
 
 ### 5. External Editor Integration
 
@@ -1262,12 +1262,12 @@ ProviderRegistry
 5. Optional: set as default in config
 
 #### small_model
-- Lightweight model used for automated tasks:
-  - Session title generation
-  - Compaction summaries
-  - Search result summarization
-- Defaults to cheapest available model from active provider
-- Configurable: `"small_model": "anthropic/claude-haiku-4"`
+- [ ] Lightweight model used for automated tasks:
+  - [ ] Session title generation
+  - [ ] Compaction summaries
+  - [ ] Search result summarization
+- [ ] Defaults to cheapest available model from active provider
+- [ ] Configurable: `"small_model": "anthropic/claude-haiku-4"`
 
 ### 7. LSP Integration (Experimental)
 
@@ -1284,9 +1284,9 @@ ProviderRegistry
 | `outgoingCalls` | Find functions called by function | Tree display |
 
 #### LSP as Agent Tool
-- Exposed as `lsp` tool that agents can call
-- Agent can ask for type info, find references, etc.
-- Results returned as tool output in conversation
+- [ ] Exposed as `lsp` tool that agents can call
+- [ ] Agent can ask for type info, find references, etc.
+- [ ] Results returned as tool output in conversation
 
 ### 8. Plugin System
 
@@ -1349,9 +1349,9 @@ Include proper typing and basic structure.
 ### 10. Code Formatters
 
 #### How It Works
-- After agent writes/edits a file, run the configured formatter
-- Formatters are file-extension-aware
-- Results are silent unless they fail
+- [ ] After agent writes/edits a file, run the configured formatter
+- [ ] Formatters are file-extension-aware
+- [ ] Results are silent unless they fail
 
 #### Configuration
 ```json
@@ -1401,34 +1401,34 @@ export default {
 ```
 
 #### Theme Application
-- `syntaxStyle` fed to `<code>`, `<markdown>`, `<diff>` components
-- `colors` fed to palette for all UI elements
-- Changed via `/themes` command or config
-- Persisted in user settings
+- [ ] `syntaxStyle` fed to `<code>`, `<markdown>`, `<diff>` components
+- [ ] `colors` fed to palette for all UI elements
+- [ ] Changed via `/themes` command or config
+- [ ] Persisted in user settings
 
 ### 12. Watcher & Hot Reload
 
 #### Config Watcher
-- Watches `toadstool.json` / `opencode.json` for changes
-- On change: reload config, apply new settings without restart
-- Debounced (500ms) to avoid rapid reloads
+- [ ] Watches `toadstool.json` / `opencode.json` for changes
+- [ ] On change: reload config, apply new settings without restart
+- [ ] Debounced (500ms) to avoid rapid reloads
 
 #### Agent File Watcher
-- Watches `.opencode/agents/` for new/changed agent definitions
-- Auto-registers new agents, updates existing ones
-- Removed agent files -> deregister agent
+- [ ] Watches `.opencode/agents/` for new/changed agent definitions
+- [ ] Auto-registers new agents, updates existing ones
+- [ ] Removed agent files -> deregister agent
 
 ### 13. Image & Media Support
 
 #### Input
-- Drag-and-drop images into terminal (if terminal supports)
-- `@image.png` file mention for image files
-- Image content sent as base64 to vision-capable models
+- [ ] Drag-and-drop images into terminal (if terminal supports)
+- [ ] `@image.png` file mention for image files
+- [ ] Image content sent as base64 to vision-capable models
 
 #### Output
-- Agent responses with images: render as ASCII art or show path
-- `<ascii-font>` for text-based visual rendering
-- External image viewer fallback: open in system viewer
+- [ ] Agent responses with images: render as ASCII art or show path
+- [ ] `<ascii-font>` for text-based visual rendering
+- [ ] External image viewer fallback: open in system viewer
 
 ### 14. Rules & Instructions System
 
@@ -1442,9 +1442,9 @@ OpenCode loads custom instructions from multiple sources. TOADSTOOL needs the sa
 5. **Config `instructions` array** - Additional files/globs/URLs
 
 #### `/init` Command
-- Scans project files and structure
-- Generates `AGENTS.md` with project context
-- If AGENTS.md exists, appends to it
+- [ ] Scans project files and structure
+- [ ] Generates `AGENTS.md` with project context
+- [ ] If AGENTS.md exists, appends to it
 
 #### Config Instructions
 ```json
@@ -1478,8 +1478,8 @@ license: MIT
 ---
 
 ## What I do
-- Draft release notes from merged PRs
-- Propose a version bump
+- [ ] Draft release notes from merged PRs
+- [ ] Propose a version bump
 ```
 
 #### Permissions
@@ -1737,9 +1737,9 @@ Beyond basic CRUD, OpenCode supports:
 ```
 
 #### Dynamic MCP Management
-- Add/remove MCP servers at runtime via API
-- MCP tools appear as agent tools with `<mcp_name>_<tool_name>` naming
-- Permission control per MCP server via wildcards: `"mymcp_*": "ask"`
+- [ ] Add/remove MCP servers at runtime via API
+- [ ] MCP tools appear as agent tools with `<mcp_name>_<tool_name>` naming
+- [ ] Permission control per MCP server via wildcards: `"mymcp_*": "ask"`
 
 ### 25. Model Variant Cycling
 
@@ -1785,9 +1785,9 @@ The most powerful extensibility mechanism. User-defined shell commands, LLM prom
 | `SessionEnd` | Session terminates | No |
 
 #### Hook Types
-- **Command hooks** (`type: "command"`): Run shell scripts. JSON context via stdin. Exit code controls flow.
-- **Prompt hooks** (`type: "prompt"`): Send prompt to LLM for single-turn evaluation. Returns yes/no decision.
-- **Agent hooks** (`type: "agent"`): Spawn subagent with tools (Read, Grep, Glob) to verify conditions.
+- [ ] **Command hooks** (`type: "command"`): Run shell scripts. JSON context via stdin. Exit code controls flow.
+- [ ] **Prompt hooks** (`type: "prompt"`): Send prompt to LLM for single-turn evaluation. Returns yes/no decision.
+- [ ] **Agent hooks** (`type: "agent"`): Spawn subagent with tools (Read, Grep, Glob) to verify conditions.
 
 #### Hook Configuration
 ```json
@@ -1812,13 +1812,13 @@ The most powerful extensibility mechanism. User-defined shell commands, LLM prom
 ```
 
 #### Common Use Cases
-- Auto-lint after file edits
-- Auto-test after file changes
-- Block dangerous bash commands (rm -rf, etc.)
-- Inject git status context at session start
-- Auto-approve safe tool operations
-- Run formatters after writes
-- Validate file paths before tool execution
+- [ ] Auto-lint after file edits
+- [ ] Auto-test after file changes
+- [ ] Block dangerous bash commands (rm -rf, etc.)
+- [ ] Inject git status context at session start
+- [ ] Auto-approve safe tool operations
+- [ ] Run formatters after writes
+- [ ] Validate file paths before tool execution
 
 ### 28. Checkpointing System (from Claude Code)
 
@@ -1852,11 +1852,11 @@ Automatic per-prompt snapshots independent of git. Safer and more granular than 
 Unlike other tools that just run commands, TOAD has a persistent shell where state survives between commands.
 
 #### What This Means
-- `cd /foo` then later `ls` shows `/foo` contents (state persists)
-- `export FOO=bar` then `echo $FOO` shows `bar` (env vars persist)
-- `htop`, `vim`, `less` work inline with full color and mouse support
-- Tab completion from the shell (commands, paths, git branches)
-- No flickering or garbled output from interactive commands
+- [ ] `cd /foo` then later `ls` shows `/foo` contents (state persists)
+- [ ] `export FOO=bar` then `echo $FOO` shows `bar` (env vars persist)
+- [ ] `htop`, `vim`, `less` work inline with full color and mouse support
+- [ ] Tab completion from the shell (commands, paths, git branches)
+- [ ] No flickering or garbled output from interactive commands
 
 #### Auto-Detect Shell Mode
 Configurable list of commands that auto-trigger shell mode (no `!` prefix needed):
@@ -1874,31 +1874,31 @@ Configurable list of commands that auto-trigger shell mode (no `!` prefix needed
 AI-generated next-step suggestions after each agent response.
 
 #### Behavior
-- Grayed-out suggestion appears in input after agent responds
-- First session: based on git history (recently changed files)
-- Subsequent turns: based on conversation context
-- Tab to accept suggestion text, Enter to accept + submit
-- Start typing to dismiss
-- Reuses parent conversation's prompt cache (minimal additional cost)
-- Skipped when: cache is cold, non-interactive mode, plan mode, first turn
+- [ ] Grayed-out suggestion appears in input after agent responds
+- [ ] First session: based on git history (recently changed files)
+- [ ] Subsequent turns: based on conversation context
+- [ ] Tab to accept suggestion text, Enter to accept + submit
+- [ ] Start typing to dismiss
+- [ ] Reuses parent conversation's prompt cache (minimal additional cost)
+- [ ] Skipped when: cache is cold, non-interactive mode, plan mode, first turn
 
 ### 31. Background Tasks (from Claude Code)
 
 Background long-running commands while continuing to chat.
 
 #### Usage
-- `Ctrl+B` during any running command to background it
-- Agent can retrieve output later via `TaskOutput` tool
-- Status indicator shows running background tasks
-- `/tasks` lists all background tasks
-- Auto-cleanup when session ends
+- [ ] `Ctrl+B` during any running command to background it
+- [ ] Agent can retrieve output later via `TaskOutput` tool
+- [ ] Status indicator shows running background tasks
+- [ ] `/tasks` lists all background tasks
+- [ ] Auto-cleanup when session ends
 
 #### Common Backgrounded Operations
-- Build tools (webpack, vite, tsup)
-- Test runners (vitest, jest, pytest)
-- Dev servers
-- Docker operations
-- Terraform/infrastructure commands
+- [ ] Build tools (webpack, vite, tsup)
+- [ ] Test runners (vitest, jest, pytest)
+- [ ] Dev servers
+- [ ] Docker operations
+- [ ] Terraform/infrastructure commands
 
 ### 32. Cross-Tool Compatibility (Universal Config Loading)
 
@@ -2028,14 +2028,14 @@ alwaysApply: false
 ---
 
 # Code Style Rules
-- Use 2-space indentation
-- ...
+- [ ] Use 2-space indentation
+- [ ] ...
 ```
 
 Map to TOADSTOOL internal format:
-- `alwaysApply: true` -> rule type `"always"`
-- `globs` present -> rule type `"auto_attached"` with glob patterns
-- `description` present, no globs -> rule type `"agent_requested"`
+- [ ] `alwaysApply: true` -> rule type `"always"`
+- [ ] `globs` present -> rule type `"auto_attached"` with glob patterns
+- [ ] `description` present, no globs -> rule type `"agent_requested"`
 
 #### Gemini Context File Support
 
@@ -2070,14 +2070,14 @@ my-project/
 ```
 
 Launches TOADSTOOL and **everything just works**:
-- All 3 rule files loaded and combined (CLAUDE.md + AGENTS.md + GEMINI.md)
-- `code-reviewer` agent available from `.claude/agents/`
-- `test-forge` skill available from `.claude/skills/`
-- `build` command available from `.cursor/commands/`
-- `plan-todo` command available from `.opencode/command/`
-- Auto-lint hook active from `.claude/hooks/`
-- MCP servers loaded from `.cursor/mcp.json`
-- Cursor `.mdc` rules applied when matching file globs
+- [ ] All 3 rule files loaded and combined (CLAUDE.md + AGENTS.md + GEMINI.md)
+- [ ] `code-reviewer` agent available from `.claude/agents/`
+- [ ] `test-forge` skill available from `.claude/skills/`
+- [ ] `build` command available from `.cursor/commands/`
+- [ ] `plan-todo` command available from `.opencode/command/`
+- [ ] Auto-lint hook active from `.claude/hooks/`
+- [ ] MCP servers loaded from `.cursor/mcp.json`
+- [ ] Cursor `.mdc` rules applied when matching file globs
 
 ### 33. Performance & Responsiveness
 
@@ -2283,13 +2283,13 @@ performance.measure("stream-chunk", "stream-chunk-start", "stream-chunk-end");
 
 OpenTUI is the TypeScript TUI framework that powers OpenCode itself. It provides:
 
-- **Flexbox Layout** - Yoga-powered CSS-like positioning
-- **Tree-sitter Syntax Highlighting** - Native code rendering (replaces Shiki)
-- **Rich Components** - Text, Box, Input, Select, Textarea, ScrollBox, ScrollBar, Slider, Code, Markdown, Diff, LineNumbers, FrameBuffer, ASCIIFont, TabSelect
-- **React Reconciler** - `@opentui/react` with JSX intrinsic elements
-- **Keyboard/Focus** - Built-in focus management via `useKeyboard()` hook
-- **Animations** - Timeline API via `useTimeline()` hook
-- **Streaming Mode** - First-class support on Code, Markdown, and Diff components
+- [ ] **Flexbox Layout** - Yoga-powered CSS-like positioning
+- [ ] **Tree-sitter Syntax Highlighting** - Native code rendering (replaces Shiki)
+- [ ] **Rich Components** - Text, Box, Input, Select, Textarea, ScrollBox, ScrollBar, Slider, Code, Markdown, Diff, LineNumbers, FrameBuffer, ASCIIFont, TabSelect
+- [ ] **React Reconciler** - `@opentui/react` with JSX intrinsic elements
+- [ ] **Keyboard/Focus** - Built-in focus management via `useKeyboard()` hook
+- [ ] **Animations** - Timeline API via `useTimeline()` hook
+- [ ] **Streaming Mode** - First-class support on Code, Markdown, and Diff components
 
 ### Packages
 
@@ -2358,12 +2358,12 @@ import { Box, Text } from "ink";
 
 ### What Does NOT Change
 
-- **All React hooks** (`useState`, `useEffect`, `useCallback`, `useMemo`, `useRef`)
-- **Zustand store** (`app-store.ts`, all store/ logic)
-- **All business logic** (`core/`, `utils/`, `types/`, `constants/`, `harness/`)
-- **All non-UI tests** (68 unit + 14 integration tests)
-- **TypeScript strict mode**, Zod schemas, branded types, constants architecture
-- **ACP protocol**, session streaming, persistence, credential stores
+- [ ] **All React hooks** (`useState`, `useEffect`, `useCallback`, `useMemo`, `useRef`)
+- [ ] **Zustand store** (`app-store.ts`, all store/ logic)
+- [ ] **All business logic** (`core/`, `utils/`, `types/`, `constants/`, `harness/`)
+- [ ] **All non-UI tests** (68 unit + 14 integration tests)
+- [ ] **TypeScript strict mode**, Zod schemas, branded types, constants architecture
+- [ ] **ACP protocol**, session streaming, persistence, credential stores
 
 ### Component Migration Map
 
@@ -2491,17 +2491,17 @@ code quality issues. Rewriting them with OpenTUI intrinsics fixes both problems 
 
 #### 4A: Runtime & Build Migration (3-5 days)
 
-- [ ] Install Bun: `curl -fsSL https://bun.sh/install | bash`
-- [ ] Convert `package.json` scripts from `npm` to `bun`
-- [ ] Run `bun install` to generate `bun.lock` (keep `package-lock.json` temporarily)
-- [ ] Verify `bun run build` works with tsup
-- [ ] Verify `bun run test` works with Vitest
-- [ ] Verify `bun run typecheck` works with tsc
-- [ ] Install OpenTUI: `bun add @opentui/core @opentui/react`
-- [ ] Remove Ink deps: `bun remove ink @inkjs/ui ink-picture ink-tab`
-- [ ] Remove rendering deps: `bun remove shiki marked marked-terminal`
-- [ ] Update `tsconfig.json`: set `jsxImportSource: "@opentui/react"`
-- [ ] Update `src/cli.ts` entry point: `createCliRenderer()` + `createRoot()`
+- [X] Install Bun: `curl -fsSL https://bun.sh/install | bash`
+- [X] Convert `package.json` scripts from `npm` to `bun`
+- [X] Run `bun install` to generate `bun.lock` (keep `package-lock.json` temporarily)
+- [X] Verify `bun run build` works with tsup
+- [X] Verify `bun run test` works with Vitest
+- [X] Verify `bun run typecheck` works with tsc
+- [X] Install OpenTUI: `bun add @opentui/core @opentui/react`
+- [X] Remove Ink deps: `bun remove ink @inkjs/ui ink-picture ink-tab`
+- [X] Remove rendering deps: `bun remove shiki marked marked-terminal`
+- [X] Update `tsconfig.json`: set `jsxImportSource: "@opentui/react"`
+- [X] Update `src/cli.ts` entry point: `createCliRenderer()` + `createRoot()`
 - [ ] Verify the app starts with a blank screen (smoke test)
 
 #### 4B: Core Component Migration (5-7 days)
@@ -2510,71 +2510,77 @@ Rewrite components from Ink to OpenTUI React intrinsics. Business logic stays,
 only rendering primitives change.
 
 **Layout primitives (all 30 components):**
-- [ ] Global find-replace: `import { Box, Text } from "ink"` -> OpenTUI intrinsics
-- [ ] Convert `<Box>` -> `<box>`, `<Text>` -> `<text>` throughout
-- [ ] Convert `<Text color="green">` -> `<text fg="#00FF00">` (use COLOR constants)
-- [ ] Convert `<Box borderStyle="round">` -> `<box style={{ border: true }}>` 
-- [ ] Convert `useInput()` (Ink) -> `useKeyboard()` (OpenTUI) in all hooks
+- [X] Global find-replace: `import { Box, Text } from "ink"` -> OpenTUI intrinsics
+- [X] Convert `<Box>` -> `<box>`, `<Text>` -> `<text>` throughout
+- [X] Convert `<Text color="green">` -> `<text fg="#00FF00">` (use COLOR constants)
+- [X] Convert `<Box borderStyle="round">` -> `<box style={{ border: true }}>`
+- [X] Convert `useInput()` (Ink) -> `useKeyboard()` (OpenTUI) in all hooks
 
 **High-value replacements:**
-- [ ] Replace `DiffRenderer.tsx` (493 lines) with `<diff>` intrinsic (~30 lines)
-- [ ] Replace `MarkdownRenderer.tsx` with `<markdown>` intrinsic (~20 lines)
-- [ ] Replace `ScrollArea.tsx` with `<scrollbox>` (stickyScroll for chat!)
-- [ ] Replace custom `Input.tsx` with `<input>` / `<textarea>` intrinsics
-- [ ] Replace `@inkjs/ui` Select usage with `<select>` intrinsic
-- [ ] Replace `ink-tab` usage with `<tab-select>` intrinsic
-- [ ] Replace `AsciiBanner.tsx` with `<ascii-font>` intrinsic
-- [ ] Update `AgentSelect.tsx` to use `<select>` 
-- [ ] Update `CommandPalette.tsx` to use `<select>`
-- [ ] Update `SessionsPopup.tsx` to use `<select>` + `<box>`
+- [X] Replace `DiffRenderer.tsx` (493 lines) with `<diff>` intrinsic (~30 lines)
+- [X] Replace `MarkdownRenderer.tsx` with `<markdown>` intrinsic (~20 lines)
+- [X] Replace `ScrollArea.tsx` with `<scrollbox>` (stickyScroll for chat!)
+- [X] Replace custom `Input.tsx` with `<input>` / `<textarea>` intrinsics
+- [X] Replace `@inkjs/ui` Select usage with `<select>` intrinsic
+- [X] Replace `ink-tab` usage with `<tab-select>` intrinsic
+- [X] Replace `AsciiBanner.tsx` with `<ascii-font>` intrinsic
+- [X] Update `AgentSelect.tsx` to use `<select>`
+- [X] Update `CommandPalette.tsx` to use `<select>`
+- [X] Update `SessionsPopup.tsx` to use `<select>` + `<box>`
+- [ ] Replace remaining custom selects with `<select>` intrinsic (AgentSelect, CommandPalette, SessionsPopup)
+- [ ] Replace sidebar tabs with `<tab-select>` intrinsic
+- [ ] Replace `InputWithAutocomplete` multiline mode with `<textarea>` intrinsic
+- [ ] Audit OpenTUI best practices (focus, autoFocus, scrollbox, styling)
+- [ ] Validate OpenTUI input/textarea feature parity (mouse selection, word select, copy/paste)
+- [ ] Implement missing text editing shortcuts (kill ring, word jump, selection extend)
 
 **Hook migration:**
-- [ ] `useTerminalDimensions.ts` -> OpenTUI `useTerminalDimensions()`
-- [ ] `useAppKeyboardShortcuts.ts` -> OpenTUI `useKeyboard()`
-- [ ] All other hooks: update any Ink-specific imports
+- [X] `useTerminalDimensions.ts` -> OpenTUI `useTerminalDimensions()`
+- [X] `useAppKeyboardShortcuts.ts` -> OpenTUI `useKeyboard()`
+- [X] All other hooks: update any Ink-specific imports
 
 #### 4C: Code Quality Cleanup (3-5 days)
 
 Fix remaining issues in migrated and non-migrated code:
 
 **Magic numbers -> constants:**
-- [ ] Extract all magic numbers to `src/config/ui.ts` and `src/config/limits.ts`
-- [ ] Add UI layout constants: `SIDEBAR_WIDTH_RATIO`, `SIDEBAR_FILES_RATIO`, etc.
-- [ ] Add LIMIT constants: `FILE_TREE_PADDING`, `MARKDOWN_COLLAPSE_AFTER`, etc.
-- [ ] Add TIMEOUT constants: `STREAM_BUFFER_MS`, `MENTION_DEBOUNCE_MS`
+- [X] Extract all magic numbers to `src/config/ui.ts` and `src/config/limits.ts`
+- [X] Add UI layout constants: `SIDEBAR_WIDTH_RATIO`, `SIDEBAR_FILES_RATIO`, etc.
+- [X] Add LIMIT constants: `FILE_TREE_PADDING`, `MARKDOWN_COLLAPSE_AFTER`, etc.
+- [X] Add TIMEOUT constants: `STREAM_BUFFER_MS`, `MENTION_DEBOUNCE_MS`
 
 **Magic strings -> constants:**
-- [ ] Fix `"disconnected"` and `"files"` literals in `app-store.ts`
-- [ ] Add `COLOR.DIFF_ADDED_BG`, `COLOR.DIFF_REMOVED_BG`, `COLOR.DIFF_HUNK_BG`
-- [ ] Add `IGNORE_PATTERN` constant for file tree / project files
-- [ ] Add `SIDEBAR_TAB` constant for sidebar tab names
-- [ ] Extract Chat.tsx error message strings to constants
+- [X] Fix `"disconnected"` and `"files"` literals in `app-store.ts`
+- [X] Add `COLOR.DIFF_ADDED_BG`, `COLOR.DIFF_REMOVED_BG`, `COLOR.DIFF_HUNK_BG`
+- [X] Add `IGNORE_PATTERN` constant for file tree / project files
+- [X] Add `SIDEBAR_TAB` constant for sidebar tab names
+- [X] Extract Chat.tsx error message strings to constants
 
 **Type safety:**
-- [ ] Reduce `as` type assertions by improving discriminated union narrowing
-- [ ] Replace `!` non-null assertions with proper null checks / optional chaining
-- [ ] Add bounds checking for array access in MessageItem, Sidebar
-- [ ] Add error handling to FileTree.tsx `buildTree` function
+- [X] Reduce `as` type assertions by improving discriminated union narrowing
+- [X] Replace `!` non-null assertions with proper null checks / optional chaining
+- [X] Add bounds checking for array access in MessageItem, Sidebar
+- [X] Add error handling to FileTree.tsx `buildTree` function
 
 **Component structure:**
-- [ ] Split `ToolCallManager.tsx` (575 lines) -> ToolCallItem, ToolCallStatus, ToolCallResult
-- [ ] Split `Chat.tsx` (479 lines) -> extract SlashCommandHandler, MessageSender
-- [ ] Split `MessageItem.tsx` (476 lines) -> extract ContentBlockRenderer, ThinkingBlock
-- [ ] Ensure no file exceeds 300 lines
+- [X] Split `ToolCallManager.tsx` (575 lines) -> ToolCallItem, ToolCallStatus, ToolCallResult
+- [X] Split `Chat.tsx` (479 lines) -> extract SlashCommandHandler, MessageSender
+- [X] Split `MessageItem.tsx` (476 lines) -> extract ContentBlockRenderer, ThinkingBlock
+- [X] Ensure no file exceeds 300 lines
 
 #### 4D: Performance Foundations (2-3 days)
 
 Establish performance patterns during migration while components are being rewritten:
 
-- [ ] Implement resize debounce handler (50ms debounce, batch Zustand updates)
-- [ ] Add `viewportCulling={true}` to all `<scrollbox>` components
-- [ ] Implement streaming buffer (16ms batch, not per-token rendering)
-- [ ] Add `stickyScroll={true}` + manual scroll detection for message list
-- [ ] Set up Worker thread for diff computation (`src/workers/diff-worker.ts`)
-- [ ] Add performance.mark/measure for critical paths (startup, session load, stream render)
-- [ ] Implement message list virtualization (only mount visible + buffer messages)
-- [ ] Add progressive diff loading (first 500 lines immediate, rest in background)
-- [ ] Memory: unmount previous session's React tree on session switch
+- [X] Implement resize debounce handler (50ms debounce, batch Zustand updates)
+- [X] Add `viewportCulling={true}` to all `<scrollbox>` components
+- [X] Implement streaming buffer (16ms batch, not per-token rendering)
+- [X] Add `stickyScroll={true}` + manual scroll detection for message list
+- [X] Set up Worker thread for diff computation (`src/workers/diff-worker.ts`)
+- [X] Add performance.mark/measure for critical paths (startup, session load, stream render)
+- [X] Implement message list virtualization (only mount visible + buffer messages)
+- [X] Add progressive diff loading (first 500 lines immediate, rest in background)
+- [X] Memory: unmount previous session's React tree on session switch
 
 #### 4E: Test Migration & Verification (2-3 days)
 
@@ -2592,100 +2598,114 @@ Establish performance patterns during migration while components are being rewri
 
 **Goal:** Full tool registry, built-in tools, and TOAD-quality shell integration.
 
-- [ ] Create `src/tools/types.ts` - ToolDefinition, ToolContext, ToolResult interfaces
-- [ ] Create `src/tools/registry.ts` - Registration, discovery, execution
-- [ ] Implement `bash` tool - Leverage existing TerminalHandler
-- [ ] **True shell integration (from TOAD):**
-  - [ ] Persistent shell state (cd, env vars survive between commands)
-  - [ ] Interactive app support (htop, vim, etc.) with full color + mouse
-  - [ ] Shell tab completion (Tab to complete, Tab again to cycle)
-  - [ ] Auto-detect shell commands (configurable command list triggers shell mode without `!`)
-- [ ] Implement `read` tool - File reading with line range support
-- [ ] Implement `write` tool - File creation with permission checks
-- [ ] Implement `edit` tool - String replacement with exact match
-- [ ] Implement `grep` tool - Leverage existing SearchService (ripgrep)
-- [ ] Implement `glob` tool - File pattern matching
-- [ ] Implement `list` tool - Directory listing with ignore patterns
-- [ ] Implement `todowrite` / `todoread` tools
-- [ ] Implement `webfetch` tool
-- [ ] Implement `question` tool
-- [ ] Wire tools to ACP agent port for tool execution
-- [ ] Add tool permission enforcement per agent
-- [ ] **Background tasks (from Claude Code):**
-  - [ ] Ctrl+B to background running commands
-  - [ ] TaskOutput tool to retrieve background results
-  - [ ] Status indicator for running background tasks
+- [X] Create `src/tools/types.ts` - ToolDefinition, ToolContext, ToolResult interfaces
+- [X] Create `src/tools/registry.ts` - Registration, discovery, execution
+- [X] Implement `bash` tool - Leverage existing TerminalHandler
+- [X] **True shell integration (from TOAD):**
+  - [X] Persistent shell state (cd, env vars survive between commands)
+  - [X] Interactive app support (htop, vim, etc.) with full color + mouse
+  - [X] Shell tab completion (Tab to complete, Tab again to cycle)
+  - [X] Auto-detect shell commands (configurable command list triggers shell mode without `!`)
+- [X] Implement `read` tool - File reading with line range support
+- [X] Implement `write` tool - File creation with permission checks
+- [X] Implement `edit` tool - String replacement with exact match
+- [X] Implement `grep` tool - Leverage existing SearchService (ripgrep)
+- [X] Implement `glob` tool - File pattern matching
+- [X] Implement `list` tool - Directory listing with ignore patterns
+- [X] Implement `todowrite` / `todoread` tools
+- [X] Implement `webfetch` tool
+- [X] Implement `question` tool
+- [X] Wire tools to ACP agent port for tool execution
+- [X] Add tool permission enforcement per agent
+- [X] **Background tasks (from Claude Code):**
+  - [X] Ctrl+B to background running commands
+  - [X] TaskOutput tool to retrieve background results
+  - [X] Status indicator for running background tasks
 - [ ] Tests: unit + integration for each tool
 
 ### Phase 6: Agent Execution Engine (2-3 weeks)
 
 **Goal:** Full agent system with build/plan/subagents.
 
-- [ ] Create agent-manager.ts - Agent lifecycle (create, switch, destroy)
-- [ ] Implement Build agent - Full tool access
-- [ ] Implement Plan agent - Read-only, asks permission for edits/bash
-- [ ] Add Tab key agent switching in TUI (via `useKeyboard()`)
-- [ ] Create Markdown agent config loader (`.opencode/agents/*.md`)
-- [ ] Implement per-agent tool/permission overrides
-- [ ] Implement per-agent model/temperature config
-- [ ] Add hidden agents: Compaction, Title, Summary
-- [ ] Implement subagent runner for @mention invocation
-- [ ] Implement child session navigation (Leader+Left/Right)
-- [ ] Add `@agent` mention syntax in input
+- [X] Create agent-manager.ts - Agent lifecycle (create, switch, destroy)
+- [X] Implement Build agent - Full tool access
+- [X] Implement Plan agent - Read-only, asks permission for edits/bash
+- [X] Add Tab key agent switching in TUI (via `useKeyboard()`)
+- [X] Create Markdown agent config loader (`.opencode/agents/*.md`)
+- [X] Implement per-agent tool/permission overrides
+- [X] Implement per-agent model/temperature config
+- [X] Add hidden agents: Compaction, Title, Summary
+- [X] Implement subagent runner for @mention invocation
+- [X] Implement child session navigation (Leader+Left/Right)
+- [X] Add `@agent` mention syntax in input
 - [ ] Tests: unit + integration
 
 ### Phase 7: Slash Commands & UX Polish (2 weeks)
 
 **Goal:** Feature parity with OpenCode + Claude Code commands, plus TOAD UX touches.
 
-- [ ] Implement `/connect` - Provider setup flow
-- [ ] Implement `/compact` - Context compaction trigger
-- [ ] Implement `/details` - Toggle tool execution details
-- [ ] Implement `/editor` - Open `$EDITOR` for composing messages
-- [ ] Implement `/models` - List and switch models
-- [ ] Implement `/new` - New session (enhance `/clear`)
-- [ ] Implement `/sessions` - List and switch sessions
-- [ ] Implement `/themes` - Theme selection
-- [ ] Implement `/thinking` - Toggle thinking block display
+- [X] Implement `/connect` - Provider setup flow
+- [X] Implement `/compact` - Context compaction trigger
+- [X] Implement `/details` - Toggle tool execution details
+- [X] Implement `/editor` - Open `$EDITOR` for composing messages
+- [X] Implement `/models` - List and switch models
+- [X] Implement `/new` - New session (enhance `/clear`)
+- [X] Implement `/sessions` - List and switch sessions
+- [X] Implement `/themes` - Theme selection
+- [X] Implement `/thinking` - Toggle thinking block display
 - [ ] Implement `!` prefix for bash command execution
 - [ ] Add Tab autocomplete for slash commands
-- [ ] **From Claude Code:**
-  - [ ] Implement `/doctor` - Health check (validate config, providers, tools)
-  - [ ] Implement `/debug` - Read session debug log, troubleshoot
-  - [ ] Implement `/context` - Colored grid visualization of context usage
-  - [ ] Implement `/stats` - Daily usage, session history, streaks, model preferences
-  - [ ] Implement `/cost` - Token usage tracking per session
-  - [ ] Implement `/memory` - Edit AGENTS.md/CLAUDE.md from TUI
-  - [ ] Implement `/rename` - Rename current session
-  - [ ] Implement `/copy` - Copy last response to clipboard
-  - [ ] Implement `/rewind` - Rewind code, conversation, or both (with summarize option)
+- [X] **From Claude Code:**
+  - [X] Implement `/doctor` - Health check (validate config, providers, tools)
+  - [X] Implement `/debug` - Read session debug log, troubleshoot
+  - [X] Implement `/context` - Colored grid visualization of context usage
+  - [X] Implement `/stats` - Daily usage, session history, streaks, model preferences
+  - [X] Implement `/cost` - Token usage tracking per session
+  - [X] Implement `/memory` - Edit AGENTS.md/CLAUDE.md from TUI
+  - [X] Implement `/rename` - Rename current session
+  - [X] Implement `/copy` - Copy last response to clipboard
+  - [X] Implement `/rewind` - Rewind code, conversation, or both (with summarize option)
 - [ ] **From TOAD:**
   - [ ] Simple settings TUI (not just JSON editing)
   - [ ] SVG export of conversations
+- [ ] **From Claude Code (additional parity):**
+  - [ ] Implement `/review` - AI code review command
+  - [ ] Implement `/security-review` - Security review command
+  - [ ] Implement `/add-dir` - Add directories to session context
+  - [ ] Implement `/permissions` - Manage tool permissions
+  - [ ] Implement `/status` - System health/status
+  - [ ] Implement `/login` - Auth flow entrypoint
+  - [ ] Implement `/config` - Open config panel
+- [ ] **Input UX parity (OpenTUI + TOAD):**
+  - [ ] Mouse-based text selection in input/textarea
+  - [ ] Word selection and double-click selection
+  - [ ] Clipboard copy/paste hooks
+  - [ ] Modern shortcuts (word jump, line select, kill/yank)
+  - [ ] Selection highlight + visible cursor/selection state
 - [ ] Update command definitions constant
 
 ### Phase 8: Checkpointing & Undo/Redo (1-2 weeks)
 
 **Goal:** Hybrid checkpoint system combining Claude Code's per-prompt checkpoints with git-based undo.
 
-- [ ] **Checkpointing system (from Claude Code):**
-  - [ ] Automatic per-prompt snapshots (independent of git)
-  - [ ] Track all file changes made by agent tools
-  - [ ] Checkpoint persistence across sessions
+- [X] **Checkpointing system (from Claude Code):**
+  - [X] Automatic per-prompt snapshots (independent of git)
+  - [X] Track all file changes made by agent tools
+  - [X] Checkpoint persistence across sessions
   - [ ] Auto-cleanup of old checkpoints (configurable, default 30 days)
-- [ ] **Rewind UI (from Claude Code):**
-  - [ ] `/rewind` command with 4 options:
+- [X] **Rewind UI (from Claude Code):**
+  - [X] `/rewind` command with 4 options:
     - Restore code and conversation
     - Restore conversation only
     - Restore code only
     - Summarize from selected point
-  - [ ] `Esc+Esc` shortcut to open rewind menu
-- [ ] **Git integration (from OpenCode):**
-  - [ ] `/undo` - Revert last message and file changes
-  - [ ] `/redo` - Restore undone changes
+  - [X] `Esc+Esc` shortcut to open rewind menu
+- [X] **Git integration (from OpenCode):**
+  - [X] `/undo` - Revert last message and file changes
+  - [X] `/redo` - Restore undone changes
   - [ ] Git stash/apply mechanism for clean undo/redo
 - [ ] Handle edge cases: uncommitted changes, merge conflicts
-- [ ] Show checkpoint/undo state in status footer
+- [X] Show checkpoint/undo state in status footer
 - [ ] Tests: unit + integration + e2e
 
 ### Phase 9: Configuration & Keybind System (1-2 weeks)
@@ -2693,27 +2713,27 @@ Establish performance patterns during migration while components are being rewri
 **Goal:** Full configuration with leader key keybinds, hooks, and themes.
 
 - [ ] Create config schema (compatible with OpenCode + Claude Code patterns)
-- [ ] Implement multi-source config loading (global, project, env)
+- [X] Implement multi-source config loading (global, project, env)
 - [ ] Implement config merging with precedence order
-- [ ] Add variable substitution: `{env:VAR}`, `{file:path}`
+- [X] Add variable substitution: `{env:VAR}`, `{file:path}`
 - [ ] Add per-project `toadstool.json` support
 - [ ] Create Zod schema for validation
 - [ ] **Leader key keybinds (from OpenCode):**
   - [ ] Configurable leader key (default: `Ctrl+X`)
   - [ ] 80+ configurable keybind actions
-  - [ ] Keybind editor in settings TUI
+  - [X] Keybind editor in settings TUI
 - [ ] **Vim editor mode (from Claude Code):**
-  - [ ] Full vim keybindings in input (h/j/k/l, w/e/b, d/c/y, text objects)
+  - [X] Full vim keybindings in input (h/j/k/l, w/e/b, d/c/y, text objects)
   - [ ] Toggle via `/vim` command or config
 - [ ] **Permission modes (from Claude Code):**
   - [ ] Auto-Accept, Plan, Normal modes
-  - [ ] `Shift+Tab` to cycle between modes
+  - [X] `Shift+Tab` to cycle between modes
   - [ ] Per-tool permission rules with glob patterns
-- [ ] **Hooks system (from Claude Code):**
-  - [ ] SessionStart, PreToolUse, PostToolUse, PermissionRequest, Stop hooks
-  - [ ] Command hooks (shell scripts), Prompt hooks (LLM evaluation)
-  - [ ] Matcher patterns (regex on tool names, event types)
-  - [ ] `/hooks` management menu
+- [X] **Hooks system (from Claude Code):**
+  - [X] SessionStart, PreToolUse, PostToolUse, PermissionRequest, Stop hooks
+  - [X] Command hooks (shell scripts), Prompt hooks (LLM evaluation)
+  - [X] Matcher patterns (regex on tool names, event types)
+  - [X] `/hooks` management menu
 - [ ] Add theme files with SyntaxStyle definitions (from OpenCode)
 - [ ] Add custom commands (`.opencode/commands/` equivalent)
 - [ ] Tests for config, keybinds, hooks, permissions
@@ -2723,30 +2743,36 @@ Establish performance patterns during migration while components are being rewri
 **Goal:** Prevent context overflow in long conversations.
 
 - [ ] Implement context window tracking (token counting)
-- [ ] Create compaction agent (hidden, summarizes old messages)
+- [X] Create compaction agent (hidden, summarizes old messages)
 - [ ] Implement auto-compaction when context approaches limit
-- [ ] Implement manual compaction via `/compact`
+- [X] Implement manual compaction via `/compact`
 - [ ] Add pruning of old tool outputs to save tokens
-- [ ] Show context usage in status footer
+- [X] Show context usage in status footer
 - [ ] Config options: `compaction.auto`, `compaction.prune`
 
 ### Phase 11: Session Management, Sharing & Export (1-2 weeks)
 
 **Goal:** Full session management from all three inspirations.
 
-- [ ] **Session sharing (from OpenCode):**
-  - [ ] `/share` - Generate shareable URL
-  - [ ] `/unshare` - Remove shared session
+- [X] **Session sharing (from OpenCode):**
+  - [X] `/share` - Generate shareable URL
+  - [X] `/unshare` - Remove shared session
   - [ ] Browser-viewable shared sessions
-- [ ] **Session export (combined):**
-  - [ ] `/export` - Export to Markdown file
+- [X] **Session export (combined):**
+  - [X] `/export` - Export to Markdown file
   - [ ] SVG export (from TOAD) - Beautiful conversation SVGs
 - [ ] **Extended session features (from Claude Code):**
   - [ ] Session forking (`--fork-session` from any point)
-  - [ ] Session naming (`/rename`)
+  - [X] Session naming (`/rename`)
   - [ ] Session resume by name or ID
   - [ ] `--from-pr` flag (resume sessions linked to PRs)
   - [ ] Auto-title generation (via hidden title agent)
+- [ ] **Workspace management (multi-repo):**
+  - [ ] Add/remove workspace roots
+  - [ ] Switch active workspace in TUI
+  - [ ] Persist per-workspace settings + recent list
+  - [ ] Workspace indicator in status/footer
+  - [ ] Context attachments scoped per workspace
 - [ ] **Block navigation (from TOAD):**
   - [ ] Cursor through conversation blocks like Jupyter cells
   - [ ] Per-block actions: copy, re-send, export
@@ -2755,35 +2781,65 @@ Establish performance patterns during migration while components are being rewri
   - [ ] Per-message diff view
 - [ ] Add share state tracking per session
 - [ ] Config options: `share: "manual" | "auto" | "disabled"`
+- [ ] **Session storage & retention (parity + reliability):**
+  - [ ] Define storage contract (port) for sessions/messages/parts
+  - [ ] Implement SQLite adapter (primary)
+  - [ ] Implement JSON adapter (fallback)
+  - [ ] Add adapter selection + migration path
+  - [ ] Add retention policy (TTL + max sessions/bytes)
+  - [ ] Background cleanup job (scheduled + on-start)
+  - [ ] Compaction policy for long sessions (summaries + pruning)
+  - [ ] Indexing for fast session lookup and search
+  - [ ] Integrity checks + orphan cleanup tooling
+  - [ ] Config options: `retention.max_sessions`, `retention.max_bytes`, `retention.ttl_days`
 
 ### Phase 12: Provider Expansion (2 weeks)
 
 **Goal:** Support more LLM providers beyond Claude CLI.
 
-- [ ] Add OpenAI provider adapter (GPT-4o, o3, etc.)
-- [ ] Add Google Gemini provider adapter
+- [ ] Add Anthropic API adapter (direct API, not CLI)
+- [ ] Add OpenAI API adapter (direct API, not CLI)
+- [X] Add Google Gemini provider adapter
 - [ ] Add Ollama/local model support via OpenAI-compatible API
-- [ ] Add `/connect` flow for provider API key management
+- [X] Add `/connect` flow for provider API key management
 - [ ] Implement `small_model` for lightweight tasks
 - [ ] Implement provider-specific options (baseURL, timeout, headers)
 - [ ] Add `enabled_providers` / `disabled_providers` config
+- [ ] Add provider model catalog (load `/v1/models` from Anthropic/OpenAI)
+- [ ] Store model IDs in `src/constants/provider-models.ts` with refresh task
+- [ ] **Popular provider adapters:**
+  - [ ] Azure OpenAI
+  - [ ] AWS Bedrock (Anthropic/OpenAI-compatible)
+  - [ ] Google Vertex AI (Anthropic/OpenAI-compatible)
+  - [ ] Mistral
+  - [ ] Cohere
+  - [ ] Groq
+  - [ ] Perplexity
+  - [ ] xAI
+  - [ ] Together
+  - [ ] Fireworks
+  - [ ] OpenRouter
 - [ ] Tests for each provider
 
 ### Phase 13: Cross-Tool Compatibility & Rules System (2-3 weeks)
 
 **Goal:** Universal config loader that reads from ALL tool folder conventions. Zero migration needed.
 
-- [ ] **Universal rules loader (TOADSTOOL.md / AGENTS.md / CLAUDE.md / GEMINI.md):**
-  - [ ] Traverse up from cwd to git root for all rule files
-  - [ ] Load from global locations (~/.config/toadstool/, ~/.claude/, ~/.gemini/)
-  - [ ] Combine all rules with precedence (TOADSTOOL > AGENTS > CLAUDE > GEMINI)
-  - [ ] Parse Gemini `@file.md` import syntax
+- [X] **Universal rules loader (TOADSTOOL.md / AGENTS.md / CLAUDE.md / GEMINI.md):**
+  - [X] Traverse up from cwd to git root for all rule files
+  - [X] Load from global locations (~/.config/toadstool/, ~/.claude/, ~/.gemini/)
+  - [X] Combine all rules with precedence (TOADSTOOL > AGENTS > CLAUDE > GEMINI)
+  - [X] Parse Gemini `@file.md` import syntax
 - [ ] **Universal skills loader:**
   - [ ] Scan `.toadstool/skills/`, `.claude/skills/`, `.opencode/skills/`, `.cursor/skills/`
   - [ ] Scan global: `~/.config/toadstool/skills/`, `~/.claude/skills/`
   - [ ] SKILL.md frontmatter parsing and validation
   - [ ] `skill` tool for on-demand loading by agents
   - [ ] Skill permissions (allow/deny/ask with glob patterns)
+- [ ] **Resources system (skills/resources/commands parity):**
+  - [ ] Resource registry + loader (local + remote)
+  - [ ] Resource picker UI in TUI
+  - [ ] `resource` tool for on-demand loading
 - [ ] **Universal commands loader:**
   - [ ] Scan `.toadstool/commands/`, `.claude/commands/`, `.cursor/commands/`, `.opencode/command/`
   - [ ] Parse command .md files, register as slash commands
@@ -2818,7 +2874,7 @@ Establish performance patterns during migration while components are being rewri
 **Goal:** HTTP server (from OpenCode) + headless SDK mode (from Claude Code).
 
 - [ ] **Server mode (from OpenCode):**
-  - [ ] `toadstool serve` - Headless HTTP server
+  - [X] `toadstool serve` - Headless HTTP server
   - [ ] OpenAPI 3.1 spec generation
   - [ ] Session CRUD endpoints (list, create, delete, fork, abort)
   - [ ] Message endpoints (send sync/async, list, shell commands)
@@ -2841,6 +2897,9 @@ Establish performance patterns during migration while components are being rewri
   - [ ] `toadstool agent create` - Agent creation wizard
   - [ ] `toadstool models` - List available models
   - [ ] `toadstool mcp` - MCP server management
+  - [ ] `toadstool run` - Non-interactive execution (OpenCode parity)
+  - [ ] `toadstool attach` - Attach to remote server session
+  - [ ] `toadstool auth` - Provider credential management
 - [ ] Tests for all API endpoints and CLI flags
 
 ### Phase 15: Advanced Features (2-3 weeks)
@@ -2877,26 +2936,30 @@ Establish performance patterns during migration while components are being rewri
 - [ ] Multi-edit/patch tool (batch file modifications)
 - [ ] Scroll acceleration (`<scrollbox scrollAcceleration={...}>`)
 - [ ] OpenTUI animations for modals and transitions (`useTimeline()`)
+- [ ] **Beads integration (bd):**
+  - [ ] Add `bd` tool wrapper for task/memory workflows
+  - [ ] Add hooks: SessionStart -> `bd prime`, PreCompact -> `bd sync`
+  - [ ] Add `bd` task import/export for plan view
 
 ### Phase 16: Distribution & Polish (1-2 weeks)
 
 **Goal:** Publishable, installable, production-ready. Daily-driver quality.
 
 - [ ] npm publish setup (package.json files, bin, exports)
-- [ ] Install script (`curl -fsSL https://toadstool.dev/install | bash`)
-- [ ] Homebrew tap formula
+- [X] Install script (`curl -fsSL https://toadstool.dev/install | bash`)
+- [X] Homebrew tap formula
 - [ ] GitHub Actions CI pipeline (lint, typecheck, test, build, publish)
-- [ ] Auto-update check on startup (configurable)
+- [X] Auto-update check on startup (configurable)
 - [ ] **Terminal setup command (from Claude Code):**
   - [ ] `/terminal-setup` to configure Shift+Enter, Alt keys, etc.
   - [ ] Auto-detect terminal and suggest config changes
 - [ ] Terminal compatibility documentation (Shift+Enter, true color, etc.)
 - [ ] Accessibility: Unicode fallback characters, color contrast verification
-- [ ] Performance benchmarks: startup time, streaming latency, memory usage
+- [X] Performance benchmarks: startup time, streaming latency, memory usage
 - [ ] README.md overhaul with screenshots, feature list, installation guide
 - [ ] CONTRIBUTING.md for open-source contributors
-- [ ] **AI App Store / Agent Discovery (from TOAD):**
-  - [ ] Browse available ACP agents from TUI
+- [X] **AI App Store / Agent Discovery (from TOAD):**
+  - [X] Browse available ACP agents from TUI
   - [ ] One-command install of agents
   - [ ] Curated agent list with descriptions
 
@@ -3010,17 +3073,17 @@ export function MarkdownView({ content, streaming = false, syntaxStyle }: Markdo
 
 **Prompt Editor (TOAD-quality input):**
 The input component is the first thing users interact with. It must feel as polished as TOAD's:
-- Live Markdown syntax highlighting in the input (code fences highlighted *before* closing)
-- Mouse click to position cursor, drag to select
-- Full readline keybindings (Ctrl+A/E/B/F/K/U/W/D)
-- Kill ring (Ctrl+K/U stores, Ctrl+Y pastes, Alt+Y cycles)
-- Text selection with Shift+Arrows
-- Multi-line with Shift+Enter
-- `@` fuzzy file picker with Tab to switch to tree view
-- `/` slash command autocomplete
-- `!` bash mode (auto-detect configurable commands)
-- Reverse history search (Ctrl+R)
-- Tab completion for shell commands
+- [ ] Live Markdown syntax highlighting in the input (code fences highlighted *before* closing)
+- [ ] Mouse click to position cursor, drag to select
+- [ ] Full readline keybindings (Ctrl+A/E/B/F/K/U/W/D)
+- [ ] Kill ring (Ctrl+K/U stores, Ctrl+Y pastes, Alt+Y cycles)
+- [ ] Text selection with Shift+Arrows
+- [ ] Multi-line with Shift+Enter
+- [ ] `@` fuzzy file picker with Tab to switch to tree view
+- [ ] `/` slash command autocomplete
+- [ ] `!` bash mode (auto-detect configurable commands)
+- [ ] Reverse history search (Ctrl+R)
+- [ ] Tab completion for shell commands
 
 **File Picker (TOAD dual-mode):**
 ```typescript
@@ -3190,73 +3253,73 @@ this becomes user-customizable via theme files.
 ## Success Criteria
 
 ### Phase 4 (OpenTUI Migration + Code Quality + Performance)
-- App runs on Bun with `@opentui/react`
-- All Ink dependencies removed
-- `<markdown>`, `<diff>`, `<code>`, `<scrollbox>` intrinsics rendering correctly
-- Streaming mode working for live LLM output at 60fps
-- Zero magic numbers/strings in source code
-- No file > 300 lines
-- All `as` assertions reduced by 50%+, all `!` reduced by 70%+
-- **Performance foundations:**
-  - Resize debounce, viewport culling, streaming buffer
-  - Worker thread for diffs, message virtualization
-  - Startup < 200ms p50, stream frame < 16ms p50
-- All tests pass, build succeeds, typecheck clean
+- [ ] App runs on Bun with `@opentui/react`
+- [ ] All Ink dependencies removed
+- [ ] `<markdown>`, `<diff>`, `<code>`, `<scrollbox>` intrinsics rendering correctly
+- [ ] Streaming mode working for live LLM output at 60fps
+- [ ] Zero magic numbers/strings in source code
+- [ ] No file > 300 lines
+- [ ] All `as` assertions reduced by 50%+, all `!` reduced by 70%+
+- [ ] **Performance foundations:**
+  - [ ] Resize debounce, viewport culling, streaming buffer
+  - [ ] Worker thread for diffs, message virtualization
+  - [ ] Startup < 200ms p50, stream frame < 16ms p50
+- [ ] All tests pass, build succeeds, typecheck clean
 
 ### Phase 5-6 (Tools + Shell + Agents)
-- All 13 built-in tools working end-to-end
-- **True shell integration (TOAD):** persistent state, interactive apps, tab completion
-- **Background tasks (Claude Code):** Ctrl+B to background, TaskOutput tool
-- Build and Plan agents switchable via Tab
-- Subagent invocation via @mention
-- Tool permission system enforced per agent
+- [ ] All 13 built-in tools working end-to-end
+- [ ] **True shell integration (TOAD):** persistent state, interactive apps, tab completion
+- [ ] **Background tasks (Claude Code):** Ctrl+B to background, TaskOutput tool
+- [ ] Build and Plan agents switchable via Tab
+- [ ] Subagent invocation via @mention
+- [ ] Tool permission system enforced per agent
 
 ### Phase 7-8 (Commands + Checkpointing)
-- 25+ slash commands (combined OpenCode + Claude Code parity)
-- **Hybrid checkpointing:** per-prompt snapshots + git-based undo/redo
-- `/rewind` with 4 options (code, conversation, both, summarize)
-- **Diagnostic commands:** `/doctor`, `/debug`, `/context`, `/stats`, `/cost`
-- `!` prefix bash execution + auto-detect shell commands
-- `$EDITOR` integration, SVG export, settings TUI
+- [ ] 25+ slash commands (combined OpenCode + Claude Code parity)
+- [ ] **Hybrid checkpointing:** per-prompt snapshots + git-based undo/redo
+- [ ] `/rewind` with 4 options (code, conversation, both, summarize)
+- [ ] **Diagnostic commands:** `/doctor`, `/debug`, `/context`, `/stats`, `/cost`
+- [ ] `!` prefix bash execution + auto-detect shell commands
+- [ ] `$EDITOR` integration, SVG export, settings TUI
 
 ### Phase 9-10 (Config + Hooks + Compaction)
-- Multi-source config with merging
-- **Leader key keybinds (OpenCode):** Ctrl+X leader, 80+ configurable actions
-- **Vim editor mode (Claude Code):** Full vim keybindings in input
-- **Hooks system (Claude Code):** Pre/PostToolUse, PermissionRequest, SessionStart, etc.
-- **Permission modes:** Auto-Accept, Plan, Normal with Shift+Tab cycling
-- Auto-compaction prevents context overflow
-- Theme customization via SyntaxStyle files
+- [ ] Multi-source config with merging
+- [ ] **Leader key keybinds (OpenCode):** Ctrl+X leader, 80+ configurable actions
+- [ ] **Vim editor mode (Claude Code):** Full vim keybindings in input
+- [ ] **Hooks system (Claude Code):** Pre/PostToolUse, PermissionRequest, SessionStart, etc.
+- [ ] **Permission modes:** Auto-Accept, Plan, Normal with Shift+Tab cycling
+- [ ] Auto-compaction prevents context overflow
+- [ ] Theme customization via SyntaxStyle files
 
 ### Phase 11-12 (Sessions + Providers)
-- **Block navigation (TOAD):** Cursor through conversation blocks
-- Session sharing via URL, forking, rename, diff view
-- 3+ LLM providers working (Anthropic, OpenAI, Google/Ollama)
-- `/connect` and `/models` flows complete
-- `small_model` for automated tasks (title, compaction, summary)
+- [ ] **Block navigation (TOAD):** Cursor through conversation blocks
+- [ ] Session sharing via URL, forking, rename, diff view
+- [ ] 3+ LLM providers working (Anthropic, OpenAI, Google/Ollama)
+- [ ] `/connect` and `/models` flows complete
+- [ ] `small_model` for automated tasks (title, compaction, summary)
 
 ### Phase 13-14 (Cross-Tool Compat + Server)
-- **Universal config loading:** All 5 tool folders discovered automatically
-  - `.toadstool/`, `.claude/`, `.cursor/`, `.opencode/`, `.gemini/`
-  - TOADSTOOL.md + AGENTS.md + CLAUDE.md + GEMINI.md + .cursorrules
-  - Skills, commands, agents, hooks, rules from ALL tools merged
-  - Cursor .mdc format parsed and converted
-  - Gemini `@file.md` imports resolved
-- Custom tool files (`.opencode/tools/*.ts`, `.toadstool/tools/*.ts`)
-- `toadstool serve` HTTP API with OpenAPI spec
-- `toadstool -p "prompt"` headless mode with --json-schema, --max-budget-usd
-- TUI control API for IDE integration
+- [ ] **Universal config loading:** All 5 tool folders discovered automatically
+  - [ ] `.toadstool/`, `.claude/`, `.cursor/`, `.opencode/`, `.gemini/`
+  - [ ] TOADSTOOL.md + AGENTS.md + CLAUDE.md + GEMINI.md + .cursorrules
+  - [ ] Skills, commands, agents, hooks, rules from ALL tools merged
+  - [ ] Cursor .mdc format parsed and converted
+  - [ ] Gemini `@file.md` imports resolved
+- [ ] Custom tool files (`.opencode/tools/*.ts`, `.toadstool/tools/*.ts`)
+- [ ] `toadstool serve` HTTP API with OpenAPI spec
+- [ ] `toadstool -p "prompt"` headless mode with --json-schema, --max-budget-usd
+- [ ] TUI control API for IDE integration
 
 ### Phase 15-16 (Advanced + Distribution)
-- LSP integration, plugin system, prompt suggestions, PR status
-- Image paste, model variant cycling, code formatters
-- npm publish, brew tap, install script, CI pipeline
-- **Performance verified against budgets:**
-  - Startup < 200ms, stream < 16ms, keyboard < 8ms
-  - Large diffs (10k lines) render in < 200ms first viewport
-  - 100+ message conversations scroll at 60fps
-- AI App Store / agent discovery
-- Accessibility verified
+- [ ] LSP integration, plugin system, prompt suggestions, PR status
+- [ ] Image paste, model variant cycling, code formatters
+- [ ] npm publish, brew tap, install script, CI pipeline
+- [ ] **Performance verified against budgets:**
+  - [ ] Startup < 200ms, stream < 16ms, keyboard < 8ms
+  - [ ] Large diffs (10k lines) render in < 200ms first viewport
+  - [ ] 100+ message conversations scroll at 60fps
+- [ ] AI App Store / agent discovery
+- [ ] Accessibility verified
 
 ---
 
@@ -3313,11 +3376,11 @@ vscode-languageclient # LSP client (if adding LSP)
 ```
 
 ### External tools required:
-- `bun` - Runtime (replaces Node.js for app execution)
-- `git` - For undo/redo feature
-- `ripgrep` (`rg`) - Already a dependency via `@vscode/ripgrep`
-- `$EDITOR` env var - For external editor integration
-- `tree-sitter` - Built into OpenTUI (no separate install needed)
+- [ ] `bun` - Runtime (replaces Node.js for app execution)
+- [ ] `git` - For undo/redo feature
+- [ ] `ripgrep` (`rg`) - Already a dependency via `@vscode/ripgrep`
+- [ ] `$EDITOR` env var - For external editor integration
+- [ ] `tree-sitter` - Built into OpenTUI (no separate install needed)
 
 ### Packages removed in Phase 4:
 ```
@@ -3346,5 +3409,5 @@ diff                  # Diff generation (may be replaced by OpenTUI <diff>)
 
 ---
 
-*Last Updated: 2026-02-09*
+*Last Updated: 2026-02-10*
 *Next Review: After Phase 4 completion*

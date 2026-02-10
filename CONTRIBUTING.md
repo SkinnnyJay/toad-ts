@@ -5,8 +5,8 @@ Thanks for helping improve TOADSTOOL. This repo follows strict TypeScript and UX
 ## Development
 
 ```bash
-npm install --legacy-peer-deps
-npm run dev
+bun install
+bun run dev
 ```
 
 ## Quality Gates
@@ -14,19 +14,19 @@ npm run dev
 Before opening a PR, run:
 
 ```bash
-npm run format
-npm run lint
-npm run typecheck
-npm run test
-npm run build
-npm run check:literals
+bun run format
+bun run lint
+bun run typecheck
+bun run test
+bun run build
+bun run check:literals
 ```
 
 ## Tests
 
-- Unit: `npm run test:unit`
-- Integration: `npm run test:integration`
-- E2E: `npm run test:e2e`
+- Unit: `bun run test:unit`
+- Integration: `bun run test:integration`
+- E2E: `bun run test:e2e`
 
 ## Code Standards
 

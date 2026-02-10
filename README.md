@@ -34,10 +34,10 @@ A unified terminal interface for AI coding agents, built with TypeScript, Ink, a
 
 ```bash
 # Install globally
-npm install -g toadstool-cli
+bun add -g toadstool-cli
 
 # Or use npx
-npx toadstool-cli
+bunx toadstool-cli
 
 # Install via script (from source checkout)
 ./scripts/install.sh
@@ -88,13 +88,13 @@ toadstool --server --port 4141
 
 ### Claude CLI setup
 
-- Install the binary: `npm install -g claude-code-acp` (or ensure it is in `node_modules/.bin`).
+- Install the binary: `bun add -g claude-code-acp` (or ensure it is in `node_modules/.bin`).
 - Set `ANTHROPIC_API_KEY` (in your shell or `.env`); the adapter will refuse to start without it.
 - Credential storage: keychain (keytar) by default; disk is **not** used unless you set `TOADSTOOL_CREDENTIAL_STORE=disk`. For tests/CI, prefer `TOADSTOOL_CREDENTIAL_STORE=memory`.
 - Sandbox: file/terminal access is scoped to the launch cwd; set `TOADSTOOL_ALLOW_ESCAPE=1` only if you intentionally want to allow paths outside the project root.
 - Override command/args if needed: `TOADSTOOL_CLAUDE_COMMAND`, `TOADSTOOL_CLAUDE_ARGS`.
 - If the binary is in `node_modules/.bin`, the adapter prepends that to `PATH` automatically.
-- Opt-in real harness test: `RUN_CLAUDE_CLI_E2E=1 npm run test -- __tests__/integration/core/claude-session-flow.integration.test.ts`.
+- Opt-in real harness test: `RUN_CLAUDE_CLI_E2E=1 bun run test -- __tests__/integration/core/claude-session-flow.integration.test.ts`.
 
 ### 3. Start chatting!
 
@@ -173,7 +173,7 @@ See `docs/COMPATIBILITY.md` for terminal compatibility tips.
 Run the benchmark script to capture baseline timings:
 
 ```bash
-npm run benchmark
+bun run benchmark
 ```
 
 See `docs/PERFORMANCE.md` for details.
@@ -298,7 +298,7 @@ git clone https://github.com/your-org/toadstool-ts.git
 cd toadstool-ts
 
 # Install dependencies
-npm install
+bun install
 
 # Set up environment
 cp .env.sample .env
@@ -309,31 +309,31 @@ cp .env.sample .env
 
 ```bash
 # Development mode (watch)
-npm run dev
+bun run dev
 
 # Build for production
-npm run build
+bun run build
 
 # Run tests
-npm test
+bun run test
 
 # Run tests with coverage
-npm run test:coverage
+bun run test:coverage
 
 # Run E2E scenarios
-npm run test:scenarios
+bun run test:scenarios
 
 # Type check
-npm run typecheck
+bun run typecheck
 
 # Lint
-npm run lint
+bun run lint
 
 # Format code
-npm run format
+bun run format
 
 # Check for magic literals
-npx tsx scripts/check-magic-literals.ts
+bun run check:literals
 ```
 
 ### Code Style & Constants
@@ -424,13 +424,13 @@ TOADSTOOL uses a three-layer validation approach:
 
 ```bash
 # Run all tests
-npm test
+bun run test
 
 # Run with UI
-npm run test:ui
+bunx vitest --ui
 
 # Run specific test file
-npm test -- src/store/app-store.test.ts
+bun run test -- src/store/app-store.test.ts
 ```
 
 ---
@@ -496,7 +496,7 @@ Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md)
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing`)
-3. Run tests (`npm test`)
+3. Run tests (`bun run test`)
 4. Commit your changes (`git commit -m 'Add amazing feature'`)
 5. Push to the branch (`git push origin feature/amazing`)
 6. Open a Pull Request

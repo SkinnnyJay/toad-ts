@@ -25,21 +25,21 @@ src/
 ## Build, Test, and Development Commands
 
 ```bash
-npm run dev              # Run with tsx (development mode)
-npm run dev:watch        # Run with tsx in watch mode
-npm run build            # Build with tsup (outputs to dist/)
-npm start                # Execute the compiled CLI from dist/
-npm test                 # Run all tests with vitest
-npm run test:unit        # Run unit tests only
-npm run test:integration # Run integration tests
-npm run test:e2e         # Run end-to-end tests
-npm run test:coverage    # Run tests with coverage report
-npm run lint             # Lint with Biome + ESLint
-npm run lint:fix         # Lint and auto-fix
-npm run format           # Format with Biome
-npm run typecheck        # TypeScript type checking (tsc --noEmit)
-npm run check:literals   # Check for magic literals
-npm run build:test:all   # Full quality gate (clean + typecheck + format + lint + build + tests)
+bun run dev              # Run with tsx (development mode)
+bun run dev:watch        # Run with tsx in watch mode
+bun run build            # Build with tsup (outputs to dist/)
+bun run start            # Execute the compiled CLI from dist/
+bun run test             # Run all tests with vitest
+bun run test:unit        # Run unit tests only
+bun run test:integration # Run integration tests
+bun run test:e2e         # Run end-to-end tests
+bun run test:coverage    # Run tests with coverage report
+bun run lint             # Lint with Biome + ESLint
+bun run lint:fix         # Lint and auto-fix
+bun run format           # Format with Biome
+bun run typecheck        # TypeScript type checking (tsc --noEmit)
+bun run check:literals   # Check for magic literals
+bun run build:test:all   # Full quality gate (clean + typecheck + format + lint + build + tests)
 ```
 
 ## Coding Style & Naming Conventions
@@ -58,7 +58,7 @@ npm run build:test:all   # Full quality gate (clean + typecheck + format + lint 
 
 - Framework: Vitest with globals enabled
 - Test files: `__tests__/<unit|integration>/<domain>/<name>.<unit|integration>.test.ts`
-- Run a single test: `npx vitest run __tests__/unit/core/message-handler.unit.test.ts`
+- Run a single test: `bunx vitest run __tests__/unit/core/message-handler.unit.test.ts`
 - Target >= 95% coverage for changed/added units
 - Separate configs: `vitest.unit.config.ts`, `vitest.integration.config.ts`, `vitest.e2e.config.ts`
 
@@ -77,4 +77,4 @@ npm run build:test:all   # Full quality gate (clean + typecheck + format + lint 
 
 ## Execution Verification Policy
 
-Never claim lint/typecheck/test/build were run unless the exact commands completed successfully. For every change cycle, run and verify: `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build`. If any command fails, surface the error and do not proceed.
+Never claim lint/typecheck/test/build were run unless the exact commands completed successfully. For every change cycle, run and verify: `bun run lint`, `bun run typecheck`, `bun run test`, and `bun run build`. If any command fails, surface the error and do not proceed.

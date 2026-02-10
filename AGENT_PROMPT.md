@@ -104,11 +104,11 @@ While working through each file, actively identify and fix:
    d. Check for anti-patterns, magic literals, type safety issues in any code you touched or neighboring code.
 4. **Verify** after every logical batch of tasks (every 3-5 tasks or after each sub-phase):
    ```bash
-   npm run format
-   npm run lint:fix
-   npm run typecheck
-   npm run test
-   npm run build
+   bun run format
+   bun run lint:fix
+   bun run typecheck
+   bun run test
+   bun run build
    ```
    If **any** command fails, fix it before proceeding. Do not move forward with red builds.
 5. **Mark** completed tasks in `PLAN.md` by changing `[ ]` to `[X]`.
@@ -119,12 +119,12 @@ While working through each file, actively identify and fix:
 
 ### Quality Gate (Must Pass Before Moving to Next Phase)
 
-- [ ] `npm run format` — clean
-- [ ] `npm run lint` — zero warnings, zero errors
-- [ ] `npm run typecheck` — zero errors
-- [ ] `npm run test` — all pass
-- [ ] `npm run build` — succeeds
-- [ ] `npm run check:literals` — no new magic literals
+- [ ] `bun run format` — clean
+- [ ] `bun run lint` — zero warnings, zero errors
+- [ ] `bun run typecheck` — zero errors
+- [ ] `bun run test` — all pass
+- [ ] `bun run build` — succeeds
+- [ ] `bun run check:literals` — no new magic literals
 - [ ] No file exceeds 300 lines
 - [ ] No `any` types in changed files
 - [ ] No `as` casts without runtime guard in changed files

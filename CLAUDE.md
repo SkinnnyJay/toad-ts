@@ -10,39 +10,39 @@ TOADSTOOL (Terminal Orchestration for AI Development) is a unified terminal inte
 
 ```bash
 # Development
-npm run dev              # Run with tsx (development mode)
-npm run dev:watch        # Run with tsx in watch mode
+bun run dev              # Run with tsx (development mode)
+bun run dev:watch        # Run with tsx in watch mode
 
 # Build
-npm run build            # Build with tsup (outputs to dist/)
-npm run clean            # Remove dist/
-npm start                # Execute the compiled CLI from dist/
+bun run build            # Build with tsup (outputs to dist/)
+bun run clean            # Remove dist/
+bun run start            # Execute the compiled CLI from dist/
 
 # Testing
-npm test                 # Run all tests with vitest
-npm run test:watch       # Run tests in watch mode
-npm run test:unit        # Run unit tests only (vitest.unit.config.ts)
-npm run test:integration # Run integration tests (vitest.integration.config.ts)
-npm run test:e2e         # Run end-to-end tests (vitest.e2e.config.ts)
-npm run test:coverage    # Run tests with coverage report
+bun run test             # Run all tests with vitest
+bun run test:watch       # Run tests in watch mode
+bun run test:unit        # Run unit tests only (vitest.unit.config.ts)
+bun run test:integration # Run integration tests (vitest.integration.config.ts)
+bun run test:e2e         # Run end-to-end tests (vitest.e2e.config.ts)
+bun run test:coverage    # Run tests with coverage report
 
 # Run a single test file
-npx vitest run __tests__/unit/core/message-handler.unit.test.ts
+bunx vitest run __tests__/unit/core/message-handler.unit.test.ts
 
 # Code Quality
-npm run typecheck        # TypeScript type checking (tsc --noEmit)
-npm run lint             # Lint with Biome + ESLint
-npm run lint:fix         # Lint and auto-fix with Biome + ESLint
-npm run format           # Format with Biome
-npm run check:literals   # Check for magic literals
+bun run typecheck        # TypeScript type checking (tsc --noEmit)
+bun run lint             # Lint with Biome + ESLint
+bun run lint:fix         # Lint and auto-fix with Biome + ESLint
+bun run format           # Format with Biome
+bun run check:literals   # Check for magic literals
 
 # Database
-npm run db:clear         # Clear SQLite database
-npm run db:migrate       # Run database migrations
-npm run db:reset         # Clear and re-migrate
+bun run db:clear         # Clear SQLite database
+bun run db:migrate       # Run database migrations
+bun run db:reset         # Clear and re-migrate
 
 # Full quality gate
-npm run build:test:all   # clean + typecheck + format + lint + build + test:unit + test:integration + test:e2e
+bun run build:test:all   # clean + typecheck + format + lint + build + test:unit + test:integration + test:e2e
 ```
 
 ## Architecture
@@ -115,4 +115,4 @@ src/
 
 ## Execution Verification Policy
 
-Never claim lint/typecheck/test/build were run unless the exact commands completed successfully. For every change cycle, run and verify: `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build`. If any command fails, surface the error and do not proceed.
+Never claim lint/typecheck/test/build were run unless the exact commands completed successfully. For every change cycle, run and verify: `bun run lint`, `bun run typecheck`, `bun run test`, and `bun run build`. If any command fails, surface the error and do not proceed.

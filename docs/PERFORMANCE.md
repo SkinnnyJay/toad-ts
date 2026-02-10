@@ -3,7 +3,7 @@
 Use the built-in benchmark script to capture baseline timings for configuration and provider load.
 
 ```bash
-npm run benchmark
+bun run benchmark
 ```
 
 This script reports:

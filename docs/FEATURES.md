@@ -214,11 +214,11 @@ You are a code reviewer...
 ### Quality Gates
 Every commit must pass:
 ```bash
-npm run format      # Code formatting
-npm run lint:fix    # Linting with fixes
-npm run typecheck   # TypeScript compilation
-npm run test        # Test suite
-npm run build       # Build verification
+bun run format      # Code formatting
+bun run lint:fix    # Linting with fixes
+bun run typecheck   # TypeScript compilation
+bun run test        # Test suite
+bun run build       # Build verification
 ```
 
 ### Type Safety Metrics
