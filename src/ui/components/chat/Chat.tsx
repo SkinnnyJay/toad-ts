@@ -16,6 +16,7 @@ import { SESSION_MODE } from "@/constants/session-modes";
 import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { useAppStore } from "@/store/app-store";
+import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import { runInteractiveShellCommand } from "@/tools/interactive-shell";
 import { createToolRuntime } from "@/tools/runtime";
 import { getShellCommandConfig, isShellCommandInput } from "@/tools/shell-command-config";
@@ -48,6 +49,7 @@ export interface ChatProps {
   onOpenSessions?: () => void;
   onOpenAgentSelect?: () => void;
   onOpenThemes?: () => void;
+  checkpointManager?: CheckpointManager;
   subAgentRunner?: SubAgentRunner;
   focusTarget?: FocusTarget;
 }
@@ -64,6 +66,7 @@ export const Chat = memo(
     onOpenSessions,
     onOpenAgentSelect,
     onOpenThemes,
+    checkpointManager,
     subAgentRunner,
     focusTarget = FOCUS_TARGET.CHAT,
   }: ChatProps): ReactNode => {
@@ -182,6 +185,7 @@ export const Chat = memo(
       agent,
       agents,
       subAgentRunner,
+      checkpointManager,
     });
 
     const shellCompletion = useMemo(
@@ -193,6 +197,12 @@ export const Chat = memo(
     );
 
     const updateMessage = useAppStore((state) => state.updateMessage);
+    const handlePromptStart = useCallback(
+      (id: SessionId, prompt: string) => {
+        checkpointManager?.startCheckpoint(id, prompt);
+      },
+      [checkpointManager]
+    );
     const { handleSubmit, modeWarning } = useMessageSender({
       sessionMode,
       sessionId,
@@ -204,6 +214,7 @@ export const Chat = memo(
       updateMessage,
       onPromptComplete,
       handleSlashCommand,
+      onPromptStart: handlePromptStart,
       onResetInput: () => setInputValue(""),
       appendSystemMessage,
       toolRuntime,

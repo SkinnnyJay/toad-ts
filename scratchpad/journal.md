@@ -19,3 +19,4 @@
 - 2026-02-10 00:10 - Added diagnostics slash commands (/doctor, /debug, /context, /stats, /cost).
 - 2026-02-10 00:45 - Added /memory, /copy, /undo/redo/rewind, /share/unshare, and /compact flows.
 - 2026-02-10 01:30 - Added /themes selector and /connect agent selection flow.
+- 2026-02-10 02:20 - Added checkpoint manager, file change tracking, and /rewind list/delete.

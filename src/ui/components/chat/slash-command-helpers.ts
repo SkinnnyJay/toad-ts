@@ -2,15 +2,12 @@ import { mkdir, rm, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
 
-import { LIMIT } from "@/config/limits";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { FILE_PATH } from "@/constants/file-paths";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import type { ContentBlock, Message, Session, SessionId } from "@/types/domain";
 import { createDefaultTokenizerAdapter } from "@/utils/token-optimizer/tokenizer";
 import { findUp } from "find-up";
-
-const redoStackBySession = new Map<SessionId, Message[][]>();
 
 const ROLE_LABEL: Record<Message["role"], string> = {
   [MESSAGE_ROLE.USER]: "User",
@@ -55,28 +52,6 @@ export const orderMessages = (messages: Message[]): Message[] =>
   messages
     .slice()
     .sort((a, b) => a.createdAt - b.createdAt || String(a.id).localeCompare(String(b.id)));
-
-export const pushRedoStack = (sessionId: SessionId, removed: Message[]): void => {
-  const stack = redoStackBySession.get(sessionId) ?? [];
-  stack.push(removed);
-  if (stack.length > LIMIT.UNDO_STACK_LIMIT) {
-    stack.shift();
-  }
-  redoStackBySession.set(sessionId, stack);
-};
-
-export const popRedoStack = (sessionId: SessionId): Message[] | null => {
-  const stack = redoStackBySession.get(sessionId);
-  if (!stack || stack.length === 0) {
-    return null;
-  }
-  const last = stack.pop();
-  if (!last) {
-    return null;
-  }
-  redoStackBySession.set(sessionId, stack);
-  return last;
-};
 
 export const resolveSharedSessionPath = (sessionId: SessionId): string =>
   path.join(homedir(), FILE_PATH.TOADSTOOL_DIR, FILE_PATH.SHARED_SESSIONS_DIR, `${sessionId}.md`);

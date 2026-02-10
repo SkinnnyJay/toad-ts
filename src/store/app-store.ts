@@ -3,7 +3,13 @@ import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { SIDEBAR_TAB } from "@/constants/sidebar-tabs";
 import { THEME } from "@/constants/themes";
 import { type SessionSnapshot, SessionSnapshotSchema } from "@/store/session-persistence";
-import { MessageSchema, SessionSchema } from "@/types/domain";
+import {
+  MessageIdSchema,
+  MessageSchema,
+  PlanIdSchema,
+  PlanSchema,
+  SessionSchema,
+} from "@/types/domain";
 import type {
   AppState,
   ConnectionStatus,
@@ -25,6 +31,7 @@ export interface AppStore extends AppState {
   appendMessage: (message: Message) => void;
   updateMessage: (params: UpdateMessageParams) => void;
   removeMessages: (sessionId: SessionId, messageIds: MessageId[]) => void;
+  restoreSessionSnapshot: (session: Session, messages: Message[], plan?: Plan) => void;
   getSession: (sessionId: SessionId) => Session | undefined;
   getMessage: (messageId: MessageId) => Message | undefined;
   getMessagesForSession: (sessionId: SessionId) => Message[];
@@ -123,6 +130,39 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
         sessions: updatedSession
           ? { ...state.sessions, [sessionId]: updatedSession }
           : state.sessions,
+      } as Partial<AppState>;
+    }),
+  restoreSessionSnapshot: (session, messages, plan) =>
+    set((state) => {
+      const parsedSession = SessionSchema.parse(session);
+      const parsedMessages = messages.map((message) => MessageSchema.parse(message));
+      const retainedMessages: AppState["messages"] = {};
+      for (const [id, message] of Object.entries(state.messages)) {
+        const parsedMessage = MessageSchema.parse(message);
+        if (parsedMessage.sessionId !== parsedSession.id) {
+          retainedMessages[MessageIdSchema.parse(id)] = parsedMessage;
+        }
+      }
+      for (const message of parsedMessages) {
+        retainedMessages[message.id] = message;
+      }
+
+      const retainedPlans: AppState["plans"] = {};
+      for (const [id, existing] of Object.entries(state.plans)) {
+        const parsedPlan = PlanSchema.parse(existing);
+        if (parsedPlan.sessionId !== parsedSession.id) {
+          retainedPlans[PlanIdSchema.parse(id)] = parsedPlan;
+        }
+      }
+      if (plan) {
+        const parsedPlan = PlanSchema.parse(plan);
+        retainedPlans[parsedPlan.id] = parsedPlan;
+      }
+
+      return {
+        sessions: { ...state.sessions, [parsedSession.id]: parsedSession },
+        messages: retainedMessages,
+        plans: retainedPlans,
       } as Partial<AppState>;
     }),
   clearMessagesForSession: (sessionId) =>

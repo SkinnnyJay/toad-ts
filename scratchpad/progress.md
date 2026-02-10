@@ -3,7 +3,7 @@
 ## Current Focus
 - Phase 4A: App smoke test
 - Phase 4E: Manual smoke tests
-- Phase 7-11: Slash commands, undo/redo, sharing, compaction
+- Phase 7-11: Slash commands, themes, checkpointing, sharing, compaction
 
 ## Status
 - [X] Install Bun
@@ -40,3 +40,6 @@
 - [X] Slash commands: /undo, /redo, /rewind
 - [X] Slash commands: /share + /unshare
 - [X] /compact triggers compaction subagent
+- [X] Checkpoint manager + persistent storage
+- [X] Checkpoint tracking for file changes (write/edit + ACP host)
+- [X] /rewind list/delete with checkpoint restore

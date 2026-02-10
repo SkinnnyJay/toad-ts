@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { TOOL_KIND } from "@/constants/tool-kinds";
 import { TOOL_NAME } from "@/constants/tool-names";
+import { getCheckpointManager } from "@/store/checkpoints/checkpoint-service";
 import type { ToolDefinition } from "@/tools/types";
 
 const WriteInputSchema = z.object({
@@ -24,7 +25,16 @@ export const writeTool: ToolDefinition<WriteToolOutput> = {
   inputSchema: WriteInputSchema,
   execute: async (input, context) => {
     const parsed = WriteInputSchema.parse(input);
+    const checkpointManager = getCheckpointManager();
+    const absolutePath = context.fs.resolve(parsed.path);
+    const existed = await context.fs.exists(parsed.path);
+    const before = existed ? await context.fs.read(parsed.path) : null;
     await context.fs.write(parsed.path, parsed.content);
+    checkpointManager?.recordFileChange({
+      path: absolutePath,
+      before,
+      after: parsed.content,
+    });
     return {
       ok: true,
       output: {

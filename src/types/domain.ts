@@ -234,6 +234,9 @@ export type SubAgentId = z.infer<typeof SubAgentIdSchema>;
 export const PlanIdSchema = z.string().min(1).brand<"PlanId">();
 export type PlanId = z.infer<typeof PlanIdSchema>;
 
+export const CheckpointIdSchema = z.string().min(1).brand<"CheckpointId">();
+export type CheckpointId = z.infer<typeof CheckpointIdSchema>;
+
 export const TaskStatusSchema = z.enum([
   TASK_STATUS.PENDING,
   TASK_STATUS.ASSIGNED,
@@ -294,6 +297,31 @@ export const PlanSchema = z.object({
   updatedAt: z.number().nonnegative(),
 });
 export type Plan = z.infer<typeof PlanSchema>;
+
+export const FileChangeSchema = z.object({
+  path: z.string().min(1),
+  before: z.string().nullable(),
+  after: z.string().nullable(),
+});
+export type FileChange = z.infer<typeof FileChangeSchema>;
+
+export const CheckpointSnapshotSchema = z.object({
+  session: SessionSchema,
+  messages: z.array(MessageSchema),
+  plan: PlanSchema.optional(),
+});
+export type CheckpointSnapshot = z.infer<typeof CheckpointSnapshotSchema>;
+
+export const CheckpointSchema = z.object({
+  id: CheckpointIdSchema,
+  sessionId: SessionIdSchema,
+  prompt: z.string().optional(),
+  createdAt: z.number().nonnegative(),
+  before: CheckpointSnapshotSchema,
+  after: CheckpointSnapshotSchema,
+  fileChanges: z.array(FileChangeSchema).default([]),
+});
+export type Checkpoint = z.infer<typeof CheckpointSchema>;
 
 export const AppStateSchema = z.object({
   connectionStatus: ConnectionStatusSchema,

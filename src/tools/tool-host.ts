@@ -1,4 +1,5 @@
 import { LIMIT } from "@/config/limits";
+import { getCheckpointManager } from "@/store/checkpoints/checkpoint-service";
 import type { ClientCapabilities } from "@agentclientprotocol/sdk";
 import type {
   CreateTerminalRequest,
@@ -74,7 +75,16 @@ export class ToolHost {
   }
 
   async writeTextFile(params: WriteTextFileRequest): Promise<WriteTextFileResponse> {
+    const checkpointManager = getCheckpointManager();
+    const absolutePath = this.fs.resolve(params.path);
+    const existed = await this.fs.exists(params.path);
+    const before = existed ? await this.fs.read(params.path) : null;
     await this.fs.write(params.path, params.content);
+    checkpointManager?.recordFileChange({
+      path: absolutePath,
+      before,
+      after: params.content,
+    });
     return {};
   }
 

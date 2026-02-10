@@ -1,6 +1,7 @@
 import { LIMIT } from "@/config/limits";
 import { ENV_KEY } from "@/constants/env-keys";
 import { PLAN_STATUS } from "@/constants/plan-status";
+import { REWIND_MODE } from "@/constants/rewind-modes";
 import {
   SLASH_COMMAND_MESSAGE,
   formatCompactionCompleteMessage,
@@ -14,8 +15,6 @@ import {
   formatModelUpdateFailedMessage,
   formatModelUpdatedMessage,
   formatPlanCreatedMessage,
-  formatRedoMessage,
-  formatRewindMessage,
   formatSessionCreateFailedMessage,
   formatSessionCreatedMessage,
   formatSessionListMessage,
@@ -23,11 +22,11 @@ import {
   formatStatsMessage,
   formatThinkingMessage,
   formatToolDetailsMessage,
-  formatUndoMessage,
   formatUnknownCommandMessage,
 } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { TASK_STATUS } from "@/constants/task-status";
+import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
 import { PlanIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
 import { EnvManager } from "@/utils/env/env.utils";
@@ -40,11 +39,11 @@ import {
   runUnshareCommand,
 } from "./slash-command-actions";
 import {
-  buildContextStats,
-  orderMessages,
-  popRedoStack,
-  pushRedoStack,
-} from "./slash-command-helpers";
+  handleRedoCommand,
+  handleRewindCommand,
+  handleUndoCommand,
+} from "./slash-command-checkpoints";
+import { buildContextStats } from "./slash-command-helpers";
 
 export interface SlashCommandDeps {
   sessionId?: SessionId;
@@ -68,6 +67,8 @@ export interface SlashCommandDeps {
   openMemoryFile?: (filePath: string) => Promise<boolean>;
   copyToClipboard?: (text: string) => Promise<boolean>;
   runCompaction?: (sessionId: SessionId) => Promise<SessionId | null>;
+  runSummary?: (prompt: string, sessionId: SessionId) => Promise<SessionId | null>;
+  checkpointManager?: CheckpointManager;
   connectionStatus?: string;
   now?: () => number;
 }
@@ -381,71 +382,39 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       return true;
     }
     case SLASH_COMMAND.UNDO: {
-      if (!deps.sessionId) {
-        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
-        return true;
-      }
-      if (!deps.removeMessages) {
-        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.UNDO_NOT_AVAILABLE);
-        return true;
-      }
-      const messages = orderMessages(deps.getMessagesForSession(deps.sessionId));
-      const last = messages[messages.length - 1];
-      if (!last) {
-        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MESSAGES_TO_UNDO);
-        return true;
-      }
-      deps.removeMessages(deps.sessionId, [last.id]);
-      pushRedoStack(deps.sessionId, [last]);
-      deps.appendSystemMessage(formatUndoMessage(1));
+      void handleUndoCommand(
+        {
+          sessionId: deps.sessionId,
+          checkpointManager: deps.checkpointManager,
+          appendSystemMessage: deps.appendSystemMessage,
+          getMessagesForSession: deps.getMessagesForSession,
+          runSummary: deps.runSummary,
+        },
+        REWIND_MODE.BOTH
+      );
       return true;
     }
     case SLASH_COMMAND.REDO: {
-      if (!deps.sessionId) {
-        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
-        return true;
-      }
-      if (!deps.appendMessage) {
-        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.REDO_NOT_AVAILABLE);
-        return true;
-      }
-      const removed = popRedoStack(deps.sessionId);
-      if (!removed || removed.length === 0) {
-        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MESSAGES_TO_REDO);
-        return true;
-      }
-      removed.forEach((message) => deps.appendMessage?.(message));
-      deps.appendSystemMessage(formatRedoMessage(removed.length));
+      void handleRedoCommand(
+        {
+          sessionId: deps.sessionId,
+          checkpointManager: deps.checkpointManager,
+          appendSystemMessage: deps.appendSystemMessage,
+          getMessagesForSession: deps.getMessagesForSession,
+          runSummary: deps.runSummary,
+        },
+        REWIND_MODE.BOTH
+      );
       return true;
     }
     case SLASH_COMMAND.REWIND: {
-      if (!deps.sessionId) {
-        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
-        return true;
-      }
-      if (!deps.removeMessages) {
-        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.REWIND_NOT_AVAILABLE);
-        return true;
-      }
-      const countInput = parts[1];
-      const parsedCount = countInput ? Number.parseInt(countInput, 10) : LIMIT.REWIND_DEFAULT_COUNT;
-      if (!Number.isFinite(parsedCount) || parsedCount <= 0) {
-        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.INVALID_REWIND_COUNT);
-        return true;
-      }
-      const messages = orderMessages(deps.getMessagesForSession(deps.sessionId));
-      if (messages.length === 0) {
-        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MESSAGES_TO_UNDO);
-        return true;
-      }
-      const count = Math.min(parsedCount, messages.length);
-      const removed = messages.slice(-count);
-      deps.removeMessages(
-        deps.sessionId,
-        removed.map((message) => message.id)
-      );
-      pushRedoStack(deps.sessionId, removed);
-      deps.appendSystemMessage(formatRewindMessage(count));
+      void handleRewindCommand(parts.slice(1), {
+        sessionId: deps.sessionId,
+        checkpointManager: deps.checkpointManager,
+        appendSystemMessage: deps.appendSystemMessage,
+        getMessagesForSession: deps.getMessagesForSession,
+        runSummary: deps.runSummary,
+      });
       return true;
     }
     case SLASH_COMMAND.THEMES: {

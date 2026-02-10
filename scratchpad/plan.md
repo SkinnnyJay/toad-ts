@@ -40,7 +40,12 @@
 
 ## Phase 8: Checkpointing & Undo/Redo
 - [ ] Phase 8 tasks (see PLAN.md)
-  - [X] Undo/redo/rewind commands for message history
+  - [X] Per-prompt checkpoint snapshots persisted to disk
+  - [X] Track tool file changes in checkpoints (write/edit + ACP)
+  - [X] /undo, /redo, /rewind wired to checkpoints
+  - [X] /rewind list/delete support
+  - [ ] Rewind menu + status footer indicator
+  - [ ] Git-based undo/redo integration
 
 ## Phase 9: Configuration & Keybind System
 - [ ] Phase 9 tasks (see PLAN.md)

@@ -15,6 +15,8 @@ import { SessionStream } from "@/core/session-stream";
 import { HarnessRegistry } from "@/harness/harnessRegistry";
 import { useAppStore } from "@/store/app-store";
 import { useBackgroundTaskStore } from "@/store/background-task-store";
+import { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
+import { registerCheckpointManager } from "@/store/checkpoints/checkpoint-service";
 import { createPersistenceConfig } from "@/store/persistence/persistence-config";
 import { PersistenceManager } from "@/store/persistence/persistence-manager";
 import { createPersistenceProvider } from "@/store/persistence/persistence-provider";
@@ -66,6 +68,8 @@ export function App(): ReactNode {
     const batchDelay = persistenceConfig.sqlite?.batchDelay ?? TIMEOUT.BATCH_DELAY_MS;
     return new PersistenceManager(useAppStore, provider, { writeMode, batchDelay });
   }, [persistenceConfig]);
+
+  const checkpointManager = useMemo(() => new CheckpointManager(useAppStore), []);
 
   // Session hydration hook
   const {
@@ -182,6 +186,13 @@ export function App(): ReactNode {
   }, [setProgress, setStatusMessage]);
 
   useEffect(() => {
+    registerCheckpointManager(checkpointManager);
+    return () => {
+      registerCheckpointManager(null);
+    };
+  }, [checkpointManager]);
+
+  useEffect(() => {
     applyThemeColors(theme);
   }, [theme]);
 
@@ -202,8 +213,9 @@ export function App(): ReactNode {
   const handlePromptComplete = useCallback(
     (id: SessionId) => {
       sessionStream.finalizeSession(id);
+      void checkpointManager.finalizeCheckpoint(id);
     },
-    [sessionStream]
+    [checkpointManager, sessionStream]
   );
 
   const handleSelectSession = useCallback(
@@ -411,6 +423,7 @@ export function App(): ReactNode {
                     onOpenSessions={() => setIsSessionsPopupOpen(true)}
                     onOpenThemes={() => setIsThemesOpen(true)}
                     onOpenAgentSelect={handleAgentSwitchRequest}
+                    checkpointManager={checkpointManager}
                     subAgentRunner={subAgentRunner}
                     focusTarget={focusTarget}
                   />

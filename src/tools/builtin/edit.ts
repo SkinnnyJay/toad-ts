@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { TOOL_KIND } from "@/constants/tool-kinds";
 import { TOOL_NAME } from "@/constants/tool-names";
+import { getCheckpointManager } from "@/store/checkpoints/checkpoint-service";
 import type { ToolDefinition } from "@/tools/types";
 
 const EditInputSchema = z.object({
@@ -37,6 +38,7 @@ export const editTool: ToolDefinition<EditToolOutput> = {
   inputSchema: EditInputSchema,
   execute: async (input, context) => {
     const parsed = EditInputSchema.parse(input);
+    const checkpointManager = getCheckpointManager();
     const content = await context.fs.read(parsed.path);
     const { updated, replaced } = applyReplacement(content, parsed.old_string, parsed.new_string);
 
@@ -45,6 +47,12 @@ export const editTool: ToolDefinition<EditToolOutput> = {
     }
 
     await context.fs.write(parsed.path, updated);
+    const absolutePath = context.fs.resolve(parsed.path);
+    checkpointManager?.recordFileChange({
+      path: absolutePath,
+      before: content,
+      after: updated,
+    });
 
     return {
       ok: true,

@@ -1,6 +1,7 @@
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { SESSION_MODE } from "@/constants/session-modes";
+import { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useAppStore } from "../../../src/store/app-store";
@@ -202,6 +203,7 @@ describe("Chat", () => {
   it("undos and redoes the last message", async () => {
     const sessionId = setupSession({ sessionId: "s-undo" });
     const store = useAppStore.getState();
+    const checkpointManager = new CheckpointManager(useAppStore);
 
     store.appendMessage({
       id: MessageIdSchema.parse("m-undo-1"),
@@ -211,6 +213,9 @@ describe("Chat", () => {
       createdAt: Date.now(),
       isStreaming: false,
     });
+
+    checkpointManager.startCheckpoint(sessionId, "undo prompt");
+
     store.appendMessage({
       id: MessageIdSchema.parse("m-undo-2"),
       sessionId,
@@ -219,6 +224,8 @@ describe("Chat", () => {
       createdAt: Date.now() + 1,
       isStreaming: false,
     });
+
+    await checkpointManager.finalizeCheckpoint(sessionId);
 
     runSlashCommand("/undo", {
       sessionId,
@@ -232,6 +239,7 @@ describe("Chat", () => {
       clearMessagesForSession: store.clearMessagesForSession,
       removeMessages: store.removeMessages,
       upsertPlan: store.upsertPlan,
+      checkpointManager,
     });
 
     await waitFor(() => store.getMessagesForSession(sessionId).length === 1);
@@ -248,6 +256,7 @@ describe("Chat", () => {
       clearMessagesForSession: store.clearMessagesForSession,
       removeMessages: store.removeMessages,
       upsertPlan: store.upsertPlan,
+      checkpointManager,
     });
 
     await waitFor(() => store.getMessagesForSession(sessionId).length === 2);

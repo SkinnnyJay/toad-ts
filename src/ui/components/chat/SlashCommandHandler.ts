@@ -1,12 +1,13 @@
 import type { AgentInfo } from "@/agents/agent-manager";
 import type { SubAgentRunner } from "@/agents/subagent-runner";
-import { AGENT_ID_SEPARATOR, COMPACTION } from "@/constants/agent-ids";
+import { AGENT_ID_SEPARATOR, COMPACTION, SUMMARY } from "@/constants/agent-ids";
 import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { loadMcpConfig } from "@/core/mcp-config-loader";
 import { SessionManager } from "@/core/session-manager";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { useAppStore } from "@/store/app-store";
+import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { Session, SessionId } from "@/types/domain";
 import { copyToClipboard } from "@/utils/clipboard/clipboard.utils";
 import { openExternalEditorForFile } from "@/utils/editor/externalEditor";
@@ -27,6 +28,7 @@ export interface SlashCommandHandlerOptions {
   onOpenEditor?: (initialValue: string) => Promise<void>;
   onOpenAgentSelect?: () => void;
   onOpenThemes?: () => void;
+  checkpointManager?: CheckpointManager;
   client?: HarnessRuntime | null;
   agent?: AgentInfo;
   agents?: AgentInfo[];
@@ -43,6 +45,7 @@ export const useSlashCommandHandler = ({
   onOpenEditor,
   onOpenAgentSelect,
   onOpenThemes,
+  checkpointManager,
   client,
   agent,
   agents = [],
@@ -74,23 +77,35 @@ export const useSlashCommandHandler = ({
     [renderer]
   );
 
-  const runCompaction = useCallback(
-    async (targetSessionId: SessionId) => {
-      if (!subAgentRunner || agents.length === 0) {
+  const resolveHiddenAgent = useCallback(
+    (suffix: string) => {
+      if (agents.length === 0) {
         return null;
       }
       const currentHarnessId = agent?.harnessId;
-      const compactionAgent =
+      return (
         agents.find(
           (candidate) =>
             candidate.hidden &&
-            String(candidate.id).endsWith(`${AGENT_ID_SEPARATOR}${COMPACTION}`) &&
+            String(candidate.id).endsWith(`${AGENT_ID_SEPARATOR}${suffix}`) &&
             (!currentHarnessId || candidate.harnessId === currentHarnessId)
         ) ??
         agents.find(
           (candidate) =>
-            candidate.hidden && String(candidate.id).endsWith(`${AGENT_ID_SEPARATOR}${COMPACTION}`)
-        );
+            candidate.hidden && String(candidate.id).endsWith(`${AGENT_ID_SEPARATOR}${suffix}`)
+        ) ??
+        null
+      );
+    },
+    [agent?.harnessId, agents]
+  );
+
+  const runCompaction = useCallback(
+    async (targetSessionId: SessionId) => {
+      if (!subAgentRunner) {
+        return null;
+      }
+      const compactionAgent = resolveHiddenAgent(COMPACTION);
       if (!compactionAgent) {
         return null;
       }
@@ -100,7 +115,25 @@ export const useSlashCommandHandler = ({
         prompt: "Summarize the session for compaction.",
       });
     },
-    [agent?.harnessId, agents, subAgentRunner]
+    [resolveHiddenAgent, subAgentRunner]
+  );
+
+  const runSummary = useCallback(
+    async (prompt: string, targetSessionId: SessionId) => {
+      if (!subAgentRunner) {
+        return null;
+      }
+      const summaryAgent = resolveHiddenAgent(SUMMARY);
+      if (!summaryAgent) {
+        return null;
+      }
+      return subAgentRunner.run({
+        parentSessionId: targetSessionId,
+        agent: summaryAgent,
+        prompt,
+      });
+    },
+    [resolveHiddenAgent, subAgentRunner]
   );
 
   return useCallback(
@@ -196,6 +229,8 @@ export const useSlashCommandHandler = ({
         openMemoryFile,
         copyToClipboard,
         runCompaction,
+        runSummary,
+        checkpointManager,
         connectionStatus,
         now,
       });
@@ -219,10 +254,12 @@ export const useSlashCommandHandler = ({
       onOpenEditor,
       onOpenAgentSelect,
       onOpenThemes,
+      checkpointManager,
       client,
       agent,
       openMemoryFile,
       runCompaction,
+      runSummary,
       setShowToolDetails,
       setShowThinking,
       setCurrentSession,

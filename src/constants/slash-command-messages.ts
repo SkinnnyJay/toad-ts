@@ -5,7 +5,7 @@ export const SLASH_COMMAND_MESSAGE = {
   NO_ACTIVE_SESSION: "No active session for slash command.",
   NO_ACTIVE_CLIENT: "No active agent connection for slash command.",
   HELP_SUMMARY:
-    "Commands: /help, /connect, /sessions, /new, /rename, /editor, /memory, /mode <read-only|auto|full-access>, /models <id>, /details, /thinking, /themes, /context, /doctor, /debug, /stats, /cost, /copy, /share, /unshare, /undo, /redo, /rewind <count>, /clear, /plan <title>, /compact",
+    "Commands: /help, /connect, /sessions, /new, /rename, /editor, /memory, /mode <read-only|auto|full-access>, /models <id>, /details, /thinking, /themes, /context, /doctor, /debug, /stats, /cost, /copy, /share, /unshare, /undo, /redo, /rewind <count|list|delete>, /clear, /plan <title>, /compact",
   INVALID_MODE: "Invalid mode. Use read-only, auto, or full-access.",
   NO_SESSION_TO_UPDATE: "No session to update mode.",
   SESSION_CLEARED: "Session messages cleared.",
@@ -24,6 +24,10 @@ export const SLASH_COMMAND_MESSAGE = {
   COPY_NO_CONTENT: "No assistant response available to copy.",
   SHARE_FAILED: "Failed to share session.",
   UNSHARE_FAILED: "Failed to unshare session.",
+  CHECKPOINT_NOT_AVAILABLE: "Checkpointing is not available.",
+  CHECKPOINTS_EMPTY: "No checkpoints available.",
+  CHECKPOINT_DELETE_FAILED: "Failed to delete checkpoint.",
+  CHECKPOINT_DELETE_MISSING: "Provide a checkpoint id to delete.",
   UNDO_NOT_AVAILABLE: "Undo is not available.",
   REDO_NOT_AVAILABLE: "Redo is not available.",
   REWIND_NOT_AVAILABLE: "Rewind is not available.",
@@ -121,6 +125,23 @@ export const formatShareMessage = (filePath: string): string => `Session shared 
 
 export const formatUnshareMessage = (filePath: string): string =>
   `Session unshared from ${filePath}.`;
+
+export const formatCheckpointDeletedMessage = (checkpointId: string): string =>
+  `Checkpoint deleted: ${checkpointId}.`;
+
+export const formatCheckpointListMessage = (
+  checkpoints: Array<{ id: string; createdAt: number; prompt?: string }>
+): string => {
+  if (checkpoints.length === 0) {
+    return SLASH_COMMAND_MESSAGE.CHECKPOINTS_EMPTY;
+  }
+  const lines = checkpoints.map((checkpoint, index) => {
+    const timestamp = new Date(checkpoint.createdAt).toLocaleString();
+    const prompt = checkpoint.prompt ? ` - ${checkpoint.prompt}` : "";
+    return `${index + 1}. ${checkpoint.id} (${timestamp})${prompt}`;
+  });
+  return `Checkpoints:\n${lines.join("\n")}`;
+};
 
 export const formatUnknownCommandMessage = (command: string): string =>
   `Unknown command: ${command}`;

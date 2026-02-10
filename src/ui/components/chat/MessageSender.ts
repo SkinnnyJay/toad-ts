@@ -26,6 +26,7 @@ export interface MessageSenderOptions {
   currentAgent?: AgentInfo | null;
   appendMessage: (message: Message) => void;
   updateMessage: (params: { messageId: Message["id"]; patch: Partial<Message> }) => void;
+  onPromptStart?: (sessionId: SessionId, prompt: string) => void;
   onPromptComplete?: (sessionId: SessionId) => void;
   handleSlashCommand: (value: string) => boolean;
   onResetInput: () => void;
@@ -54,6 +55,7 @@ export const useMessageSender = ({
   currentAgent,
   appendMessage,
   updateMessage,
+  onPromptStart,
   onPromptComplete,
   handleSlashCommand,
   onResetInput,
@@ -246,6 +248,8 @@ export const useMessageSender = ({
         return;
       }
 
+      onPromptStart?.(sessionId, value);
+
       void client
         .prompt({
           sessionId,
@@ -263,6 +267,7 @@ export const useMessageSender = ({
       effectiveSessionId,
       handleSlashCommand,
       onPromptComplete,
+      onPromptStart,
       sessionMode,
       client,
       sessionId,

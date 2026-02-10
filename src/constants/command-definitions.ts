@@ -29,7 +29,11 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   { name: SLASH_COMMAND.CLEAR, description: "Clear chat messages" },
   { name: SLASH_COMMAND.COPY, description: "Copy last assistant response" },
   { name: SLASH_COMMAND.PLAN, description: "Create a new plan", args: "<title>" },
-  { name: SLASH_COMMAND.REWIND, description: "Rewind conversation", args: "<count>" },
+  {
+    name: SLASH_COMMAND.REWIND,
+    description: "Rewind conversation",
+    args: "<count|list|delete> [code|conversation|both|summarize|id]",
+  },
   { name: SLASH_COMMAND.RENAME, description: "Rename current session", args: "<title>" },
   { name: SLASH_COMMAND.SESSIONS, description: "Browse sessions" },
   { name: "/approve", description: "Approve pending tool call" },
