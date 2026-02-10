@@ -1,13 +1,11 @@
 import type { AppConfig } from "@/config/app-config";
+import { LIMIT } from "@/config/limits";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import type { Message, SessionId } from "@/types/domain";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 
 const logger = createClassLogger("ContextManager");
-
-/** Average characters per token for estimation (GPT/Claude family) */
-const CHARS_PER_TOKEN = 4;
 
 export interface ContextStats {
   tokens: number;
@@ -37,9 +35,8 @@ const CONTEXT_LEVEL_THRESHOLDS = {
   CRITICAL: 0.95,
 } as const;
 
-const DEFAULT_CONTEXT_LIMIT = 128_000;
-
-const estimateTokens = (text: string): number => Math.ceil(text.length / CHARS_PER_TOKEN);
+const estimateTokens = (text: string): number =>
+  Math.ceil(text.length / LIMIT.CHARS_PER_TOKEN_ESTIMATE);
 
 const extractTextFromMessage = (message: Message): string => {
   const parts: string[] = [];
@@ -109,7 +106,7 @@ export const computeContextStats = (messages: Message[]): ContextStats => {
 };
 
 export const computeContextBudget = (stats: ContextStats, contextLimit?: number): ContextBudget => {
-  const limit = contextLimit ?? DEFAULT_CONTEXT_LIMIT;
+  const limit = contextLimit ?? LIMIT.CONTEXT_DEFAULT_LIMIT;
   const ratio = limit > 0 ? stats.tokens / limit : 0;
 
   let level: ContextBudget["level"] = "low";
@@ -137,7 +134,7 @@ export const shouldAutoCompact = (
  * Replaces large tool results with a summary placeholder.
  */
 export const pruneToolOutputs = (messages: Message[], preserveRecent: number): PruneResult => {
-  const TOOL_RESULT_PRUNE_THRESHOLD = 500;
+  const pruneThreshold = LIMIT.TOOL_RESULT_PRUNE_THRESHOLD;
   const pruneTarget = messages.length - preserveRecent;
   let pruned = 0;
   let savedTokens = 0;
@@ -152,7 +149,7 @@ export const pruneToolOutputs = (messages: Message[], preserveRecent: number): P
       const result = block.result;
       if (!result) return block;
       const resultStr = typeof result === "string" ? result : JSON.stringify(result);
-      if (resultStr.length < TOOL_RESULT_PRUNE_THRESHOLD) return block;
+      if (resultStr.length < pruneThreshold) return block;
 
       const originalTokens = estimateTokens(resultStr);
       const summary = `[Output truncated: ${originalTokens} tokens]`;
@@ -181,7 +178,7 @@ export class ContextManager {
   }
 
   getContextLimit(sessionId: SessionId): number {
-    return this.contextLimits.get(sessionId) ?? DEFAULT_CONTEXT_LIMIT;
+    return this.contextLimits.get(sessionId) ?? LIMIT.CONTEXT_DEFAULT_LIMIT;
   }
 
   computeStats(messages: Message[]): ContextStats {
