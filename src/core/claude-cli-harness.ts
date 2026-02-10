@@ -15,7 +15,7 @@ import type {
   HarnessRuntime,
   HarnessRuntimeEvents,
 } from "@/harness/harnessAdapter";
-import { harnessConfigSchema } from "@/harness/harnessConfig";
+import { type HarnessConfig, harnessConfigSchema } from "@/harness/harnessConfig";
 import { createPermissionHandler } from "@/tools/permissions";
 import { ToolHost } from "@/tools/tool-host";
 import type { ConnectionStatus } from "@/types/domain";
@@ -204,26 +204,30 @@ export class ClaudeCliHarnessAdapter
   }
 }
 
+export const createCliHarnessRuntime = (config: HarnessConfig): HarnessRuntime => {
+  const env = { ...EnvManager.getInstance().getSnapshot(), ...config.env };
+  const toolHost = new ToolHost({ baseDir: config.cwd, env });
+  const clientOptions: ACPClientOptions = {
+    toolHost,
+    clientCapabilities: toolHost.capabilities,
+    permissionHandler: createPermissionHandler(config.permissions),
+  };
+
+  return new ClaudeCliHarnessAdapter({
+    command: config.command,
+    args: config.args,
+    cwd: config.cwd,
+    env,
+    clientOptions,
+  });
+};
+
 export const claudeCliHarnessAdapter: HarnessAdapter = {
   id: "claude-cli",
   name: "Claude CLI",
   configSchema: harnessConfigSchema,
   createHarness: (config) => {
-    const env = { ...EnvManager.getInstance().getSnapshot(), ...config.env };
-    const toolHost = new ToolHost({ baseDir: config.cwd, env });
-    const clientOptions: ACPClientOptions = {
-      toolHost,
-      clientCapabilities: toolHost.capabilities,
-      permissionHandler: createPermissionHandler(config.permissions),
-    };
-
-    return new ClaudeCliHarnessAdapter({
-      command: config.command,
-      args: config.args,
-      cwd: config.cwd,
-      env,
-      clientOptions,
-    });
+    return createCliHarnessRuntime(config);
   },
 };
 

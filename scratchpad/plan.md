@@ -70,7 +70,9 @@
   - [X] /share + /unshare export session markdown
 
 ## Phase 12: Provider Expansion
-- [ ] Phase 12 tasks (see PLAN.md)
+- [X] Phase 12 tasks (see PLAN.md)
+  - [X] Gemini/Codex harness adapters + defaults
+  - [X] Provider health checks in /doctor
 
 ## Phase 13: Cross-Tool Compatibility & Rules System
 - [ ] Phase 13 tasks (see PLAN.md)

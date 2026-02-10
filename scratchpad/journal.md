@@ -28,4 +28,5 @@
 - 2026-02-10 06:55 - Added vim input mode with normal/insert and motion operators.
 - 2026-02-10 08:10 - Implemented hooks system with config schema, hook manager, and hooks modal.
 - 2026-02-10 09:05 - Added compaction summary storage, context budget indicator, and context attachments modal.
+- 2026-02-10 10:05 - Added Gemini/Codex harness defaults and provider health checks.
 - 2026-02-10 04:20 - Added execution engine wiring for plan task orchestration.

@@ -5,6 +5,8 @@ export * from "@/core/message-handler";
 export * from "@/core/session-stream";
 export * from "@/core/auth-flow";
 export * from "@/core/claude-cli-harness";
+export * from "@/core/gemini-cli-harness";
+export * from "@/core/codex-cli-harness";
 export * from "@/core/mock-harness";
 export * from "@/core/mcp-config";
 export * from "@/core/mcp-config-loader";

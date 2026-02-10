@@ -27,6 +27,8 @@ import {
 } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { TASK_STATUS } from "@/constants/task-status";
+import { checkHarnessHealth } from "@/harness/harness-health";
+import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
 import { PlanIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
@@ -72,6 +74,7 @@ export interface SlashCommandDeps {
   runCompaction?: (sessionId: SessionId) => Promise<SessionId | null>;
   runSummary?: (prompt: string, sessionId: SessionId) => Promise<SessionId | null>;
   checkpointManager?: CheckpointManager;
+  harnesses?: Record<string, HarnessConfig>;
   toggleVimMode?: () => boolean;
   connectionStatus?: string;
   now?: () => number;
@@ -112,6 +115,13 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         `OpenAI API key: ${env[ENV_KEY.OPENAI_API_KEY] ? "set" : "missing"}`,
         `Editor: ${env[ENV_KEY.VISUAL] ?? env[ENV_KEY.EDITOR] ?? "default"}`,
       ];
+      if (deps.harnesses) {
+        const health = checkHarnessHealth(deps.harnesses, env);
+        for (const entry of health) {
+          const status = entry.available ? "available" : "missing";
+          checks.push(`Provider ${entry.name}: ${status} (${entry.command})`);
+        }
+      }
       deps.appendSystemMessage(formatDoctorMessage(checks));
       return true;
     }

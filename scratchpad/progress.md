@@ -55,3 +55,4 @@
 - [X] Compaction summary storage
 - [X] Context budget indicator
 - [X] Context attachments modal
+- [X] Provider expansion (gemini/codex harnesses + health checks)

@@ -10,6 +10,7 @@ import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { loadMcpConfig } from "@/core/mcp-config-loader";
 import { SessionManager } from "@/core/session-manager";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
+import type { HarnessConfig } from "@/harness/harnessConfig";
 import { useAppStore } from "@/store/app-store";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { Message, Session, SessionId } from "@/types/domain";
@@ -40,6 +41,7 @@ export interface SlashCommandHandlerOptions {
   agent?: AgentInfo;
   agents?: AgentInfo[];
   subAgentRunner?: SubAgentRunner;
+  harnesses?: Record<string, HarnessConfig>;
   now?: () => number;
 }
 
@@ -60,6 +62,7 @@ export const useSlashCommandHandler = ({
   agent,
   agents = [],
   subAgentRunner,
+  harnesses,
   now,
 }: SlashCommandHandlerOptions): ((value: string) => boolean) => {
   const renderer = useRenderer();
@@ -300,6 +303,7 @@ export const useSlashCommandHandler = ({
         runCompaction,
         runSummary,
         checkpointManager,
+        harnesses,
         connectionStatus,
         now,
       });
@@ -335,6 +339,7 @@ export const useSlashCommandHandler = ({
       setShowToolDetails,
       setShowThinking,
       setCurrentSession,
+      harnesses,
       now,
     ]
   );

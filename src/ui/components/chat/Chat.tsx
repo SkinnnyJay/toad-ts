@@ -15,6 +15,7 @@ import { PLAN_STATUS } from "@/constants/plan-status";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
+import type { HarnessConfig } from "@/harness/harnessConfig";
 import { useAppStore } from "@/store/app-store";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import { runInteractiveShellCommand } from "@/tools/interactive-shell";
@@ -53,6 +54,7 @@ export interface ChatProps {
   onOpenHooks?: () => void;
   onToggleVimMode?: () => boolean;
   vimEnabled?: boolean;
+  harnesses?: Record<string, HarnessConfig>;
   checkpointManager?: CheckpointManager;
   subAgentRunner?: SubAgentRunner;
   focusTarget?: FocusTarget;
@@ -74,6 +76,7 @@ export const Chat = memo(
     onOpenHooks,
     onToggleVimMode,
     vimEnabled,
+    harnesses,
     checkpointManager,
     subAgentRunner,
     focusTarget = FOCUS_TARGET.CHAT,
@@ -192,6 +195,7 @@ export const Chat = memo(
       onOpenContext,
       onOpenHooks,
       onToggleVimMode,
+      harnesses,
       client,
       agent,
       agents,

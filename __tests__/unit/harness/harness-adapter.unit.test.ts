@@ -39,7 +39,21 @@ describe("HarnessAdapter", () => {
       const result = createDefaultHarnessConfig();
 
       expect(result.harnesses[HARNESS_DEFAULT.CLAUDE_CLI_ID]).toBeDefined();
+      expect(result.harnesses[HARNESS_DEFAULT.GEMINI_CLI_ID]).toBeDefined();
+      expect(result.harnesses[HARNESS_DEFAULT.CODEX_CLI_ID]).toBeDefined();
       expect(result.harnesses[HARNESS_DEFAULT.MOCK_ID]).toBeDefined();
+    });
+
+    it("should use environment overrides for gemini and codex commands", () => {
+      const env = {
+        [ENV_KEY.TOADSTOOL_GEMINI_COMMAND]: "custom-gemini",
+        [ENV_KEY.TOADSTOOL_CODEX_COMMAND]: "custom-codex",
+      };
+
+      const result = createDefaultHarnessConfig(env);
+
+      expect(result.harnesses[HARNESS_DEFAULT.GEMINI_CLI_ID]?.command).toBe("custom-gemini");
+      expect(result.harnesses[HARNESS_DEFAULT.CODEX_CLI_ID]?.command).toBe("custom-codex");
     });
 
     it("should validate config with schema", () => {
@@ -47,6 +61,12 @@ describe("HarnessAdapter", () => {
 
       // Should not throw when parsing
       expect(() => harnessConfigSchema.parse(result.harness)).not.toThrow();
+      expect(() =>
+        harnessConfigSchema.parse(result.harnesses[HARNESS_DEFAULT.GEMINI_CLI_ID])
+      ).not.toThrow();
+      expect(() =>
+        harnessConfigSchema.parse(result.harnesses[HARNESS_DEFAULT.CODEX_CLI_ID])
+      ).not.toThrow();
       expect(() =>
         harnessConfigSchema.parse(result.harnesses[HARNESS_DEFAULT.MOCK_ID])
       ).not.toThrow();

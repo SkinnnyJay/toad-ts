@@ -15,6 +15,8 @@ import { SESSION_MODE, getNextSessionMode } from "@/constants/session-modes";
 import { formatModeUpdatedMessage } from "@/constants/slash-command-messages";
 import { VIEW, type View } from "@/constants/views";
 import { claudeCliHarnessAdapter } from "@/core/claude-cli-harness";
+import { codexCliHarnessAdapter } from "@/core/codex-cli-harness";
+import { geminiCliHarnessAdapter } from "@/core/gemini-cli-harness";
 import { mockHarnessAdapter } from "@/core/mock-harness";
 import { SessionStream } from "@/core/session-stream";
 import { HarnessRegistry } from "@/harness/harnessRegistry";
@@ -64,7 +66,6 @@ export function App(): ReactNode {
   const [isContextOpen, setIsContextOpen] = useState(false);
   const [isHooksOpen, setIsHooksOpen] = useState(false);
   const startupMeasured = useRef(false);
-
   const currentSessionId = useAppStore((state) => state.currentSessionId);
   const theme = useAppStore((state) => state.uiState.theme);
   const getPlanBySession = useAppStore((state) => state.getPlanBySession);
@@ -74,9 +75,7 @@ export function App(): ReactNode {
   const upsertSession = useAppStore((state) => state.upsertSession);
   const getSession = useAppStore((state) => state.getSession);
   const getMessagesForSession = useAppStore((state) => state.getMessagesForSession);
-
   const terminalDimensions = useTerminalDimensions();
-
   const env = useMemo(() => new Env(EnvManager.getInstance()), []);
   const persistenceConfig = useMemo(() => createPersistenceConfig(env), [env]);
   const persistenceManager = useMemo(() => {
@@ -85,9 +84,7 @@ export function App(): ReactNode {
     const batchDelay = persistenceConfig.sqlite?.batchDelay ?? TIMEOUT.BATCH_DELAY_MS;
     return new PersistenceManager(useAppStore, provider, { writeMode, batchDelay });
   }, [persistenceConfig]);
-
   const checkpointManager = useMemo(() => new CheckpointManager(useAppStore), []);
-
   const {
     isHydrated,
     hasHarnesses,
@@ -108,7 +105,6 @@ export function App(): ReactNode {
     initialProgress: 5,
     initialStatusMessage: "Preparing…",
   });
-
   const { config: appConfig, updateConfig } = useAppConfig();
   const configDefaultAgentId = useMemo(() => {
     const candidate = appConfig.defaults?.agent;
@@ -118,7 +114,6 @@ export function App(): ReactNode {
     const parsed = AgentIdSchema.safeParse(candidate);
     return parsed.success ? parsed.data : undefined;
   }, [appConfig.defaults?.agent]);
-
   const { selectedAgent, selectAgent } = useDefaultAgentSelection({
     isHydrated,
     hasHarnesses,
@@ -130,9 +125,14 @@ export function App(): ReactNode {
     onStatusMessageChange: setStatusMessage,
     onViewChange: setView,
   });
-
   const harnessRegistry = useMemo(
-    () => new HarnessRegistry([claudeCliHarnessAdapter, mockHarnessAdapter]),
+    () =>
+      new HarnessRegistry([
+        claudeCliHarnessAdapter,
+        geminiCliHarnessAdapter,
+        codexCliHarnessAdapter,
+        mockHarnessAdapter,
+      ]),
     []
   );
   const sessionStream = useMemo(() => new SessionStream(useAppStore.getState()), []);
@@ -475,6 +475,7 @@ export function App(): ReactNode {
                     onOpenAgentSelect={handleAgentSwitchRequest}
                     onToggleVimMode={handleToggleVimMode}
                     vimEnabled={appConfig.vim.enabled}
+                    harnesses={harnessConfigs}
                     checkpointManager={checkpointManager}
                     subAgentRunner={subAgentRunner}
                     focusTarget={focusTarget}
