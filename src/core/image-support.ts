@@ -1,11 +1,10 @@
 import { readFile, stat } from "node:fs/promises";
 import { extname } from "node:path";
 import { LIMIT } from "@/config/limits";
+import { IMAGE_EXTENSIONS_SET, IMAGE_MIME_TYPE } from "@/constants/image-extensions";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 
 const logger = createClassLogger("ImageSupport");
-
-const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"]);
 
 export interface ImageAttachment {
   fileName: string;
@@ -19,7 +18,7 @@ export interface ImageAttachment {
  */
 export const isImageFile = (filePath: string): boolean => {
   const ext = extname(filePath).toLowerCase();
-  return IMAGE_EXTENSIONS.has(ext);
+  return IMAGE_EXTENSIONS_SET.has(ext);
 };
 
 /**
@@ -27,21 +26,7 @@ export const isImageFile = (filePath: string): boolean => {
  */
 export const getImageMimeType = (filePath: string): string => {
   const ext = extname(filePath).toLowerCase();
-  switch (ext) {
-    case ".png":
-      return "image/png";
-    case ".jpg":
-    case ".jpeg":
-      return "image/jpeg";
-    case ".gif":
-      return "image/gif";
-    case ".webp":
-      return "image/webp";
-    case ".bmp":
-      return "image/bmp";
-    default:
-      return "application/octet-stream";
-  }
+  return IMAGE_MIME_TYPE[ext] ?? "application/octet-stream";
 };
 
 /**
