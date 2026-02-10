@@ -29,7 +29,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    setupFiles: ["./__tests__/setup.ts"],
+    setupFiles: ["./__tests__/env.ts", "./__tests__/setup.ts"],
     server: {
       deps: {
         inline: ["@opentui/core", "@opentui/react"],

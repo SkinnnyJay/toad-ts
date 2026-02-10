@@ -1,6 +1,6 @@
 import { EnvManager } from "@/utils/env/env.utils";
 import * as React from "react";
-import { afterEach, beforeEach, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, vi } from "vitest";
 import { cleanup } from "./utils/ink-test-helpers";
 import { keyboardRuntime, terminalRuntime } from "./utils/opentui-test-runtime";
 
@@ -41,7 +41,6 @@ vi.mock("@opentui/core", () => {
 });
 
 beforeEach(() => {
-  process.env.NODE_ENV = "test";
   clearWorkSubdir();
   EnvManager.resetInstance();
 });
@@ -84,4 +83,14 @@ afterEach(() => {
     process.stdin.pause();
   }
   unrefStdio();
+});
+
+afterAll(() => {
+  if (typeof process.stdin.pause === "function") {
+    process.stdin.pause();
+  }
+  unrefStdio();
+  if (process.env.TOADSTOOL_TEST_FORCE_EXIT === "1") {
+    setTimeout(() => process.exit(0), 0);
+  }
 });

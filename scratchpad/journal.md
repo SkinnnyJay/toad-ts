@@ -37,4 +37,5 @@
 - 2026-02-10 14:05 - Added session export/import (json/zip) and session history filter.
 - 2026-02-10 15:10 - Hardened test harness cleanup, terminal handler timeouts, env isolation.
 - 2026-02-10 15:40 - Closed headless server sockets more aggressively in tests.
+- 2026-02-10 16:25 - Forced test env setup before modules; tests still hang after run.
 - 2026-02-10 04:20 - Added execution engine wiring for plan task orchestration.

@@ -63,4 +63,4 @@
 - [X] Session export/import + history filter
 
 ## Test Failures
-- [ ] npm run test: vitest run hangs after suite completion
+- [ ] npm run test: vitest run hangs after suite completion (env isolation applied)
