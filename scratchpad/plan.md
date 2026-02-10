@@ -80,7 +80,9 @@
   - [X] Permission rule ingestion + validation
 
 ## Phase 14: Server Mode & Headless CLI
-- [ ] Phase 14 tasks (see PLAN.md)
+- [X] Phase 14 tasks (see PLAN.md)
+  - [X] Server-mode CLI flag + headless runtime
+  - [X] WebSocket/HTTP control surface
 
 ## Phase 15: Advanced Features
 - [ ] Phase 15 tasks (see PLAN.md)

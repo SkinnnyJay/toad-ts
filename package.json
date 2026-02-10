@@ -76,6 +76,7 @@
     "tinyglobby": "^0.2.15",
     "tree-kill": "^1.2.2",
     "wrap-ansi": "^9.0.0",
+    "ws": "^8.19.0",
     "zod": "^3.23.8",
     "zustand": "^4.5.4"
   },
@@ -90,6 +91,7 @@
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18.3.3",
     "@types/sqlite3": "^3.1.11",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "@typescript-eslint/parser": "^8.53.0",
     "@vitest/coverage-v8": "^2.0.5",
