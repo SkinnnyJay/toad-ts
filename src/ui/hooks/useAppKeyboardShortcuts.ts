@@ -13,6 +13,7 @@ export interface UseAppKeyboardShortcutsOptions {
   view: View;
   onNavigateChildSession?: (direction: "prev" | "next") => void;
   keybinds?: KeybindConfig;
+  onCyclePermissionMode?: () => void;
 }
 
 export interface UseAppKeyboardShortcutsResult {
@@ -60,6 +61,7 @@ export function useAppKeyboardShortcuts({
   view,
   onNavigateChildSession,
   keybinds,
+  onCyclePermissionMode,
 }: UseAppKeyboardShortcutsOptions): UseAppKeyboardShortcutsResult {
   const [focusTarget, setFocusTarget] = useState<FocusTarget>(FOCUS_TARGET.CHAT);
   const [isSessionsPopupOpen, setIsSessionsPopupOpen] = useState(false);
@@ -244,6 +246,20 @@ export function useAppKeyboardShortcuts({
       key.stopPropagation();
       toggleThinking();
       resetLeader();
+      return;
+    }
+
+    if (
+      isActionTriggered(
+        key,
+        keybindRuntime,
+        KEYBIND_ACTION.PERMISSION_MODE_CYCLE,
+        leaderActive.current
+      )
+    ) {
+      key.preventDefault();
+      key.stopPropagation();
+      onCyclePermissionMode?.();
       return;
     }
 

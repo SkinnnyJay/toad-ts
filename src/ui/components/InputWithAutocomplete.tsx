@@ -35,6 +35,8 @@ export interface InputWithAutocompleteProps {
   shellCompletion?: ShellCompletionProvider;
   /** Optional handler to open agent selector on Tab. */
   onAgentSwitch?: () => void;
+  /** Optional handler to cycle permission mode on Shift+Tab. */
+  onCyclePermissionMode?: () => void;
 }
 
 export interface ShellCompletionProvider {
@@ -76,6 +78,7 @@ export function InputWithAutocomplete({
   focusTarget = FOCUS_TARGET.CHAT,
   shellCompletion,
   onAgentSwitch,
+  onCyclePermissionMode,
 }: InputWithAutocompleteProps): ReactNode {
   const inputRef = useRef<InputRenderable | null>(null);
   const textareaRef = useRef<TextareaRenderable | null>(null);
@@ -369,6 +372,13 @@ export function InputWithAutocomplete({
         setSelectedIndex(0);
         return;
       }
+    }
+
+    if (key.name === "tab" && key.shift && onCyclePermissionMode) {
+      key.preventDefault();
+      key.stopPropagation();
+      onCyclePermissionMode();
+      return;
     }
 
     if (key.name === "tab" && shellCompletion?.isShellInput(value)) {

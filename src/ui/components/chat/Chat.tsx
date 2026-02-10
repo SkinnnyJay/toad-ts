@@ -49,6 +49,7 @@ export interface ChatProps {
   onOpenSessions?: () => void;
   onOpenAgentSelect?: () => void;
   onOpenThemes?: () => void;
+  onCyclePermissionMode?: () => void;
   checkpointManager?: CheckpointManager;
   subAgentRunner?: SubAgentRunner;
   focusTarget?: FocusTarget;
@@ -66,6 +67,7 @@ export const Chat = memo(
     onOpenSessions,
     onOpenAgentSelect,
     onOpenThemes,
+    onCyclePermissionMode,
     checkpointManager,
     subAgentRunner,
     focusTarget = FOCUS_TARGET.CHAT,
@@ -348,6 +350,7 @@ export const Chat = memo(
               placeholder="Type a message or / for commands…"
               shellCompletion={shellCompletion}
               onAgentSwitch={onOpenAgentSelect}
+              onCyclePermissionMode={onCyclePermissionMode}
             />
           </box>
         </box>

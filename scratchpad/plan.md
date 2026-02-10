@@ -54,7 +54,8 @@
   - [X] Variable substitution for env/file config values
   - [X] Leader-key keybind runtime + defaults
   - [X] Keybind editor UI + extended action map
-  - [ ] Vim input mode + permission modes + hooks system
+  - [X] Permission mode cycling (Shift+Tab) using session modes
+  - [ ] Vim input mode + hooks system
 
 ## Phase 10: Compaction & Context Management
 - [ ] Phase 10 tasks (see PLAN.md)

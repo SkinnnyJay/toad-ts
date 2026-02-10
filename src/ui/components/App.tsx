@@ -5,10 +5,14 @@ import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
 import { BACKGROUND_TASK_STATUS } from "@/constants/background-task-status";
 import { COLOR } from "@/constants/colors";
+import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-marks";
 import { PERSISTENCE_WRITE_MODE } from "@/constants/persistence-write-modes";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { RENDER_STAGE } from "@/constants/render-stage";
+import { SESSION_MODE, getNextSessionMode } from "@/constants/session-modes";
+import { formatModeUpdatedMessage } from "@/constants/slash-command-messages";
 import { VIEW, type View } from "@/constants/views";
 import { claudeCliHarnessAdapter } from "@/core/claude-cli-harness";
 import { mockHarnessAdapter } from "@/core/mock-harness";
@@ -21,7 +25,7 @@ import { registerCheckpointManager } from "@/store/checkpoints/checkpoint-servic
 import { createPersistenceConfig } from "@/store/persistence/persistence-config";
 import { PersistenceManager } from "@/store/persistence/persistence-manager";
 import { createPersistenceProvider } from "@/store/persistence/persistence-provider";
-import { AgentIdSchema, type Session, type SessionId } from "@/types/domain";
+import { AgentIdSchema, MessageIdSchema, type Session, type SessionId } from "@/types/domain";
 import { AgentSelect } from "@/ui/components/AgentSelect";
 import type { AgentOption } from "@/ui/components/AgentSelect";
 import { AsciiBanner } from "@/ui/components/AsciiBanner";
@@ -61,6 +65,8 @@ export function App(): ReactNode {
   const setCurrentSession = useAppStore((state) => state.setCurrentSession);
   const sessionsById = useAppStore((state) => state.sessions);
   const appendMessage = useAppStore((state) => state.appendMessage);
+  const upsertSession = useAppStore((state) => state.upsertSession);
+  const getSession = useAppStore((state) => state.getSession);
   const getMessagesForSession = useAppStore((state) => state.getMessagesForSession);
 
   // Terminal dimensions hook
@@ -311,6 +317,44 @@ export function App(): ReactNode {
     [currentSessionId, sessionId, sessionsById, setCurrentSession, view]
   );
 
+  const handleUpdateKeybinds = useCallback(
+    (keybinds: KeybindConfig) => {
+      void updateConfig({ keybinds });
+    },
+    [updateConfig]
+  );
+
+  const appendSystemMessage = useCallback(
+    (text: string) => {
+      if (!activeSessionId) {
+        return;
+      }
+      const now = Date.now();
+      appendMessage({
+        id: MessageIdSchema.parse(`sys-${now}`),
+        sessionId: activeSessionId,
+        role: MESSAGE_ROLE.SYSTEM,
+        content: [{ type: CONTENT_BLOCK_TYPE.TEXT, text }],
+        createdAt: now,
+        isStreaming: false,
+      });
+    },
+    [activeSessionId, appendMessage]
+  );
+
+  const handleCyclePermissionMode = useCallback(() => {
+    if (!activeSessionId) {
+      return;
+    }
+    const session = getSession(activeSessionId);
+    if (!session) {
+      return;
+    }
+    const nextMode = getNextSessionMode(session.mode ?? SESSION_MODE.AUTO);
+    upsertSession({ session: { ...session, mode: nextMode } });
+    appendSystemMessage(formatModeUpdatedMessage(nextMode));
+  }, [activeSessionId, appendSystemMessage, getSession, upsertSession]);
+
   const {
     focusTarget,
     isSessionsPopupOpen,
@@ -329,13 +373,8 @@ export function App(): ReactNode {
     view,
     onNavigateChildSession: navigateChildSession,
     keybinds: appConfig.keybinds,
+    onCyclePermissionMode: handleCyclePermissionMode,
   });
-  const handleUpdateKeybinds = useCallback(
-    (keybinds: KeybindConfig) => {
-      void updateConfig({ keybinds });
-    },
-    [updateConfig]
-  );
 
   const { checkpointStatus, handleRewindSelect } = useCheckpointUI({
     checkpointManager,
@@ -474,6 +513,7 @@ export function App(): ReactNode {
                     onOpenSessions={() => setIsSessionsPopupOpen(true)}
                     onOpenThemes={() => setIsThemesOpen(true)}
                     onOpenAgentSelect={handleAgentSwitchRequest}
+                    onCyclePermissionMode={handleCyclePermissionMode}
                     checkpointManager={checkpointManager}
                     subAgentRunner={subAgentRunner}
                     focusTarget={focusTarget}
