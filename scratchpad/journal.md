@@ -39,3 +39,13 @@
 - 2026-02-10 15:40 - Closed headless server sockets more aggressively in tests.
 - 2026-02-10 16:25 - Forced test env setup before modules; tests still hang after run.
 - 2026-02-10 04:20 - Added execution engine wiring for plan task orchestration.
+- 2026-02-10 16:40 - Updated PLAN.md checklists from scratchpad progress.
+- 2026-02-10 17:35 - Updated docs/commands for Bun scripts; npm run lint/typecheck/test/build failed because bunx is unavailable (bun not installed).
+- 2026-02-10 18:10 - Ran bun update; lint/typecheck/build pass, tests fail with sqlite persistence timeout.
+- 2026-02-10 17:15 - Added OpenTUI/provider/Beads tasks in PLAN.md; added provider model IDs.
+- 2026-02-10 17:20 - Added CLI parity subcommands (run/attach/auth) to PLAN.md.
+- 2026-02-10 17:35 - Added OpenTUI input UX, workspace, resources parity tasks in PLAN.md.
+- 2026-02-10 17:40 - Added session storage/retention tasks to PLAN.md.
+- 2026-02-10 17:45 - Clarified storage contract with SQLite/JSON adapters in PLAN.md.
+- 2026-02-10 18:10 - Converted all PLAN.md bullets to checkbox tasks.
+- 2026-02-10 18:50 - Switched npm build to use npx tsup when bunx is unavailable.

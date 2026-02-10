@@ -8,6 +8,7 @@
 ## Status
 - [X] Install Bun
 - [X] Update package.json scripts to Bun
+- [X] Allow npm build via npx tsup fallback
 - [X] bun install + bun.lockb
 - [X] Install OpenTUI deps
 - [X] Remove Ink/shiki/marked deps
@@ -63,4 +64,4 @@
 - [X] Session export/import + history filter
 
 ## Test Failures
-- [ ] npm run test: vitest run hangs after suite completion (env isolation applied)
+- [ ] bun run test: sqlite persistence integration test timed out (5s)
