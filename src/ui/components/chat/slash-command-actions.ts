@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { extname } from "node:path";
 
 import { ENCODING } from "@/constants/encodings";
 import { MEMORY_FILE, MEMORY_TARGET } from "@/constants/memory-files";
@@ -20,6 +21,7 @@ import {
   importSessionFromFile,
   resolveExportPath,
 } from "@/utils/session-export";
+import { exportConversationToSvg } from "@/utils/svg-export";
 import {
   ensureSharedSessionDir,
   extractBlockText,
@@ -197,6 +199,20 @@ export const runExportCommand = async (
     fileName && fileName.trim().length > 0 ? fileName.trim() : generateDefaultExportName(sessionId);
   const targetPath = resolveExportPath(exportName, process.cwd());
   await mkdir(path.dirname(targetPath), { recursive: true });
+
+  // SVG export path
+  if (extname(targetPath).toLowerCase() === ".svg") {
+    try {
+      const svgContent = exportConversationToSvg(messages, session.title);
+      await writeFile(targetPath, svgContent, ENCODING.UTF8);
+      deps.appendSystemMessage(formatExportSuccessMessage(targetPath));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      deps.appendSystemMessage(`${SLASH_COMMAND_MESSAGE.EXPORT_FAILED} ${message}`);
+    }
+    return;
+  }
+
   try {
     const resolved = await exportSessionToFile({
       session,
