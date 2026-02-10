@@ -36,6 +36,7 @@ import { ContextModal } from "@/ui/components/ContextModal";
 import { HelpModal } from "@/ui/components/HelpModal";
 import { HooksModal } from "@/ui/components/HooksModal";
 import { LoadingScreen } from "@/ui/components/LoadingScreen";
+import { ProgressModal } from "@/ui/components/ProgressModal";
 import { RewindModal } from "@/ui/components/RewindModal";
 import { SessionsPopup } from "@/ui/components/SessionsPopup";
 import { SettingsModal } from "@/ui/components/SettingsModal";
@@ -60,11 +61,11 @@ import { applyThemeColors } from "@/ui/theme/theme-definitions";
 import { Env, EnvManager } from "@/utils/env/env.utils";
 import { TextAttributes } from "@opentui/core";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-
 export function App(): ReactNode {
   const [view, setView] = useState<View>(VIEW.AGENT_SELECT);
   const [isContextOpen, setIsContextOpen] = useState(false);
   const [isHooksOpen, setIsHooksOpen] = useState(false);
+  const [isProgressOpen, setIsProgressOpen] = useState(false);
   const startupMeasured = useRef(false);
   const currentSessionId = useAppStore((state) => state.currentSessionId);
   const theme = useAppStore((state) => state.uiState.theme);
@@ -146,9 +147,7 @@ export function App(): ReactNode {
       }),
     [harnessConfigs, harnessRegistry, sessionStream]
   );
-
-  useExecutionEngine({ subAgentRunner, agentInfoMap });
-
+  useExecutionEngine({ subAgentRunner, agentInfoMap, routingRules: appConfig.routing.rules });
   const { client, sessionId: connectionSessionId } = useHarnessConnection({
     selectedAgent,
     harnessConfigs,
@@ -160,24 +159,19 @@ export function App(): ReactNode {
     onLoadErrorChange: setLoadError,
     onViewChange: setView,
   });
-
   const [sessionId, setSessionId] = useState<SessionId | undefined>(currentSessionId);
-
   useEffect(() => {
     if (connectionSessionId) {
       setSessionId(connectionSessionId);
     }
   }, [connectionSessionId]);
-
   useEffect(() => {
     if (currentSessionId) {
       setSessionId(currentSessionId);
     }
   }, [currentSessionId]);
-
   const activeSessionId = sessionId ?? currentSessionId;
   const contextStats = useContextStats(activeSessionId);
-
   const backgroundTasks = useBackgroundTaskStore((state) => state.tasks);
   const taskProgress = useMemo(() => {
     const tasks = Object.values(backgroundTasks);
@@ -190,20 +184,17 @@ export function App(): ReactNode {
     ).length;
     return { completed, total: tasks.length };
   }, [backgroundTasks]);
-
   const plan = useMemo(() => {
     const id = sessionId ?? currentSessionId;
     if (!id) return undefined;
     return getPlanBySession(id);
   }, [currentSessionId, getPlanBySession, sessionId]);
-
   const planProgress = useMemo(() => {
     if (!plan || !plan.tasks || plan.tasks.length === 0) return undefined;
     const completed = plan.tasks.filter((task) => task.status === PLAN_STATUS.COMPLETED).length;
     return { completed, total: plan.tasks.length };
   }, [plan]);
   void planProgress;
-
   useEffect(() => {
     setProgress(5);
     setStatusMessage("Loading TOADSTOOL…");
@@ -443,6 +434,14 @@ export function App(): ReactNode {
                       setIsHooksOpen(false);
                     }}
                   />
+                ) : isProgressOpen ? (
+                  <ProgressModal
+                    isOpen={isProgressOpen}
+                    sessionId={activeSessionId ?? undefined}
+                    onClose={() => {
+                      setIsProgressOpen(false);
+                    }}
+                  />
                 ) : isThemesOpen ? (
                   <ThemesModal
                     isOpen={isThemesOpen}
@@ -472,6 +471,7 @@ export function App(): ReactNode {
                     onOpenThemes={() => setIsThemesOpen(true)}
                     onOpenContext={() => setIsContextOpen(true)}
                     onOpenHooks={() => setIsHooksOpen(true)}
+                    onOpenProgress={() => setIsProgressOpen(true)}
                     onOpenAgentSelect={handleAgentSwitchRequest}
                     onToggleVimMode={handleToggleVimMode}
                     vimEnabled={appConfig.vim.enabled}

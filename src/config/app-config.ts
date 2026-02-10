@@ -96,12 +96,26 @@ export const hooksSchema = z
   })
   .strict();
 
+const routingRuleSchema = z
+  .object({
+    matcher: z.string().min(1),
+    agentId: z.string().min(1),
+  })
+  .strict();
+
+export const routingSchema = z
+  .object({
+    rules: z.array(routingRuleSchema).default([]),
+  })
+  .strict();
+
 export const appConfigSchema = z
   .object({
     defaults: defaultsSchema.optional(),
     keybinds: keybindsSchema.optional(),
     vim: vimSchema.optional(),
     hooks: hooksSchema.optional(),
+    routing: routingSchema.optional(),
   })
   .strict();
 
@@ -111,6 +125,8 @@ export type VimConfig = z.infer<typeof vimSchema>;
 export type HookDefinition = z.infer<typeof hookDefinitionSchema>;
 export type HookGroup = z.infer<typeof hookGroupSchema>;
 export type HooksConfig = z.infer<typeof hooksSchema>;
+export type RoutingRule = z.infer<typeof routingRuleSchema>;
+export type RoutingConfig = z.infer<typeof routingSchema>;
 export type AppConfigInput = z.infer<typeof appConfigSchema>;
 
 export interface ResolvedKeybindConfig {
@@ -125,6 +141,7 @@ export interface AppConfig {
     enabled: boolean;
   };
   hooks: HooksConfig;
+  routing: RoutingConfig;
 }
 
 export const DEFAULT_APP_CONFIG: AppConfig = {
@@ -137,6 +154,9 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
     enabled: false,
   },
   hooks: {},
+  routing: {
+    rules: [],
+  },
 };
 
 export interface LoadAppConfigOptions {
@@ -258,6 +278,15 @@ const mergeHooksConfig = (base: HooksConfig, override?: HooksConfig): HooksConfi
   return merged;
 };
 
+const mergeRoutingConfig = (base: RoutingConfig, override?: RoutingConfig): RoutingConfig => {
+  if (!override) {
+    return base;
+  }
+  return {
+    rules: [...base.rules, ...override.rules],
+  };
+};
+
 export const mergeAppConfig = (base: AppConfig, override: AppConfigInput): AppConfig => {
   return {
     defaults: {
@@ -275,6 +304,7 @@ export const mergeAppConfig = (base: AppConfig, override: AppConfigInput): AppCo
       enabled: override.vim?.enabled ?? base.vim.enabled,
     },
     hooks: mergeHooksConfig(base.hooks, override.hooks),
+    routing: mergeRoutingConfig(base.routing, override.routing),
   };
 };
 
@@ -361,6 +391,7 @@ const serializeConfig = (config: AppConfig): AppConfigInput => {
       enabled: config.vim.enabled,
     },
     hooks: config.hooks,
+    routing: config.routing,
   };
 };
 

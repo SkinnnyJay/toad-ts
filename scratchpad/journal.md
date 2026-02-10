@@ -31,4 +31,5 @@
 - 2026-02-10 10:05 - Added Gemini/Codex harness defaults and provider health checks.
 - 2026-02-10 10:45 - Added unified rules loader and permission rule ingestion.
 - 2026-02-10 11:25 - Added headless server mode with HTTP and WebSocket endpoints.
+- 2026-02-10 12:05 - Added routing policy config and progress panel.
 - 2026-02-10 04:20 - Added execution engine wiring for plan task orchestration.

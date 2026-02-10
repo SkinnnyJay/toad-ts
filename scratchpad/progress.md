@@ -58,3 +58,4 @@
 - [X] Provider expansion (gemini/codex harnesses + health checks)
 - [X] Rules loader + permission rules integration
 - [X] Headless server mode (HTTP + WebSocket)
+- [X] Routing policy + progress modal

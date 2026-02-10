@@ -63,6 +63,48 @@ describe("app-config", () => {
     expect(config.vim.enabled).toBe(false);
   });
 
+  it("defaults routing rules to empty list", async () => {
+    const homeDir = await createTempDir("toadstool-config-home-");
+    const projectDir = await createTempDir("toadstool-config-project-");
+    const env: NodeJS.ProcessEnv = {};
+
+    const config = await loadAppConfig({ cwd: projectDir, homeDir, env });
+
+    expect(config.routing.rules).toEqual([]);
+  });
+
+  it("merges routing rules across config layers", async () => {
+    const homeDir = await createTempDir("toadstool-config-home-");
+    const projectDir = await createTempDir("toadstool-config-project-");
+    const globalDir = join(homeDir, CONFIG_FILE.GLOBAL_CONFIG_DIR, CONFIG_FILE.GLOBAL_APP_DIR);
+    await mkdir(globalDir, { recursive: true });
+    await writeFile(
+      join(globalDir, CONFIG_FILE.GLOBAL_CONFIG_FILE),
+      JSON.stringify({
+        routing: {
+          rules: [{ matcher: "lint", agentId: "mock" }],
+        },
+      }),
+      "utf8"
+    );
+    await writeFile(
+      join(projectDir, CONFIG_FILE.PROJECT_JSON),
+      JSON.stringify({
+        routing: {
+          rules: [{ matcher: "build", agentId: "mock:build" }],
+        },
+      }),
+      "utf8"
+    );
+
+    const config = await loadAppConfig({ cwd: projectDir, homeDir, env: {} });
+
+    expect(config.routing.rules).toEqual([
+      { matcher: "lint", agentId: "mock" },
+      { matcher: "build", agentId: "mock:build" },
+    ]);
+  });
+
   it("merges hooks across config layers", async () => {
     const homeDir = await createTempDir("toadstool-config-home-");
     const projectDir = await createTempDir("toadstool-config-project-");

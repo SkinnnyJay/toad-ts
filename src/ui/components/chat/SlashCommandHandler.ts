@@ -35,6 +35,7 @@ export interface SlashCommandHandlerOptions {
   onOpenThemes?: () => void;
   onOpenContext?: () => void;
   onOpenHooks?: () => void;
+  onOpenProgress?: () => void;
   onToggleVimMode?: () => boolean;
   checkpointManager?: CheckpointManager;
   client?: HarnessRuntime | null;
@@ -56,6 +57,7 @@ export const useSlashCommandHandler = ({
   onOpenThemes,
   onOpenContext,
   onOpenHooks,
+  onOpenProgress,
   onToggleVimMode,
   checkpointManager,
   client,
@@ -298,6 +300,7 @@ export const useSlashCommandHandler = ({
         openThemes: onOpenThemes,
         openContext: onOpenContext,
         openHooks: onOpenHooks,
+        openProgress: onOpenProgress,
         openMemoryFile,
         copyToClipboard,
         runCompaction,
@@ -329,6 +332,7 @@ export const useSlashCommandHandler = ({
       onOpenThemes,
       onOpenContext,
       onOpenHooks,
+      onOpenProgress,
       onToggleVimMode,
       checkpointManager,
       client,

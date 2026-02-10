@@ -30,6 +30,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   { name: SLASH_COMMAND.CLEAR, description: "Clear chat messages" },
   { name: SLASH_COMMAND.COPY, description: "Copy last assistant response" },
   { name: SLASH_COMMAND.PLAN, description: "Create a new plan", args: "<title>" },
+  { name: SLASH_COMMAND.PROGRESS, description: "Open progress panel" },
   {
     name: SLASH_COMMAND.REWIND,
     description: "Rewind conversation",

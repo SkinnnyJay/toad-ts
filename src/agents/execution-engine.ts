@@ -1,8 +1,7 @@
 import type { AgentInfo } from "@/agents/agent-manager";
-import { findAgentBySuffix } from "@/agents/agent-utils";
+import { type AgentRoutingPolicy, createRoutingPolicy } from "@/agents/agent-routing";
 import type { SubAgentRunner } from "@/agents/subagent-runner";
 import { LIMIT } from "@/config/limits";
-import { AGENT_ID_SEPARATOR, BUILD } from "@/constants/agent-ids";
 import { AGENT_STATUS } from "@/constants/agent-status";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { PLAN_STATUS } from "@/constants/plan-status";
@@ -18,6 +17,7 @@ export interface ExecutionEngineOptions {
   store: StoreApi<AppStore>;
   subAgentRunner: SubAgentRunner;
   agentInfoMap: Map<AgentId, AgentInfo>;
+  routingPolicy?: AgentRoutingPolicy;
   now?: () => number;
 }
 
@@ -26,9 +26,12 @@ export class ExecutionEngine {
   private readonly logger = createClassLogger("ExecutionEngine");
   private unsubscribe?: () => void;
   private readonly now: () => number;
+  private readonly routingPolicy: AgentRoutingPolicy;
 
   constructor(private readonly options: ExecutionEngineOptions) {
     this.now = options.now ?? (() => Date.now());
+    this.routingPolicy =
+      options.routingPolicy ?? createRoutingPolicy([], this.options.agentInfoMap);
   }
 
   start(): void {
@@ -114,7 +117,7 @@ export class ExecutionEngine {
       return;
     }
     this.runningTasks.add(task.id);
-    const agent = this.resolveAgent(session);
+    const agent = this.resolveAgent(session, task);
     if (!agent) {
       this.failTask(plan, task, "No available agent for task.");
       this.runningTasks.delete(task.id);
@@ -180,27 +183,9 @@ export class ExecutionEngine {
     }
   }
 
-  private resolveAgent(session: Session): AgentInfo | null {
+  private resolveAgent(session: Session, task: Task): AgentInfo | null {
     const agents = Array.from(this.options.agentInfoMap.values());
-    const preferredHarness = this.extractHarnessId(session.agentId);
-    return (
-      findAgentBySuffix(agents, BUILD, preferredHarness) ??
-      agents.find((agent) => agent.harnessId === preferredHarness && !agent.hidden) ??
-      agents.find((agent) => !agent.hidden) ??
-      null
-    );
-  }
-
-  private extractHarnessId(agentId?: AgentId): string | undefined {
-    if (!agentId) {
-      return undefined;
-    }
-    const raw = String(agentId);
-    const separatorIndex = raw.indexOf(AGENT_ID_SEPARATOR);
-    if (separatorIndex < 0) {
-      return raw;
-    }
-    return raw.slice(0, separatorIndex);
+    return this.routingPolicy.selectAgent({ session, task, agents });
   }
 
   private updateTask(plan: Plan, taskId: Task["id"], patch: Partial<Task>): Plan {

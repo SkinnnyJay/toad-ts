@@ -93,6 +93,7 @@ describe("useSlashCommands", () => {
       expect(SLASH_COMMAND.CLEAR).toBe("/clear");
       expect(SLASH_COMMAND.COPY).toBe("/copy");
       expect(SLASH_COMMAND.PLAN).toBe("/plan");
+      expect(SLASH_COMMAND.PROGRESS).toBe("/progress");
       expect(SLASH_COMMAND.REWIND).toBe("/rewind");
       expect(SLASH_COMMAND.RENAME).toBe("/rename");
       expect(SLASH_COMMAND.SESSIONS).toBe("/sessions");
