@@ -7,8 +7,8 @@ Execute the test suite and systematically fix any failures. When fixing failures
 ## Steps
 
 1. **Run test suite**
-   - Run `npm test` to discover ALL failures
-   - Or target specific suites: `npm run test:unit`, `npm run test:integration`
+   - Run `bun run test` to discover ALL failures
+   - Or target specific suites: `bun run test:unit`, `bun run test:integration`
    - Read the complete output and capture every failing test
 
 2. **Create task list**
@@ -19,20 +19,20 @@ Execute the test suite and systematically fix any failures. When fixing failures
    - Fix one test at a time
    - Read the test and source file to understand root cause
    - Apply minimal fix
-   - Verify with: `npx vitest run <test-file>`
+   - Verify with: `bunx vitest run <test-file>`
    - Mark done only after it passes
 
 4. **Do not re-run full suite** until every item is individually resolved
 
 5. **Full confirmation**
-   - Run `npm test` again
+   - Run `bun run test` again
    - If regressions appear, add them to the task list and fix
 
-6. **Final gate:** `npm run lint && npm run typecheck`
+6. **Final gate:** `bun run lint && bun run typecheck`
 
 ## Checklist
 
 - [ ] All test failures cataloged in task list
 - [ ] Each failure fixed and verified individually
-- [ ] Full `npm test` passes
+- [ ] Full `bun run test` passes
 - [ ] Lint and typecheck pass

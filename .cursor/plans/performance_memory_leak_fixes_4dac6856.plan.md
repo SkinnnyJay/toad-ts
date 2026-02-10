@@ -254,8 +254,8 @@ import { toMessageDTO, toChatDTO, toAgentDTO } from "./types";
 
 After each phase:
 
-1. Run `npm run typecheck` to verify no type errors
-2. Run `npm run lint` to check for issues
+1. Run `bun run typecheck` to verify no type errors
+2. Run `bun run lint` to check for issues
 3. Verify no regressions in existing tests
 
 ---

@@ -11,12 +11,12 @@ You execute test suites and provide clear reports on results for the TOADSTOOL p
 
 ## Available Test Commands
 
-- `npm test` -- run all Vitest tests
-- `npm run test:unit` -- run unit tests only
-- `npm run test:integration` -- run integration tests
-- `npm run test:e2e` -- run end-to-end tests
-- `npm run test:coverage` -- run with coverage report
-- `npx vitest run <test-file>` -- run specific test file
+- `bun run test` -- run all Vitest tests
+- `bun run test:unit` -- run unit tests only
+- `bun run test:integration` -- run integration tests
+- `bun run test:e2e` -- run end-to-end tests
+- `bun run test:coverage` -- run with coverage report
+- `bunx vitest run <test-file>` -- run specific test file
 
 ## Test File Locations
 

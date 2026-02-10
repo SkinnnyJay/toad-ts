@@ -8,12 +8,12 @@ Run the appropriate command to get the full picture before touching any code:
 
 | Category            | Discovery command          |
 |---------------------|----------------------------|
-| Lint                | `npm run lint`             |
-| Format              | `npm run format`           |
-| Type errors         | `npm run typecheck`        |
-| Unit tests          | `npm run test:unit`        |
-| Integration tests   | `npm run test:integration` |
-| Build               | `npm run build`            |
+| Lint                | `bun run lint`             |
+| Format              | `bun run format`           |
+| Type errors         | `bun run typecheck`        |
+| Unit tests          | `bun run test:unit`        |
+| Integration tests   | `bun run test:integration` |
+| Build               | `bun run build`            |
 
 ## Step 2: Create a Task List of ALL Failures
 
@@ -31,10 +31,10 @@ For each item:
 
 | Category     | Verify single fix                              |
 |--------------|------------------------------------------------|
-| Lint         | `npx biome check <file>`                      |
-| Type errors  | `npm run typecheck`                            |
-| Unit test    | `npx vitest run <test-file>`                   |
-| Build        | `npm run build`                                |
+| Lint         | `bunx biome check <file>`                      |
+| Type errors  | `bun run typecheck`                            |
+| Unit test    | `bunx vitest run <test-file>`                  |
+| Build        | `bun run build`                                |
 
 4. Mark done only after verification passes
 
@@ -43,4 +43,4 @@ For each item:
 Once all items are individually resolved:
 1. Run the full command from Step 1
 2. If new failures appear, go back to Step 2 with only the new failures
-3. Run `npm run lint && npm run typecheck` as a final gate
+3. Run `bun run lint && bun run typecheck` as a final gate

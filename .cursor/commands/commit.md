@@ -16,7 +16,7 @@ Group changed files into logical, atomic commits using the project's conventiona
    - Present tense, imperative mood, under 72 characters
 
 3. **Quality gate**
-   - Run `npm run lint && npm run typecheck` before committing
+   - Run `bun run lint && bun run typecheck` before committing
 
 4. **Commit**
    - Stage each group and commit separately

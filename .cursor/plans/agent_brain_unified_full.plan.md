@@ -108,7 +108,7 @@ todos:
     content: All Linting issues need to be resolved.
     status: pending
   - id: todo-1770455274834-nlf2aecjz
-    content: All Tests (unit,integration,e2e) need to be resolved and passed. (npm run test:integration | unit)
+    content: All Tests (unit,integration,e2e) need to be resolved and passed. (bun run test:integration | unit)
     status: pending
 isProject: false
 ---
@@ -857,7 +857,7 @@ flowchart TD
 
 ## Validation and Milestone Checks
 
-- Run `npm run lint && npm run typecheck` per phase
+- Run `bun run lint && bun run typecheck` per phase
 - Add targeted tests for staleness handling, dedupe enforcement, and mode policy
 - Milestone reflection after each phase: confirm latency, correctness, and cognitive output quality
 
@@ -1876,7 +1876,7 @@ flowchart TD
 
 ## Validation and Milestone Checks
 
-- Run `npm run lint && npm run typecheck` per phase
+- Run `bun run lint && bun run typecheck` per phase
 - Add targeted tests for staleness handling, dedupe enforcement, and mode policy
 - Milestone reflection after each phase: confirm latency, correctness, and cognitive output quality
 

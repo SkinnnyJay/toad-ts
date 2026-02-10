@@ -7,7 +7,7 @@ Generate a test coverage report and identify low-coverage areas. Use to assess t
 ## Steps
 
 1. **Run coverage**
-   - Run `npm run test:coverage`
+   - Run `bun run test:coverage`
 
 2. **Summarize**
    - Report overall percentages: lines, branches, functions, statements

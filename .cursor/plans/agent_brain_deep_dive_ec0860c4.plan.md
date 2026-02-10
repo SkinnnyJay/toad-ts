@@ -849,7 +849,7 @@ flowchart TD
 
 ## Validation and Milestone Checks
 
-- Run `npm run lint && npm run typecheck` per phase
+- Run `bun run lint && bun run typecheck` per phase
 - Add targeted tests for staleness handling, dedupe enforcement, and mode policy
 - Milestone reflection after each phase: confirm latency, correctness, and cognitive output quality
 

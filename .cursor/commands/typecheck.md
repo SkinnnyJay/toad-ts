@@ -7,7 +7,7 @@ Run TypeScript type checking and fix all type errors. When fixing errors, follow
 ## Steps
 
 1. **Run typecheck**
-   - Run `npm run typecheck` to discover ALL type errors
+   - Run `bun run typecheck` to discover ALL type errors
    - Read the complete output and capture every error
 
 2. **Create task list**
@@ -19,19 +19,19 @@ Run TypeScript type checking and fix all type errors. When fixing errors, follow
    - Read the file and understand the type mismatch
    - Apply minimal, correct fix; never use `any`, `@ts-ignore`, or type casting (`as`)
    - Use type guards, narrowing, or generics instead
-   - Verify with: `npm run typecheck`
+   - Verify with: `bun run typecheck`
    - Mark done only after the specific error is gone
 
 4. **Do not consider resolved** until every item is checked off
 
 5. **Full confirmation**
-   - Run `npm run typecheck` (exit code 0)
+   - Run `bun run typecheck` (exit code 0)
 
-6. **Final gate:** `npm run lint`
+6. **Final gate:** `bun run lint`
 
 ## Checklist
 
 - [ ] All type errors cataloged in task list
 - [ ] Each error fixed without `any` or `as`
-- [ ] Full `npm run typecheck` passes
+- [ ] Full `bun run typecheck` passes
 - [ ] Lint passes

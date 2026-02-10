@@ -437,7 +437,7 @@ Current: ~70% target in vitest.config. Goal: 95%.
 
 ### 7A. Unit Test Gap Analysis and Coverage
 
-- Run `npx vitest --coverage` to get current coverage report
+- Run `bunx vitest --coverage` to get current coverage report
 - Identify files with <80% coverage
 - Priority: All files changed in M1-M6 must have tests
 - Every new repository, service, and utility must have unit tests
@@ -531,4 +531,4 @@ gantt
 - All services depend on interfaces, not concretions
 - 95% unit + integration test coverage
 - Full E2E suite covering every user feature
-- `npm run lint && npm run typecheck` passes clean
+- `bun run lint && bun run typecheck` passes clean

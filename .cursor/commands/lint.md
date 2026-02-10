@@ -7,14 +7,14 @@ Fix all linting and formatting issues across the project. When fixing remaining 
 ## Steps
 
 1. **Run lint**
-   - Run `npm run lint` to discover ALL issues
+   - Run `bun run lint` to discover ALL issues
    - Read the complete output
 
 2. **Auto-fix**
-   - Run `npm run lint:fix` and `npm run format` to fix what can be auto-fixed
+   - Run `bun run lint:fix` and `bun run format` to fix what can be auto-fixed
 
 3. **Create task list**
-   - Run `npm run lint` again
+   - Run `bun run lint` again
    - Catalog every remaining error: file path, rule, description
    - Mark all items as pending
 
@@ -22,20 +22,20 @@ Fix all linting and formatting issues across the project. When fixing remaining 
    - Fix one issue at a time
    - Read the file and understand the violation
    - Apply minimal, correct fix (never use `any` to silence type errors)
-   - Verify with: `npx biome check <file>`
+   - Verify with: `bunx biome check <file>`
    - Mark done only after it passes
 
 5. **Do not re-run full lint** until all items are individually resolved
 
 6. **Full confirmation**
-   - Run `npm run lint`; handle any regressions
+   - Run `bun run lint`; handle any regressions
 
-7. **Final gate:** `npm run typecheck`
+7. **Final gate:** `bun run typecheck`
 
 ## Checklist
 
 - [ ] Auto-fix applied (lint:fix, format)
 - [ ] All remaining issues cataloged in task list
 - [ ] Each issue fixed and verified per file
-- [ ] Full `npm run lint` passes
+- [ ] Full `bun run lint` passes
 - [ ] Typecheck passes

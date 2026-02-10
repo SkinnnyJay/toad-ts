@@ -7,7 +7,7 @@ Run the tsup production build and fix any compilation errors. When fixing errors
 ## Steps
 
 1. **Run build**
-   - Run `npm run build` to discover ALL errors
+   - Run `bun run build` to discover ALL errors
    - Read the complete output and capture every build error
 
 2. **Create task list**
@@ -18,20 +18,20 @@ Run the tsup production build and fix any compilation errors. When fixing errors
    - Fix one error at a time
    - Read the file and understand the root cause
    - Apply minimal fix; never use `any` or `@ts-ignore` as shortcuts
-   - Verify with: `npm run typecheck` (faster than full build)
+   - Verify with: `bun run typecheck` (faster than full build)
    - Mark done only after the specific error is gone
 
 4. **Do not re-run full build** until all items are individually resolved
 
 5. **Full confirmation**
-   - Run `npm run build`
+   - Run `bun run build`
    - Verify `dist/` is generated and exit code is 0
 
-6. **Final gate:** `npm run lint && npm run typecheck`
+6. **Final gate:** `bun run lint && bun run typecheck`
 
 ## Checklist
 
 - [ ] All build errors cataloged in task list
 - [ ] Each error fixed and verified (typecheck)
-- [ ] Full `npm run build` passes
+- [ ] Full `bun run build` passes
 - [ ] Lint and typecheck pass
