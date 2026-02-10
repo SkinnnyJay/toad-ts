@@ -92,6 +92,12 @@ export interface SessionDiffEntry {
   changeType: "created" | "modified" | "deleted";
 }
 
+const extractArgString = (args: Record<string, unknown>, key: string): string | undefined => {
+  if (typeof args !== "object" || args === null) return undefined;
+  const value = args[key];
+  return typeof value === "string" ? value : undefined;
+};
+
 export const getSessionDiff = (
   store: StoreApi<AppStore>,
   sessionId: SessionId
@@ -108,11 +114,7 @@ export const getSessionDiff = (
       if (name === "write" || name === "edit" || name === "patch") {
         const args = block.arguments;
         const filePath =
-          typeof args === "object" && args !== null
-            ? (((args as Record<string, unknown>).path as string) ??
-              ((args as Record<string, unknown>).file_path as string) ??
-              "unknown")
-            : "unknown";
+          extractArgString(args, "path") ?? extractArgString(args, "file_path") ?? "unknown";
         const changeType = name === "write" ? "created" : "modified";
         diffs.push({ messageId: message.id, filePath, changeType });
       }

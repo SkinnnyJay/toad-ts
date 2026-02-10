@@ -73,8 +73,12 @@ const isDangerousTool = (toolName: string): boolean =>
 /**
  * Create a permissions resolver from config.
  */
+const isPermissionMode = (value: string): value is PermissionMode =>
+  PERMISSION_MODE_ORDER.includes(value as PermissionMode);
+
 export const createPermissionResolver = (config: PermissionsConfig) => {
-  const mode = (config.mode ?? PERMISSION_MODE.NORMAL) as PermissionMode;
+  const rawMode = config.mode ?? PERMISSION_MODE.NORMAL;
+  const mode: PermissionMode = isPermissionMode(rawMode) ? rawMode : PERMISSION_MODE.NORMAL;
   const rules = config.rules ?? {};
 
   return {
