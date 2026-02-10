@@ -51,3 +51,4 @@
 - [X] Keybind editor UI in settings modal
 - [X] Permission mode cycling (Shift+Tab)
 - [X] Vim input mode (normal/insert + motions/operators)
+- [X] Hooks system (config + hook runner + /hooks panel)

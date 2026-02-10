@@ -56,7 +56,7 @@
   - [X] Keybind editor UI + extended action map
   - [X] Permission mode cycling (Shift+Tab) using session modes
   - [X] Vim input mode (normal/insert + motions/operators)
-  - [ ] Hooks system
+  - [X] Hooks system (config + hooks manager + UI panel)
 
 ## Phase 10: Compaction & Context Management
 - [ ] Phase 10 tasks (see PLAN.md)

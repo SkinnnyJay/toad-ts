@@ -17,6 +17,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   { name: SLASH_COMMAND.DEBUG, description: "Show debug info" },
   { name: SLASH_COMMAND.EDITOR, description: "Open external editor for input" },
   { name: SLASH_COMMAND.HELP, description: "Show available commands" },
+  { name: SLASH_COMMAND.HOOKS, description: "Open hooks panel" },
   { name: SLASH_COMMAND.DETAILS, description: "Toggle tool execution details" },
   { name: SLASH_COMMAND.MEMORY, description: "Edit memory files", args: "[agents|claude|both]" },
   {

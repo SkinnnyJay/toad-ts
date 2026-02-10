@@ -65,6 +65,7 @@ export interface SlashCommandDeps {
   toggleThinking?: () => boolean;
   openEditor?: (initialValue: string) => Promise<void>;
   openThemes?: () => void;
+  openHooks?: () => void;
   openMemoryFile?: (filePath: string) => Promise<boolean>;
   copyToClipboard?: (text: string) => Promise<boolean>;
   runCompaction?: (sessionId: SessionId) => Promise<SessionId | null>;
@@ -90,6 +91,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     command === SLASH_COMMAND.STATS ||
     command === SLASH_COMMAND.MEMORY ||
     command === SLASH_COMMAND.THEMES ||
+    command === SLASH_COMMAND.HOOKS ||
     command === SLASH_COMMAND.VIM;
   if (!deps.sessionId && !allowsWithoutSession) {
     deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
@@ -435,6 +437,14 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         return true;
       }
       deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.THEMES_NOT_AVAILABLE);
+      return true;
+    }
+    case SLASH_COMMAND.HOOKS: {
+      if (deps.openHooks) {
+        deps.openHooks();
+        return true;
+      }
+      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.HOOKS_NOT_AVAILABLE);
       return true;
     }
     default: {

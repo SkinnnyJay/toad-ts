@@ -44,8 +44,14 @@ export type { UseCheckpointUIOptions, UseCheckpointUIResult } from "./useCheckpo
 export { useExecutionEngine } from "./useExecutionEngine";
 export type { UseExecutionEngineOptions } from "./useExecutionEngine";
 
+export { useAppNavigation } from "./useAppNavigation";
+export type { UseAppNavigationOptions, UseAppNavigationResult } from "./useAppNavigation";
+
 export { useAppConfig } from "./useAppConfig";
 export type { UseAppConfigResult } from "./useAppConfig";
+
+export { useHookManager } from "./useHookManager";
+export type { UseHookManagerOptions } from "./useHookManager";
 
 // InputWithAutocomplete.tsx hooks
 export {

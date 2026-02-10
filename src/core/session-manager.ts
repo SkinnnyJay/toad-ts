@@ -1,6 +1,8 @@
 import { ENV_KEY } from "@/constants/env-keys";
+import { HOOK_EVENT } from "@/constants/hook-events";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { type EnvSource, type McpConfigInput, parseMcpConfig } from "@/core/mcp-config";
+import { getHookManager } from "@/hooks/hook-service";
 import type { AgentId, Session, SessionMode } from "@/types/domain";
 import { SessionSchema } from "@/types/domain";
 import { EnvManager } from "@/utils/env/env.utils";
@@ -88,6 +90,14 @@ export class SessionManager {
       mode,
     });
     this.store.upsertSession({ session });
+    const hookManager = getHookManager();
+    if (hookManager) {
+      void hookManager.runHooks(HOOK_EVENT.SESSION_START, {
+        matcherTarget: session.id,
+        sessionId: session.id,
+        payload: { session },
+      });
+    }
     await this.applySessionMode(session.id, mode);
     await this.applySessionModel(session.id, model);
     return session;

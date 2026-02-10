@@ -5,6 +5,8 @@ import { CONFIG_FILE, PROJECT_CONFIG_FILES } from "@/constants/config-files";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { ERROR_CODE } from "@/constants/error-codes";
+import { HOOK_EVENT, HOOK_EVENT_VALUES } from "@/constants/hook-events";
+import { HOOK_TYPE } from "@/constants/hook-types";
 import { KEYBIND_ACTION } from "@/constants/keybind-actions";
 import { KEYBIND } from "@/constants/keybinds";
 import { EnvManager } from "@/utils/env/env.utils";
@@ -55,17 +57,60 @@ export const vimSchema = z
   })
   .strict();
 
+const hookDefinitionSchema = z
+  .object({
+    type: z.enum([HOOK_TYPE.COMMAND, HOOK_TYPE.PROMPT]),
+    command: z.string().min(1).optional(),
+    prompt: z.string().min(1).optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.type === HOOK_TYPE.COMMAND && !value.command) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Command hook requires a command value.",
+      });
+    }
+    if (value.type === HOOK_TYPE.PROMPT && !value.prompt) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Prompt hook requires a prompt value.",
+      });
+    }
+  });
+
+const hookGroupSchema = z
+  .object({
+    matcher: z.string().min(1).optional(),
+    hooks: z.array(hookDefinitionSchema).default([]),
+  })
+  .strict();
+
+export const hooksSchema = z
+  .object({
+    [HOOK_EVENT.SESSION_START]: z.array(hookGroupSchema).optional(),
+    [HOOK_EVENT.PRE_TOOL_USE]: z.array(hookGroupSchema).optional(),
+    [HOOK_EVENT.POST_TOOL_USE]: z.array(hookGroupSchema).optional(),
+    [HOOK_EVENT.PERMISSION_REQUEST]: z.array(hookGroupSchema).optional(),
+    [HOOK_EVENT.STOP]: z.array(hookGroupSchema).optional(),
+  })
+  .strict();
+
 export const appConfigSchema = z
   .object({
     defaults: defaultsSchema.optional(),
     keybinds: keybindsSchema.optional(),
     vim: vimSchema.optional(),
+    hooks: hooksSchema.optional(),
   })
   .strict();
 
 export type KeybindConfig = z.infer<typeof keybindsSchema>;
 export type AppConfigDefaults = z.infer<typeof defaultsSchema>;
 export type VimConfig = z.infer<typeof vimSchema>;
+export type HookDefinition = z.infer<typeof hookDefinitionSchema>;
+export type HookGroup = z.infer<typeof hookGroupSchema>;
+export type HooksConfig = z.infer<typeof hooksSchema>;
 export type AppConfigInput = z.infer<typeof appConfigSchema>;
 
 export interface ResolvedKeybindConfig {
@@ -79,6 +124,7 @@ export interface AppConfig {
   vim: {
     enabled: boolean;
   };
+  hooks: HooksConfig;
 }
 
 export const DEFAULT_APP_CONFIG: AppConfig = {
@@ -90,6 +136,7 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
   vim: {
     enabled: false,
   },
+  hooks: {},
 };
 
 export interface LoadAppConfigOptions {
@@ -196,6 +243,21 @@ const parseConfig = (raw: unknown, filePath: string): AppConfigInput => {
   }
 };
 
+const mergeHooksConfig = (base: HooksConfig, override?: HooksConfig): HooksConfig => {
+  if (!override) {
+    return base;
+  }
+  const merged: HooksConfig = { ...base };
+  for (const event of HOOK_EVENT_VALUES) {
+    const baseEntries = base[event] ?? [];
+    const overrideEntries = override[event] ?? [];
+    if (overrideEntries.length > 0) {
+      merged[event] = [...baseEntries, ...overrideEntries];
+    }
+  }
+  return merged;
+};
+
 export const mergeAppConfig = (base: AppConfig, override: AppConfigInput): AppConfig => {
   return {
     defaults: {
@@ -212,6 +274,7 @@ export const mergeAppConfig = (base: AppConfig, override: AppConfigInput): AppCo
     vim: {
       enabled: override.vim?.enabled ?? base.vim.enabled,
     },
+    hooks: mergeHooksConfig(base.hooks, override.hooks),
   };
 };
 
@@ -297,6 +360,7 @@ const serializeConfig = (config: AppConfig): AppConfigInput => {
     vim: {
       enabled: config.vim.enabled,
     },
+    hooks: config.hooks,
   };
 };
 

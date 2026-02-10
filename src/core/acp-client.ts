@@ -1,6 +1,8 @@
+import { HOOK_EVENT } from "@/constants/hook-events";
 import type { ACPConnection } from "@/core/acp-connection";
+import { getHookManager } from "@/hooks/hook-service";
 import type { ToolHost } from "@/tools/tool-host";
-import type { ConnectionStatus } from "@/types/domain";
+import { type ConnectionStatus, SessionIdSchema } from "@/types/domain";
 import {
   type AuthenticateRequest,
   type AuthenticateResponse,
@@ -125,6 +127,26 @@ export class ACPClient extends EventEmitter<ACPClientEvents> implements Client {
 
   async requestPermission(params: RequestPermissionRequest): Promise<RequestPermissionResponse> {
     this.emit("permissionRequest", params);
+    const hookManager = getHookManager();
+    if (hookManager) {
+      const matcherTarget =
+        params.toolCall?.title ?? params.toolCall?.kind ?? params.toolCall?.toolCallId ?? undefined;
+      const sessionId = params.sessionId ? SessionIdSchema.parse(params.sessionId) : undefined;
+      const decision = await hookManager.runHooks(
+        HOOK_EVENT.PERMISSION_REQUEST,
+        {
+          matcherTarget,
+          sessionId,
+          payload: {
+            request: params,
+          },
+        },
+        { canBlock: true }
+      );
+      if (!decision.allow) {
+        return { outcome: { outcome: "cancelled" } };
+      }
+    }
     if (this.options.permissionHandler) {
       return this.options.permissionHandler(params);
     }

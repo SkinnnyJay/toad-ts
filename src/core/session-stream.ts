@@ -18,6 +18,7 @@ import { STREAM_METADATA_KEY } from "@/constants/stream-metadata";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import type { AgentPort } from "@/core/agent-port";
 import { MessageHandler } from "@/core/message-handler";
+import { emitStopHook } from "@/core/session-stream-hooks";
 import type { AppStore } from "@/store/app-store";
 import {
   type ContentBlock,
@@ -32,18 +33,14 @@ import {
   ToolCallIdSchema,
 } from "@/types/domain";
 import { EnvManager } from "@/utils/env/env.utils";
-
 const STREAM_FINAL_KEYS = [STREAM_METADATA_KEY.IS_FINAL, STREAM_METADATA_KEY.FINAL] as const;
-
 type StreamKind =
   | typeof SESSION_UPDATE_TYPE.USER_MESSAGE_CHUNK
   | typeof SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK
   | typeof SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK
   | typeof SESSION_UPDATE_TYPE.TOOL_CALL
   | typeof SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE;
-
 type StreamKey = string;
-
 type StoreAccess = Pick<
   AppStore,
   "appendMessage" | "updateMessage" | "upsertSession" | "getSession" | "getMessage"
@@ -69,7 +66,6 @@ export class SessionStream {
     { sessionId: SessionId; role: MessageRole; blocks: ContentBlock[]; finalize: boolean }
   >();
   private bufferTimer: NodeJS.Timeout | null = null;
-
   constructor(
     private readonly store: StoreAccess,
     options: SessionStreamOptions = {}
@@ -83,13 +79,11 @@ export class SessionStream {
     this.handler.on("block", (payload) => this.handleBlock(payload));
     this.handler.on("done", (payload) => this.handleDone(payload));
   }
-
   attach(port: AgentPort): () => void {
     const handler = (update: SessionNotification) => this.handleSessionUpdate(update);
     port.on("sessionUpdate", handler);
     return () => port.off("sessionUpdate", handler);
   }
-
   handleSessionUpdate(notification: SessionNotification): void {
     const sessionId = SessionIdSchema.parse(notification.sessionId);
     const update = notification.update;
@@ -117,7 +111,6 @@ export class SessionStream {
         return;
     }
   }
-
   finalizeSession(sessionId: SessionId): void {
     const prefix = `${sessionId}:`;
     for (const [key, messageId] of this.activeStreams.entries()) {
@@ -127,7 +120,6 @@ export class SessionStream {
       this.finalizeStream(key, messageId, sessionId, true);
     }
   }
-
   private handleBlock(payload: {
     sessionId: SessionId;
     messageId: MessageId;
@@ -141,7 +133,6 @@ export class SessionStream {
       this.enqueueBlock(payload.messageId, sessionId, role, payload.block);
       return;
     }
-
     this.applyMessageUpdate(payload.messageId, {
       sessionId,
       role,
@@ -149,7 +140,6 @@ export class SessionStream {
       finalize: false,
     });
   }
-
   private handleDone(payload: { sessionId: SessionId; messageId: MessageId }): void {
     this.markStreamEnd(payload.messageId);
     const role = this.messageRoles.get(payload.messageId) ?? MESSAGE_ROLE.ASSISTANT;
@@ -157,15 +147,16 @@ export class SessionStream {
 
     if (this.bufferEnabled) {
       this.enqueueFinalize(payload.messageId, sessionId, role);
+      emitStopHook(sessionId, payload.messageId, role);
       return;
     }
-
     this.applyMessageUpdate(payload.messageId, {
       sessionId,
       role,
       blocks: [],
       finalize: true,
     });
+    emitStopHook(sessionId, payload.messageId, role);
   }
 
   private handleContentChunk(
@@ -511,14 +502,12 @@ export class SessionStream {
       result: call.rawOutput,
     };
   }
-
   private mapToolArguments(rawInput: unknown): Record<string, unknown> {
     if (rawInput && typeof rawInput === "object" && !Array.isArray(rawInput)) {
       return rawInput as Record<string, unknown>;
     }
     return {};
   }
-
   private mapToolStatus(
     status?: ToolCallStatus | null
   ):
@@ -537,7 +526,6 @@ export class SessionStream {
         return TOOL_CALL_STATUS.PENDING;
     }
   }
-
   private mapResourceSize(size?: bigint | null): number | undefined {
     if (typeof size === "bigint") {
       return Number(size);

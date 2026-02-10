@@ -1,4 +1,7 @@
 import { LIMIT } from "@/config/limits";
+import { HOOK_EVENT } from "@/constants/hook-events";
+import { TOOL_NAME } from "@/constants/tool-names";
+import { getHookManager } from "@/hooks/hook-service";
 import { getCheckpointManager } from "@/store/checkpoints/checkpoint-service";
 import type { ClientCapabilities } from "@agentclientprotocol/sdk";
 import type {
@@ -68,35 +71,41 @@ export class ToolHost {
   }
 
   async readTextFile(params: ReadTextFileRequest): Promise<ReadTextFileResponse> {
-    const content = await this.fs.read(params.path);
-    const startLine = params.line ?? 1;
-    const sliced = sliceLines(content, startLine, params.limit ?? undefined);
-    return { content: sliced };
+    return this.runWithHooks(TOOL_NAME.READ, params, async () => {
+      const content = await this.fs.read(params.path);
+      const startLine = params.line ?? 1;
+      const sliced = sliceLines(content, startLine, params.limit ?? undefined);
+      return { content: sliced };
+    });
   }
 
   async writeTextFile(params: WriteTextFileRequest): Promise<WriteTextFileResponse> {
-    const checkpointManager = getCheckpointManager();
-    const absolutePath = this.fs.resolve(params.path);
-    const existed = await this.fs.exists(params.path);
-    const before = existed ? await this.fs.read(params.path) : null;
-    await this.fs.write(params.path, params.content);
-    checkpointManager?.recordFileChange({
-      path: absolutePath,
-      before,
-      after: params.content,
+    return this.runWithHooks(TOOL_NAME.WRITE, params, async () => {
+      const checkpointManager = getCheckpointManager();
+      const absolutePath = this.fs.resolve(params.path);
+      const existed = await this.fs.exists(params.path);
+      const before = existed ? await this.fs.read(params.path) : null;
+      await this.fs.write(params.path, params.content);
+      checkpointManager?.recordFileChange({
+        path: absolutePath,
+        before,
+        after: params.content,
+      });
+      return {};
     });
-    return {};
   }
 
   async createTerminal(params: CreateTerminalRequest): Promise<CreateTerminalResponse> {
-    const terminalId = this.terminalManager.createSession({
-      command: params.command,
-      args: params.args,
-      cwd: params.cwd ?? undefined,
-      env: resolveEnv(params.env),
-      outputByteLimit: params.outputByteLimit ?? LIMIT.TERMINAL_OUTPUT_MAX_BYTES,
+    return this.runWithHooks(TOOL_NAME.BASH, params, async () => {
+      const terminalId = this.terminalManager.createSession({
+        command: params.command,
+        args: params.args,
+        cwd: params.cwd ?? undefined,
+        env: resolveEnv(params.env),
+        outputByteLimit: params.outputByteLimit ?? LIMIT.TERMINAL_OUTPUT_MAX_BYTES,
+      });
+      return { terminalId };
     });
-    return { terminalId };
   }
 
   async terminalOutput(params: TerminalOutputRequest): Promise<TerminalOutputResponse> {
@@ -132,5 +141,55 @@ export class ToolHost {
   async releaseTerminal(params: ReleaseTerminalRequest): Promise<ReleaseTerminalResponse> {
     this.terminalManager.release(params.terminalId);
     return {};
+  }
+
+  private async runWithHooks<T>(
+    toolName: string,
+    input: Record<string, unknown>,
+    action: () => Promise<T>
+  ): Promise<T> {
+    const hookManager = getHookManager();
+    if (hookManager) {
+      const decision = await hookManager.runHooks(
+        HOOK_EVENT.PRE_TOOL_USE,
+        {
+          matcherTarget: toolName,
+          payload: {
+            toolName,
+            input,
+          },
+        },
+        { canBlock: true }
+      );
+      if (!decision.allow) {
+        throw new Error(decision.message ?? "Tool blocked by hook.");
+      }
+    }
+    try {
+      const result = await action();
+      if (hookManager) {
+        void hookManager.runHooks(HOOK_EVENT.POST_TOOL_USE, {
+          matcherTarget: toolName,
+          payload: {
+            toolName,
+            input,
+            result,
+          },
+        });
+      }
+      return result;
+    } catch (error) {
+      if (hookManager) {
+        void hookManager.runHooks(HOOK_EVENT.POST_TOOL_USE, {
+          matcherTarget: toolName,
+          payload: {
+            toolName,
+            input,
+            error: error instanceof Error ? error.message : String(error),
+          },
+        });
+      }
+      throw error;
+    }
   }
 }

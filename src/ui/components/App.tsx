@@ -25,13 +25,13 @@ import { registerCheckpointManager } from "@/store/checkpoints/checkpoint-servic
 import { createPersistenceConfig } from "@/store/persistence/persistence-config";
 import { PersistenceManager } from "@/store/persistence/persistence-manager";
 import { createPersistenceProvider } from "@/store/persistence/persistence-provider";
-import { AgentIdSchema, MessageIdSchema, type Session, type SessionId } from "@/types/domain";
+import { AgentIdSchema, MessageIdSchema, type SessionId } from "@/types/domain";
 import { AgentSelect } from "@/ui/components/AgentSelect";
-import type { AgentOption } from "@/ui/components/AgentSelect";
 import { AsciiBanner } from "@/ui/components/AsciiBanner";
 import { BackgroundTasksModal } from "@/ui/components/BackgroundTasksModal";
 import { Chat } from "@/ui/components/Chat";
 import { HelpModal } from "@/ui/components/HelpModal";
+import { HooksModal } from "@/ui/components/HooksModal";
 import { LoadingScreen } from "@/ui/components/LoadingScreen";
 import { RewindModal } from "@/ui/components/RewindModal";
 import { SessionsPopup } from "@/ui/components/SessionsPopup";
@@ -42,10 +42,12 @@ import { ThemesModal } from "@/ui/components/ThemesModal";
 import {
   useAppConfig,
   useAppKeyboardShortcuts,
+  useAppNavigation,
   useCheckpointUI,
   useDefaultAgentSelection,
   useExecutionEngine,
   useHarnessConnection,
+  useHookManager,
   useSessionHydration,
   useTerminalDimensions,
 } from "@/ui/hooks";
@@ -57,6 +59,7 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 
 export function App(): ReactNode {
   const [view, setView] = useState<View>(VIEW.AGENT_SELECT);
+  const [isHooksOpen, setIsHooksOpen] = useState(false);
   const startupMeasured = useRef(false);
 
   const currentSessionId = useAppStore((state) => state.currentSessionId);
@@ -69,10 +72,8 @@ export function App(): ReactNode {
   const getSession = useAppStore((state) => state.getSession);
   const getMessagesForSession = useAppStore((state) => state.getMessagesForSession);
 
-  // Terminal dimensions hook
   const terminalDimensions = useTerminalDimensions();
 
-  // Environment and persistence setup
   const env = useMemo(() => new Env(EnvManager.getInstance()), []);
   const persistenceConfig = useMemo(() => createPersistenceConfig(env), [env]);
   const persistenceManager = useMemo(() => {
@@ -84,7 +85,6 @@ export function App(): ReactNode {
 
   const checkpointManager = useMemo(() => new CheckpointManager(useAppStore), []);
 
-  // Session hydration hook
   const {
     isHydrated,
     hasHarnesses,
@@ -116,7 +116,6 @@ export function App(): ReactNode {
     return parsed.success ? parsed.data : undefined;
   }, [appConfig.defaults?.agent]);
 
-  // Default agent selection hook
   const { selectedAgent, selectAgent } = useDefaultAgentSelection({
     isHydrated,
     hasHarnesses,
@@ -129,7 +128,6 @@ export function App(): ReactNode {
     onViewChange: setView,
   });
 
-  // Harness registry and session stream
   const harnessRegistry = useMemo(
     () => new HarnessRegistry([claudeCliHarnessAdapter, mockHarnessAdapter]),
     []
@@ -148,7 +146,6 @@ export function App(): ReactNode {
 
   useExecutionEngine({ subAgentRunner, agentInfoMap });
 
-  // Harness connection hook
   const { client, sessionId: connectionSessionId } = useHarnessConnection({
     selectedAgent,
     harnessConfigs,
@@ -161,17 +158,14 @@ export function App(): ReactNode {
     onViewChange: setView,
   });
 
-  // Session ID state (tracks both connection and store)
   const [sessionId, setSessionId] = useState<SessionId | undefined>(currentSessionId);
 
-  // Sync session ID from connection
   useEffect(() => {
     if (connectionSessionId) {
       setSessionId(connectionSessionId);
     }
   }, [connectionSessionId]);
 
-  // Sync session ID from store
   useEffect(() => {
     if (currentSessionId) {
       setSessionId(currentSessionId);
@@ -193,7 +187,6 @@ export function App(): ReactNode {
     return { completed, total: tasks.length };
   }, [backgroundTasks]);
 
-  // Plan progress calculation
   const plan = useMemo(() => {
     const id = sessionId ?? currentSessionId;
     if (!id) return undefined;
@@ -207,23 +200,19 @@ export function App(): ReactNode {
   }, [plan]);
   void planProgress;
 
-  // Set initial load status on mount
   useEffect(() => {
     setProgress(5);
     setStatusMessage("Loading TOADSTOOL…");
   }, [setProgress, setStatusMessage]);
-
   useEffect(() => {
     registerCheckpointManager(checkpointManager);
     return () => {
       registerCheckpointManager(null);
     };
   }, [checkpointManager]);
-
   useEffect(() => {
     applyThemeColors(theme);
   }, [theme]);
-
   useEffect(() => {
     if (stage !== RENDER_STAGE.READY || startupMeasured.current) {
       return;
@@ -244,78 +233,26 @@ export function App(): ReactNode {
     },
     [checkpointManager, sessionStream]
   );
-
-  const handleSelectSession = useCallback(
-    (selectedSessionId: SessionId) => {
-      const session = useAppStore.getState().getSession(selectedSessionId);
-      if (session) {
-        setCurrentSession(selectedSessionId);
-        setSessionId(selectedSessionId);
-        if (view !== VIEW.CHAT) {
-          setView(VIEW.CHAT);
-        }
-      }
-    },
-    [setCurrentSession, view]
-  );
-
-  const handleAgentSelect = useCallback(
-    (agent: AgentOption) => {
-      const info = agentInfoMap.get(agent.id);
-      if (info) {
-        selectAgent(info);
-      }
-    },
-    [agentInfoMap, selectAgent]
-  );
-
-  const handleAgentSwitchRequest = useCallback(() => {
-    if (agentOptions.length === 0) return;
-    setView(VIEW.AGENT_SELECT);
-  }, [agentOptions.length]);
-
-  const handleAgentSelectCancel = useCallback(() => {
-    if (selectedAgent) {
-      setView(VIEW.CHAT);
-    }
-  }, [selectedAgent]);
-
-  const navigateChildSession = useCallback(
-    (direction: "prev" | "next") => {
-      const activeSessionId = currentSessionId ?? sessionId;
-      if (!activeSessionId) return;
-      const activeSession = sessionsById[activeSessionId];
-      if (!activeSession) return;
-      const parentId = activeSession.metadata?.parentSessionId ?? activeSession.id;
-      const parentSession = sessionsById[parentId];
-      if (!parentSession) return;
-      const children = Object.values(sessionsById)
-        .filter((session): session is Session => {
-          if (!session) {
-            return false;
-          }
-          return session.metadata?.parentSessionId === parentId;
-        })
-        .sort((a, b) => a.createdAt - b.createdAt);
-      const chain: Session[] = [parentSession, ...children];
-      if (chain.length <= 1) return;
-      const index = chain.findIndex((session) => session.id === activeSessionId);
-      if (index < 0) return;
-      const nextIndex =
-        direction === "next"
-          ? (index + 1) % chain.length
-          : (index - 1 + chain.length) % chain.length;
-      const target = chain[nextIndex];
-      if (target) {
-        setCurrentSession(target.id);
-        setSessionId(target.id);
-        if (view !== VIEW.CHAT) {
-          setView(VIEW.CHAT);
-        }
-      }
-    },
-    [currentSessionId, sessionId, sessionsById, setCurrentSession, view]
-  );
+  const {
+    handleSelectSession,
+    handleAgentSelect,
+    handleAgentSwitchRequest,
+    handleAgentSelectCancel,
+    navigateChildSession,
+  } = useAppNavigation({
+    currentSessionId,
+    sessionId,
+    sessionsById,
+    getSession,
+    setCurrentSession,
+    setSessionId,
+    view,
+    setView,
+    agentInfoMap,
+    agentOptions,
+    selectedAgent,
+    selectAgent,
+  });
 
   const handleUpdateKeybinds = useCallback(
     (keybinds: KeybindConfig) => {
@@ -323,7 +260,6 @@ export function App(): ReactNode {
     },
     [updateConfig]
   );
-
   const appendSystemMessage = useCallback(
     (text: string) => {
       if (!activeSessionId) {
@@ -341,7 +277,6 @@ export function App(): ReactNode {
     },
     [activeSessionId, appendMessage]
   );
-
   const handleCyclePermissionMode = useCallback(() => {
     if (!activeSessionId) {
       return;
@@ -360,7 +295,11 @@ export function App(): ReactNode {
     void updateConfig({ vim: { enabled: nextEnabled } });
     return nextEnabled;
   }, [appConfig.vim.enabled, updateConfig]);
-
+  useHookManager({
+    hooks: appConfig.hooks,
+    agentInfoMap,
+    subAgentRunner,
+  });
   const {
     focusTarget,
     isSessionsPopupOpen,
@@ -491,6 +430,14 @@ export function App(): ReactNode {
                     keybinds={appConfig.keybinds}
                     onUpdateKeybinds={handleUpdateKeybinds}
                   />
+                ) : isHooksOpen ? (
+                  <HooksModal
+                    isOpen={isHooksOpen}
+                    hooks={appConfig.hooks}
+                    onClose={() => {
+                      setIsHooksOpen(false);
+                    }}
+                  />
                 ) : isThemesOpen ? (
                   <ThemesModal
                     isOpen={isThemesOpen}
@@ -518,6 +465,7 @@ export function App(): ReactNode {
                     onOpenHelp={() => setIsHelpOpen(true)}
                     onOpenSessions={() => setIsSessionsPopupOpen(true)}
                     onOpenThemes={() => setIsThemesOpen(true)}
+                    onOpenHooks={() => setIsHooksOpen(true)}
                     onOpenAgentSelect={handleAgentSwitchRequest}
                     onToggleVimMode={handleToggleVimMode}
                     vimEnabled={appConfig.vim.enabled}
