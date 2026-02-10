@@ -1,20 +1,47 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
+import {
+  type AppConfigDefaults,
+  type AppConfigInput,
+  type FormatterConfig,
+  type HooksConfig,
+  type RoutingConfig,
+  type ThemeConfig,
+  appConfigSchema,
+} from "@/config/app-config-schema";
 import { CONFIG_FILE, PROJECT_CONFIG_FILES } from "@/constants/config-files";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { ERROR_CODE } from "@/constants/error-codes";
-import { HOOK_EVENT, HOOK_EVENT_VALUES } from "@/constants/hook-events";
-import { HOOK_TYPE } from "@/constants/hook-types";
+import { HOOK_EVENT_VALUES } from "@/constants/hook-events";
 import { KEYBIND_ACTION } from "@/constants/keybind-actions";
 import { KEYBIND } from "@/constants/keybinds";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { findUp } from "find-up";
-import { z } from "zod";
 
 const logger = createClassLogger("AppConfig");
+
+// Re-export types from schema
+export type {
+  AppConfigDefaults,
+  AppConfigInput,
+  CompatibilityConfig,
+  CompactionConfig,
+  FormatterConfig,
+  HookDefinition,
+  HookGroup,
+  HooksConfig,
+  KeybindConfig,
+  PermissionsConfig,
+  ProviderConfig,
+  RoutingConfig,
+  RoutingRule,
+  ThemeConfig,
+  VimConfig,
+} from "@/config/app-config-schema";
+export { appConfigSchema } from "@/config/app-config-schema";
 
 const DEFAULT_LEADER_KEY = "ctrl+x";
 
@@ -37,98 +64,6 @@ const defaultKeybinds = {
   [KEYBIND_ACTION.SESSION_CHILD_CYCLE_REVERSE]: `${KEYBIND.LEADER_TOKEN}left`,
 } as const;
 
-export const keybindsSchema = z
-  .object({
-    leader: z.string().min(1).optional(),
-    bindings: z.record(z.string()).optional(),
-  })
-  .strict();
-
-export const defaultsSchema = z
-  .object({
-    agent: z.string().min(1).optional(),
-    model: z.string().min(1).optional(),
-  })
-  .strict();
-
-export const vimSchema = z
-  .object({
-    enabled: z.boolean().optional(),
-  })
-  .strict();
-
-const hookDefinitionSchema = z
-  .object({
-    type: z.enum([HOOK_TYPE.COMMAND, HOOK_TYPE.PROMPT]),
-    command: z.string().min(1).optional(),
-    prompt: z.string().min(1).optional(),
-  })
-  .strict()
-  .superRefine((value, ctx) => {
-    if (value.type === HOOK_TYPE.COMMAND && !value.command) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Command hook requires a command value.",
-      });
-    }
-    if (value.type === HOOK_TYPE.PROMPT && !value.prompt) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Prompt hook requires a prompt value.",
-      });
-    }
-  });
-
-const hookGroupSchema = z
-  .object({
-    matcher: z.string().min(1).optional(),
-    hooks: z.array(hookDefinitionSchema).default([]),
-  })
-  .strict();
-
-export const hooksSchema = z
-  .object({
-    [HOOK_EVENT.SESSION_START]: z.array(hookGroupSchema).optional(),
-    [HOOK_EVENT.PRE_TOOL_USE]: z.array(hookGroupSchema).optional(),
-    [HOOK_EVENT.POST_TOOL_USE]: z.array(hookGroupSchema).optional(),
-    [HOOK_EVENT.PERMISSION_REQUEST]: z.array(hookGroupSchema).optional(),
-    [HOOK_EVENT.STOP]: z.array(hookGroupSchema).optional(),
-  })
-  .strict();
-
-const routingRuleSchema = z
-  .object({
-    matcher: z.string().min(1),
-    agentId: z.string().min(1),
-  })
-  .strict();
-
-export const routingSchema = z
-  .object({
-    rules: z.array(routingRuleSchema).default([]),
-  })
-  .strict();
-
-export const appConfigSchema = z
-  .object({
-    defaults: defaultsSchema.optional(),
-    keybinds: keybindsSchema.optional(),
-    vim: vimSchema.optional(),
-    hooks: hooksSchema.optional(),
-    routing: routingSchema.optional(),
-  })
-  .strict();
-
-export type KeybindConfig = z.infer<typeof keybindsSchema>;
-export type AppConfigDefaults = z.infer<typeof defaultsSchema>;
-export type VimConfig = z.infer<typeof vimSchema>;
-export type HookDefinition = z.infer<typeof hookDefinitionSchema>;
-export type HookGroup = z.infer<typeof hookGroupSchema>;
-export type HooksConfig = z.infer<typeof hooksSchema>;
-export type RoutingRule = z.infer<typeof routingRuleSchema>;
-export type RoutingConfig = z.infer<typeof routingSchema>;
-export type AppConfigInput = z.infer<typeof appConfigSchema>;
-
 export interface ResolvedKeybindConfig {
   leader: string;
   bindings: Record<string, string>;
@@ -142,7 +77,35 @@ export interface AppConfig {
   };
   hooks: HooksConfig;
   routing: RoutingConfig;
+  compaction: {
+    auto: boolean;
+    threshold: number;
+    prune: boolean;
+    preserveRecent: number;
+  };
+  permissions: {
+    mode: "auto-accept" | "plan" | "normal";
+    rules: Record<string, "allow" | "deny" | "ask">;
+  };
+  theme?: ThemeConfig;
+  providers: {
+    enabled: string[];
+    disabled: string[];
+    smallModel?: string;
+  };
+  compatibility: {
+    claude: boolean;
+    cursor: boolean;
+    gemini: boolean;
+    opencode: boolean;
+    disabledTools: string[];
+  };
+  formatters: Record<string, FormatterConfig>;
+  instructions: string[];
 }
+
+const DEFAULT_COMPACTION_THRESHOLD = 0.8;
+const DEFAULT_PRESERVE_RECENT = 5;
 
 export const DEFAULT_APP_CONFIG: AppConfig = {
   defaults: undefined,
@@ -157,6 +120,31 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
   routing: {
     rules: [],
   },
+  compaction: {
+    auto: true,
+    threshold: DEFAULT_COMPACTION_THRESHOLD,
+    prune: true,
+    preserveRecent: DEFAULT_PRESERVE_RECENT,
+  },
+  permissions: {
+    mode: "normal",
+    rules: {},
+  },
+  theme: undefined,
+  providers: {
+    enabled: [],
+    disabled: [],
+    smallModel: undefined,
+  },
+  compatibility: {
+    claude: true,
+    cursor: true,
+    gemini: true,
+    opencode: true,
+    disabledTools: [],
+  },
+  formatters: {},
+  instructions: [],
 };
 
 export interface LoadAppConfigOptions {
@@ -305,6 +293,37 @@ export const mergeAppConfig = (base: AppConfig, override: AppConfigInput): AppCo
     },
     hooks: mergeHooksConfig(base.hooks, override.hooks),
     routing: mergeRoutingConfig(base.routing, override.routing),
+    compaction: {
+      auto: override.compaction?.auto ?? base.compaction.auto,
+      threshold: override.compaction?.threshold ?? base.compaction.threshold,
+      prune: override.compaction?.prune ?? base.compaction.prune,
+      preserveRecent: override.compaction?.preserveRecent ?? base.compaction.preserveRecent,
+    },
+    permissions: {
+      mode: override.permissions?.mode ?? base.permissions.mode,
+      rules: {
+        ...base.permissions.rules,
+        ...(override.permissions?.rules ?? {}),
+      },
+    },
+    theme: override.theme ?? base.theme,
+    providers: {
+      enabled: override.providers?.enabled ?? base.providers.enabled,
+      disabled: override.providers?.disabled ?? base.providers.disabled,
+      smallModel: override.providers?.smallModel ?? base.providers.smallModel,
+    },
+    compatibility: {
+      claude: override.compatibility?.claude ?? base.compatibility.claude,
+      cursor: override.compatibility?.cursor ?? base.compatibility.cursor,
+      gemini: override.compatibility?.gemini ?? base.compatibility.gemini,
+      opencode: override.compatibility?.opencode ?? base.compatibility.opencode,
+      disabledTools: override.compatibility?.disabledTools ?? base.compatibility.disabledTools,
+    },
+    formatters: {
+      ...base.formatters,
+      ...(override.formatters ?? {}),
+    },
+    instructions: [...base.instructions, ...(override.instructions ?? [])],
   };
 };
 
@@ -392,6 +411,13 @@ const serializeConfig = (config: AppConfig): AppConfigInput => {
     },
     hooks: config.hooks,
     routing: config.routing,
+    compaction: config.compaction,
+    permissions: config.permissions,
+    theme: config.theme,
+    providers: config.providers,
+    compatibility: config.compatibility,
+    formatters: config.formatters,
+    instructions: config.instructions.length > 0 ? config.instructions : undefined,
   };
 };
 
