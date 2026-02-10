@@ -59,3 +59,4 @@
 - [X] Rules loader + permission rules integration
 - [X] Headless server mode (HTTP + WebSocket)
 - [X] Routing policy + progress modal
+- [ ] Distribution & polish (CI/docs done; remaining tasks pending)

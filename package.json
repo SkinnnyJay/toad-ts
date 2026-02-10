@@ -6,6 +6,10 @@
   "bin": {
     "toadstool": "./dist/cli.js"
   },
+  "files": ["dist", "README.md"],
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -117,6 +121,5 @@
   },
   "keywords": ["tui", "terminal", "ai", "coding-agent", "claude", "acp", "cli"],
   "author": "Jonathan Boice",
-  "license": "MIT",
-  "files": ["dist", "README.md"]
+  "license": "MIT"
 }

@@ -91,3 +91,6 @@
 
 ## Phase 16: Distribution & Polish
 - [ ] Phase 16 tasks (see PLAN.md)
+  - [X] CI workflow + publish config
+  - [X] Headless server documentation
+  - [ ] Remaining distribution & polish work

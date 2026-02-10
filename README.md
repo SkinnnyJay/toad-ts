@@ -73,6 +73,9 @@ toadstool -p gemini
 
 # Start in a specific directory
 toadstool ~/projects/myapp
+
+# Start in headless server mode
+toadstool --server --port 4141
 ```
 
 ### Claude CLI setup
@@ -110,6 +113,25 @@ toadstool ~/projects/myapp
 │  > Type your message...                                  │
 └─────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🛰️ Headless Server Mode
+
+Run TOADSTOOL without the TUI and control it over HTTP/WebSocket:
+
+```bash
+toadstool --server --host 127.0.0.1 --port 4141
+```
+
+HTTP endpoints:
+
+- `GET /health`
+- `POST /sessions` (`{ "harnessId": "mock" }`)
+- `POST /sessions/:id/prompt` (`{ "prompt": "Hello" }`)
+- `GET /sessions/:id/messages`
+
+WebSocket connections receive session events for created sessions and streaming updates.
 
 ---
 
