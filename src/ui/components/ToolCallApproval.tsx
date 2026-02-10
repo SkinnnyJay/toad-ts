@@ -1,12 +1,15 @@
 import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
+import { APPROVAL_DECISION, type ApprovalDecision } from "@/constants/approval-decisions";
 import { COLOR } from "@/constants/colors";
 import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { PERMISSION, type Permission } from "@/constants/permissions";
+import type { UiSymbols } from "@/constants/ui-symbols";
 import type { ToolCallId } from "@/types/domain";
-import type { BoxProps } from "ink";
-import { Box, Text, useInput } from "ink";
-import { useCallback, useEffect, useState } from "react";
+import { useUiSymbols } from "@/ui/hooks/useUiSymbols";
+import { TextAttributes } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 
 export type PermissionProfile = Permission;
 
@@ -18,7 +21,7 @@ export interface ToolCallRequest {
   permissionProfile?: PermissionProfile;
 }
 
-export interface ToolCallApprovalProps extends BoxProps {
+export interface ToolCallApprovalProps {
   request: ToolCallRequest;
   onApprove: (id: ToolCallId) => void;
   onDeny: (id: ToolCallId) => void;
@@ -26,7 +29,7 @@ export interface ToolCallApprovalProps extends BoxProps {
   defaultPermission?: PermissionProfile;
 }
 
-const formatArguments = (args: Record<string, unknown>): string => {
+const formatArguments = (args: Record<string, unknown>, symbols: UiSymbols): string => {
   const entries = Object.entries(args);
   if (entries.length === 0) return "no arguments";
 
@@ -35,7 +38,7 @@ const formatArguments = (args: Record<string, unknown>): string => {
       const displayValue =
         typeof value === "string"
           ? value.length > LIMIT.STRING_TRUNCATE_MEDIUM
-            ? `"${value.slice(0, LIMIT.STRING_TRUNCATE_TOOL_ARG)}…"`
+            ? `"${value.slice(0, LIMIT.STRING_TRUNCATE_TOOL_ARG)}${symbols.ELLIPSIS}"`
             : `"${value}"`
           : JSON.stringify(value);
       return `  ${key}: ${displayValue}`;
@@ -51,10 +54,10 @@ export function ToolCallApproval({
   onDeny,
   autoApproveTimeout = TIMEOUT.AUTO_APPROVE_DISABLED,
   defaultPermission = PERMISSION.ASK,
-  ...boxProps
-}: ToolCallApprovalProps): JSX.Element | null {
+}: ToolCallApprovalProps): ReactNode {
+  const symbols = useUiSymbols();
   const [countdown, setCountdown] = useState(autoApproveTimeout);
-  const [decision, setDecision] = useState<"approved" | "denied" | null>(null);
+  const [decision, setDecision] = useState<ApprovalDecision | null>(null);
 
   const permission = request.permissionProfile ?? defaultPermission;
 
@@ -62,10 +65,10 @@ export function ToolCallApproval({
   useEffect(() => {
     if (permission === PERMISSION.ALLOW) {
       onApprove(request.id);
-      setDecision("approved");
+      setDecision(APPROVAL_DECISION.APPROVED);
     } else if (permission === PERMISSION.DENY) {
       onDeny(request.id);
-      setDecision("denied");
+      setDecision(APPROVAL_DECISION.DENIED);
     }
   }, [permission, request.id, onApprove, onDeny]);
 
@@ -77,7 +80,7 @@ export function ToolCallApproval({
       setCountdown((prev) => {
         if (prev <= 1) {
           onApprove(request.id);
-          setDecision("approved");
+          setDecision(APPROVAL_DECISION.APPROVED);
           return 0;
         }
         return prev - 1;
@@ -90,26 +93,26 @@ export function ToolCallApproval({
   const handleApprove = useCallback(() => {
     if (decision) return;
     onApprove(request.id);
-    setDecision("approved");
+    setDecision(APPROVAL_DECISION.APPROVED);
   }, [decision, request.id, onApprove]);
 
   const handleDeny = useCallback(() => {
     if (decision) return;
     onDeny(request.id);
-    setDecision("denied");
+    setDecision(APPROVAL_DECISION.DENIED);
   }, [decision, request.id, onDeny]);
 
   // Handle keyboard input
-  useInput((input, key) => {
+  useKeyboard((key) => {
     if (permission !== PERMISSION.ASK || decision) return;
 
-    if (input === KEYBOARD_INPUT.YES_LOWER || input === KEYBOARD_INPUT.YES_UPPER || key.return) {
+    if (key.name === KEYBOARD_INPUT.YES_LOWER || key.name === "return" || key.name === "linefeed") {
+      key.preventDefault();
+      key.stopPropagation();
       handleApprove();
-    } else if (
-      input === KEYBOARD_INPUT.NO_LOWER ||
-      input === KEYBOARD_INPUT.NO_UPPER ||
-      key.escape
-    ) {
+    } else if (key.name === KEYBOARD_INPUT.NO_LOWER || key.name === "escape") {
+      key.preventDefault();
+      key.stopPropagation();
       handleDeny();
     }
   });
@@ -118,38 +121,38 @@ export function ToolCallApproval({
   if (permission !== PERMISSION.ASK || decision) {
     if (decision) {
       return (
-        <Box {...boxProps}>
-          <Text color={decision === "approved" ? COLOR.GREEN : COLOR.RED}>
-            ✓ Tool call "{request.name}" {decision}
-          </Text>
-        </Box>
+        <box>
+          <text fg={decision === APPROVAL_DECISION.APPROVED ? COLOR.GREEN : COLOR.RED}>
+            {symbols.CHECK} Tool call "{request.name}" {decision}
+          </text>
+        </box>
       );
     }
     return null;
   }
 
   return (
-    <Box flexDirection="column" padding={1} borderStyle="round" {...boxProps}>
-      <Box flexDirection="row" gap={1}>
-        <Text color={COLOR.YELLOW}>⚡</Text>
-        <Text bold>Tool Request: {request.name}</Text>
-      </Box>
+    <box flexDirection="column" padding={1} border={true} borderStyle="rounded">
+      <box flexDirection="row" gap={1}>
+        <text fg={COLOR.YELLOW}>{symbols.LIGHTNING}</text>
+        <text attributes={TextAttributes.BOLD}>Tool Request: {request.name}</text>
+      </box>
 
       {request.description && (
-        <Text color={COLOR.GRAY} wrap="wrap">
+        <text fg={COLOR.GRAY} wrapMode="word">
           {request.description}
-        </Text>
+        </text>
       )}
 
-      <Box marginTop={1}>
-        <Text color={COLOR.CYAN}>Arguments: {formatArguments(request.arguments)}</Text>
-      </Box>
+      <box marginTop={1}>
+        <text fg={COLOR.CYAN}>Arguments: {formatArguments(request.arguments, symbols)}</text>
+      </box>
 
-      <Box marginTop={1} flexDirection="row" gap={2}>
-        <Text color={COLOR.GREEN}>[Y]es/Enter to approve</Text>
-        <Text color={COLOR.RED}>[N]o/Esc to deny</Text>
-        {countdown > 0 && <Text color={COLOR.YELLOW}>(auto-approve in {countdown}s)</Text>}
-      </Box>
-    </Box>
+      <box marginTop={1} flexDirection="row" gap={2}>
+        <text fg={COLOR.GREEN}>[Y]es/Enter to approve</text>
+        <text fg={COLOR.RED}>[N]o/Esc to deny</text>
+        {countdown > 0 && <text fg={COLOR.YELLOW}>(auto-approve in {countdown}s)</text>}
+      </box>
+    </box>
   );
 }

@@ -36,7 +36,7 @@ describe("Keyboard Shortcuts", () => {
     );
 
     // Note: Full Escape key testing would require proper keyboard event simulation
-    // ink-testing-library's stdin.write() may not support all key combinations
+    // The OpenTUI test renderer stdin.write() may not support all key combinations
     // This test verifies the component accepts the necessary props
     expect(onPromptComplete).toBeDefined();
   });
@@ -44,9 +44,9 @@ describe("Keyboard Shortcuts", () => {
 
 /**
  * Note: Full keyboard shortcut testing (Ctrl+L, Ctrl+P, Ctrl+N, Escape, Ctrl+C) would require:
- * 1. Proper keyboard event simulation in ink-testing-library
+ * 1. Proper keyboard event simulation in the OpenTUI test renderer
  * 2. Testing at the App component level where shortcuts are handled
- * 3. Integration with useInput hook from Ink
+ * 3. Integration with useKeyboard hook from OpenTUI
  *
  * Currently, keyboard shortcuts are handled in:
  * - App.tsx: Ctrl+P (switch provider), Ctrl+N (new session), Ctrl+L (clear), Ctrl+C (exit)

@@ -1,6 +1,13 @@
 import { LIMIT } from "@/config/limits";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { PLAN_STATUS } from "@/constants/plan-status";
+import {
+  SLASH_COMMAND_MESSAGE,
+  formatModeUpdatedMessage,
+  formatPlanCreatedMessage,
+  formatUnknownCommandMessage,
+} from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { TASK_STATUS } from "@/constants/task-status";
 import { useAppStore } from "@/store/app-store";
@@ -57,7 +64,7 @@ export function useSlashCommands({
       appendMessage({
         id: MessageIdSchema.parse(`sys-${now}`),
         sessionId: effectiveSessionId,
-        role: "system",
+        role: MESSAGE_ROLE.SYSTEM,
         content: [{ type: CONTENT_BLOCK_TYPE.TEXT, text }],
         createdAt: now,
         isStreaming: false,
@@ -72,7 +79,7 @@ export function useSlashCommands({
       if (!command) return false;
 
       if (!sessionId) {
-        appendSystemMessage("No active session for slash command.");
+        appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
         return true;
       }
 
@@ -89,21 +96,21 @@ export function useSlashCommands({
           const nextMode = args[0];
           const parsed = SessionModeSchema.safeParse(nextMode);
           if (!parsed.success) {
-            appendSystemMessage("Invalid mode. Use read-only, auto, or full-access.");
+            appendSystemMessage(SLASH_COMMAND_MESSAGE.INVALID_MODE);
             return true;
           }
           const session = useAppStore.getState().getSession(sessionId);
           if (!session) {
-            appendSystemMessage("No session to update mode.");
+            appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_SESSION_TO_UPDATE);
             return true;
           }
           upsertSession({ session: { ...session, mode: parsed.data } });
-          appendSystemMessage(`Mode updated to ${parsed.data}.`);
+          appendSystemMessage(formatModeUpdatedMessage(parsed.data));
           return true;
         }
         case SLASH_COMMAND.CLEAR: {
           clearMessagesForSession(sessionId);
-          appendSystemMessage("Session messages cleared.");
+          appendSystemMessage(SLASH_COMMAND_MESSAGE.SESSION_CLEARED);
           return true;
         }
         case SLASH_COMMAND.PLAN: {
@@ -131,11 +138,11 @@ export function useSlashCommands({
             updatedAt: now,
           };
           upsertPlan(planPayload);
-          appendSystemMessage(`Plan created: ${title}`);
+          appendSystemMessage(formatPlanCreatedMessage(title));
           return true;
         }
         default: {
-          appendSystemMessage(`Unknown command: ${command}`);
+          appendSystemMessage(formatUnknownCommandMessage(command ?? ""));
           return true;
         }
       }

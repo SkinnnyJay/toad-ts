@@ -76,11 +76,39 @@ describe("useSlashCommands", () => {
 
   describe("slash command constants", () => {
     it("has expected command values", () => {
+      expect(SLASH_COMMAND.CONNECT).toBe("/connect");
+      expect(SLASH_COMMAND.COMPACT).toBe("/compact");
+      expect(SLASH_COMMAND.CONTEXT).toBe("/context");
+      expect(SLASH_COMMAND.COST).toBe("/cost");
+      expect(SLASH_COMMAND.DEBUG).toBe("/debug");
+      expect(SLASH_COMMAND.DOCTOR).toBe("/doctor");
+      expect(SLASH_COMMAND.EDITOR).toBe("/editor");
       expect(SLASH_COMMAND.HELP).toBe("/help");
+      expect(SLASH_COMMAND.AGENTS).toBe("/agents");
+      expect(SLASH_COMMAND.HOOKS).toBe("/hooks");
+      expect(SLASH_COMMAND.DETAILS).toBe("/details");
+      expect(SLASH_COMMAND.MEMORY).toBe("/memory");
       expect(SLASH_COMMAND.MODE).toBe("/mode");
+      expect(SLASH_COMMAND.MODELS).toBe("/models");
+      expect(SLASH_COMMAND.NEW).toBe("/new");
       expect(SLASH_COMMAND.CLEAR).toBe("/clear");
+      expect(SLASH_COMMAND.COPY).toBe("/copy");
       expect(SLASH_COMMAND.PLAN).toBe("/plan");
+      expect(SLASH_COMMAND.PROGRESS).toBe("/progress");
+      expect(SLASH_COMMAND.REWIND).toBe("/rewind");
+      expect(SLASH_COMMAND.RENAME).toBe("/rename");
+      expect(SLASH_COMMAND.SESSIONS).toBe("/sessions");
       expect(SLASH_COMMAND.SETTINGS).toBe("/settings");
+      expect(SLASH_COMMAND.STATS).toBe("/stats");
+      expect(SLASH_COMMAND.THEMES).toBe("/themes");
+      expect(SLASH_COMMAND.THINKING).toBe("/thinking");
+      expect(SLASH_COMMAND.VIM).toBe("/vim");
+      expect(SLASH_COMMAND.UNDO).toBe("/undo");
+      expect(SLASH_COMMAND.REDO).toBe("/redo");
+      expect(SLASH_COMMAND.SHARE).toBe("/share");
+      expect(SLASH_COMMAND.UNSHARE).toBe("/unshare");
+      expect(SLASH_COMMAND.EXPORT).toBe("/export");
+      expect(SLASH_COMMAND.IMPORT).toBe("/import");
     });
   });
 
@@ -127,6 +155,12 @@ describe("useSlashCommands", () => {
       const { command } = parseSlashCommand("/settings");
 
       expect(command).toBe(SLASH_COMMAND.SETTINGS);
+    });
+
+    it("identifies sessions command", () => {
+      const { command } = parseSlashCommand("/sessions");
+
+      expect(command).toBe(SLASH_COMMAND.SESSIONS);
     });
   });
 

@@ -1,13 +1,12 @@
 import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
-import { Box, Text, render } from "ink";
 import React, { useEffect, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { renderInk } from "../../../utils/ink-test-helpers";
 
 /**
  * Tests for useTerminalDimensions hook logic.
- * Since the hook depends on ink's useStdout which requires a full Ink context,
- * we test the core logic patterns here.
+ * Since the hook depends on OpenTUI runtime, we test the core logic patterns here.
  */
 
 describe("useTerminalDimensions logic", () => {
@@ -45,17 +44,19 @@ describe("useTerminalDimensions logic", () => {
     });
   });
 
-  describe("throttle behavior", () => {
-    it("throttles rapid updates", async () => {
+  describe("debounce behavior", () => {
+    it("debounces rapid updates", async () => {
       let updateCount = 0;
       let resizeTimer: NodeJS.Timeout | null = null;
 
       const handleResize = () => {
-        if (resizeTimer) return;
+        if (resizeTimer) {
+          clearTimeout(resizeTimer);
+        }
         resizeTimer = setTimeout(() => {
           resizeTimer = null;
           updateCount++;
-        }, TIMEOUT.THROTTLE_MS);
+        }, TIMEOUT.RESIZE_DEBOUNCE_MS);
       };
 
       // Simulate rapid resize events
@@ -63,34 +64,36 @@ describe("useTerminalDimensions logic", () => {
       handleResize();
       handleResize();
 
-      // Before throttle completes
+      // Before debounce completes
       expect(updateCount).toBe(0);
 
-      // After throttle delay
-      await vi.advanceTimersByTimeAsync(TIMEOUT.THROTTLE_MS);
+      // After debounce delay
+      await vi.advanceTimersByTimeAsync(TIMEOUT.RESIZE_DEBOUNCE_MS);
       expect(updateCount).toBe(1);
     });
 
-    it("allows subsequent updates after throttle period", async () => {
+    it("allows subsequent updates after debounce period", async () => {
       let updateCount = 0;
       let resizeTimer: NodeJS.Timeout | null = null;
 
       const handleResize = () => {
-        if (resizeTimer) return;
+        if (resizeTimer) {
+          clearTimeout(resizeTimer);
+        }
         resizeTimer = setTimeout(() => {
           resizeTimer = null;
           updateCount++;
-        }, TIMEOUT.THROTTLE_MS);
+        }, TIMEOUT.RESIZE_DEBOUNCE_MS);
       };
 
       // First resize
       handleResize();
-      await vi.advanceTimersByTimeAsync(TIMEOUT.THROTTLE_MS);
+      await vi.advanceTimersByTimeAsync(TIMEOUT.RESIZE_DEBOUNCE_MS);
       expect(updateCount).toBe(1);
 
-      // Second resize after throttle period
+      // Second resize after debounce period
       handleResize();
-      await vi.advanceTimersByTimeAsync(TIMEOUT.THROTTLE_MS);
+      await vi.advanceTimersByTimeAsync(TIMEOUT.RESIZE_DEBOUNCE_MS);
       expect(updateCount).toBe(2);
     });
   });
@@ -101,8 +104,8 @@ describe("useTerminalDimensions logic", () => {
       expect(UI.TERMINAL_DEFAULT_COLUMNS).toBe(80);
     });
 
-    it("uses TIMEOUT constant for throttle", () => {
-      expect(TIMEOUT.THROTTLE_MS).toBe(100);
+    it("uses TIMEOUT constant for debounce", () => {
+      expect(TIMEOUT.RESIZE_DEBOUNCE_MS).toBe(50);
     });
   });
 
@@ -132,7 +135,7 @@ describe("useTerminalDimensions integration", () => {
     vi.useRealTimers();
   });
 
-  // This tests the actual hook in a minimal Ink context
+  // This tests the actual hook in a minimal runtime context
   it("exports the hook correctly", async () => {
     const { useTerminalDimensions } = await import("@/ui/hooks/useTerminalDimensions");
     expect(typeof useTerminalDimensions).toBe("function");
@@ -149,10 +152,10 @@ describe("useTerminalDimensions integration", () => {
       useEffect(() => {
         capturedResult = dimensions;
       }, [dimensions]);
-      return React.createElement(Text, null, "test");
+      return React.createElement("text", null, "test");
     }
 
-    const { unmount } = render(React.createElement(TestComponent));
+    const { unmount } = renderInk(React.createElement(TestComponent));
 
     // Give React time to render
     await vi.advanceTimersByTimeAsync(0);

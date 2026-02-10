@@ -1,0 +1,41 @@
+# Scratchpad Journal
+
+## 2026-02-09
+- Initialized scratchpad files to comply with repo workflow rules.
+- Starting Phase 4A: runtime + build migration to Bun and OpenTUI.
+- 2026-02-09 17:05 - Updated OpenTUI test docs/comments, ran quality gates, pushed commit.
+- 2026-02-09 17:45 - Added perf markers, stream buffering, message list virtualization, diff worker.
+- 2026-02-09 19:10 - Implemented tool registry, built-in tools, ACP tool host wiring.
+- 2026-02-09 19:40 - Added background task manager, task output tool, and UI task modal.
+- 2026-02-09 20:05 - Added shell command auto-detect and tab completion in chat input.
+- 2026-02-09 20:30 - Added interactive shell execution with renderer suspend/resume.
+- 2026-02-09 20:55 - Added per-harness tool permission overrides.
+- 2026-02-09 21:20 - Added agent manager with build/plan agents and markdown agent config loader.
+- 2026-02-09 21:50 - Added Tab agent switching and per-agent model/temperature wiring.
+- 2026-02-09 22:25 - Added hidden agents, subagent runner, @mentions, and child session navigation.
+- 2026-02-09 22:50 - Expanded slash commands (connect/sessions/new/rename/models/details/thinking).
+- 2026-02-09 23:15 - Added /editor command and editor integration.
+- 2026-02-09 23:40 - Added model listing from ACP session capabilities.
+- 2026-02-10 00:10 - Added diagnostics slash commands (/doctor, /debug, /context, /stats, /cost).
+- 2026-02-10 00:45 - Added /memory, /copy, /undo/redo/rewind, /share/unshare, and /compact flows.
+- 2026-02-10 01:30 - Added /themes selector and /connect agent selection flow.
+- 2026-02-10 02:20 - Added checkpoint manager, file change tracking, and /rewind list/delete.
+- 2026-02-10 02:55 - Added rewind modal (Esc+Esc) and checkpoint status footer.
+- 2026-02-10 03:30 - Added git patch apply fallback for checkpoint undo/redo.
+- 2026-02-10 05:05 - Added config loader (JSONC + env/file substitution) and keybind runtime.
+- 2026-02-10 05:45 - Added keybind editor tab and persistence to global config.
+- 2026-02-10 06:15 - Added Shift+Tab permission mode cycling tied to session modes.
+- 2026-02-10 06:55 - Added vim input mode with normal/insert and motion operators.
+- 2026-02-10 08:10 - Implemented hooks system with config schema, hook manager, and hooks modal.
+- 2026-02-10 09:05 - Added compaction summary storage, context budget indicator, and context attachments modal.
+- 2026-02-10 10:05 - Added Gemini/Codex harness defaults and provider health checks.
+- 2026-02-10 10:45 - Added unified rules loader and permission rule ingestion.
+- 2026-02-10 11:25 - Added headless server mode with HTTP and WebSocket endpoints.
+- 2026-02-10 12:05 - Added routing policy config and progress panel.
+- 2026-02-10 12:35 - Added CI workflow and publish config; documented server mode.
+- 2026-02-10 13:15 - Completed distribution polish (install scripts, update checks, accessibility).
+- 2026-02-10 14:05 - Added session export/import (json/zip) and session history filter.
+- 2026-02-10 15:10 - Hardened test harness cleanup, terminal handler timeouts, env isolation.
+- 2026-02-10 15:40 - Closed headless server sockets more aggressively in tests.
+- 2026-02-10 16:25 - Forced test env setup before modules; tests still hang after run.
+- 2026-02-10 04:20 - Added execution engine wiring for plan task orchestration.

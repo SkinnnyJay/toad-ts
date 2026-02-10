@@ -1,15 +1,19 @@
 import { LIMIT } from "@/config/limits";
 import { COLOR } from "@/constants/colors";
-import type { FocusTarget } from "@/constants/focus-target";
-import type { ConnectionStatus, SessionId } from "@/types/domain";
-import { Box, Text } from "ink";
+import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
+import type { ConnectionStatus, SessionId, SessionMode } from "@/types/domain";
+import { ContextProgress } from "@/ui/components/ContextProgress";
+import { TextAttributes } from "@opentui/core";
+import type { ReactNode } from "react";
 
 export interface StatusFooterProps {
   taskProgress?: { completed: number; total: number };
   planProgress?: { completed: number; total: number };
+  checkpointStatus?: { cursor: number; total: number };
+  contextStats?: { tokens: number; limit: number };
   focusTarget?: FocusTarget;
   connectionStatus?: ConnectionStatus;
-  sessionMode?: string;
+  sessionMode?: SessionMode;
   sessionId?: SessionId;
   agentName?: string;
 }
@@ -17,6 +21,9 @@ export interface StatusFooterProps {
 const globalShortcuts = [
   { key: "^C", label: "Exit" },
   { key: "^P", label: "Commands" },
+  { key: "^B", label: "Tasks" },
+  { key: "Esc Esc", label: "Rewind" },
+  { key: "^X←/→", label: "Child Sessions" },
   { key: "Esc", label: "Back to Chat" },
   { key: "Cmd+F", label: "Focus Files" },
   { key: "/help", label: "Panel Help" },
@@ -31,12 +38,14 @@ const truncateMiddle = (value: string, max: number): string => {
 export function StatusFooter({
   taskProgress,
   planProgress,
-  focusTarget = "chat",
+  checkpointStatus,
+  contextStats,
+  focusTarget = FOCUS_TARGET.CHAT,
   connectionStatus,
   sessionMode,
   sessionId,
   agentName,
-}: StatusFooterProps): JSX.Element {
+}: StatusFooterProps): ReactNode {
   const planText =
     planProgress && planProgress.total > 0
       ? `Plan ${planProgress.completed}/${planProgress.total}`
@@ -44,6 +53,10 @@ export function StatusFooter({
   const taskText = taskProgress
     ? `Tasks ${taskProgress.completed}/${taskProgress.total}`
     : undefined;
+  const checkpointText =
+    checkpointStatus && checkpointStatus.total > 0
+      ? `Checkpoint ${checkpointStatus.cursor}/${checkpointStatus.total}`
+      : undefined;
 
   const trimmedAgent = agentName
     ? truncateMiddle(agentName, LIMIT.STRING_TRUNCATE_LONG)
@@ -57,45 +70,52 @@ export function StatusFooter({
     trimmedAgent ? `Agent: ${trimmedAgent}` : undefined,
     sessionMode ? `Mode: ${sessionMode}` : undefined,
     trimmedSession ? `Session: ${trimmedSession}` : undefined,
-  ].filter(Boolean) as string[];
+  ].filter((value): value is string => Boolean(value));
 
   return (
-    <Box
+    <box
       width="100%"
       flexDirection="row"
+      border={true}
       borderStyle="single"
       borderColor={COLOR.GRAY}
-      paddingX={1}
-      paddingY={0}
+      paddingLeft={1}
+      paddingRight={1}
+      paddingTop={0}
+      paddingBottom={0}
       gap={2}
       justifyContent="space-between"
       alignItems="center"
     >
-      <Box flexDirection="row" gap={2}>
+      <box flexDirection="row" gap={2}>
         {globalShortcuts.map((sc) => (
-          <Text key={sc.key}>
-            <Text bold color={COLOR.CYAN}>
+          <text key={sc.key}>
+            <span fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
               {sc.key}
-            </Text>{" "}
+            </span>{" "}
             {sc.label}
-          </Text>
+          </text>
         ))}
-      </Box>
-      <Box flexDirection="row" gap={2}>
-        <Text>
-          <Text bold color={COLOR.YELLOW}>
+      </box>
+      <box flexDirection="row" gap={2}>
+        <text>
+          <span fg={COLOR.YELLOW} attributes={TextAttributes.BOLD}>
             Focus:
-          </Text>{" "}
+          </span>{" "}
           {focusTarget}
-        </Text>
+        </text>
         {statusParts.map((part) => (
-          <Text key={part} color={COLOR.GRAY}>
+          <text key={part} fg={COLOR.GRAY}>
             {part}
-          </Text>
+          </text>
         ))}
-        {planText ? <Text color={COLOR.GRAY}>{planText}</Text> : null}
-        {taskText ? <Text color={COLOR.GRAY}>{taskText}</Text> : null}
-      </Box>
-    </Box>
+        {planText ? <text fg={COLOR.GRAY}>{planText}</text> : null}
+        {taskText ? <text fg={COLOR.GRAY}>{taskText}</text> : null}
+        {checkpointText ? <text fg={COLOR.GRAY}>{checkpointText}</text> : null}
+        {contextStats ? (
+          <ContextProgress tokens={contextStats.tokens} limit={contextStats.limit} />
+        ) : null}
+      </box>
+    </box>
   );
 }

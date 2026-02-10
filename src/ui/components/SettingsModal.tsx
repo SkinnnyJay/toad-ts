@@ -1,26 +1,59 @@
+import type { KeybindConfig } from "@/config/app-config";
+import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
+import { SETTINGS_TAB, SETTINGS_TAB_VALUES, type SettingsTab } from "@/constants/settings-tabs";
 import type { AgentOption } from "@/ui/components/AgentSelect";
 import { DefaultProviderTab } from "@/ui/components/DefaultProviderTab";
-import { Box, Text, useInput } from "ink";
+import { KeybindsTab } from "@/ui/components/KeybindsTab";
+import { TextAttributes } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
+import { type ReactNode, useState } from "react";
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   agents: AgentOption[];
+  keybinds: KeybindConfig;
+  onUpdateKeybinds: (keybinds: KeybindConfig) => void;
 }
 
-export function SettingsModal({ isOpen, onClose, agents }: SettingsModalProps): JSX.Element | null {
-  useInput(
-    (input, key) => {
-      if (!isOpen) return;
+export function SettingsModal({
+  isOpen,
+  onClose,
+  agents,
+  keybinds,
+  onUpdateKeybinds,
+}: SettingsModalProps): ReactNode {
+  const [activeTab, setActiveTab] = useState<SettingsTab>(SETTINGS_TAB.DEFAULT_PROVIDER);
+  const [isEditingKeybind, setIsEditingKeybind] = useState(false);
 
-      if (key.escape || (key.ctrl && input === "s")) {
-        onClose();
-        return;
+  useKeyboard((key) => {
+    if (!isOpen) return;
+
+    if ((key.name === "left" || key.name === "right") && !isEditingKeybind) {
+      key.preventDefault();
+      key.stopPropagation();
+      const currentIndex = SETTINGS_TAB_VALUES.indexOf(activeTab);
+      if (currentIndex >= 0) {
+        const nextIndex =
+          key.name === "right"
+            ? (currentIndex + 1) % SETTINGS_TAB_VALUES.length
+            : (currentIndex - 1 + SETTINGS_TAB_VALUES.length) % SETTINGS_TAB_VALUES.length;
+        const nextTab = SETTINGS_TAB_VALUES[nextIndex];
+        if (nextTab) {
+          setActiveTab(nextTab);
+          setIsEditingKeybind(false);
+        }
       }
-    },
-    { isActive: isOpen }
-  );
+      return;
+    }
+
+    if (key.name === "escape" || (key.ctrl && key.name === "s")) {
+      key.preventDefault();
+      key.stopPropagation();
+      onClose();
+    }
+  });
 
   const handleSave = (): void => {
     // Settings are saved automatically in DefaultProviderTab
@@ -28,37 +61,61 @@ export function SettingsModal({ isOpen, onClose, agents }: SettingsModalProps): 
   };
 
   if (!isOpen) return null;
+  const contentMinHeight = UI.POPUP_HEIGHT - UI.SIDEBAR_PADDING * 2 - UI.SCROLLBAR_WIDTH;
 
   return (
-    <Box
+    <box
       flexDirection="column"
+      border={true}
       borderStyle="double"
       borderColor={COLOR.CYAN}
-      paddingX={1}
-      paddingY={1}
-      minHeight={20}
-      width="80%"
+      paddingLeft={1}
+      paddingRight={1}
+      paddingTop={1}
+      paddingBottom={1}
+      minHeight={UI.POPUP_HEIGHT}
+      width={UI.POPUP_WIDTH}
     >
-      <Box flexDirection="row" justifyContent="space-between" marginBottom={1}>
-        <Text bold color={COLOR.CYAN}>
+      <box flexDirection="row" justifyContent="space-between" marginBottom={1}>
+        <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
           Settings (Esc/Ctrl+S to close)
-        </Text>
-      </Box>
+        </text>
+      </box>
 
-      <Box flexDirection="row" marginBottom={1} borderStyle="single" borderBottom={true}>
-        <Text color={COLOR.CYAN} bold>
+      <box flexDirection="row" marginBottom={1} borderStyle="single" border={["bottom"]}>
+        <text
+          fg={activeTab === SETTINGS_TAB.DEFAULT_PROVIDER ? COLOR.CYAN : COLOR.GRAY}
+          attributes={TextAttributes.BOLD}
+        >
           Default Provider
-        </Text>
-        {/* Future tabs can be added here with left/right arrow navigation */}
-      </Box>
+        </text>
+        <text fg={COLOR.GRAY}> | </text>
+        <text
+          fg={activeTab === SETTINGS_TAB.KEYBINDS ? COLOR.CYAN : COLOR.GRAY}
+          attributes={TextAttributes.BOLD}
+        >
+          Keybinds
+        </text>
+      </box>
 
-      <Box flexDirection="column" flexGrow={1} minHeight={15}>
-        <DefaultProviderTab agents={agents} onSave={handleSave} />
-      </Box>
+      <box flexDirection="column" flexGrow={1} minHeight={contentMinHeight}>
+        {activeTab === SETTINGS_TAB.DEFAULT_PROVIDER ? (
+          <DefaultProviderTab agents={agents} onSave={handleSave} />
+        ) : (
+          <KeybindsTab
+            isActive={activeTab === SETTINGS_TAB.KEYBINDS}
+            keybinds={keybinds}
+            onUpdate={onUpdateKeybinds}
+            onEditingChange={setIsEditingKeybind}
+          />
+        )}
+      </box>
 
-      <Box marginTop={1} paddingTop={1} borderStyle="single" borderTop={true}>
-        <Text dimColor>↑/↓: Navigate | Enter: Select | Esc/Ctrl+S: Close</Text>
-      </Box>
-    </Box>
+      <box marginTop={1} paddingTop={1} borderStyle="single" border={["top"]}>
+        <text attributes={TextAttributes.DIM}>
+          ↑/↓: Navigate | Enter: Select | ←/→: Tabs | Esc/Ctrl+S: Close
+        </text>
+      </box>
+    </box>
   );
 }

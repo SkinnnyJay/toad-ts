@@ -1,6 +1,6 @@
 import { COLOR } from "@/constants/colors";
-import { Box, Text } from "ink";
-import type { PropsWithChildren } from "react";
+import { TextAttributes } from "@opentui/core";
+import type { PropsWithChildren, ReactNode } from "react";
 
 interface AccordionSectionProps {
   title: string;
@@ -15,13 +15,13 @@ export function AccordionSection({
   shortcutHint,
   height,
   children,
-}: PropsWithChildren<AccordionSectionProps>): JSX.Element {
+}: PropsWithChildren<AccordionSectionProps>): ReactNode {
   const indicator = isCollapsed ? "▶" : "▼";
 
   return (
-    <Box flexDirection="column" marginBottom={1} gap={0}>
+    <box flexDirection="column" marginBottom={1} gap={0}>
       {shortcutHint ? (
-        <Box
+        <box
           flexDirection="row"
           justifyContent="flex-end"
           marginBottom={0}
@@ -29,37 +29,42 @@ export function AccordionSection({
           height={1}
           minHeight={1}
         >
-          <Text dimColor color={COLOR.GRAY}>
+          <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
             {shortcutHint}
-          </Text>
-        </Box>
+          </text>
+        </box>
       ) : null}
-      <Box
+      <box
         flexDirection="column"
+        border={true}
         borderStyle="single"
         borderColor={COLOR.GRAY}
-        paddingX={1}
-        paddingY={0}
+        paddingLeft={1}
+        paddingRight={1}
+        paddingTop={0}
+        paddingBottom={0}
         gap={0}
         width="100%"
         minHeight={3}
         height={height}
       >
-        <Box
+        <box
           justifyContent="flex-start"
           alignItems="center"
-          paddingX={0}
-          paddingY={0}
+          paddingLeft={0}
+          paddingRight={0}
+          paddingTop={0}
+          paddingBottom={0}
           width="100%"
           height={1}
           minHeight={1}
         >
-          <Text bold>
+          <text attributes={TextAttributes.BOLD}>
             {indicator} {title}
-          </Text>
-        </Box>
+          </text>
+        </box>
         {!isCollapsed ? (
-          <Box
+          <box
             marginTop={0}
             marginBottom={0}
             paddingTop={0}
@@ -71,9 +76,9 @@ export function AccordionSection({
             height={height ? height - 1 : undefined}
           >
             {children}
-          </Box>
+          </box>
         ) : null}
-      </Box>
-    </Box>
+      </box>
+    </box>
   );
 }

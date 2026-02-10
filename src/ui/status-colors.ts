@@ -41,20 +41,16 @@ export const taskStatusColor = (status: Task["status"]): Color => {
   }
 };
 
+const isPlanStatus = (status: Plan["status"] | Task["status"]): status is Plan["status"] =>
+  status === PLAN_STATUS.PLANNING ||
+  status === PLAN_STATUS.EXECUTING ||
+  status === PLAN_STATUS.COMPLETED ||
+  status === PLAN_STATUS.FAILED;
+
 /**
  * Maps plan or task status to color for UI display
  * Handles both plan and task statuses
  */
 export const statusColor = (status: Plan["status"] | Task["status"]): Color => {
-  // Check if it's a plan status
-  if (
-    status === PLAN_STATUS.PLANNING ||
-    status === PLAN_STATUS.EXECUTING ||
-    status === PLAN_STATUS.COMPLETED ||
-    status === PLAN_STATUS.FAILED
-  ) {
-    return planStatusColor(status as Plan["status"]);
-  }
-  // Otherwise it's a task status
-  return taskStatusColor(status as Task["status"]);
+  return isPlanStatus(status) ? planStatusColor(status) : taskStatusColor(status);
 };

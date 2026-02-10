@@ -1,4 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { rm } from "node:fs/promises";
+import { homedir } from "node:os";
+import { join } from "node:path";
+import { FILE_PATH } from "@/constants/file-paths";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   getDefaultProvider,
   loadSettings,
@@ -6,12 +10,30 @@ import {
 } from "../../../src/store/settings/settings-manager";
 import { AgentIdSchema } from "../../../src/types/domain";
 
+const SETTINGS_FILE = join(homedir(), FILE_PATH.TOADSTOOL_DIR, FILE_PATH.SETTINGS_JSON);
+
+const removeSettingsFile = async (): Promise<void> => {
+  try {
+    await rm(SETTINGS_FILE, { force: true });
+  } catch {
+    // Ignore cleanup errors in tests
+  }
+};
+
+beforeEach(async () => {
+  await removeSettingsFile();
+});
+
+afterEach(async () => {
+  await removeSettingsFile();
+});
+
 describe("SettingsManager", () => {
   describe("loadSettings()", () => {
     it("should return default settings when file does not exist", async () => {
       const settings = await loadSettings();
       expect(settings).toBeDefined();
-      expect(settings.defaultProvider).toBeDefined();
+      expect(settings.defaultProvider).toBeUndefined();
     });
   });
 

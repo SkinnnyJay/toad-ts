@@ -20,7 +20,22 @@ export const palette = {
  * Diff color scheme - configurable template variables for diff rendering.
  * All diff-related colors are centralized here for easy customization.
  */
-export const diffColors = {
+export type DiffColors = {
+  added: string;
+  removed: string;
+  context: string;
+  addedBg: string;
+  removedBg: string;
+  contextBg?: string;
+  lineNumber: string;
+  header: string;
+  headerBg: string;
+  border: string;
+  hunkHeader: string;
+  hunkHeaderBg: string;
+};
+
+export const diffColors: DiffColors = {
   // Line foreground colors
   /** Color for added lines (green) */
   added: COLOR.GREEN,
@@ -31,11 +46,11 @@ export const diffColors = {
 
   // Line background colors (subtle tints for highlighting)
   /** Background tint for added lines (dark green) */
-  addedBg: "#1a3d1a",
+  addedBg: COLOR.DIFF_ADDED_BG,
   /** Background tint for removed lines (dark red) */
-  removedBg: "#3d1a1a",
+  removedBg: COLOR.DIFF_REMOVED_BG,
   /** Background for unchanged lines (none) */
-  contextBg: undefined as string | undefined,
+  contextBg: undefined,
 
   // UI element colors
   /** Color for line numbers */
@@ -51,10 +66,8 @@ export const diffColors = {
   /** Color for hunk header text (@@ -1,3 +1,4 @@) */
   hunkHeader: COLOR.CYAN,
   /** Background for hunk header */
-  hunkHeaderBg: "#1a2a3a",
+  hunkHeaderBg: COLOR.DIFF_HUNK_BG,
 };
-
-export type DiffColors = typeof diffColors;
 
 export const roleColor = (role: string): string => {
   switch (role) {

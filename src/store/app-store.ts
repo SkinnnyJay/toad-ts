@@ -1,6 +1,16 @@
 import { LIMIT } from "@/config/limits";
+import { CONNECTION_STATUS } from "@/constants/connection-status";
+import { SIDEBAR_TAB } from "@/constants/sidebar-tabs";
+import { THEME } from "@/constants/themes";
 import { type SessionSnapshot, SessionSnapshotSchema } from "@/store/session-persistence";
-import { MessageSchema, SessionSchema } from "@/types/domain";
+import {
+  MessageIdSchema,
+  MessageSchema,
+  PlanIdSchema,
+  PlanSchema,
+  SessionSchema,
+  SubAgentSchema,
+} from "@/types/domain";
 import type {
   AppState,
   ConnectionStatus,
@@ -9,6 +19,7 @@ import type {
   Plan,
   Session,
   SessionId,
+  SubAgent,
   UpdateMessageParams,
   UpsertSessionParams,
 } from "@/types/domain";
@@ -21,6 +32,11 @@ export interface AppStore extends AppState {
   upsertSession: (params: UpsertSessionParams) => void;
   appendMessage: (message: Message) => void;
   updateMessage: (params: UpdateMessageParams) => void;
+  removeMessages: (sessionId: SessionId, messageIds: MessageId[]) => void;
+  restoreSessionSnapshot: (session: Session, messages: Message[], plan?: Plan) => void;
+  upsertSubAgent: (agent: SubAgent) => void;
+  updateSubAgent: (params: { agentId: SubAgent["id"]; patch: Partial<SubAgent> }) => void;
+  getSubAgentsByPlan: (planId: Plan["id"]) => SubAgent[];
   getSession: (sessionId: SessionId) => Session | undefined;
   getMessage: (messageId: MessageId) => Message | undefined;
   getMessagesForSession: (sessionId: SessionId) => Message[];
@@ -34,18 +50,30 @@ export interface AppStore extends AppState {
   getAccordionCollapsed: () => AppState["uiState"]["accordionCollapsed"];
   setAccordionCollapsed: (section: AppState["uiState"]["sidebarTab"], isCollapsed: boolean) => void;
   toggleAccordionSection: (section: AppState["uiState"]["sidebarTab"]) => void;
+  setShowToolDetails: (value: boolean) => void;
+  toggleToolDetails: () => void;
+  setShowThinking: (value: boolean) => void;
+  toggleThinking: () => void;
+  setTheme: (theme: AppState["uiState"]["theme"]) => void;
   hydrate: (snapshot: SessionSnapshot) => void;
   reset: () => void;
 }
 
 const initialState: AppState = {
-  connectionStatus: "disconnected",
+  connectionStatus: CONNECTION_STATUS.DISCONNECTED,
   currentSessionId: undefined,
   sessions: {},
   messages: {},
   plans: {},
+  subAgents: {},
   contextAttachments: {},
-  uiState: { sidebarTab: "files", accordionCollapsed: {} },
+  uiState: {
+    sidebarTab: SIDEBAR_TAB.FILES,
+    accordionCollapsed: {},
+    showToolDetails: true,
+    showThinking: true,
+    theme: THEME.DEFAULT,
+  },
 };
 
 export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState"], get) => ({
@@ -88,6 +116,77 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
       const updated: Message = { ...existing, ...patch };
       return { messages: { ...state.messages, [messageId]: updated } };
     }),
+  removeMessages: (sessionId, messageIds) =>
+    set((state) => {
+      if (messageIds.length === 0) return {};
+      const messageIdSet = new Set(messageIds.map((id) => String(id)));
+      const entries = Object.entries(state.messages) as Array<[string, Message]>;
+      const retainedEntries = entries.filter(([id]) => !messageIdSet.has(id));
+      const retained = Object.fromEntries(retainedEntries) as AppState["messages"];
+      const session = state.sessions[sessionId];
+      const updatedSession = session
+        ? {
+            ...session,
+            messageIds: session.messageIds.filter((id) => !messageIdSet.has(String(id))),
+            updatedAt: Date.now(),
+          }
+        : undefined;
+      return {
+        messages: retained,
+        sessions: updatedSession
+          ? { ...state.sessions, [sessionId]: updatedSession }
+          : state.sessions,
+      } as Partial<AppState>;
+    }),
+  restoreSessionSnapshot: (session, messages, plan) =>
+    set((state) => {
+      const parsedSession = SessionSchema.parse(session);
+      const parsedMessages = messages.map((message) => MessageSchema.parse(message));
+      const retainedMessages: AppState["messages"] = {};
+      for (const [id, message] of Object.entries(state.messages)) {
+        const parsedMessage = MessageSchema.parse(message);
+        if (parsedMessage.sessionId !== parsedSession.id) {
+          retainedMessages[MessageIdSchema.parse(id)] = parsedMessage;
+        }
+      }
+      for (const message of parsedMessages) {
+        retainedMessages[message.id] = message;
+      }
+
+      const retainedPlans: AppState["plans"] = {};
+      for (const [id, existing] of Object.entries(state.plans)) {
+        const parsedPlan = PlanSchema.parse(existing);
+        if (parsedPlan.sessionId !== parsedSession.id) {
+          retainedPlans[PlanIdSchema.parse(id)] = parsedPlan;
+        }
+      }
+      if (plan) {
+        const parsedPlan = PlanSchema.parse(plan);
+        retainedPlans[parsedPlan.id] = parsedPlan;
+      }
+
+      return {
+        sessions: { ...state.sessions, [parsedSession.id]: parsedSession },
+        messages: retainedMessages,
+        plans: retainedPlans,
+      } as Partial<AppState>;
+    }),
+  upsertSubAgent: (agent) =>
+    set((state) => {
+      const parsed = SubAgentSchema.parse(agent);
+      return { subAgents: { ...state.subAgents, [parsed.id]: parsed } };
+    }),
+  updateSubAgent: ({ agentId, patch }) =>
+    set((state) => {
+      const existing = state.subAgents[agentId];
+      if (!existing) return {};
+      const updated = SubAgentSchema.parse({ ...existing, ...patch });
+      return { subAgents: { ...state.subAgents, [agentId]: updated } };
+    }),
+  getSubAgentsByPlan: (planId) => {
+    const agents = Object.values(get().subAgents) as SubAgent[];
+    return agents.filter((agent) => agent.planId === planId);
+  },
   clearMessagesForSession: (sessionId) =>
     set((state) => {
       const entries = Object.entries(state.messages) as Array<[string, Message]>;
@@ -148,6 +247,26 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
         },
       } as Partial<AppState>;
     }),
+  setShowToolDetails: (value) =>
+    set((state) => ({
+      uiState: { ...state.uiState, showToolDetails: value },
+    })),
+  toggleToolDetails: () =>
+    set((state) => ({
+      uiState: { ...state.uiState, showToolDetails: !state.uiState.showToolDetails },
+    })),
+  setShowThinking: (value) =>
+    set((state) => ({
+      uiState: { ...state.uiState, showThinking: value },
+    })),
+  toggleThinking: () =>
+    set((state) => ({
+      uiState: { ...state.uiState, showThinking: !state.uiState.showThinking },
+    })),
+  setTheme: (theme) =>
+    set((state) => ({
+      uiState: { ...state.uiState, theme },
+    })),
   hydrate: (snapshot) =>
     set(() => ({
       ...initialState,
@@ -159,6 +278,7 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
       sessions: {},
       messages: {},
       plans: {},
+      subAgents: {},
       contextAttachments: {},
     })),
 }));

@@ -156,7 +156,7 @@ This document catalogs all user stories for the TOADSTOOL CLI application, organ
 - Timestamps are shown (if enabled)
 
 **Testability:** ✅ **Unit Test**  
-**Test Type:** Unit test with ink-testing-library  
+**Test Type:** Unit test with the OpenTUI test renderer  
 **Test File:** `__tests__/unit/ui/message-list.unit.test.ts`
 
 ---
@@ -587,7 +587,7 @@ This document catalogs all user stories for the TOADSTOOL CLI application, organ
 
 - **E2E Tests**: Require full CLI execution, may need Playwright or similar for terminal automation
 - **Integration Tests**: Use mock harnesses to avoid requiring real agent CLIs
-- **Unit Tests**: Use `ink-testing-library` for UI components
+- **Unit Tests**: Use the OpenTUI test renderer helpers for UI components
 - **Test Data**: Use fixtures and factories for consistent test data
 - **Mocking**: Mock ACP agents and file system operations for reliable tests
 

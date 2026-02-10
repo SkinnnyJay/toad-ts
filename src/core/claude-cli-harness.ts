@@ -15,9 +15,12 @@ import type {
   HarnessRuntime,
   HarnessRuntimeEvents,
 } from "@/harness/harnessAdapter";
-import { harnessConfigSchema } from "@/harness/harnessConfig";
+import { type HarnessConfig, harnessConfigSchema } from "@/harness/harnessConfig";
+import { createPermissionHandler } from "@/tools/permissions";
+import { ToolHost } from "@/tools/tool-host";
 import type { ConnectionStatus } from "@/types/domain";
 import { retryWithBackoff } from "@/utils/async/retryWithBackoff";
+import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import type {
   AuthenticateRequest,
@@ -57,7 +60,8 @@ const parseArgs = (rawValue: string): string[] => {
 const addLocalBinToPath = (env: NodeJS.ProcessEnv, cwd?: string): NodeJS.ProcessEnv => {
   const baseDir = cwd ?? process.cwd();
   const localBin = join(baseDir, "node_modules", ".bin");
-  const pathValue = env.PATH ?? process.env.PATH ?? "";
+  const defaultEnv = EnvManager.getInstance().getSnapshot();
+  const pathValue = env[ENV_KEY.PATH] ?? defaultEnv[ENV_KEY.PATH] ?? "";
   if (!existsSync(localBin)) {
     return env;
   }
@@ -69,14 +73,14 @@ const addLocalBinToPath = (env: NodeJS.ProcessEnv, cwd?: string): NodeJS.Process
 
   return {
     ...env,
-    PATH: `${localBin}${delimiter}${pathValue}`,
+    [ENV_KEY.PATH]: `${localBin}${delimiter}${pathValue}`,
   };
 };
 
 const resolveDefaults = (
   options: ClaudeCliHarnessAdapterOptions
 ): { command: string; args: string[]; env: NodeJS.ProcessEnv } => {
-  const envDefaults = options.envDefaults ?? process.env;
+  const envDefaults = options.envDefaults ?? EnvManager.getInstance().getSnapshot();
   const commandFromEnv = envDefaults[ENV_KEY.TOADSTOOL_CLAUDE_COMMAND];
   const argsFromEnv = envDefaults[ENV_KEY.TOADSTOOL_CLAUDE_ARGS];
 
@@ -170,8 +174,8 @@ export class ClaudeCliHarnessAdapter
   }
 
   private isRetryableConnectionError(error: unknown): boolean {
-    if (typeof error === "object" && error !== null && "code" in error) {
-      const code = (error as NodeJS.ErrnoException).code;
+    if (isErrnoException(error)) {
+      const code = error.code;
       if (code === "ENOENT" || code === "EACCES") {
         return false;
       }
@@ -200,15 +204,32 @@ export class ClaudeCliHarnessAdapter
   }
 }
 
+export const createCliHarnessRuntime = (config: HarnessConfig): HarnessRuntime => {
+  const env = { ...EnvManager.getInstance().getSnapshot(), ...config.env };
+  const toolHost = new ToolHost({ baseDir: config.cwd, env });
+  const clientOptions: ACPClientOptions = {
+    toolHost,
+    clientCapabilities: toolHost.capabilities,
+    permissionHandler: createPermissionHandler(config.permissions),
+  };
+
+  return new ClaudeCliHarnessAdapter({
+    command: config.command,
+    args: config.args,
+    cwd: config.cwd,
+    env,
+    clientOptions,
+  });
+};
+
 export const claudeCliHarnessAdapter: HarnessAdapter = {
   id: "claude-cli",
   name: "Claude CLI",
   configSchema: harnessConfigSchema,
-  createHarness: (config) =>
-    new ClaudeCliHarnessAdapter({
-      command: config.command,
-      args: config.args,
-      cwd: config.cwd,
-      env: { ...process.env, ...config.env },
-    }),
+  createHarness: (config) => {
+    return createCliHarnessRuntime(config);
+  },
 };
+
+const isErrnoException = (error: unknown): error is NodeJS.ErrnoException =>
+  typeof error === "object" && error !== null && "code" in error;

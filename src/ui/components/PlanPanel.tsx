@@ -1,27 +1,34 @@
 import { COLOR } from "@/constants/colors";
 import type { Plan } from "@/types/domain";
 import { planStatusColor } from "@/ui/status-colors";
-import { Box, Text } from "ink";
+import { TextAttributes } from "@opentui/core";
+import type { ReactNode } from "react";
 
 export interface PlanPanelProps {
   plan: Plan;
 }
 
-export function PlanPanel({ plan }: PlanPanelProps): JSX.Element {
+export function PlanPanel({ plan }: PlanPanelProps): ReactNode {
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor={COLOR.CYAN} padding={1}>
-      <Text color={planStatusColor(plan.status)}>
+    <box
+      flexDirection="column"
+      border={true}
+      borderStyle="rounded"
+      borderColor={COLOR.CYAN}
+      padding={1}
+    >
+      <text fg={planStatusColor(plan.status)}>
         Plan: {plan.originalPrompt} · Status: {plan.status}
-      </Text>
+      </text>
       {plan.tasks.length === 0 ? (
-        <Text dimColor>No tasks</Text>
+        <text attributes={TextAttributes.DIM}>No tasks</text>
       ) : (
         plan.tasks.map((task) => (
-          <Text key={task.id}>
+          <text key={task.id}>
             [{task.status}] {task.title}
-          </Text>
+          </text>
         ))
       )}
-    </Box>
+    </box>
   );
 }

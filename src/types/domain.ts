@@ -1,11 +1,17 @@
-import { AGENT_STATUS } from "@/constants/agent-status";
 import { z } from "zod";
 
+import { AGENT_MESSAGE_TYPE } from "@/constants/agent-message-types";
+import { AGENT_STATUS } from "@/constants/agent-status";
+import { BACKGROUND_TASK_STATUS } from "@/constants/background-task-status";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { MCP_SERVER_TYPE } from "@/constants/mcp-server-types";
+import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { SESSION_MODE } from "@/constants/session-modes";
+import { SIDEBAR_TAB, SIDEBAR_TAB_VALUES } from "@/constants/sidebar-tabs";
+import { TASK_STATUS } from "@/constants/task-status";
+import { THEME } from "@/constants/themes";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 
 export const SessionIdSchema = z.string().min(1).brand<"SessionId">();
@@ -94,7 +100,11 @@ export const ContentBlockSchema = z.discriminatedUnion("type", [
 ]);
 export type ContentBlock = z.infer<typeof ContentBlockSchema>;
 
-export const MessageRoleSchema = z.enum(["user", "assistant", "system"]);
+export const MessageRoleSchema = z.enum([
+  MESSAGE_ROLE.USER,
+  MESSAGE_ROLE.ASSISTANT,
+  MESSAGE_ROLE.SYSTEM,
+]);
 export type MessageRole = z.infer<typeof MessageRoleSchema>;
 
 export const MessageSchema = z.object({
@@ -125,7 +135,7 @@ export type McpEnvVariable = z.infer<typeof McpEnvVariableSchema>;
 
 export const McpServerHttpSchema = z
   .object({
-    type: z.literal("http"),
+    type: z.literal(MCP_SERVER_TYPE.HTTP),
     name: z.string().min(1),
     url: z.string().min(1),
     headers: z.array(McpHeaderSchema).default([]),
@@ -160,14 +170,34 @@ export const McpServerSchema = z.union([
 ]);
 export type McpServer = z.infer<typeof McpServerSchema>;
 
+export const ModelInfoSchema = z
+  .object({
+    modelId: z.string().min(1),
+    name: z.string().min(1),
+    description: z.string().optional().nullable(),
+    _meta: z.record(z.unknown()).optional().nullable(),
+  })
+  .strict();
+export type ModelInfo = z.infer<typeof ModelInfoSchema>;
+
 export const SessionMetadataSchema = z
   .object({
     mcpServers: z.array(McpServerSchema).default([]),
+    model: z.string().min(1).optional(),
+    temperature: z.number().nonnegative().optional(),
+    parentSessionId: SessionIdSchema.optional(),
+    compactionSessionId: SessionIdSchema.optional(),
+    compactionSummary: z.string().min(1).optional(),
+    availableModels: z.array(ModelInfoSchema).optional(),
   })
   .strict();
 export type SessionMetadata = z.infer<typeof SessionMetadataSchema>;
 
-export const SessionModeSchema = z.enum(["read-only", "auto", "full-access"]);
+export const SessionModeSchema = z.enum([
+  SESSION_MODE.READ_ONLY,
+  SESSION_MODE.AUTO,
+  SESSION_MODE.FULL_ACCESS,
+]);
 export type SessionMode = z.infer<typeof SessionModeSchema>;
 
 export const SessionSchema = z.object({
@@ -206,13 +236,16 @@ export type SubAgentId = z.infer<typeof SubAgentIdSchema>;
 export const PlanIdSchema = z.string().min(1).brand<"PlanId">();
 export type PlanId = z.infer<typeof PlanIdSchema>;
 
+export const CheckpointIdSchema = z.string().min(1).brand<"CheckpointId">();
+export type CheckpointId = z.infer<typeof CheckpointIdSchema>;
+
 export const TaskStatusSchema = z.enum([
-  "pending",
-  "assigned",
-  "running",
-  "completed",
-  "failed",
-  "blocked",
+  TASK_STATUS.PENDING,
+  TASK_STATUS.ASSIGNED,
+  TASK_STATUS.RUNNING,
+  TASK_STATUS.COMPLETED,
+  TASK_STATUS.FAILED,
+  TASK_STATUS.BLOCKED,
 ]);
 export type TaskStatus = z.infer<typeof TaskStatusSchema>;
 
@@ -232,6 +265,25 @@ export const TaskSchema = z.object({
 });
 export type Task = z.infer<typeof TaskSchema>;
 
+export const BackgroundTaskIdSchema = z.string().min(1).brand<"BackgroundTaskId">();
+export type BackgroundTaskId = z.infer<typeof BackgroundTaskIdSchema>;
+
+export const BackgroundTaskSchema = z.object({
+  id: BackgroundTaskIdSchema,
+  command: z.string(),
+  status: z.enum([
+    BACKGROUND_TASK_STATUS.RUNNING,
+    BACKGROUND_TASK_STATUS.COMPLETED,
+    BACKGROUND_TASK_STATUS.FAILED,
+    BACKGROUND_TASK_STATUS.CANCELLED,
+  ]),
+  terminalId: z.string().min(1),
+  createdAt: z.number().nonnegative(),
+  startedAt: z.number().nonnegative(),
+  completedAt: z.number().optional(),
+});
+export type BackgroundTask = z.infer<typeof BackgroundTaskSchema>;
+
 export const PlanSchema = z.object({
   id: PlanIdSchema,
   sessionId: SessionIdSchema,
@@ -247,24 +299,6 @@ export const PlanSchema = z.object({
   updatedAt: z.number().nonnegative(),
 });
 export type Plan = z.infer<typeof PlanSchema>;
-
-export const AppStateSchema = z.object({
-  connectionStatus: ConnectionStatusSchema,
-  currentSessionId: SessionIdSchema.optional(),
-  sessions: z.record(SessionIdSchema, SessionSchema).default({}),
-  messages: z.record(MessageIdSchema, MessageSchema).default({}),
-  plans: z.record(PlanIdSchema, PlanSchema).default({}),
-  contextAttachments: z.record(SessionIdSchema, z.array(z.string()).default([])).default({}),
-  uiState: z
-    .object({
-      sidebarTab: z.enum(["files", "plan", "context", "sessions", "agent"]).default("files"),
-      accordionCollapsed: z
-        .record(z.enum(["files", "plan", "context", "sessions", "agent"]), z.boolean())
-        .default({}),
-    })
-    .default({}),
-});
-export type AppState = z.infer<typeof AppStateSchema>;
 
 export const SubAgentSchema = z.object({
   id: SubAgentIdSchema,
@@ -288,8 +322,68 @@ export type SubAgent = z.infer<typeof SubAgentSchema>;
 export const AgentMessageSchema = z.object({
   from: SubAgentIdSchema,
   to: SubAgentIdSchema.optional(), // undefined = broadcast
-  type: z.enum(["task_complete", "task_failed", "need_help", "share_result", "coordinate"]),
+  type: z.enum([
+    AGENT_MESSAGE_TYPE.TASK_COMPLETE,
+    AGENT_MESSAGE_TYPE.TASK_FAILED,
+    AGENT_MESSAGE_TYPE.NEED_HELP,
+    AGENT_MESSAGE_TYPE.SHARE_RESULT,
+    AGENT_MESSAGE_TYPE.COORDINATE,
+  ]),
   payload: z.record(z.unknown()),
   timestamp: z.number().nonnegative(),
 });
 export type AgentMessage = z.infer<typeof AgentMessageSchema>;
+
+export const FileChangeSchema = z.object({
+  path: z.string().min(1),
+  before: z.string().nullable(),
+  after: z.string().nullable(),
+});
+export type FileChange = z.infer<typeof FileChangeSchema>;
+
+export const FilePatchSchema = z.object({
+  path: z.string().min(1),
+  patch: z.string().min(1),
+});
+export type FilePatch = z.infer<typeof FilePatchSchema>;
+
+export const CheckpointSnapshotSchema = z.object({
+  session: SessionSchema,
+  messages: z.array(MessageSchema),
+  plan: PlanSchema.optional(),
+});
+export type CheckpointSnapshot = z.infer<typeof CheckpointSnapshotSchema>;
+
+export const CheckpointSchema = z.object({
+  id: CheckpointIdSchema,
+  sessionId: SessionIdSchema,
+  prompt: z.string().optional(),
+  createdAt: z.number().nonnegative(),
+  before: CheckpointSnapshotSchema,
+  after: CheckpointSnapshotSchema,
+  fileChanges: z.array(FileChangeSchema).default([]),
+  patches: z.array(FilePatchSchema).default([]),
+});
+export type Checkpoint = z.infer<typeof CheckpointSchema>;
+
+export const AppStateSchema = z.object({
+  connectionStatus: ConnectionStatusSchema,
+  currentSessionId: SessionIdSchema.optional(),
+  sessions: z.record(SessionIdSchema, SessionSchema).default({}),
+  messages: z.record(MessageIdSchema, MessageSchema).default({}),
+  plans: z.record(PlanIdSchema, PlanSchema).default({}),
+  subAgents: z.record(SubAgentIdSchema, SubAgentSchema).default({}),
+  contextAttachments: z.record(SessionIdSchema, z.array(z.string()).default([])).default({}),
+  uiState: z
+    .object({
+      sidebarTab: z.enum(SIDEBAR_TAB_VALUES).default(SIDEBAR_TAB.FILES),
+      accordionCollapsed: z.record(z.enum(SIDEBAR_TAB_VALUES), z.boolean()).default({}),
+      showToolDetails: z.boolean().default(true),
+      showThinking: z.boolean().default(true),
+      theme: z
+        .enum([THEME.DEFAULT, THEME.MIDNIGHT, THEME.SUNRISE, THEME.HIGH_CONTRAST])
+        .default(THEME.DEFAULT),
+    })
+    .default({}),
+});
+export type AppState = z.infer<typeof AppStateSchema>;

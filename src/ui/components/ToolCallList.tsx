@@ -1,7 +1,7 @@
 import { COLOR } from "@/constants/colors";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
-import type { BoxProps } from "ink";
-import { Box, Text } from "ink";
+import { TextAttributes } from "@opentui/core";
+import type { ReactNode } from "react";
 
 export interface ToolCallListItem {
   id: string;
@@ -14,7 +14,7 @@ export interface ToolCallListItem {
   result?: unknown;
 }
 
-export interface ToolCallListProps extends BoxProps {
+export interface ToolCallListProps {
   toolCalls: ToolCallListItem[];
 }
 
@@ -31,16 +31,18 @@ const statusColor = (status: ToolCallListItem["status"]): string => {
   }
 };
 
-export function ToolCallList({ toolCalls, ...boxProps }: ToolCallListProps): JSX.Element | null {
+export function ToolCallList({ toolCalls }: ToolCallListProps): ReactNode {
   if (toolCalls.length === 0) return null;
   return (
-    <Box flexDirection="column" gap={0} {...boxProps}>
-      <Text color={COLOR.CYAN}>Tool Calls</Text>
+    <box flexDirection="column" gap={0}>
+      <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
+        Tool Calls
+      </text>
       {toolCalls.map((tool) => (
-        <Text key={tool.id} color={statusColor(tool.status)}>
+        <text key={tool.id} fg={statusColor(tool.status)}>
           {tool.name} ({tool.status})
-        </Text>
+        </text>
       ))}
-    </Box>
+    </box>
   );
 }

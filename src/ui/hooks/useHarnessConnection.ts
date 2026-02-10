@@ -1,7 +1,9 @@
+import type { AgentInfo } from "@/agents/agent-manager";
 import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
+import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { RENDER_STAGE, type RenderStage } from "@/constants/render-stage";
 import { VIEW } from "@/constants/views";
@@ -14,8 +16,8 @@ import type { HarnessRegistry } from "@/harness/harnessRegistry";
 import { useAppStore } from "@/store/app-store";
 import type { SessionId } from "@/types/domain";
 import { AgentIdSchema } from "@/types/domain";
-import type { AgentInfo } from "@/ui/hooks/useSessionHydration";
 import { withTimeout } from "@/utils/async/withTimeout";
+import { EnvManager } from "@/utils/env/env.utils";
 import { useEffect, useState } from "react";
 
 const clearScreen = (): void => {
@@ -99,17 +101,23 @@ export function useHarnessConnection({
       return;
     }
 
-    const adapter = harnessRegistry.get(harnessConfig.id);
+    const effectiveConfig: HarnessConfig = {
+      ...harnessConfig,
+      permissions: selectedAgent.permissions ?? harnessConfig.permissions,
+    };
+
+    const adapter = harnessRegistry.get(effectiveConfig.id);
     if (!adapter) {
-      onLoadErrorChange(`Harness adapter '${harnessConfig.id}' not registered.`);
+      onLoadErrorChange(`Harness adapter '${effectiveConfig.id}' not registered.`);
       onStageChange(RENDER_STAGE.ERROR);
       onStatusMessageChange("Harness adapter missing");
       return;
     }
 
+    const env = EnvManager.getInstance().getSnapshot();
     if (
-      harnessConfig.command.includes(HARNESS_DEFAULT.CLAUDE_COMMAND) &&
-      !process.env.ANTHROPIC_API_KEY
+      effectiveConfig.command.includes(HARNESS_DEFAULT.CLAUDE_COMMAND) &&
+      !env[ENV_KEY.ANTHROPIC_API_KEY]
     ) {
       onLoadErrorChange(
         "Claude Code ACP adapter requires ANTHROPIC_API_KEY. Set it in your environment or .env file."
@@ -120,7 +128,7 @@ export function useHarnessConnection({
       return;
     }
 
-    const runtime = adapter.createHarness(harnessConfig);
+    const runtime = adapter.createHarness(effectiveConfig);
     const detach = sessionStream.attach(runtime);
     const sessionManager = new SessionManager(runtime, useAppStore.getState());
 
@@ -164,10 +172,13 @@ export function useHarnessConnection({
         const session = await withTimeout(
           sessionManager.createSession({
             cwd: process.cwd(),
-            agentId: AgentIdSchema.parse(harnessConfig.id),
-            title: harnessConfig.name,
+            agentId: AgentIdSchema.parse(effectiveConfig.id),
+            title: effectiveConfig.name,
             mcpConfig,
-            env: process.env,
+            env,
+            mode: selectedAgent.sessionMode,
+            model: selectedAgent.model,
+            temperature: selectedAgent.temperature,
           }),
           "create session",
           TIMEOUT.SESSION_BOOTSTRAP_MS

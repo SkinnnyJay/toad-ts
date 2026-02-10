@@ -14,6 +14,7 @@ import { PROTOCOL_VERSION } from "@agentclientprotocol/sdk";
 import { EventEmitter } from "eventemitter3";
 import { nanoid } from "nanoid";
 
+import { CONNECTION_STATUS } from "../constants/connection-status";
 import type {
   HarnessAdapter,
   HarnessRuntime,
@@ -29,19 +30,19 @@ export class MockHarnessRuntime
   extends EventEmitter<MockHarnessAdapterEvents>
   implements HarnessRuntime
 {
-  private status: ConnectionStatus = "disconnected";
+  private status: ConnectionStatus = CONNECTION_STATUS.DISCONNECTED;
 
   get connectionStatus(): ConnectionStatus {
     return this.status;
   }
 
   async connect(): Promise<void> {
-    this.setStatus("connecting");
-    this.setStatus("connected");
+    this.setStatus(CONNECTION_STATUS.CONNECTING);
+    this.setStatus(CONNECTION_STATUS.CONNECTED);
   }
 
   async disconnect(): Promise<void> {
-    this.setStatus("disconnected");
+    this.setStatus(CONNECTION_STATUS.DISCONNECTED);
   }
 
   async initialize(_params?: Partial<InitializeRequest>): Promise<InitializeResponse> {

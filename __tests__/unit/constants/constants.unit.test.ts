@@ -2,6 +2,7 @@ import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
 import { AGENT_STATUS } from "@/constants/agent-status";
+import { BACKGROUND_TASK_STATUS } from "@/constants/background-task-status";
 import { FOCUS_TARGET } from "@/constants/focus-target";
 import { LOG_LEVEL } from "@/constants/log-level";
 import { PLAN_STATUS } from "@/constants/plan-status";
@@ -37,6 +38,13 @@ describe("Constants", () => {
       expect(TOOL_CALL_STATUS.RUNNING).toBe("running");
       expect(TOOL_CALL_STATUS.SUCCEEDED).toBe("succeeded");
       expect(TOOL_CALL_STATUS.FAILED).toBe("failed");
+    });
+
+    it("should have all expected background task status values", () => {
+      expect(BACKGROUND_TASK_STATUS.RUNNING).toBe("running");
+      expect(BACKGROUND_TASK_STATUS.COMPLETED).toBe("completed");
+      expect(BACKGROUND_TASK_STATUS.FAILED).toBe("failed");
+      expect(BACKGROUND_TASK_STATUS.CANCELLED).toBe("cancelled");
     });
 
     it("should have all expected plan status values", () => {

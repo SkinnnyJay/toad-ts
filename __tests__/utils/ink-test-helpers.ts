@@ -1,6 +1,6 @@
 import { SESSION_MODE } from "@/constants/session-modes";
-import { type RenderResult, render } from "ink-testing-library";
 import type React from "react";
+import { type ReactTestRenderer, act, create } from "react-test-renderer";
 import { useAppStore } from "../../src/store/app-store";
 import {
   AgentIdSchema,
@@ -8,14 +8,17 @@ import {
   type SessionId,
   SessionIdSchema,
 } from "../../src/types/domain";
+import { keyboardRuntime, terminalRuntime } from "./opentui-test-runtime";
 
 /**
- * Test utilities for Ink component testing with ink-testing-library.
+ * Test utilities for OpenTUI component testing.
  * Provides common helpers for rendering, waiting, and setup/teardown.
  */
 
+const activeRenderers = new Set<ReactTestRenderer>();
+
 /**
- * Options for rendering Ink components in tests.
+ * Options for rendering OpenTUI components in tests.
  */
 export interface RenderOptions {
   /**
@@ -29,7 +32,7 @@ export interface RenderOptions {
 }
 
 /**
- * Renders an Ink component with default test terminal dimensions.
+ * Renders a component with default test terminal dimensions.
  *
  * @example
  * ```ts
@@ -37,9 +40,123 @@ export interface RenderOptions {
  * expect(lastFrame()).toContain("Expected text");
  * ```
  */
+export interface RenderResult {
+  lastFrame: () => string;
+  stdin: { write: (input: string) => void };
+  rerender: (element: React.ReactElement) => void;
+  unmount: () => void;
+}
+
+const extractText = (node: unknown): string => {
+  if (node === null || node === undefined || typeof node === "boolean") return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(extractText).join("\n");
+  if (typeof node === "object" && node) {
+    const typedNode = node as {
+      type?: string;
+      props?: Record<string, unknown>;
+      children?: unknown[];
+    };
+
+    const props = typedNode.props ?? {};
+    switch (typedNode.type) {
+      case "markdown":
+      case "code":
+        return typeof props.content === "string" ? props.content : "";
+      case "diff":
+        return typeof props.diff === "string" ? props.diff : "";
+      case "input":
+        if (typeof props.value === "string" && props.value.length > 0) {
+          return props.value;
+        }
+        return typeof props.placeholder === "string" ? props.placeholder : "";
+      case "textarea":
+        if (typeof props.initialValue === "string" && props.initialValue.length > 0) {
+          return props.initialValue;
+        }
+        return typeof props.placeholder === "string" ? props.placeholder : "";
+      case "ascii-font":
+        return typeof props.text === "string" ? props.text : "";
+      case "select":
+        return Array.isArray(props.options)
+          ? props.options
+              .map((option) => {
+                if (!option || typeof option !== "object") return "";
+                const label = (option as { label?: string }).label;
+                const value = (option as { value?: string }).value;
+                return label ?? value ?? "";
+              })
+              .filter((value) => value.length > 0)
+              .join("\n")
+          : "";
+      default:
+        break;
+    }
+
+    if (typedNode.children) {
+      const separator = typedNode.type === "text" || typedNode.type === "span" ? "" : "\n";
+      return typedNode.children.map(extractText).join(separator);
+    }
+  }
+  return "";
+};
+
+const parseInput = (input: string): string[] => {
+  const specialKeys: Record<string, string> = {
+    "\r": "return",
+    "\n": "linefeed",
+    "\t": "tab",
+    " ": "space",
+    "\x1B": "escape",
+    "\x1B[A": "up",
+    "\x1B[B": "down",
+    "\x1B[C": "right",
+    "\x1B[D": "left",
+  };
+
+  if (specialKeys[input]) {
+    return [specialKeys[input]];
+  }
+
+  return Array.from(input);
+};
+
 export function renderInk(element: React.ReactElement, options: RenderOptions = {}): RenderResult {
   const { width = 80, height = 24 } = options;
-  return render(element, { stdout: { columns: width, rows: height } });
+  terminalRuntime.set(width, height);
+
+  let renderer: ReactTestRenderer;
+  act(() => {
+    renderer = create(element);
+  });
+  activeRenderers.add(renderer);
+
+  const lastFrame = () => extractText(renderer.toJSON());
+
+  const stdin = {
+    write: (input: string) => {
+      parseInput(input).forEach((name) => {
+        act(() => {
+          keyboardRuntime.emit(name);
+        });
+      });
+    },
+  };
+
+  const rerender = (nextElement: React.ReactElement) => {
+    act(() => {
+      renderer.update(nextElement);
+    });
+  };
+
+  const unmount = () => {
+    act(() => {
+      renderer.unmount();
+    });
+    activeRenderers.delete(renderer);
+  };
+
+  return { lastFrame, stdin, rerender, unmount };
 }
 
 /**
@@ -174,6 +291,12 @@ export function setupSession(options: SetupSessionOptions = {}): SessionId {
  * ```
  */
 export function cleanup(): void {
+  activeRenderers.forEach((renderer) => {
+    act(() => {
+      renderer.unmount();
+    });
+  });
+  activeRenderers.clear();
   const store = useAppStore.getState();
   store.reset();
 }
@@ -199,7 +322,7 @@ export function createMockAgent(
 }
 
 /**
- * Type guard to check if a value is a RenderResult from ink-testing-library.
+ * Type guard to check if a value is a renderInk result.
  */
 export function isRenderResult(value: unknown): value is RenderResult {
   return (

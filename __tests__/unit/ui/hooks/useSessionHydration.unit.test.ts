@@ -35,26 +35,23 @@ describe("useSessionHydration", () => {
 
       const { options, infoMap } = buildAgentOptions(harnesses);
 
-      expect(options).toHaveLength(2);
-      expect(options[0]).toEqual({
-        id: AgentIdSchema.parse("claude-cli"),
-        name: "Claude CLI",
-        description: "Claude Code CLI adapter",
-      });
-      expect(options[1]).toEqual({
-        id: AgentIdSchema.parse("mock-agent"),
-        name: "Mock Agent",
-        description: "Mock agent for testing",
-      });
+      expect(options).toHaveLength(6);
+      expect(infoMap.size).toBe(12);
 
-      expect(infoMap.size).toBe(2);
       const claudeInfo = infoMap.get(AgentIdSchema.parse("claude-cli"));
-      expect(claudeInfo).toEqual({
-        id: AgentIdSchema.parse("claude-cli"),
-        harnessId: "claude-cli",
-        name: "Claude CLI",
-        description: "Claude Code CLI adapter",
-      });
+      const claudeBuild = infoMap.get(AgentIdSchema.parse("claude-cli:build"));
+      const claudePlan = infoMap.get(AgentIdSchema.parse("claude-cli:plan"));
+      const mockInfo = infoMap.get(AgentIdSchema.parse("mock-agent"));
+      const mockBuild = infoMap.get(AgentIdSchema.parse("mock-agent:build"));
+      const mockPlan = infoMap.get(AgentIdSchema.parse("mock-agent:plan"));
+
+      expect(claudeInfo?.name).toBe("Claude CLI");
+      expect(claudeBuild?.name).toBe("Claude CLI Build");
+      expect(claudePlan?.name).toBe("Claude CLI Plan");
+      expect(mockInfo?.name).toBe("Mock Agent");
+      expect(mockBuild?.name).toBe("Mock Agent Build");
+      expect(mockPlan?.name).toBe("Mock Agent Plan");
+      expect(claudeInfo?.description).toBe("Claude Code CLI adapter");
     });
 
     it("handles empty harness configs", () => {
@@ -74,9 +71,8 @@ describe("useSessionHydration", () => {
         },
       };
 
-      const { options, infoMap } = buildAgentOptions(harnesses);
+      const { infoMap } = buildAgentOptions(harnesses);
 
-      expect(options[0]?.description).toBeUndefined();
       expect(infoMap.get(AgentIdSchema.parse("simple-agent"))?.description).toBeUndefined();
     });
   });

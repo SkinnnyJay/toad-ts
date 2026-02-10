@@ -1,4 +1,4 @@
-import { useInput } from "ink";
+import { useKeyboard } from "@opentui/react";
 import type { ReactNode } from "react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
@@ -25,7 +25,7 @@ const TruncationContext = createContext<TruncationContextValue>({
 export const TRUNCATION_SHORTCUT_HINT =
   "Ctrl+↑/↓ select · Ctrl+Enter toggle · Ctrl+E expand · Ctrl+Shift+E collapse";
 
-export function TruncationProvider({ children }: { children: ReactNode }): JSX.Element {
+export function TruncationProvider({ children }: { children: ReactNode }): ReactNode {
   const [entries, setEntries] = useState<TruncationEntry[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -46,35 +46,40 @@ export function TruncationProvider({ children }: { children: ReactNode }): JSX.E
     }
   }, [activeIndex, entries.length]);
 
-  useInput(
-    (input, key) => {
-      if (!key.ctrl || entries.length === 0) return;
+  useKeyboard((key) => {
+    if (!key.ctrl || entries.length === 0) return;
 
-      if (key.upArrow) {
-        setActiveIndex((prev) => (prev <= 0 ? entries.length - 1 : prev - 1));
-        return;
-      }
+    if (key.name === "up") {
+      key.preventDefault();
+      key.stopPropagation();
+      setActiveIndex((prev) => (prev <= 0 ? entries.length - 1 : prev - 1));
+      return;
+    }
 
-      if (key.downArrow) {
-        setActiveIndex((prev) => (prev + 1) % entries.length);
-        return;
-      }
+    if (key.name === "down") {
+      key.preventDefault();
+      key.stopPropagation();
+      setActiveIndex((prev) => (prev + 1) % entries.length);
+      return;
+    }
 
-      if (key.return || input === " ") {
-        entries[activeIndex]?.toggle();
-        return;
-      }
+    if (key.name === "return" || key.name === "linefeed" || key.name === "space") {
+      key.preventDefault();
+      key.stopPropagation();
+      entries[activeIndex]?.toggle();
+      return;
+    }
 
-      if (input?.toLowerCase() === "e") {
-        if (key.shift) {
-          entries[activeIndex]?.collapse();
-        } else {
-          entries[activeIndex]?.expand();
-        }
+    if (key.name === "e") {
+      key.preventDefault();
+      key.stopPropagation();
+      if (key.shift) {
+        entries[activeIndex]?.collapse();
+      } else {
+        entries[activeIndex]?.expand();
       }
-    },
-    { isActive: entries.length > 0 }
-  );
+    }
+  });
 
   const value = useMemo(
     () => ({

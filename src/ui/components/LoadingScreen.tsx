@@ -1,9 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { Box, Text } from "ink";
-import { memo, useEffect, useState } from "react";
-
-const PROGRESS_BAR_WIDTH = 40;
+import { UI } from "@/config/ui";
+import { type ReactNode, memo, useEffect, useState } from "react";
 
 const getAsciiArtPath = (): string => {
   return join(process.cwd(), "public", "toadstool-ascii.txt");
@@ -14,27 +12,27 @@ const getTextArtPath = (): string => {
 };
 
 const renderProgressBar = (progress: number): string => {
-  const filled = Math.floor((progress / 100) * PROGRESS_BAR_WIDTH);
-  const empty = PROGRESS_BAR_WIDTH - filled;
+  const filled = Math.floor((progress / UI.PROGRESS.COMPLETE) * UI.PROGRESS_BAR_WIDTH);
+  const empty = UI.PROGRESS_BAR_WIDTH - filled;
   return `[${"█".repeat(filled)}${"░".repeat(empty)}] ${progress}%`;
 };
 
 // Separate component for static content - memoized to prevent re-renders
 const StaticArt = memo(
-  ({ logoArt, textArt }: { logoArt: string; textArt: string }): JSX.Element | null => {
+  ({ logoArt, textArt }: { logoArt: string; textArt: string }): ReactNode => {
     if (!logoArt && !textArt) return null;
 
     return (
       <>
         {logoArt && (
-          <Box flexDirection="column" alignItems="center" marginBottom={1}>
-            <Text>{logoArt}</Text>
-          </Box>
+          <box flexDirection="column" alignItems="center" marginBottom={1}>
+            <text>{logoArt}</text>
+          </box>
         )}
         {textArt && (
-          <Box flexDirection="column" alignItems="center" marginBottom={2}>
-            <Text>{textArt}</Text>
-          </Box>
+          <box flexDirection="column" alignItems="center" marginBottom={2}>
+            <text>{textArt}</text>
+          </box>
         )}
       </>
     );
@@ -52,7 +50,7 @@ export interface LoadingScreenProps {
   status?: string;
 }
 
-export function LoadingScreen({ progress, status }: LoadingScreenProps): JSX.Element {
+export function LoadingScreen({ progress, status }: LoadingScreenProps): ReactNode {
   const [logoArt, setLogoArt] = useState<string>("");
   const [textArt, setTextArt] = useState<string>("");
 
@@ -81,11 +79,11 @@ export function LoadingScreen({ progress, status }: LoadingScreenProps): JSX.Ele
   }, []);
 
   const clampedProgress = Number.isFinite(progress)
-    ? Math.min(100, Math.max(0, Math.round(progress)))
+    ? Math.min(UI.PROGRESS.COMPLETE, Math.max(0, Math.round(progress)))
     : 0;
 
   return (
-    <Box
+    <box
       flexDirection="column"
       justifyContent="center"
       alignItems="center"
@@ -93,10 +91,10 @@ export function LoadingScreen({ progress, status }: LoadingScreenProps): JSX.Ele
       width="100%"
     >
       <StaticArt logoArt={logoArt} textArt={textArt} />
-      <Box flexDirection="column" alignItems="center">
-        {status ? <Text>{status}</Text> : null}
-        <Text>{renderProgressBar(clampedProgress)}</Text>
-      </Box>
-    </Box>
+      <box flexDirection="column" alignItems="center">
+        {status ? <text>{status}</text> : null}
+        <text>{renderProgressBar(clampedProgress)}</text>
+      </box>
+    </box>
   );
 }

@@ -1,5 +1,6 @@
 import { CREDENTIAL_STORE_KIND } from "@/constants/credential-stores";
 import { ENV_KEY } from "@/constants/env-keys";
+import { EnvManager } from "@/utils/env/env.utils";
 import {
   EncryptedDiskCredentialStore,
   type EncryptedDiskCredentialStoreOptions,
@@ -35,7 +36,8 @@ const parseEnvMode = (env?: NodeJS.ProcessEnv): CredentialStoreKind | undefined 
 export const createCredentialStore = async (
   options: CredentialStoreFactoryOptions = {}
 ): Promise<CredentialStore> => {
-  const effectiveMode = options.mode ?? parseEnvMode(options.env ?? process.env);
+  const effectiveMode =
+    options.mode ?? parseEnvMode(options.env ?? EnvManager.getInstance().getSnapshot());
 
   if (effectiveMode === CREDENTIAL_STORE_KIND.MEMORY) {
     return new MemoryCredentialStore();

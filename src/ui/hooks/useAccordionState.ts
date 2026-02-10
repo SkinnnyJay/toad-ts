@@ -1,9 +1,11 @@
-import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
+import type { FocusTarget } from "@/constants/focus-target";
+import { SIDEBAR_TAB_VALUES, type SidebarTab } from "@/constants/sidebar-tabs";
 import { useAppStore } from "@/store/app-store";
-import type { AppState } from "@/types/domain";
 import { useCallback } from "react";
 
-type SidebarSection = Exclude<FocusTarget, typeof FOCUS_TARGET.CHAT>;
+type SidebarSection = SidebarTab;
+
+const SIDEBAR_TAB_SET = new Set<string>(SIDEBAR_TAB_VALUES);
 
 export interface UseAccordionStateResult {
   isCollapsed: (section: SidebarSection) => boolean;
@@ -27,8 +29,8 @@ export function useAccordionState(): UseAccordionStateResult {
 
   const setCollapsed = useCallback(
     (section: SidebarSection, collapsed: boolean) => {
-      setSidebarTab(section as AppState["uiState"]["sidebarTab"]);
-      setAccordionCollapsed(section as AppState["uiState"]["sidebarTab"], collapsed);
+      setSidebarTab(section);
+      setAccordionCollapsed(section, collapsed);
     },
     [setAccordionCollapsed, setSidebarTab]
   );
@@ -51,4 +53,4 @@ export function useAccordionState(): UseAccordionStateResult {
  * Type guard to check if a focus target is a sidebar section.
  */
 export const isSidebarSection = (value: FocusTarget): value is SidebarSection =>
-  value !== FOCUS_TARGET.CHAT;
+  SIDEBAR_TAB_SET.has(value);

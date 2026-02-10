@@ -9,15 +9,9 @@
 export { useTerminalDimensions } from "./useTerminalDimensions";
 export type { TerminalDimensions } from "./useTerminalDimensions";
 
-export {
-  useSessionHydration,
-  buildAgentOptions,
-} from "./useSessionHydration";
-export type {
-  AgentInfo,
-  UseSessionHydrationResult,
-  UseSessionHydrationOptions,
-} from "./useSessionHydration";
+export { useSessionHydration, buildAgentOptions } from "./useSessionHydration";
+export type { UseSessionHydrationResult, UseSessionHydrationOptions } from "./useSessionHydration";
+export type { AgentInfo } from "@/agents/agent-manager";
 
 export {
   useHarnessConnection,
@@ -43,6 +37,24 @@ export type {
   UseAppKeyboardShortcutsOptions,
   UseAppKeyboardShortcutsResult,
 } from "./useAppKeyboardShortcuts";
+
+export { useCheckpointUI } from "./useCheckpointUI";
+export type { UseCheckpointUIOptions, UseCheckpointUIResult } from "./useCheckpointUI";
+
+export { useExecutionEngine } from "./useExecutionEngine";
+export type { UseExecutionEngineOptions } from "./useExecutionEngine";
+
+export { useAppNavigation } from "./useAppNavigation";
+export type { UseAppNavigationOptions, UseAppNavigationResult } from "./useAppNavigation";
+
+export { useAppConfig } from "./useAppConfig";
+export type { UseAppConfigResult } from "./useAppConfig";
+
+export { useHookManager } from "./useHookManager";
+export type { UseHookManagerOptions } from "./useHookManager";
+
+export { useContextStats } from "./useContextStats";
+export type { ContextStats } from "./useContextStats";
 
 // InputWithAutocomplete.tsx hooks
 export {
@@ -112,3 +124,5 @@ export type {
   UseSlashCommandsOptions,
   UseSlashCommandsResult,
 } from "./useSlashCommands";
+
+export { useUiSymbols } from "./useUiSymbols";

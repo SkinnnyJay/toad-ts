@@ -13,9 +13,25 @@ export const COLOR = {
   WARNING: "#FFA726",
   DIM: "#808080",
   BORDER: "#404040",
+  DIFF_ADDED_BG: "#1a3d1a",
+  DIFF_REMOVED_BG: "#3d1a1a",
+  DIFF_HUNK_BG: "#1a2a3a",
 } as const;
 
 export type Color = (typeof COLOR)[keyof typeof COLOR];
 
 // Re-export for convenience
-export const { GREEN, RED, YELLOW, BLUE, CYAN, MAGENTA, GRAY, WHITE, BLACK } = COLOR;
+export const {
+  GREEN,
+  RED,
+  YELLOW,
+  BLUE,
+  CYAN,
+  MAGENTA,
+  GRAY,
+  WHITE,
+  BLACK,
+  DIFF_ADDED_BG,
+  DIFF_REMOVED_BG,
+  DIFF_HUNK_BG,
+} = COLOR;

@@ -2,21 +2,27 @@ import { COLOR } from "@/constants/colors";
 import { getDefaultProvider, setDefaultProvider } from "@/store/settings/settings-manager";
 import type { AgentId } from "@/types/domain";
 import type { AgentOption } from "@/ui/components/AgentSelect";
-import { Box, Text, useInput } from "ink";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { TextAttributes } from "@opentui/core";
+import { useKeyboard } from "@opentui/react";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
 interface DefaultProviderTabProps {
   agents: AgentOption[];
   onSave?: () => void;
 }
 
-export function DefaultProviderTab({ agents, onSave }: DefaultProviderTabProps): JSX.Element {
+type DefaultProviderOption = {
+  id?: AgentId;
+  name: string;
+};
+
+export function DefaultProviderTab({ agents, onSave }: DefaultProviderTabProps): ReactNode {
   const [index, setIndex] = useState(0);
   const [currentDefault, setCurrentDefault] = useState<AgentId | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
 
-  const options = useMemo(
-    () => [{ id: undefined as AgentId | undefined, name: "None" }, ...agents],
+  const options: DefaultProviderOption[] = useMemo(
+    () => [{ id: undefined, name: "None" }, ...agents],
     [agents]
   );
 
@@ -56,17 +62,23 @@ export function DefaultProviderTab({ agents, onSave }: DefaultProviderTabProps):
     [onSave]
   );
 
-  useInput((_input, key) => {
+  useKeyboard((key) => {
     if (isLoading) return;
     if (options.length === 0) return;
 
-    if (key.upArrow) {
+    if (key.name === "up") {
+      key.preventDefault();
+      key.stopPropagation();
       setIndex((prev) => (prev - 1 + options.length) % options.length);
     }
-    if (key.downArrow) {
+    if (key.name === "down") {
+      key.preventDefault();
+      key.stopPropagation();
       setIndex((prev) => (prev + 1) % options.length);
     }
-    if (key.return) {
+    if (key.name === "return" || key.name === "linefeed") {
+      key.preventDefault();
+      key.stopPropagation();
       const selected = options[index];
       if (selected) {
         void handleSelect(selected.id);
@@ -82,39 +94,50 @@ export function DefaultProviderTab({ agents, onSave }: DefaultProviderTabProps):
 
   if (isLoading) {
     return (
-      <Box flexDirection="column" paddingY={1}>
-        <Text dimColor>Loading settings…</Text>
-      </Box>
+      <box flexDirection="column" paddingTop={1} paddingBottom={1}>
+        <text attributes={TextAttributes.DIM}>Loading settings…</text>
+      </box>
     );
   }
 
   return (
-    <Box flexDirection="column" gap={1} paddingY={1}>
-      <Text bold>Default Provider</Text>
-      <Text dimColor>Select a default agent to use when starting the app.</Text>
-      <Text dimColor>Press Enter to select, ↑/↓ to navigate.</Text>
-      <Box flexDirection="column" gap={0} marginTop={1}>
+    <box flexDirection="column" gap={1} paddingTop={1} paddingBottom={1}>
+      <text attributes={TextAttributes.BOLD}>Default Provider</text>
+      <text attributes={TextAttributes.DIM}>
+        Select a default agent to use when starting the app.
+      </text>
+      <text attributes={TextAttributes.DIM}>Press Enter to select, ↑/↓ to navigate.</text>
+      <box flexDirection="column" gap={0} marginTop={1}>
         {options.map((option, i) => {
           const isSelected = i === index;
           const isCurrentDefault = option.id === currentDefault;
           const displayName = option.id ? option.name : "None (show agent selection)";
 
           return (
-            <Box key={option.id ?? "none"} flexDirection="row" paddingX={1} paddingY={0}>
-              <Text color={isSelected ? COLOR.GREEN : isCurrentDefault ? COLOR.CYAN : undefined}>
+            <box
+              key={option.id ?? "none"}
+              flexDirection="row"
+              paddingLeft={1}
+              paddingRight={1}
+              paddingTop={0}
+              paddingBottom={0}
+            >
+              <text fg={isSelected ? COLOR.GREEN : isCurrentDefault ? COLOR.CYAN : undefined}>
                 {isSelected ? "› " : "  "}
                 {isCurrentDefault && !isSelected ? "● " : "  "}
                 {displayName}
-              </Text>
-            </Box>
+              </text>
+            </box>
           );
         })}
-      </Box>
+      </box>
       {currentDefault && (
-        <Box marginTop={1} paddingTop={1} borderStyle="single" borderTop={true}>
-          <Text dimColor>Current default: {agents.find((a) => a.id === currentDefault)?.name}</Text>
-        </Box>
+        <box marginTop={1} paddingTop={1} borderStyle="single" border={["top"]}>
+          <text attributes={TextAttributes.DIM}>
+            Current default: {agents.find((a) => a.id === currentDefault)?.name}
+          </text>
+        </box>
       )}
-    </Box>
+    </box>
   );
 }

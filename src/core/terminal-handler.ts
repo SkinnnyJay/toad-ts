@@ -1,8 +1,10 @@
 import { spawn } from "node:child_process";
 import { isAbsolute, normalize, resolve } from "node:path";
+import { TERMINAL_KILL_GRACE_MS } from "@/config/timeouts";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { SIGNAL } from "@/constants/signals";
+import { EnvManager } from "@/utils/env/env.utils";
 
 export interface ExecOptions {
   cwd?: string;
@@ -21,7 +23,8 @@ export interface ExecResult {
 
 const shouldAllowEscape = (env?: NodeJS.ProcessEnv, override?: boolean): boolean => {
   if (override !== undefined) return override;
-  const raw = env?.[ENV_KEY.TOADSTOOL_ALLOW_ESCAPE] ?? process.env[ENV_KEY.TOADSTOOL_ALLOW_ESCAPE];
+  const source = env ?? EnvManager.getInstance().getSnapshot();
+  const raw = source[ENV_KEY.TOADSTOOL_ALLOW_ESCAPE];
   if (!raw) return false;
   const normalized = raw.trim().toLowerCase();
   return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
@@ -67,12 +70,20 @@ export class TerminalHandler {
       options.baseCwd ?? this.defaultCwd,
       allowEscape
     );
-    const env = { ...process.env, ...options.env };
+    const env = { ...EnvManager.getInstance().getSnapshot(), ...options.env };
     return new Promise<ExecResult>((resolve, reject) => {
       const child = spawn(command, args, { cwd, env });
       let stdout = "";
       let stderr = "";
       let finished = false;
+      let killTimeout: NodeJS.Timeout | null = null;
+
+      const clearKillTimeout = (): void => {
+        if (killTimeout) {
+          clearTimeout(killTimeout);
+          killTimeout = null;
+        }
+      };
 
       const complete = (exitCode: number | null, signal: NodeJS.Signals | null): void => {
         if (finished) return;
@@ -92,16 +103,25 @@ export class TerminalHandler {
       child.on("error", (error) => {
         if (finished) return;
         finished = true;
+        clearKillTimeout();
         reject(error);
       });
 
-      child.on("close", (code, signal) => complete(code, signal));
+      child.on("close", (code, signal) => {
+        clearKillTimeout();
+        complete(code, signal);
+      });
 
       if (options.timeoutMs && options.timeoutMs > 0) {
         setTimeout(() => {
           if (!finished) {
             child.kill(SIGNAL.SIGTERM);
-            complete(child.exitCode, child.signalCode);
+            killTimeout = setTimeout(() => {
+              if (!finished) {
+                child.kill(SIGNAL.SIGKILL);
+              }
+            }, TERMINAL_KILL_GRACE_MS);
+            killTimeout.unref();
           }
         }, options.timeoutMs).unref();
       }

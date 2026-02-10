@@ -1,43 +1,34 @@
-import { Box, Text, useInput } from "ink";
-import { useEffect, useState } from "react";
+import type { SubmitEvent } from "@opentui/core";
+import type { ReactNode } from "react";
 
 interface InputProps {
   value: string;
   onChange: (value: string) => void;
   onSubmit: (value: string) => void;
+  placeholder?: string;
+  focused?: boolean;
 }
 
-export function Input({ value, onChange, onSubmit }: InputProps): JSX.Element {
-  const [buffer, setBuffer] = useState(value);
-
-  useEffect(() => {
-    setBuffer(value);
-  }, [value]);
-
-  useInput((input, key) => {
-    if (key.return) {
-      onSubmit(buffer);
-      setBuffer("");
-      onChange("");
-      return;
-    }
-    if (key.backspace || key.delete) {
-      const next = buffer.slice(0, -1);
-      setBuffer(next);
-      onChange(next);
-      return;
-    }
-    if (input) {
-      const next = buffer + input;
-      setBuffer(next);
-      onChange(next);
-    }
-  });
+export function Input({
+  value,
+  onChange,
+  onSubmit,
+  placeholder,
+  focused = true,
+}: InputProps): ReactNode {
+  const handleSubmit = (value: string | SubmitEvent): void => {
+    if (typeof value !== "string") return;
+    onSubmit(value);
+  };
 
   return (
-    <Box flexDirection="row" gap={1}>
-      <Text>›</Text>
-      <Text>{buffer || ""}</Text>
-    </Box>
+    <input
+      value={value}
+      placeholder={placeholder}
+      focused={focused}
+      onInput={onChange}
+      onChange={onChange}
+      onSubmit={handleSubmit}
+    />
   );
 }

@@ -1,8 +1,8 @@
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { FALLBACK } from "@/constants/fallbacks";
-import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
-import { ContentBlockSchema } from "@/types/domain";
-import type { ContentBlock, MessageId, SessionId, ToolCallId } from "@/types/domain";
+import { TOOL_CALL_STATUS, type ToolCallStatus } from "@/constants/tool-call-status";
+import { ContentBlockSchema, ToolCallIdSchema } from "@/types/domain";
+import type { ContentBlock, MessageId, MessageRole, SessionId, ToolCallId } from "@/types/domain";
 import { EventEmitter } from "eventemitter3";
 
 export interface RawContentUpdate {
@@ -23,14 +23,14 @@ export interface RawContentUpdate {
     mimeType?: string;
   };
   arguments?: Record<string, unknown>;
-  status?: "pending" | "running" | "succeeded" | "failed";
+  status?: ToolCallStatus;
   result?: unknown;
 }
 
 export interface MessageUpdate {
   sessionId: SessionId;
   messageId: MessageId;
-  role: "user" | "assistant" | "system";
+  role: MessageRole;
   content: RawContentUpdate;
   isFinal?: boolean;
 }
@@ -72,7 +72,7 @@ export class MessageHandler extends EventEmitter<MessageHandlerEvents> {
       case CONTENT_BLOCK_TYPE.TOOL_CALL:
         return ContentBlockSchema.parse({
           type: CONTENT_BLOCK_TYPE.TOOL_CALL,
-          toolCallId: content.toolCallId ?? (FALLBACK.UNKNOWN as ToolCallId),
+          toolCallId: content.toolCallId ?? ToolCallIdSchema.parse(FALLBACK.UNKNOWN),
           name: content.name,
           arguments: content.arguments,
           status: content.status ?? TOOL_CALL_STATUS.PENDING,

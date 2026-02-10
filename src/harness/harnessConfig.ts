@@ -4,10 +4,31 @@ import path from "node:path";
 import { ENCODING } from "@/constants/encodings";
 import { ERROR_CODE } from "@/constants/error-codes";
 import { FILE_PATH } from "@/constants/file-paths";
+import { PERMISSION } from "@/constants/permissions";
+import { TOOL_KIND } from "@/constants/tool-kinds";
+import { EnvManager } from "@/utils/env/env.utils";
 import { z } from "zod";
 
 const ENV_PATTERN = /\$(\w+)|\$\{([^}]+)\}/g;
 const DEFAULT_CONFIG_FILENAME = "harnesses.json";
+
+const permissionValueSchema = z.enum([PERMISSION.ALLOW, PERMISSION.DENY, PERMISSION.ASK]);
+
+const toolPermissionsSchema = z
+  .object({
+    [TOOL_KIND.READ]: permissionValueSchema.optional(),
+    [TOOL_KIND.EDIT]: permissionValueSchema.optional(),
+    [TOOL_KIND.DELETE]: permissionValueSchema.optional(),
+    [TOOL_KIND.MOVE]: permissionValueSchema.optional(),
+    [TOOL_KIND.SEARCH]: permissionValueSchema.optional(),
+    [TOOL_KIND.EXECUTE]: permissionValueSchema.optional(),
+    [TOOL_KIND.THINK]: permissionValueSchema.optional(),
+    [TOOL_KIND.FETCH]: permissionValueSchema.optional(),
+    [TOOL_KIND.SWITCH_MODE]: permissionValueSchema.optional(),
+    [TOOL_KIND.OTHER]: permissionValueSchema.optional(),
+  })
+  .strict()
+  .optional();
 
 const harnessFileDefinitionSchema = z
   .object({
@@ -17,6 +38,7 @@ const harnessFileDefinitionSchema = z
     env: z.record(z.string()).optional(),
     cwd: z.string().min(1).optional(),
     description: z.string().optional(),
+    permissions: toolPermissionsSchema,
   })
   .strict();
 
@@ -40,6 +62,7 @@ export const harnessConfigSchema = z
     env: z.record(z.string()).default({}),
     cwd: z.string().min(1).optional(),
     description: z.string().optional(),
+    permissions: toolPermissionsSchema,
   })
   .strict();
 
@@ -73,16 +96,18 @@ const parseHarnessFile = (raw: unknown, filePath: string): HarnessFileConfig => 
 const readHarnessFile = async (filePath: string): Promise<HarnessFileConfig | null> => {
   try {
     const contents = await readFile(filePath, ENCODING.UTF8);
-    const parsed = JSON.parse(contents) as unknown;
+    const parsed: unknown = JSON.parse(contents);
     return parseHarnessFile(parsed, filePath);
   } catch (error) {
-    const code = (error as NodeJS.ErrnoException | undefined)?.code;
-    if (code === ERROR_CODE.ENOENT) {
+    if (isErrnoException(error) && error.code === ERROR_CODE.ENOENT) {
       return null;
     }
     throw error;
   }
 };
+
+const isErrnoException = (error: unknown): error is NodeJS.ErrnoException =>
+  typeof error === "object" && error !== null && "code" in error;
 
 const mergeDefinitions = (
   base: HarnessFileDefinition | undefined,
@@ -92,12 +117,17 @@ const mergeDefinitions = (
     ...(base?.env ?? {}),
     ...(override?.env ?? {}),
   };
+  const mergedPermissions = {
+    ...(base?.permissions ?? {}),
+    ...(override?.permissions ?? {}),
+  };
 
   return {
     name: override?.name ?? base?.name,
     command: override?.command ?? base?.command,
     args: override?.args ?? base?.args,
     env: Object.keys(mergedEnv).length > 0 ? mergedEnv : undefined,
+    permissions: Object.keys(mergedPermissions).length > 0 ? mergedPermissions : undefined,
     cwd: override?.cwd ?? base?.cwd,
     description: override?.description ?? base?.description,
   };
@@ -136,6 +166,7 @@ const resolveHarnessConfig = (
     env: definition.env ?? {},
     cwd: definition.cwd ?? projectRoot,
     description: definition.description,
+    permissions: definition.permissions,
   });
 };
 
@@ -158,6 +189,7 @@ const expandHarnessConfig = (config: HarnessConfig, env: NodeJS.ProcessEnv): Har
     args: config.args.map((arg) => expandEnvString(arg, env)),
     env: expandedEnv,
     cwd: config.cwd ? expandEnvString(config.cwd, env) : config.cwd,
+    permissions: config.permissions,
   };
 };
 
@@ -196,7 +228,7 @@ export const loadHarnessConfig = async (
     FILE_PATH.TOADSTOOL_DIR,
     DEFAULT_CONFIG_FILENAME
   );
-  const env = options.env ?? process.env;
+  const env = options.env ?? EnvManager.getInstance().getSnapshot();
 
   const [projectConfig, userConfig] = await Promise.all([
     readHarnessFile(projectPath),

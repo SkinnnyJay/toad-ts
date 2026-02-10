@@ -31,7 +31,9 @@ export function useSessionNavigation({
   const activeSessionId = currentSessionId ?? storeCurrentSessionId;
 
   const sessions = useMemo<Session[]>(() => {
-    const values = Object.values(sessionsById) as Session[];
+    const values = Object.values(sessionsById).filter(
+      (session): session is Session => session !== undefined
+    );
     return values.slice().sort((a, b) => b.updatedAt - a.updatedAt);
   }, [sessionsById]);
 
@@ -49,11 +51,26 @@ export function useSessionNavigation({
     }
   }, [activeSessionId, sessions]);
 
+  useEffect(() => {
+    if (sessions.length === 0) {
+      if (sessionIndex !== 0) {
+        setSessionIndex(0);
+      }
+      return;
+    }
+    if (sessionIndex >= sessions.length) {
+      setSessionIndex(sessions.length - 1);
+    }
+  }, [sessionIndex, sessions.length]);
+
   const navigateUp = useCallback(() => {
     setSessionIndex((prev) => Math.max(0, prev - 1));
   }, []);
 
   const navigateDown = useCallback(() => {
+    if (sessions.length === 0) {
+      return;
+    }
     setSessionIndex((prev) => Math.min(sessions.length - 1, prev + 1));
   }, [sessions.length]);
 
