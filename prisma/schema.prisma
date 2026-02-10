@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Session {
+  id        String  @id
+  title     String?
+  agentId   String?
+  createdAt Int
+  updatedAt Int
+  metadata  String?
+  mode      String?
+
+  @@map("sessions")
+}
+
+model Message {
+  id          String  @id
+  sessionId   String
+  role        String
+  content     String
+  createdAt   Int
+  isStreaming Boolean @default(false)
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("messages")
+}
