@@ -29,7 +29,7 @@
   - [X] Execution engine wiring + subagent task orchestration
 
 ## Phase 7: Slash Commands & UX Polish
-- [ ] Phase 7 tasks (see PLAN.md)
+- [X] Phase 7 tasks (see PLAN.md)
   - [X] Slash commands: /connect, /sessions, /new, /rename, /models
   - [X] Slash commands: /details + /thinking toggles
   - [X] Slash command: /editor (external editor)
@@ -40,7 +40,7 @@
   - [X] Slash command: /copy clipboard
 
 ## Phase 8: Checkpointing & Undo/Redo
-- [ ] Phase 8 tasks (see PLAN.md)
+- [X] Phase 8 tasks (see PLAN.md)
   - [X] Per-prompt checkpoint snapshots persisted to disk
   - [X] Track tool file changes in checkpoints (write/edit + ACP)
   - [X] /undo, /redo, /rewind wired to checkpoints
@@ -49,7 +49,7 @@
   - [X] Git-based undo/redo integration (patch apply fallback)
 
 ## Phase 9: Configuration & Keybind System
-- [ ] Phase 9 tasks (see PLAN.md)
+- [X] Phase 9 tasks (see PLAN.md)
   - [X] Config schema + multi-source loader (global/project/env)
   - [X] Variable substitution for env/file config values
   - [X] Leader-key keybind runtime + defaults
@@ -66,8 +66,11 @@
   - [X] Context attachments modal (/context)
 
 ## Phase 11: Session Management, Sharing & Export
-- [ ] Phase 11 tasks (see PLAN.md)
+- [X] Phase 11 tasks (see PLAN.md)
   - [X] /share + /unshare export session markdown
+  - [X] /export markdown/json/zip + /import
+  - [X] Session history filter in sessions popup
+  - [X] Export/import integrity tests
 
 ## Phase 12: Provider Expansion
 - [X] Phase 12 tasks (see PLAN.md)

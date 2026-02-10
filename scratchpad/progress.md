@@ -60,3 +60,4 @@
 - [X] Headless server mode (HTTP + WebSocket)
 - [X] Routing policy + progress modal
 - [X] Distribution & polish (install, update check, benchmarks, discovery UI)
+- [X] Session export/import + history filter

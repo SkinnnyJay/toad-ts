@@ -7,6 +7,7 @@ export const FILE_PATH = {
   TODOS_JSON: "todos.json",
   UPDATE_CACHE_JSON: "update-cache.json",
   TERMINAL_SETUP_SCRIPT: "terminal-setup.sh",
+  EXPORTS_DIR: "exports",
   SHARED_SESSIONS_DIR: "shared-sessions",
   CHECKPOINTS_DIR: "checkpoints",
 } as const;
@@ -23,6 +24,7 @@ export const {
   TODOS_JSON,
   UPDATE_CACHE_JSON,
   TERMINAL_SETUP_SCRIPT,
+  EXPORTS_DIR,
   SHARED_SESSIONS_DIR,
   CHECKPOINTS_DIR,
 } = FILE_PATH;

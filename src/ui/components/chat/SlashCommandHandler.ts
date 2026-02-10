@@ -83,6 +83,9 @@ export const useSlashCommandHandler = ({
   const setShowToolDetails = useAppStore((state) => state.setShowToolDetails);
   const setShowThinking = useAppStore((state) => state.setShowThinking);
   const setCurrentSession = useAppStore((state) => state.setCurrentSession);
+  const getContextAttachments = useAppStore((state) => state.getContextAttachments);
+  const setContextAttachments = useAppStore((state) => state.setContextAttachments);
+  const restoreSessionSnapshot = useAppStore((state) => state.restoreSessionSnapshot);
 
   const openMemoryFile = useCallback(
     (filePath: string) =>
@@ -311,6 +314,9 @@ export const useSlashCommandHandler = ({
         checkpointManager,
         harnesses,
         connectionStatus,
+        getContextAttachments,
+        setContextAttachments,
+        restoreSessionSnapshot,
         now,
       });
     },
@@ -347,6 +353,9 @@ export const useSlashCommandHandler = ({
       setShowToolDetails,
       setShowThinking,
       setCurrentSession,
+      getContextAttachments,
+      setContextAttachments,
+      restoreSessionSnapshot,
       harnesses,
       now,
     ]

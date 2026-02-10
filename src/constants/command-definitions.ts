@@ -51,5 +51,5 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   { name: SLASH_COMMAND.SHARE, description: "Share current session to file" },
   { name: SLASH_COMMAND.UNSHARE, description: "Remove shared session file" },
   { name: SLASH_COMMAND.EXPORT, description: "Export session to file", args: "<filename>" },
-  { name: "/import", description: "Import session from file", args: "<filename>" },
+  { name: SLASH_COMMAND.IMPORT, description: "Import session from file", args: "<filename>" },
 ];

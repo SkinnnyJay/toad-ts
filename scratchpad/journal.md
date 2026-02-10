@@ -34,4 +34,5 @@
 - 2026-02-10 12:05 - Added routing policy config and progress panel.
 - 2026-02-10 12:35 - Added CI workflow and publish config; documented server mode.
 - 2026-02-10 13:15 - Completed distribution polish (install scripts, update checks, accessibility).
+- 2026-02-10 14:05 - Added session export/import (json/zip) and session history filter.
 - 2026-02-10 04:20 - Added execution engine wiring for plan task orchestration.

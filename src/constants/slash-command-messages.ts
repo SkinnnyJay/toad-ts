@@ -5,7 +5,7 @@ export const SLASH_COMMAND_MESSAGE = {
   NO_ACTIVE_SESSION: "No active session for slash command.",
   NO_ACTIVE_CLIENT: "No active agent connection for slash command.",
   HELP_SUMMARY:
-    "Commands: /help, /connect, /sessions, /new, /rename, /editor, /memory, /mode <read-only|auto|full-access>, /models <id>, /details, /thinking, /themes, /hooks, /progress, /agents, /vim, /context, /doctor, /debug, /stats, /cost, /copy, /share, /unshare, /undo, /redo, /rewind <count|list|delete>, /clear, /plan <title>, /compact",
+    "Commands: /help, /connect, /sessions, /new, /rename, /editor, /memory, /mode <read-only|auto|full-access>, /models <id>, /details, /thinking, /themes, /hooks, /progress, /agents, /vim, /context, /doctor, /debug, /stats, /cost, /copy, /share, /unshare, /export <filename>, /import <filename>, /undo, /redo, /rewind <count|list|delete>, /clear, /plan <title>, /compact",
   INVALID_MODE: "Invalid mode. Use read-only, auto, or full-access.",
   NO_SESSION_TO_UPDATE: "No session to update mode.",
   SESSION_CLEARED: "Session messages cleared.",
@@ -28,6 +28,11 @@ export const SLASH_COMMAND_MESSAGE = {
   VIM_NOT_AVAILABLE: "Vim mode is not available.",
   SHARE_FAILED: "Failed to share session.",
   UNSHARE_FAILED: "Failed to unshare session.",
+  EXPORT_FAILED: "Failed to export session.",
+  EXPORT_MISSING: "Provide a filename to export.",
+  IMPORT_FAILED: "Failed to import session.",
+  IMPORT_MISSING: "Provide a file to import.",
+  IMPORT_NOT_AVAILABLE: "Import is not available.",
   CHECKPOINT_NOT_AVAILABLE: "Checkpointing is not available.",
   CHECKPOINTS_EMPTY: "No checkpoints available.",
   CHECKPOINT_DELETE_FAILED: "Failed to delete checkpoint.",
@@ -115,6 +120,12 @@ export const formatCopySuccessMessage = (): string => "Copied last response to c
 
 export const formatMemoryOpenedMessage = (fileLabel: string): string =>
   `Opened memory file: ${fileLabel}.`;
+
+export const formatExportSuccessMessage = (filePath: string): string =>
+  `Session exported to: ${filePath}.`;
+
+export const formatImportSuccessMessage = (sessionId: string): string =>
+  `Imported session: ${sessionId}.`;
 
 export const formatCompactionCompleteMessage = (sessionId: string): string =>
   `Compaction session created: ${sessionId}.`;

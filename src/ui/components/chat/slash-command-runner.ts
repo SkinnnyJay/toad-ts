@@ -34,7 +34,6 @@ import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domai
 import { PlanIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
 import { EnvManager } from "@/utils/env/env.utils";
 import { nanoid } from "nanoid";
-
 import {
   runCopyCommand,
   runMemoryCommand,
@@ -46,8 +45,8 @@ import {
   handleRewindCommand,
   handleUndoCommand,
 } from "./slash-command-checkpoints";
+import { handleExportSlashCommand, handleImportSlashCommand } from "./slash-command-export-import";
 import { buildContextStats } from "./slash-command-helpers";
-
 export interface SlashCommandDeps {
   sessionId?: SessionId;
   appendSystemMessage: (text: string) => void;
@@ -55,6 +54,9 @@ export interface SlashCommandDeps {
   getSession: (sessionId: SessionId) => Session | undefined;
   getMessagesForSession: (sessionId: SessionId) => Message[];
   getPlanBySession: (sessionId: SessionId) => Plan | undefined;
+  getContextAttachments?: (sessionId: SessionId) => string[];
+  restoreSessionSnapshot?: (session: Session, messages: Message[], plan?: Plan) => void;
+  setContextAttachments?: (sessionId: SessionId, attachments: string[]) => void;
   listSessions: () => Session[];
   upsertSession: (params: { session: Session }) => void;
   clearMessagesForSession: (sessionId: SessionId) => void;
@@ -81,7 +83,6 @@ export interface SlashCommandDeps {
   connectionStatus?: string;
   now?: () => number;
 }
-
 export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean => {
   if (!value.startsWith("/")) return false;
   const parts = value.trim().split(/\s+/);
@@ -100,7 +101,8 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     command === SLASH_COMMAND.HOOKS ||
     command === SLASH_COMMAND.PROGRESS ||
     command === SLASH_COMMAND.AGENTS ||
-    command === SLASH_COMMAND.VIM;
+    command === SLASH_COMMAND.VIM ||
+    command === SLASH_COMMAND.IMPORT;
   if (!deps.sessionId && !allowsWithoutSession) {
     deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
     return true;
@@ -412,6 +414,14 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       void runUnshareCommand(deps.sessionId, {
         appendSystemMessage: deps.appendSystemMessage,
       });
+      return true;
+    }
+    case SLASH_COMMAND.EXPORT: {
+      handleExportSlashCommand(deps, parts[1]);
+      return true;
+    }
+    case SLASH_COMMAND.IMPORT: {
+      handleImportSlashCommand(deps, parts[1]);
       return true;
     }
     case SLASH_COMMAND.UNDO: {

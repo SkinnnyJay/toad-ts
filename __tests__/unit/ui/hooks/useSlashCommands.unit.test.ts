@@ -107,6 +107,8 @@ describe("useSlashCommands", () => {
       expect(SLASH_COMMAND.REDO).toBe("/redo");
       expect(SLASH_COMMAND.SHARE).toBe("/share");
       expect(SLASH_COMMAND.UNSHARE).toBe("/unshare");
+      expect(SLASH_COMMAND.EXPORT).toBe("/export");
+      expect(SLASH_COMMAND.IMPORT).toBe("/import");
     });
   });
 

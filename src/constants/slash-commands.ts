@@ -31,6 +31,7 @@ export const SLASH_COMMAND = {
   SHARE: "/share",
   UNSHARE: "/unshare",
   EXPORT: "/export",
+  IMPORT: "/import",
 } as const;
 
 export type SlashCommand = (typeof SLASH_COMMAND)[keyof typeof SLASH_COMMAND];
@@ -69,4 +70,5 @@ export const {
   SHARE,
   UNSHARE,
   EXPORT,
+  IMPORT,
 } = SLASH_COMMAND;

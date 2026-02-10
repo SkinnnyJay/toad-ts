@@ -1,4 +1,5 @@
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 
 import { ENCODING } from "@/constants/encodings";
 import { MEMORY_FILE, MEMORY_TARGET } from "@/constants/memory-files";
@@ -6,11 +7,19 @@ import { MESSAGE_ROLE } from "@/constants/message-roles";
 import {
   SLASH_COMMAND_MESSAGE,
   formatCopySuccessMessage,
+  formatExportSuccessMessage,
+  formatImportSuccessMessage,
   formatMemoryOpenedMessage,
   formatShareMessage,
   formatUnshareMessage,
 } from "@/constants/slash-command-messages";
-import type { Message, Session, SessionId } from "@/types/domain";
+import type { Message, Plan, Session, SessionId } from "@/types/domain";
+import {
+  exportSessionToFile,
+  generateDefaultExportName,
+  importSessionFromFile,
+  resolveExportPath,
+} from "@/utils/session-export";
 import {
   ensureSharedSessionDir,
   extractBlockText,
@@ -41,6 +50,20 @@ interface ShareCommandDeps {
 
 interface UnshareCommandDeps {
   appendSystemMessage: (text: string) => void;
+}
+
+interface ExportCommandDeps {
+  appendSystemMessage: (text: string) => void;
+  getSession: (sessionId: SessionId) => Session | undefined;
+  getMessagesForSession: (sessionId: SessionId) => Message[];
+  getPlanBySession: (sessionId: SessionId) => Plan | undefined;
+  getContextAttachments: (sessionId: SessionId) => string[];
+}
+
+interface ImportCommandDeps {
+  appendSystemMessage: (text: string) => void;
+  restoreSessionSnapshot: (session: Session, messages: Message[], plan?: Plan) => void;
+  setContextAttachments: (sessionId: SessionId, attachments: string[]) => void;
 }
 
 export const runMemoryCommand = async (
@@ -150,5 +173,63 @@ export const runUnshareCommand = async (
     deps.appendSystemMessage(formatUnshareMessage(sharedPath));
   } catch {
     deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.UNSHARE_FAILED);
+  }
+};
+
+export const runExportCommand = async (
+  sessionId: SessionId | undefined,
+  fileName: string | undefined,
+  deps: ExportCommandDeps
+): Promise<void> => {
+  if (!sessionId) {
+    deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
+    return;
+  }
+  const session = deps.getSession(sessionId);
+  if (!session) {
+    deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
+    return;
+  }
+  const messages = deps.getMessagesForSession(sessionId);
+  const plan = deps.getPlanBySession(sessionId);
+  const attachments = deps.getContextAttachments(sessionId);
+  const exportName =
+    fileName && fileName.trim().length > 0 ? fileName.trim() : generateDefaultExportName(sessionId);
+  const targetPath = resolveExportPath(exportName, process.cwd());
+  await mkdir(path.dirname(targetPath), { recursive: true });
+  try {
+    const resolved = await exportSessionToFile({
+      session,
+      messages,
+      plan,
+      contextAttachments: attachments,
+      filePath: targetPath,
+    });
+    deps.appendSystemMessage(formatExportSuccessMessage(resolved));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    deps.appendSystemMessage(`${SLASH_COMMAND_MESSAGE.EXPORT_FAILED} ${message}`);
+  }
+};
+
+export const runImportCommand = async (
+  fileName: string | undefined,
+  deps: ImportCommandDeps
+): Promise<void> => {
+  if (!fileName || fileName.trim().length === 0) {
+    deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.IMPORT_MISSING);
+    return;
+  }
+  const targetPath = resolveExportPath(fileName.trim(), process.cwd());
+  try {
+    const payload = await importSessionFromFile(targetPath);
+    deps.restoreSessionSnapshot(payload.session, payload.messages, payload.plan);
+    if (payload.contextAttachments) {
+      deps.setContextAttachments(payload.session.id, payload.contextAttachments);
+    }
+    deps.appendSystemMessage(formatImportSuccessMessage(payload.session.id));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    deps.appendSystemMessage(`${SLASH_COMMAND_MESSAGE.IMPORT_FAILED} ${message}`);
   }
 };

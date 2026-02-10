@@ -18,6 +18,7 @@ export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopu
   const sessions = useAppStore((state) => Object.values(state.sessions));
   const currentSessionId = useAppStore((state) => state.currentSessionId);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [query, setQuery] = useState("");
 
   // Sort sessions by updatedAt descending
   const sortedSessions = useMemo(() => {
@@ -26,8 +27,24 @@ export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopu
       .sort((a, b) => b.updatedAt - a.updatedAt);
   }, [sessions]);
 
+  const filteredSessions = useMemo(() => {
+    if (!query.trim()) {
+      return sortedSessions;
+    }
+    const normalized = query.trim().toLowerCase();
+    return sortedSessions.filter((session) => {
+      const title = session.title ?? "";
+      const agentId = session.agentId ?? "";
+      return (
+        session.id.toLowerCase().includes(normalized) ||
+        title.toLowerCase().includes(normalized) ||
+        agentId.toLowerCase().includes(normalized)
+      );
+    });
+  }, [query, sortedSessions]);
+
   const options = useMemo<SelectOption[]>(() => {
-    return sortedSessions.map((session) => {
+    return filteredSessions.map((session) => {
       const sessionTitle = session.title || session.id.slice(0, LIMIT.ID_TRUNCATE_LENGTH);
       const createdAt = new Date(session.createdAt).toLocaleString();
       const updatedAt = new Date(session.updatedAt).toLocaleString();
@@ -38,15 +55,21 @@ export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopu
         value: session.id,
       };
     });
-  }, [sortedSessions]);
+  }, [filteredSessions]);
 
   useEffect(() => {
     if (!currentSessionId) return;
-    const idx = sortedSessions.findIndex((session) => session.id === currentSessionId);
+    const idx = filteredSessions.findIndex((session) => session.id === currentSessionId);
     if (idx >= 0) {
       setSelectedIndex(idx);
     }
-  }, [currentSessionId, sortedSessions]);
+  }, [currentSessionId, filteredSessions]);
+
+  useEffect(() => {
+    if (selectedIndex >= filteredSessions.length) {
+      setSelectedIndex(0);
+    }
+  }, [filteredSessions.length, selectedIndex]);
 
   useKeyboard((key) => {
     if (!isOpen) return;
@@ -54,6 +77,16 @@ export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopu
       key.preventDefault();
       key.stopPropagation();
       onClose();
+      return;
+    }
+    if (key.name === "backspace") {
+      key.preventDefault();
+      key.stopPropagation();
+      setQuery((current) => current.slice(0, -1));
+      return;
+    }
+    if (!key.ctrl && !key.meta && key.sequence && key.sequence.length === 1) {
+      setQuery((current) => current + key.sequence);
     }
   });
 
@@ -77,10 +110,11 @@ export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopu
           Sessions (Ctrl+S to close)
         </text>
         <text attributes={TextAttributes.DIM}>
-          {sortedSessions.length} session{sortedSessions.length !== 1 ? "s" : ""}
+          {filteredSessions.length} session{filteredSessions.length !== 1 ? "s" : ""}
         </text>
       </box>
-      {sortedSessions.length === 0 ? (
+      <text attributes={TextAttributes.DIM}>Filter: {query.length > 0 ? query : "(none)"}</text>
+      {filteredSessions.length === 0 ? (
         <text attributes={TextAttributes.DIM}>No sessions available</text>
       ) : (
         <select
@@ -100,7 +134,7 @@ export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopu
       )}
       <box marginTop={1} paddingTop={1} borderStyle="single" border={["top"]}>
         <text attributes={TextAttributes.DIM}>
-          ↑/↓: Navigate | Enter: Select | Esc/Ctrl+S: Close
+          ↑/↓: Navigate | Enter: Select | Type to filter | Esc/Ctrl+S: Close
         </text>
       </box>
     </box>
