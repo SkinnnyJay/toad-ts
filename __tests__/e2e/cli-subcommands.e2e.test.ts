@@ -1,3 +1,4 @@
+import { Command } from "commander";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -31,7 +32,6 @@ describe("CLI Subcommands E2E", () => {
   });
 
   it("should parse -p flag as headless prompt", () => {
-    const { Command } = require("commander") as typeof import("commander");
     const program = new Command();
     program
       .option("-p, --prompt <prompt>", "Headless mode prompt")
@@ -50,7 +50,6 @@ describe("CLI Subcommands E2E", () => {
   });
 
   it("should parse --model and --allowedTools flags", () => {
-    const { Command } = require("commander") as typeof import("commander");
     const program = new Command();
     program
       .option("--model <model>", "Model to use")

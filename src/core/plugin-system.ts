@@ -1,4 +1,5 @@
-import { readdir, stat } from "node:fs/promises";
+import { readFile, readdir, stat } from "node:fs/promises";
+import { homedir } from "node:os";
 import { join } from "node:path";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 
@@ -49,7 +50,6 @@ export const discoverPlugins = async (pluginDirs: string[]): Promise<LoadedPlugi
           if (!dirStat.isDirectory()) continue;
 
           const manifestPath = join(pluginDir, "plugin.json");
-          const { readFile } = await import("node:fs/promises");
           const raw = await readFile(manifestPath, "utf8");
           const manifest = JSON.parse(raw) as PluginManifest;
 
@@ -80,11 +80,8 @@ export const discoverPlugins = async (pluginDirs: string[]): Promise<LoadedPlugi
 /**
  * Get default plugin search directories.
  */
-export const getPluginDirs = (cwd: string): string[] => {
-  const { homedir } = require("node:os") as typeof import("node:os");
-  return [
-    join(cwd, ".toadstool", "plugins"),
-    join(cwd, ".opencode", "plugins"),
-    join(homedir(), ".config", "toadstool", "plugins"),
-  ];
-};
+export const getPluginDirs = (cwd: string): string[] => [
+  join(cwd, ".toadstool", "plugins"),
+  join(cwd, ".opencode", "plugins"),
+  join(homedir(), ".config", "toadstool", "plugins"),
+];
