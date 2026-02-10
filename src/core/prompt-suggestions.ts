@@ -1,9 +1,6 @@
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import type { Message } from "@/types/domain";
-import { createClassLogger } from "@/utils/logging/logger.utils";
-
-const logger = createClassLogger("PromptSuggestions");
 
 const MAX_CONTEXT_CHARS = 1000;
 const MAX_SUGGESTIONS = 3;
@@ -21,8 +18,8 @@ export const generateSuggestions = (messages: Message[]): string[] => {
   if (!lastAssistant) return [];
 
   const lastText = lastAssistant.content
-    .filter((b) => b.type === CONTENT_BLOCK_TYPE.TEXT && b.text)
-    .map((b) => b.text ?? "")
+    .filter((b) => b.type === CONTENT_BLOCK_TYPE.TEXT)
+    .map((b) => ("text" in b ? b.text : ""))
     .join(" ")
     .slice(0, MAX_CONTEXT_CHARS);
 
@@ -72,8 +69,8 @@ export const buildSuggestionPrompt = (messages: Message[]): string => {
     .slice(-4)
     .map((m) => {
       const text = m.content
-        .filter((b) => b.type === CONTENT_BLOCK_TYPE.TEXT && b.text)
-        .map((b) => b.text ?? "")
+        .filter((b) => b.type === CONTENT_BLOCK_TYPE.TEXT)
+        .map((b) => ("text" in b ? b.text : ""))
         .join(" ");
       return `[${m.role}]: ${text.slice(0, 200)}`;
     })

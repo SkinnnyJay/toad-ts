@@ -1,8 +1,5 @@
 import type { PermissionsConfig } from "@/config/app-config";
 import { PERMISSION } from "@/constants/permissions";
-import { createClassLogger } from "@/utils/logging/logger.utils";
-
-const logger = createClassLogger("PermissionModes");
 
 export const PERMISSION_MODE = {
   AUTO_ACCEPT: "auto-accept",

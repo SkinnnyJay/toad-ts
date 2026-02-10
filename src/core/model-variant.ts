@@ -1,7 +1,3 @@
-import { createClassLogger } from "@/utils/logging/logger.utils";
-
-const logger = createClassLogger("ModelVariant");
-
 export interface ModelVariant {
   modelId: string;
   thinking: boolean;

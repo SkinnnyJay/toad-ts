@@ -1,10 +1,6 @@
-import { LIMIT } from "@/config/limits";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
-import type { Message, SessionId } from "@/types/domain";
-import { createClassLogger } from "@/utils/logging/logger.utils";
-
-const logger = createClassLogger("AutoTitle");
+import type { Message } from "@/types/domain";
 
 const MAX_TITLE_LENGTH = 60;
 const TITLE_CONTEXT_CHARS = 500;
@@ -21,12 +17,12 @@ export const generateSessionTitle = (messages: Message[]): string | null => {
   if (!firstUserMessage) return null;
 
   const textBlocks = firstUserMessage.content.filter(
-    (block) => block.type === CONTENT_BLOCK_TYPE.TEXT && block.text
+    (block) => block.type === CONTENT_BLOCK_TYPE.TEXT
   );
   if (textBlocks.length === 0) return null;
 
   const text = textBlocks
-    .map((block) => block.text ?? "")
+    .map((block) => ("text" in block ? block.text : ""))
     .join(" ")
     .trim();
   if (!text) return null;
@@ -48,11 +44,11 @@ export const buildTitlePrompt = (messages: Message[]): string => {
   for (const message of messages) {
     if (chars >= TITLE_CONTEXT_CHARS) break;
     for (const block of message.content) {
-      if (block.type === CONTENT_BLOCK_TYPE.TEXT && block.text) {
+      if (block.type === CONTENT_BLOCK_TYPE.TEXT && "text" in block) {
         const remaining = TITLE_CONTEXT_CHARS - chars;
-        const text = block.text.slice(0, remaining);
-        contextParts.push(`[${message.role}]: ${text}`);
-        chars += text.length;
+        const blockText = block.text.slice(0, remaining);
+        contextParts.push(`[${message.role}]: ${blockText}`);
+        chars += blockText.length;
       }
     }
   }

@@ -1,7 +1,4 @@
-import { createClassLogger } from "@/utils/logging/logger.utils";
 import { execa } from "execa";
-
-const logger = createClassLogger("PRStatus");
 
 export interface PullRequestStatus {
   number: number;
@@ -10,8 +7,6 @@ export interface PullRequestStatus {
   state: "open" | "closed" | "merged";
   reviewDecision: "approved" | "changes_requested" | "review_required" | "unknown";
 }
-
-const PR_STATUS_REFRESH_MS = 60_000;
 
 /**
  * Get the PR status for the current branch using the `gh` CLI.

@@ -64,8 +64,11 @@ export const forkSession = (store: StoreApi<AppStore>, options: ForkOptions): Fo
     updatedAt: now,
     mode: sourceSession.mode,
     metadata: {
-      ...(sourceSession.metadata ?? {}),
+      mcpServers: sourceSession.metadata?.mcpServers ?? [],
+      model: sourceSession.metadata?.model,
+      temperature: sourceSession.metadata?.temperature,
       parentSessionId: options.sourceSessionId,
+      availableModels: sourceSession.metadata?.availableModels,
     },
   };
 
