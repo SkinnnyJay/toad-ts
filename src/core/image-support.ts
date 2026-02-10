@@ -1,11 +1,11 @@
 import { readFile, stat } from "node:fs/promises";
 import { extname } from "node:path";
+import { LIMIT } from "@/config/limits";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 
 const logger = createClassLogger("ImageSupport");
 
 const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"]);
-const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024; // 20MB
 
 export interface ImageAttachment {
   fileName: string;
@@ -51,7 +51,7 @@ export const getImageMimeType = (filePath: string): string => {
 export const loadImageAsBase64 = async (filePath: string): Promise<ImageAttachment | null> => {
   try {
     const fileStat = await stat(filePath);
-    if (fileStat.size > MAX_IMAGE_SIZE_BYTES) {
+    if (fileStat.size > LIMIT.MAX_IMAGE_SIZE_BYTES) {
       logger.warn("Image too large", { file: filePath, size: fileStat.size });
       return null;
     }

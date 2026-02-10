@@ -1,13 +1,9 @@
+import { LIMIT } from "@/config/limits";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import type { Message } from "@/types/domain";
 
 const SVG_FONT_FAMILY = "monospace, 'Courier New', Courier";
-const SVG_FONT_SIZE = 14;
-const SVG_LINE_HEIGHT = 20;
-const SVG_PADDING = 24;
-const SVG_MAX_LINE_WIDTH = 80;
-const SVG_CHAR_WIDTH = 8.4;
 
 const ROLE_COLORS: Record<string, string> = {
   [MESSAGE_ROLE.USER]: "#58A6FF",
@@ -28,6 +24,9 @@ const CODE_BG = "#161B22";
 
 const escapeXml = (text: string): string =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+const { SVG_FONT_SIZE, SVG_LINE_HEIGHT, SVG_PADDING, SVG_MAX_LINE_WIDTH, SVG_CHAR_WIDTH_ESTIMATE } =
+  LIMIT;
 
 const wrapLines = (text: string, maxChars: number): string[] => {
   const result: string[] = [];
@@ -117,7 +116,7 @@ export const exportConversationToSvg = (messages: Message[], title?: string): st
     currentY += blockHeight + 8;
   }
 
-  const totalWidth = Math.ceil(SVG_MAX_LINE_WIDTH * SVG_CHAR_WIDTH + SVG_PADDING * 3);
+  const totalWidth = Math.ceil(SVG_MAX_LINE_WIDTH * SVG_CHAR_WIDTH_ESTIMATE + SVG_PADDING * 3);
   const totalHeight = currentY + SVG_PADDING;
 
   const svgParts: string[] = [];

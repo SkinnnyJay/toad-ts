@@ -14,9 +14,9 @@ export interface RetentionConfig {
 }
 
 export const DEFAULT_RETENTION: RetentionConfig = {
-  maxSessions: 500,
+  maxSessions: LIMIT.DEFAULT_MAX_SESSIONS,
   maxBytes: 0,
-  ttlDays: 90,
+  ttlDays: LIMIT.DEFAULT_RETENTION_TTL_DAYS,
 };
 
 export interface RetentionResult {

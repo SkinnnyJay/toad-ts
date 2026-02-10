@@ -1,9 +1,7 @@
+import { LIMIT } from "@/config/limits";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import type { Message } from "@/types/domain";
-
-const MAX_CONTEXT_CHARS = 1000;
-const MAX_SUGGESTIONS = 3;
 
 /**
  * Generate simple next-step suggestions based on conversation context.
@@ -21,7 +19,7 @@ export const generateSuggestions = (messages: Message[]): string[] => {
     .filter((b) => b.type === CONTENT_BLOCK_TYPE.TEXT)
     .map((b) => ("text" in b ? b.text : ""))
     .join(" ")
-    .slice(0, MAX_CONTEXT_CHARS);
+    .slice(0, LIMIT.MAX_SUGGESTION_CONTEXT_CHARS);
 
   const suggestions: string[] = [];
 
@@ -57,7 +55,7 @@ export const generateSuggestions = (messages: Message[]): string[] => {
     suggestions.push("Are there any issues to address?");
   }
 
-  return suggestions.slice(0, MAX_SUGGESTIONS);
+  return suggestions.slice(0, LIMIT.MAX_SUGGESTIONS);
 };
 
 /**
