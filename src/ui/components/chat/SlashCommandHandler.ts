@@ -302,6 +302,7 @@ export const useSlashCommandHandler = ({
         },
         toggleVimMode: onToggleVimMode,
         openEditor: onOpenEditor,
+        openSettings: onOpenSettings,
         openThemes: onOpenThemes,
         openContext: onOpenContext,
         openHooks: onOpenHooks,

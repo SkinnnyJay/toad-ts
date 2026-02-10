@@ -5,7 +5,7 @@ export const SLASH_COMMAND_MESSAGE = {
   NO_ACTIVE_SESSION: "No active session for slash command.",
   NO_ACTIVE_CLIENT: "No active agent connection for slash command.",
   HELP_SUMMARY:
-    "Commands: /help, /connect, /sessions, /new, /rename, /editor, /memory, /mode <read-only|auto|full-access>, /models <id>, /details, /thinking, /themes, /hooks, /progress, /agents, /vim, /context, /doctor, /debug, /stats, /cost, /copy, /share, /unshare, /export <filename>, /import <filename>, /undo, /redo, /rewind <count|list|delete>, /clear, /plan <title>, /compact",
+    "Commands: /help, /add-dir <path>, /agents, /clear, /compact, /config, /connect, /context, /copy, /cost, /debug, /details, /doctor, /editor, /export <filename>, /hooks, /import <filename>, /init, /login, /memory, /mode, /models <id>, /new <title>, /permissions, /plan <title>, /progress, /rename <title>, /review, /rewind, /security-review, /sessions, /settings, /share, /stats, /status, /themes, /thinking, /undo, /unshare, /redo, /vim",
   INVALID_MODE: "Invalid mode. Use read-only, auto, or full-access.",
   NO_SESSION_TO_UPDATE: "No session to update mode.",
   SESSION_CLEARED: "Session messages cleared.",
@@ -43,6 +43,19 @@ export const SLASH_COMMAND_MESSAGE = {
   NO_MESSAGES_TO_UNDO: "No messages available to undo.",
   NO_MESSAGES_TO_REDO: "No messages available to redo.",
   INVALID_REWIND_COUNT: "Provide a valid rewind count.",
+  ADD_DIR_MISSING: "Provide a directory path to add.",
+  ADD_DIR_NOT_FOUND: "Directory not found.",
+  PERMISSIONS_SUMMARY: "Tool permissions follow the current session mode.",
+  LOGIN_STARTING: "Starting provider authentication...",
+  LOGIN_NOT_AVAILABLE: "Login flow is not yet configured.",
+  CONFIG_NOT_AVAILABLE: "Configuration panel is not available.",
+  INIT_STARTING: "Generating TOADSTOOL.md for this project...",
+  INIT_COMPLETE: "TOADSTOOL.md generated successfully.",
+  INIT_FAILED: "Failed to generate TOADSTOOL.md.",
+  REVIEW_STARTING: "Starting AI code review of recent changes...",
+  REVIEW_NOT_AVAILABLE: "Code review requires an active agent connection.",
+  SECURITY_REVIEW_STARTING: "Starting AI security review of recent changes...",
+  STATUS_NO_CONNECTION: "Not connected to any agent.",
 } as const;
 
 export const formatModeUpdatedMessage = (mode: SessionMode): string => `Mode updated to ${mode}.`;
@@ -163,3 +176,18 @@ export const formatCheckpointListMessage = (
 
 export const formatUnknownCommandMessage = (command: string): string =>
   `Unknown command: ${command}`;
+
+export const formatAddDirMessage = (dirPath: string): string =>
+  `Added directory to context: ${dirPath}`;
+
+export const formatStatusMessage = (lines: string[]): string =>
+  `System status:\n${lines.join("\n")}`;
+
+export const formatPermissionsMessage = (lines: string[]): string =>
+  `Tool permissions:\n${lines.join("\n")}`;
+
+export const formatReviewMessage = (sessionId: string): string =>
+  `Code review session started: ${sessionId}`;
+
+export const formatSecurityReviewMessage = (sessionId: string): string =>
+  `Security review session started: ${sessionId}`;
