@@ -61,3 +61,6 @@
 - [X] Routing policy + progress modal
 - [X] Distribution & polish (install, update check, benchmarks, discovery UI)
 - [X] Session export/import + history filter
+
+## Test Failures
+- [ ] npm run test: vitest run hangs after suite completion

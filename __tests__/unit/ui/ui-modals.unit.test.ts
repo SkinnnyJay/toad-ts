@@ -99,6 +99,55 @@ describe("UI Modals", () => {
       expect(lastFrame()).toContain("Sessions");
     });
 
+    it("filters sessions based on typed input", () => {
+      const sessionId = setupSession({ sessionId: "session-alpha", mode: "auto" });
+      const store = useAppStore.getState();
+      const baseSession = store.getSession(sessionId);
+      if (!baseSession) {
+        throw new Error("Missing base session");
+      }
+      store.upsertSession({
+        session: {
+          ...baseSession,
+          title: "Alpha Session",
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      });
+      const betaSessionId = SessionIdSchema.parse("session-beta");
+      store.upsertSession({
+        session: {
+          id: betaSessionId,
+          agentId: baseSession.agentId,
+          messageIds: [],
+          createdAt: 2,
+          updatedAt: 2,
+          mode: baseSession.mode,
+          metadata: baseSession.metadata,
+          title: "Beta Session",
+        },
+      });
+
+      const { lastFrame, stdin } = renderInk(
+        React.createElement(
+          TruncationProvider,
+          {},
+          React.createElement(SessionsPopup, {
+            isOpen: true,
+            onClose: () => {},
+            onSelectSession: () => {},
+          })
+        )
+      );
+
+      stdin.write("Alpha");
+
+      const frame = lastFrame();
+      expect(frame).toContain("Filter: Alpha");
+      expect(frame).toContain("Alpha Session");
+      expect(frame).not.toContain("Beta Session");
+    });
+
     it("should show empty state when no sessions", () => {
       const { lastFrame } = renderInk(
         React.createElement(

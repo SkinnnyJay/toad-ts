@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { isAbsolute, normalize, resolve } from "node:path";
+import { TERMINAL_KILL_GRACE_MS } from "@/config/timeouts";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { SIGNAL } from "@/constants/signals";
@@ -75,6 +76,14 @@ export class TerminalHandler {
       let stdout = "";
       let stderr = "";
       let finished = false;
+      let killTimeout: NodeJS.Timeout | null = null;
+
+      const clearKillTimeout = (): void => {
+        if (killTimeout) {
+          clearTimeout(killTimeout);
+          killTimeout = null;
+        }
+      };
 
       const complete = (exitCode: number | null, signal: NodeJS.Signals | null): void => {
         if (finished) return;
@@ -94,16 +103,25 @@ export class TerminalHandler {
       child.on("error", (error) => {
         if (finished) return;
         finished = true;
+        clearKillTimeout();
         reject(error);
       });
 
-      child.on("close", (code, signal) => complete(code, signal));
+      child.on("close", (code, signal) => {
+        clearKillTimeout();
+        complete(code, signal);
+      });
 
       if (options.timeoutMs && options.timeoutMs > 0) {
         setTimeout(() => {
           if (!finished) {
             child.kill(SIGNAL.SIGTERM);
-            complete(child.exitCode, child.signalCode);
+            killTimeout = setTimeout(() => {
+              if (!finished) {
+                child.kill(SIGNAL.SIGKILL);
+              }
+            }, TERMINAL_KILL_GRACE_MS);
+            killTimeout.unref();
           }
         }, options.timeoutMs).unref();
       }

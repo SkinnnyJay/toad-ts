@@ -85,8 +85,9 @@ export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopu
       setQuery((current) => current.slice(0, -1));
       return;
     }
-    if (!key.ctrl && !key.meta && key.sequence && key.sequence.length === 1) {
-      setQuery((current) => current + key.sequence);
+    const typedKey = key.sequence ?? (key.name === "space" ? " " : key.name);
+    if (!key.ctrl && !key.meta && typedKey && typedKey.length === 1) {
+      setQuery((current) => current + typedKey);
     }
   });
 

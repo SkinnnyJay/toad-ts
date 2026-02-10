@@ -15,6 +15,8 @@ import { keyboardRuntime, terminalRuntime } from "./opentui-test-runtime";
  * Provides common helpers for rendering, waiting, and setup/teardown.
  */
 
+const activeRenderers = new Set<ReactTestRenderer>();
+
 /**
  * Options for rendering OpenTUI components in tests.
  */
@@ -127,6 +129,7 @@ export function renderInk(element: React.ReactElement, options: RenderOptions = 
   act(() => {
     renderer = create(element);
   });
+  activeRenderers.add(renderer);
 
   const lastFrame = () => extractText(renderer.toJSON());
 
@@ -147,7 +150,10 @@ export function renderInk(element: React.ReactElement, options: RenderOptions = 
   };
 
   const unmount = () => {
-    renderer.unmount();
+    act(() => {
+      renderer.unmount();
+    });
+    activeRenderers.delete(renderer);
   };
 
   return { lastFrame, stdin, rerender, unmount };
@@ -285,6 +291,12 @@ export function setupSession(options: SetupSessionOptions = {}): SessionId {
  * ```
  */
 export function cleanup(): void {
+  activeRenderers.forEach((renderer) => {
+    act(() => {
+      renderer.unmount();
+    });
+  });
+  activeRenderers.clear();
   const store = useAppStore.getState();
   store.reset();
 }

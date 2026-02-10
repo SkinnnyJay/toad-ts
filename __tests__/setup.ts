@@ -1,6 +1,15 @@
+import { EnvManager } from "@/utils/env/env.utils";
 import * as React from "react";
-import { vi } from "vitest";
+import { afterEach, beforeEach, vi } from "vitest";
+import { cleanup } from "./utils/ink-test-helpers";
 import { keyboardRuntime, terminalRuntime } from "./utils/opentui-test-runtime";
+
+const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
+const ORIGINAL_WORK_SUBDIR = process.env.TOADSTOOL_WORK_SUBDIR;
+
+const clearWorkSubdir = (): void => {
+  process.env.TOADSTOOL_WORK_SUBDIR = "";
+};
 
 vi.mock("@opentui/core", () => {
   const createSyntaxStyle = (): Record<string, never> => ({});
@@ -17,6 +26,12 @@ vi.mock("@opentui/core", () => {
       UNDERLINE: 8,
     },
   };
+});
+
+beforeEach(() => {
+  process.env.NODE_ENV = "test";
+  clearWorkSubdir();
+  EnvManager.resetInstance();
 });
 
 vi.mock("@opentui/react", () => {
@@ -42,4 +57,18 @@ vi.mock("@opentui/react", () => {
       render: () => undefined,
     }),
   };
+});
+
+afterEach(() => {
+  cleanup();
+  process.env.NODE_ENV = ORIGINAL_NODE_ENV;
+  if (ORIGINAL_WORK_SUBDIR === undefined) {
+    clearWorkSubdir();
+  } else {
+    process.env.TOADSTOOL_WORK_SUBDIR = ORIGINAL_WORK_SUBDIR;
+  }
+  EnvManager.resetInstance();
+  if (typeof process.stdin.pause === "function") {
+    process.stdin.pause();
+  }
 });
