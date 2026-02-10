@@ -44,6 +44,9 @@ export type { UseCheckpointUIOptions, UseCheckpointUIResult } from "./useCheckpo
 export { useExecutionEngine } from "./useExecutionEngine";
 export type { UseExecutionEngineOptions } from "./useExecutionEngine";
 
+export { useAppConfig } from "./useAppConfig";
+export type { UseAppConfigResult } from "./useAppConfig";
+
 // InputWithAutocomplete.tsx hooks
 export {
   useProjectFiles,

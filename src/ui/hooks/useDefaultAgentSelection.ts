@@ -15,6 +15,7 @@ export interface UseDefaultAgentSelectionOptions {
   hasHarnesses: boolean;
   agentInfoMap: Map<AgentId, AgentInfo>;
   defaultAgentId: AgentId | null;
+  configDefaultAgentId?: AgentId;
   onStageChange: (stage: RenderStage) => void;
   onProgressChange: (progress: number | ((current: number) => number)) => void;
   onStatusMessageChange: (message: string) => void;
@@ -36,6 +37,7 @@ export function useDefaultAgentSelection({
   hasHarnesses,
   agentInfoMap,
   defaultAgentId,
+  configDefaultAgentId,
   onStageChange,
   onProgressChange,
   onStatusMessageChange,
@@ -81,6 +83,19 @@ export function useDefaultAgentSelection({
         if (!active) return;
       }
 
+      if (configDefaultAgentId) {
+        const info = agentInfoMap.get(configDefaultAgentId);
+        if (info) {
+          clearScreen();
+          onStatusMessageChange(`Connecting to ${info.name}…`);
+          onProgressChange((current) => Math.max(current, UI.PROGRESS.CONNECTION_START));
+          onStageChange(RENDER_STAGE.CONNECTING);
+          setSelectedAgent(info);
+          onViewChange(VIEW.CHAT);
+          return;
+        }
+      }
+
       // Fallback to harness config default or show agent select
       if (defaultAgentId) {
         const info = agentInfoMap.get(defaultAgentId);
@@ -108,6 +123,7 @@ export function useDefaultAgentSelection({
     };
   }, [
     agentInfoMap,
+    configDefaultAgentId,
     defaultAgentId,
     hasHarnesses,
     isHydrated,

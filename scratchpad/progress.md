@@ -46,3 +46,5 @@
 - [X] /rewind list/delete with checkpoint restore
 - [X] Rewind modal (Esc+Esc) and status footer indicator
 - [X] Git-backed patch apply for checkpoint undo/redo
+- [X] Config loader + JSONC parsing + variable substitution
+- [X] Leader keybind defaults + runtime wiring

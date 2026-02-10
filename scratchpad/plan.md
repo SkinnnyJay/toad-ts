@@ -50,6 +50,11 @@
 
 ## Phase 9: Configuration & Keybind System
 - [ ] Phase 9 tasks (see PLAN.md)
+  - [X] Config schema + multi-source loader (global/project/env)
+  - [X] Variable substitution for env/file config values
+  - [X] Leader-key keybind runtime + defaults
+  - [ ] Keybind editor UI + extended action map
+  - [ ] Vim input mode + permission modes + hooks system
 
 ## Phase 10: Compaction & Context Management
 - [ ] Phase 10 tasks (see PLAN.md)

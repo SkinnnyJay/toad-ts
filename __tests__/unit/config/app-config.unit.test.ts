@@ -1,0 +1,72 @@
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { loadAppConfig } from "@/config/app-config";
+import { CONFIG_FILE } from "@/constants/config-files";
+import { ENV_KEY } from "@/constants/env-keys";
+import { describe, expect, it } from "vitest";
+
+const createTempDir = async (prefix: string): Promise<string> => {
+  return mkdtemp(join(tmpdir(), prefix));
+};
+
+describe("app-config", () => {
+  it("merges project config over global config", async () => {
+    const homeDir = await createTempDir("toadstool-config-home-");
+    const projectDir = await createTempDir("toadstool-config-project-");
+    const globalDir = join(homeDir, CONFIG_FILE.GLOBAL_CONFIG_DIR, CONFIG_FILE.GLOBAL_APP_DIR);
+    await mkdir(globalDir, { recursive: true });
+    await writeFile(
+      join(globalDir, CONFIG_FILE.GLOBAL_CONFIG_FILE),
+      JSON.stringify({
+        defaults: { agent: "global-agent" },
+        keybinds: { leader: "ctrl+g" },
+      }),
+      "utf8"
+    );
+    await writeFile(
+      join(projectDir, CONFIG_FILE.PROJECT_JSON),
+      JSON.stringify({ defaults: { agent: "project-agent" } }),
+      "utf8"
+    );
+
+    const env: NodeJS.ProcessEnv = {};
+    const config = await loadAppConfig({ cwd: projectDir, homeDir, env });
+
+    expect(config.defaults?.agent).toBe("project-agent");
+    expect(config.keybinds.leader).toBe("ctrl+g");
+  });
+
+  it("prefers env config content overrides", async () => {
+    const homeDir = await createTempDir("toadstool-config-home-");
+    const projectDir = await createTempDir("toadstool-config-project-");
+    const env: NodeJS.ProcessEnv = {
+      [ENV_KEY.TOADSTOOL_CONFIG_CONTENT]: JSON.stringify({
+        keybinds: { leader: "ctrl+e" },
+      }),
+    };
+
+    const config = await loadAppConfig({ cwd: projectDir, homeDir, env });
+
+    expect(config.keybinds.leader).toBe("ctrl+e");
+  });
+
+  it("resolves env and file variables", async () => {
+    const homeDir = await createTempDir("toadstool-config-home-");
+    const projectDir = await createTempDir("toadstool-config-project-");
+    const filePath = join(projectDir, "leader.txt");
+    await writeFile(filePath, "ctrl+y", "utf8");
+    const env: NodeJS.ProcessEnv = {
+      DEFAULT_AGENT: "config-agent",
+      [ENV_KEY.TOADSTOOL_CONFIG_CONTENT]: JSON.stringify({
+        defaults: { agent: "{env:DEFAULT_AGENT}" },
+        keybinds: { leader: "{file:leader.txt}" },
+      }),
+    };
+
+    const config = await loadAppConfig({ cwd: projectDir, homeDir, env });
+
+    expect(config.defaults?.agent).toBe("config-agent");
+    expect(config.keybinds.leader).toBe("ctrl+y");
+  });
+});

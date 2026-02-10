@@ -1,13 +1,18 @@
+import { DEFAULT_APP_CONFIG, type KeybindConfig } from "@/config/app-config";
 import { TIMEOUT } from "@/config/timeouts";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
+import { KEYBIND_ACTION } from "@/constants/keybind-actions";
 import { VIEW, type View } from "@/constants/views";
+import { useAppStore } from "@/store/app-store";
+import { createKeybindRuntime, isActionTriggered, isLeaderKey } from "@/ui/keybinds/keybinds";
 import type { KeyEvent } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export interface UseAppKeyboardShortcutsOptions {
   view: View;
   onNavigateChildSession?: (direction: "prev" | "next") => void;
+  keybinds?: KeybindConfig;
 }
 
 export interface UseAppKeyboardShortcutsResult {
@@ -54,6 +59,7 @@ export const isOptionBacktick = (key: Pick<KeyEvent, "option" | "name">): boolea
 export function useAppKeyboardShortcuts({
   view,
   onNavigateChildSession,
+  keybinds,
 }: UseAppKeyboardShortcutsOptions): UseAppKeyboardShortcutsResult {
   const [focusTarget, setFocusTarget] = useState<FocusTarget>(FOCUS_TARGET.CHAT);
   const [isSessionsPopupOpen, setIsSessionsPopupOpen] = useState(false);
@@ -65,6 +71,19 @@ export function useAppKeyboardShortcuts({
   const leaderActive = useRef(false);
   const leaderTimeout = useRef<NodeJS.Timeout | null>(null);
   const lastEscapeAt = useRef<number | null>(null);
+  const toggleToolDetails = useAppStore((state) => state.toggleToolDetails);
+  const toggleThinking = useAppStore((state) => state.toggleThinking);
+  const keybindRuntime = useMemo(() => {
+    const base = DEFAULT_APP_CONFIG.keybinds;
+    const config = {
+      leader: keybinds?.leader ?? base.leader,
+      bindings: {
+        ...base.bindings,
+        ...(keybinds?.bindings ?? {}),
+      },
+    };
+    return createKeybindRuntime(config);
+  }, [keybinds]);
 
   const resetLeader = useCallback(() => {
     leaderActive.current = false;
@@ -84,48 +103,8 @@ export function useAppKeyboardShortcuts({
     // Only handle shortcuts in chat view
     if (view !== VIEW.CHAT) return;
 
-    // Option+` (backtick) to focus back on chat
-    if (isOptionBacktick(key)) {
-      key.preventDefault();
-      key.stopPropagation();
-      setFocusTarget(FOCUS_TARGET.CHAT);
-      return;
-    }
-
-    // Command/Ctrl+number sets focus (1=Files, 2=Plan, 3=Context, 4=Sessions, 5=Sub-agents)
-    if ((key.meta || key.ctrl) && /^[1-5]$/.test(key.name)) {
-      key.preventDefault();
-      key.stopPropagation();
-      setFocusTarget(FOCUS_NUMBER_MAP[key.name] ?? FOCUS_TARGET.CHAT);
-      return;
-    }
-
-    // Cmd/Ctrl+F focuses Files panel
-    if ((key.meta || key.ctrl) && key.name === "f") {
-      key.preventDefault();
-      key.stopPropagation();
-      setFocusTarget(FOCUS_TARGET.FILES);
-      return;
-    }
-
-    // Cmd/Ctrl+? or Cmd/Ctrl+/ opens help
-    if ((key.meta || key.ctrl) && (key.name === "?" || key.name === "/")) {
-      key.preventDefault();
-      key.stopPropagation();
-      setIsHelpOpen(true);
-      return;
-    }
-
-    // Ctrl+B toggles background tasks modal
-    if (key.ctrl && key.name === "b") {
-      key.preventDefault();
-      key.stopPropagation();
-      setIsBackgroundTasksOpen((prev) => !prev);
-      return;
-    }
-
-    // Ctrl+X activates leader key for child session navigation
-    if (key.ctrl && key.name === "x") {
+    const isLeaderPressed = isLeaderKey(key, keybindRuntime);
+    if (isLeaderPressed) {
       key.preventDefault();
       key.stopPropagation();
       leaderActive.current = true;
@@ -139,11 +118,161 @@ export function useAppKeyboardShortcuts({
       return;
     }
 
-    if (leaderActive.current && (key.name === "left" || key.name === "right")) {
+    if (
+      isOptionBacktick(key) ||
+      isActionTriggered(key, keybindRuntime, KEYBIND_ACTION.FOCUS_CHAT, leaderActive.current)
+    ) {
       key.preventDefault();
       key.stopPropagation();
-      const direction = key.name === "left" ? "prev" : "next";
-      onNavigateChildSession?.(direction);
+      setFocusTarget(FOCUS_TARGET.CHAT);
+      return;
+    }
+
+    if ((key.meta || key.ctrl) && /^[1-5]$/.test(key.name)) {
+      key.preventDefault();
+      key.stopPropagation();
+      setFocusTarget(FOCUS_NUMBER_MAP[key.name] ?? FOCUS_TARGET.CHAT);
+      return;
+    }
+
+    if (isActionTriggered(key, keybindRuntime, KEYBIND_ACTION.FOCUS_FILES, leaderActive.current)) {
+      key.preventDefault();
+      key.stopPropagation();
+      setFocusTarget(FOCUS_TARGET.FILES);
+      return;
+    }
+
+    if (isActionTriggered(key, keybindRuntime, KEYBIND_ACTION.FOCUS_PLAN, leaderActive.current)) {
+      key.preventDefault();
+      key.stopPropagation();
+      setFocusTarget(FOCUS_TARGET.PLAN);
+      return;
+    }
+
+    if (
+      isActionTriggered(key, keybindRuntime, KEYBIND_ACTION.FOCUS_CONTEXT, leaderActive.current)
+    ) {
+      key.preventDefault();
+      key.stopPropagation();
+      setFocusTarget(FOCUS_TARGET.CONTEXT);
+      return;
+    }
+
+    if (
+      isActionTriggered(key, keybindRuntime, KEYBIND_ACTION.FOCUS_SESSIONS, leaderActive.current)
+    ) {
+      key.preventDefault();
+      key.stopPropagation();
+      setFocusTarget(FOCUS_TARGET.SESSIONS);
+      return;
+    }
+
+    if (isActionTriggered(key, keybindRuntime, KEYBIND_ACTION.FOCUS_AGENT, leaderActive.current)) {
+      key.preventDefault();
+      key.stopPropagation();
+      setFocusTarget(FOCUS_TARGET.AGENT);
+      return;
+    }
+
+    if (isActionTriggered(key, keybindRuntime, KEYBIND_ACTION.OPEN_HELP, leaderActive.current)) {
+      key.preventDefault();
+      key.stopPropagation();
+      setIsHelpOpen(true);
+      return;
+    }
+
+    if (
+      isActionTriggered(
+        key,
+        keybindRuntime,
+        KEYBIND_ACTION.TOGGLE_BACKGROUND_TASKS,
+        leaderActive.current
+      )
+    ) {
+      key.preventDefault();
+      key.stopPropagation();
+      setIsBackgroundTasksOpen((prev) => !prev);
+      return;
+    }
+
+    if (
+      isActionTriggered(key, keybindRuntime, KEYBIND_ACTION.TOGGLE_SESSIONS, leaderActive.current)
+    ) {
+      key.preventDefault();
+      key.stopPropagation();
+      setIsSessionsPopupOpen((prev) => !prev);
+      return;
+    }
+
+    if (isActionTriggered(key, keybindRuntime, KEYBIND_ACTION.OPEN_THEMES, leaderActive.current)) {
+      key.preventDefault();
+      key.stopPropagation();
+      setIsThemesOpen(true);
+      resetLeader();
+      return;
+    }
+
+    if (
+      isActionTriggered(key, keybindRuntime, KEYBIND_ACTION.OPEN_SETTINGS, leaderActive.current)
+    ) {
+      key.preventDefault();
+      key.stopPropagation();
+      setIsSettingsOpen(true);
+      resetLeader();
+      return;
+    }
+
+    if (
+      isActionTriggered(
+        key,
+        keybindRuntime,
+        KEYBIND_ACTION.TOGGLE_TOOL_DETAILS,
+        leaderActive.current
+      )
+    ) {
+      key.preventDefault();
+      key.stopPropagation();
+      toggleToolDetails();
+      resetLeader();
+      return;
+    }
+
+    if (
+      isActionTriggered(key, keybindRuntime, KEYBIND_ACTION.TOGGLE_THINKING, leaderActive.current)
+    ) {
+      key.preventDefault();
+      key.stopPropagation();
+      toggleThinking();
+      resetLeader();
+      return;
+    }
+
+    if (
+      isActionTriggered(
+        key,
+        keybindRuntime,
+        KEYBIND_ACTION.SESSION_CHILD_CYCLE,
+        leaderActive.current
+      )
+    ) {
+      key.preventDefault();
+      key.stopPropagation();
+      onNavigateChildSession?.("next");
+      resetLeader();
+      return;
+    }
+
+    if (
+      isActionTriggered(
+        key,
+        keybindRuntime,
+        KEYBIND_ACTION.SESSION_CHILD_CYCLE_REVERSE,
+        leaderActive.current
+      )
+    ) {
+      key.preventDefault();
+      key.stopPropagation();
+      onNavigateChildSession?.("prev");
       resetLeader();
       return;
     }
@@ -165,11 +294,8 @@ export function useAppKeyboardShortcuts({
       return;
     }
 
-    // Ctrl+S toggles sessions popup
-    if (key.ctrl && key.name === "s") {
-      key.preventDefault();
-      key.stopPropagation();
-      setIsSessionsPopupOpen((prev) => !prev);
+    if (leaderActive.current) {
+      resetLeader();
     }
   });
 

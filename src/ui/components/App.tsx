@@ -20,7 +20,7 @@ import { registerCheckpointManager } from "@/store/checkpoints/checkpoint-servic
 import { createPersistenceConfig } from "@/store/persistence/persistence-config";
 import { PersistenceManager } from "@/store/persistence/persistence-manager";
 import { createPersistenceProvider } from "@/store/persistence/persistence-provider";
-import type { Session, SessionId } from "@/types/domain";
+import { AgentIdSchema, type Session, type SessionId } from "@/types/domain";
 import { AgentSelect } from "@/ui/components/AgentSelect";
 import type { AgentOption } from "@/ui/components/AgentSelect";
 import { AsciiBanner } from "@/ui/components/AsciiBanner";
@@ -35,6 +35,7 @@ import { Sidebar } from "@/ui/components/Sidebar";
 import { StatusFooter } from "@/ui/components/StatusFooter";
 import { ThemesModal } from "@/ui/components/ThemesModal";
 import {
+  useAppConfig,
   useAppKeyboardShortcuts,
   useCheckpointUI,
   useDefaultAgentSelection,
@@ -98,12 +99,23 @@ export function App(): ReactNode {
     initialStatusMessage: "Preparing…",
   });
 
+  const { config: appConfig } = useAppConfig();
+  const configDefaultAgentId = useMemo(() => {
+    const candidate = appConfig.defaults?.agent;
+    if (!candidate) {
+      return undefined;
+    }
+    const parsed = AgentIdSchema.safeParse(candidate);
+    return parsed.success ? parsed.data : undefined;
+  }, [appConfig.defaults?.agent]);
+
   // Default agent selection hook
   const { selectedAgent, selectAgent } = useDefaultAgentSelection({
     isHydrated,
     hasHarnesses,
     agentInfoMap,
     defaultAgentId,
+    configDefaultAgentId,
     onStageChange: setStage,
     onProgressChange: setProgress,
     onStatusMessageChange: setStatusMessage,
@@ -312,7 +324,11 @@ export function App(): ReactNode {
     setIsThemesOpen,
     isRewindOpen,
     setIsRewindOpen,
-  } = useAppKeyboardShortcuts({ view, onNavigateChildSession: navigateChildSession });
+  } = useAppKeyboardShortcuts({
+    view,
+    onNavigateChildSession: navigateChildSession,
+    keybinds: appConfig.keybinds,
+  });
   const { checkpointStatus, handleRewindSelect } = useCheckpointUI({
     checkpointManager,
     activeSessionId,
