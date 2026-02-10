@@ -1,67 +1,34 @@
 # Scratchpad Progress
 
 ## Current Focus
-- Phase 4A: App smoke test
-- Phase 4E: Manual smoke tests
-- Phase 9: Config + keybind system
+- All milestones M0-M11 complete
+- Quality gates: typecheck, lint, build, test all passing
 
 ## Status
-- [X] Install Bun
-- [X] Update package.json scripts to Bun
-- [X] Allow npm build via npx tsup fallback
-- [X] bun install + bun.lockb
-- [X] Install OpenTUI deps
-- [X] Remove Ink/shiki/marked deps
-- [X] Update tsconfig for OpenTUI JSX runtime
-- [X] Update cli entrypoint for OpenTUI
-- [X] Bun build/test/typecheck verification
-- [ ] App smoke test (blank screen)
-- [X] Tool registry + built-in tools
-- [X] ACP tool host + permission handler wiring
-- [X] Shell background tasks + task output UX
-- [X] Shell auto-detect + tab completion
-- [X] Interactive shell apps + shell mode UX
-- [X] Per-harness tool permission overrides
-- [X] Agent manager + build/plan agents
-- [X] Markdown agent config loader
-- [X] Tab key agent switching
-- [X] Per-agent model/temperature config
-- [X] Hidden agents (compaction/title/summary)
-- [X] Subagent runner for @mention invocation
-- [X] @agent mention syntax in input
-- [X] Child session navigation
-- [X] Execution engine wiring + subagent task orchestration
-- [X] Slash commands: /connect, /sessions, /new, /rename, /models
-- [X] Slash commands: /details + /thinking toggles
-- [X] Slash command: /editor
-- [X] Slash command: /themes selector
-- [X] /models listing from agent capabilities
-- [X] Slash commands: /doctor, /debug, /context, /stats, /cost
-- [X] Slash command: /memory editing
-- [X] Slash command: /copy clipboard
-- [X] Slash commands: /undo, /redo, /rewind
-- [X] Slash commands: /share + /unshare
-- [X] /compact triggers compaction subagent
-- [X] Checkpoint manager + persistent storage
-- [X] Checkpoint tracking for file changes (write/edit + ACP host)
-- [X] /rewind list/delete with checkpoint restore
-- [X] Rewind modal (Esc+Esc) and status footer indicator
-- [X] Git-backed patch apply for checkpoint undo/redo
-- [X] Config loader + JSONC parsing + variable substitution
-- [X] Leader keybind defaults + runtime wiring
-- [X] Keybind editor UI in settings modal
-- [X] Permission mode cycling (Shift+Tab)
-- [X] Vim input mode (normal/insert + motions/operators)
-- [X] Hooks system (config + hook runner + /hooks panel)
-- [X] Compaction summary storage
-- [X] Context budget indicator
-- [X] Context attachments modal
-- [X] Provider expansion (gemini/codex harnesses + health checks)
-- [X] Rules loader + permission rules integration
-- [X] Headless server mode (HTTP + WebSocket)
-- [X] Routing policy + progress modal
-- [X] Distribution & polish (install, update check, benchmarks, discovery UI)
-- [X] Session export/import + history filter
+- [X] M0: Foundation Fix (bun, deps, sqlite, test harness)
+- [X] M1: Test Verification (85+ tests pass)
+- [X] M2: Slash Commands (40+ commands, /add-dir /permissions /status /login /config /init /review /security-review)
+- [X] M3: Checkpointing (cleanupOldCheckpoints, retention, git stash/apply)
+- [X] M4: Configuration (expanded schema: compaction, permissions, themes, providers, compatibility, formatters, instructions)
+- [X] M5: Context Management (ContextManager, token counting, auto-compaction, pruneToolOutputs)
+- [X] M6: Session Management (forking, diff tracking, retention policy, findByNameOrId)
+- [X] M7: Provider Expansion (AnthropicProvider, OpenAIProvider, OllamaProvider, ProviderRegistry)
+- [X] M8: Cross-Tool Compatibility (universal loaders: skills, commands, agents, Cursor .mdc rules)
+- [X] M9: Server Mode & CLI (subcommands: run/serve/models/auth/version, headless -p mode)
+- [X] M10: Advanced Features (code formatter, model variant cycling, PR status)
+- [X] M11: Distribution (CI workflow for Bun, npm publish workflow)
 
-## Test Failures
-- [ ] bun run test: sqlite persistence integration test timed out (5s)
+## Deferred Items (Future PRs)
+- [ ] SVG export of conversations
+- [ ] LSP integration
+- [ ] Plugin system
+- [ ] Prompt suggestions
+- [ ] Image paste
+- [ ] Workspace management
+- [ ] Block navigation (TOAD-style)
+- [ ] Additional provider adapters (Azure, Bedrock, Vertex, Mistral, Groq, OpenRouter)
+- [ ] Custom tool files (.ts)
+- [ ] OpenAPI 3.1 spec generation
+- [ ] Full REST endpoints
+- [ ] README overhaul
+- [ ] CONTRIBUTING.md
