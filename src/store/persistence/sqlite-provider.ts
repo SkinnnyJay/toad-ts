@@ -184,14 +184,17 @@ export const createSqlitePersistenceProvider = (
 
     async search(query: ChatQuery): Promise<Message[]> {
       const results = await client.search(query);
-      return MessageSchema.array().parse(results) as Message[];
+      return MessageSchema.array().parse(results);
     },
 
     async getSessionHistory(sessionId: string): Promise<Session & { messages: Message[] }> {
       const result = await client.history(sessionId);
-      const parsed = SessionSchema.parse(result) as Session;
-      const rawMessages = (result as { messages?: unknown }).messages ?? [];
-      const messages = MessageSchema.array().parse(rawMessages) as Message[];
+      const parsed = SessionSchema.parse(result);
+      const rawMessages =
+        typeof result === "object" && result !== null
+          ? (Reflect.get(result, "messages") ?? [])
+          : [];
+      const messages = MessageSchema.array().parse(rawMessages);
       return { ...parsed, messages };
     },
   };
