@@ -1,4 +1,3 @@
-import { createClassLogger } from "@/utils/logging/logger.utils";
 import type {
   ProviderAdapter,
   ProviderMessage,
@@ -6,8 +5,6 @@ import type {
   ProviderOptions,
   ProviderStreamChunk,
 } from "./provider-types";
-
-const logger = createClassLogger("AnthropicProvider");
 
 const ANTHROPIC_API_BASE = "https://api.anthropic.com";
 const ANTHROPIC_API_VERSION = "2023-06-01";

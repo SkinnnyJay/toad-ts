@@ -1,5 +1,3 @@
-import type { SessionId } from "@/types/domain";
-
 export interface ProviderMessage {
   role: "user" | "assistant" | "system";
   content: string;

@@ -1,4 +1,3 @@
-import { createClassLogger } from "@/utils/logging/logger.utils";
 import type {
   ProviderAdapter,
   ProviderMessage,
@@ -6,8 +5,6 @@ import type {
   ProviderOptions,
   ProviderStreamChunk,
 } from "./provider-types";
-
-const logger = createClassLogger("OpenAIProvider");
 
 const OPENAI_API_BASE = "https://api.openai.com";
 

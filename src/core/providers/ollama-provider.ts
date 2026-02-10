@@ -1,4 +1,3 @@
-import { createClassLogger } from "@/utils/logging/logger.utils";
 import type {
   ProviderAdapter,
   ProviderMessage,
@@ -6,8 +5,6 @@ import type {
   ProviderOptions,
   ProviderStreamChunk,
 } from "./provider-types";
-
-const logger = createClassLogger("OllamaProvider");
 
 const OLLAMA_DEFAULT_BASE = "http://localhost:11434";
 
