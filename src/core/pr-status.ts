@@ -1,3 +1,8 @@
+import {
+  PR_REVIEW_COLOR,
+  PR_REVIEW_STATUS,
+  type PrReviewStatus,
+} from "@/constants/pr-review-status";
 import { execa } from "execa";
 
 export interface PullRequestStatus {
@@ -5,7 +10,7 @@ export interface PullRequestStatus {
   title: string;
   url: string;
   state: "open" | "closed" | "merged";
-  reviewDecision: "approved" | "changes_requested" | "review_required" | "unknown";
+  reviewDecision: PrReviewStatus;
 }
 
 /**
@@ -36,7 +41,7 @@ export const getPRStatus = async (cwd?: string): Promise<PullRequestStatus | nul
       url: data.url,
       state: (data.state?.toLowerCase() as PullRequestStatus["state"]) ?? "open",
       reviewDecision:
-        (data.reviewDecision?.toLowerCase() as PullRequestStatus["reviewDecision"]) ?? "unknown",
+        (data.reviewDecision?.toLowerCase() as PrReviewStatus) ?? PR_REVIEW_STATUS.UNKNOWN,
     };
   } catch {
     // gh CLI not installed or not in a git repo with a PR
@@ -47,15 +52,5 @@ export const getPRStatus = async (cwd?: string): Promise<PullRequestStatus | nul
 /**
  * Get the color for a PR review status indicator.
  */
-export const prStatusColor = (status: PullRequestStatus): string => {
-  switch (status.reviewDecision) {
-    case "approved":
-      return "#00FF00"; // Green
-    case "changes_requested":
-      return "#FF4444"; // Red
-    case "review_required":
-      return "#FFAA00"; // Yellow/Orange
-    default:
-      return "#888888"; // Gray
-  }
-};
+export const prStatusColor = (status: PullRequestStatus): string =>
+  PR_REVIEW_COLOR[status.reviewDecision] ?? PR_REVIEW_COLOR[PR_REVIEW_STATUS.UNKNOWN];

@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadAppConfig } from "@/config/app-config";
+import { HTTP_STATUS } from "@/constants/http-status";
 import { useAppStore } from "@/store/app-store";
 import type { Session, SessionId } from "@/types/domain";
 type RouteHandler = (
@@ -29,30 +30,30 @@ const readBody = async (req: IncomingMessage): Promise<string> =>
 export const listSessions: RouteHandler = async (_req, res) => {
   const state = useAppStore.getState();
   const sessions = Object.values(state.sessions).filter((s): s is Session => s !== undefined);
-  sendJson(res, 200, { sessions });
+  sendJson(res, HTTP_STATUS.OK, { sessions });
 };
 
 export const getSession: RouteHandler = async (_req, res, params) => {
   const sessionId = params.id as SessionId | undefined;
   if (!sessionId) {
-    sendJson(res, 400, { error: "Session ID required" });
+    sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: "Session ID required" });
     return;
   }
   const session = useAppStore.getState().getSession(sessionId);
   if (!session) {
-    sendJson(res, 404, { error: "Session not found" });
+    sendJson(res, HTTP_STATUS.NOT_FOUND, { error: "Session not found" });
     return;
   }
-  sendJson(res, 200, { session });
+  sendJson(res, HTTP_STATUS.OK, { session });
 };
 
 export const deleteSession: RouteHandler = async (_req, res, params) => {
   const sessionId = params.id as SessionId | undefined;
   if (!sessionId) {
-    sendJson(res, 400, { error: "Session ID required" });
+    sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: "Session ID required" });
     return;
   }
-  sendJson(res, 200, { deleted: sessionId });
+  sendJson(res, HTTP_STATUS.OK, { deleted: sessionId });
 };
 
 // ── Message Endpoints ──────────────────────────────────────────────────────
@@ -60,11 +61,11 @@ export const deleteSession: RouteHandler = async (_req, res, params) => {
 export const listMessages: RouteHandler = async (_req, res, params) => {
   const sessionId = params.id as SessionId | undefined;
   if (!sessionId) {
-    sendJson(res, 400, { error: "Session ID required" });
+    sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: "Session ID required" });
     return;
   }
   const messages = useAppStore.getState().getMessagesForSession(sessionId);
-  sendJson(res, 200, { messages });
+  sendJson(res, HTTP_STATUS.OK, { messages });
 };
 
 // ── Config Endpoints ───────────────────────────────────────────────────────
@@ -72,9 +73,9 @@ export const listMessages: RouteHandler = async (_req, res, params) => {
 export const getConfig: RouteHandler = async (_req, res) => {
   try {
     const config = await loadAppConfig();
-    sendJson(res, 200, { config });
+    sendJson(res, HTTP_STATUS.OK, { config });
   } catch (error) {
-    sendJson(res, 500, {
+    sendJson(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, {
       error: error instanceof Error ? error.message : "Failed to load config",
     });
   }
@@ -84,7 +85,7 @@ export const getConfig: RouteHandler = async (_req, res) => {
 
 export const listAgents: RouteHandler = async (_req, res) => {
   // Return registered agents from store
-  sendJson(res, 200, { agents: [] });
+  sendJson(res, HTTP_STATUS.OK, { agents: [] });
 };
 
 // ── File Endpoints ─────────────────────────────────────────────────────────
@@ -93,17 +94,17 @@ export const searchFiles: RouteHandler = async (req, res) => {
   const url = new URL(req.url ?? "", `http://${req.headers.host}`);
   const query = url.searchParams.get("q") ?? "";
   if (!query) {
-    sendJson(res, 400, { error: "Query parameter 'q' required" });
+    sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: "Query parameter 'q' required" });
     return;
   }
   // Placeholder - would integrate with SearchService
-  sendJson(res, 200, { query, results: [] });
+  sendJson(res, HTTP_STATUS.OK, { query, results: [] });
 };
 
 // ── Events SSE Endpoint ────────────────────────────────────────────────────
 
 export const eventsStream: RouteHandler = async (_req, res) => {
-  res.writeHead(200, {
+  res.writeHead(HTTP_STATUS.OK, {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
     Connection: "keep-alive",
@@ -129,24 +130,24 @@ export const appendPrompt: RouteHandler = async (req, res) => {
   const body = await readBody(req);
   const { text } = JSON.parse(body) as { text?: string };
   if (!text) {
-    sendJson(res, 400, { error: "Text required" });
+    sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: "Text required" });
     return;
   }
-  sendJson(res, 200, { queued: true, text });
+  sendJson(res, HTTP_STATUS.OK, { queued: true, text });
 };
 
 export const submitPrompt: RouteHandler = async (_req, res) => {
-  sendJson(res, 200, { submitted: true });
+  sendJson(res, HTTP_STATUS.OK, { submitted: true });
 };
 
 export const executeCommand: RouteHandler = async (req, res) => {
   const body = await readBody(req);
   const { command } = JSON.parse(body) as { command?: string };
   if (!command) {
-    sendJson(res, 400, { error: "Command required" });
+    sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: "Command required" });
     return;
   }
-  sendJson(res, 200, { executed: true, command });
+  sendJson(res, HTTP_STATUS.OK, { executed: true, command });
 };
 
 // ── Route Table ────────────────────────────────────────────────────────────
