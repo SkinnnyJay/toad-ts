@@ -227,8 +227,13 @@ export const startHeadlessServer = async (
       for (const runtime of runtimes.values()) {
         await runtime.disconnect();
       }
+      wsServer.clients.forEach((client: WebSocket) => {
+        if (client.readyState === WebSocket.OPEN || client.readyState === WebSocket.CLOSING) {
+          client.terminate();
+        }
+      });
+      await new Promise<void>((resolve) => wsServer.close(() => resolve()));
       await new Promise<void>((resolve) => server.close(() => resolve()));
-      wsServer.close();
     },
     address,
   };

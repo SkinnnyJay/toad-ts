@@ -11,6 +11,18 @@ const clearWorkSubdir = (): void => {
   process.env.TOADSTOOL_WORK_SUBDIR = "";
 };
 
+const unrefStdio = (): void => {
+  if (typeof process.stdin.unref === "function") {
+    process.stdin.unref();
+  }
+  if (typeof process.stdout.unref === "function") {
+    process.stdout.unref();
+  }
+  if (typeof process.stderr.unref === "function") {
+    process.stderr.unref();
+  }
+};
+
 vi.mock("@opentui/core", () => {
   const createSyntaxStyle = (): Record<string, never> => ({});
 
@@ -71,4 +83,5 @@ afterEach(() => {
   if (typeof process.stdin.pause === "function") {
     process.stdin.pause();
   }
+  unrefStdio();
 });

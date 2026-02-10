@@ -58,7 +58,10 @@ describe("headless server", () => {
         .parse(await promptResponse.json());
       expect(promptPayload.stopReason).toBeDefined();
     } finally {
-      socket.close();
+      await new Promise<void>((resolve) => {
+        socket.once("close", () => resolve());
+        socket.close();
+      });
       await server.close();
     }
   });
