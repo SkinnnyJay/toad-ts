@@ -9,6 +9,7 @@ import {
   PlanIdSchema,
   PlanSchema,
   SessionSchema,
+  SubAgentSchema,
 } from "@/types/domain";
 import type {
   AppState,
@@ -18,6 +19,7 @@ import type {
   Plan,
   Session,
   SessionId,
+  SubAgent,
   UpdateMessageParams,
   UpsertSessionParams,
 } from "@/types/domain";
@@ -32,6 +34,9 @@ export interface AppStore extends AppState {
   updateMessage: (params: UpdateMessageParams) => void;
   removeMessages: (sessionId: SessionId, messageIds: MessageId[]) => void;
   restoreSessionSnapshot: (session: Session, messages: Message[], plan?: Plan) => void;
+  upsertSubAgent: (agent: SubAgent) => void;
+  updateSubAgent: (params: { agentId: SubAgent["id"]; patch: Partial<SubAgent> }) => void;
+  getSubAgentsByPlan: (planId: Plan["id"]) => SubAgent[];
   getSession: (sessionId: SessionId) => Session | undefined;
   getMessage: (messageId: MessageId) => Message | undefined;
   getMessagesForSession: (sessionId: SessionId) => Message[];
@@ -60,6 +65,7 @@ const initialState: AppState = {
   sessions: {},
   messages: {},
   plans: {},
+  subAgents: {},
   contextAttachments: {},
   uiState: {
     sidebarTab: SIDEBAR_TAB.FILES,
@@ -165,6 +171,22 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
         plans: retainedPlans,
       } as Partial<AppState>;
     }),
+  upsertSubAgent: (agent) =>
+    set((state) => {
+      const parsed = SubAgentSchema.parse(agent);
+      return { subAgents: { ...state.subAgents, [parsed.id]: parsed } };
+    }),
+  updateSubAgent: ({ agentId, patch }) =>
+    set((state) => {
+      const existing = state.subAgents[agentId];
+      if (!existing) return {};
+      const updated = SubAgentSchema.parse({ ...existing, ...patch });
+      return { subAgents: { ...state.subAgents, [agentId]: updated } };
+    }),
+  getSubAgentsByPlan: (planId) => {
+    const agents = Object.values(get().subAgents) as SubAgent[];
+    return agents.filter((agent) => agent.planId === planId);
+  },
   clearMessagesForSession: (sessionId) =>
     set((state) => {
       const entries = Object.entries(state.messages) as Array<[string, Message]>;
@@ -256,6 +278,7 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
       sessions: {},
       messages: {},
       plans: {},
+      subAgents: {},
       contextAttachments: {},
     })),
 }));

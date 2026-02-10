@@ -3,7 +3,7 @@
 ## Current Focus
 - Phase 4A: App smoke test
 - Phase 4E: Manual smoke tests
-- Phase 7-11: Slash commands, themes, checkpointing, sharing, compaction
+- Phase 9: Config + keybind system
 
 ## Status
 - [X] Install Bun
@@ -29,6 +29,7 @@
 - [X] Subagent runner for @mention invocation
 - [X] @agent mention syntax in input
 - [X] Child session navigation
+- [X] Execution engine wiring + subagent task orchestration
 - [X] Slash commands: /connect, /sessions, /new, /rename, /models
 - [X] Slash commands: /details + /thinking toggles
 - [X] Slash command: /editor

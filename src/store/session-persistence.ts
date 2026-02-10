@@ -27,6 +27,7 @@ const defaultSnapshot: SessionSnapshot = SessionSnapshotSchema.parse({
   sessions: {},
   messages: {},
   plans: {},
+  subAgents: {},
   contextAttachments: {},
   uiState: {
     sidebarTab: SIDEBAR_TAB.FILES,

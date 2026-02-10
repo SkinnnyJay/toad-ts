@@ -17,7 +17,7 @@
   - [X] Per-harness tool permission overrides
 
 ## Phase 6: Agent Execution Engine
-- [ ] Phase 6 tasks (see PLAN.md)
+- [X] Phase 6 tasks (see PLAN.md)
   - [X] Agent manager + built-in build/plan agents
   - [X] Markdown agent config loader (.opencode/agents)
   - [X] Tab key agent switching in TUI
@@ -26,6 +26,7 @@
   - [X] Subagent runner for @mention invocation
   - [X] @agent mention syntax in input
   - [X] Child session navigation (leader + arrows)
+  - [X] Execution engine wiring + subagent task orchestration
 
 ## Phase 7: Slash Commands & UX Polish
 - [ ] Phase 7 tasks (see PLAN.md)

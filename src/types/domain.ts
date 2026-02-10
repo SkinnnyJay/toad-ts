@@ -298,6 +298,40 @@ export const PlanSchema = z.object({
 });
 export type Plan = z.infer<typeof PlanSchema>;
 
+export const SubAgentSchema = z.object({
+  id: SubAgentIdSchema,
+  planId: PlanIdSchema,
+  agentId: AgentIdSchema,
+  sessionId: SessionIdSchema,
+  currentTaskId: TaskIdSchema.optional(),
+  status: z.enum([
+    AGENT_STATUS.IDLE,
+    AGENT_STATUS.WORKING,
+    AGENT_STATUS.WAITING,
+    AGENT_STATUS.COMPLETED,
+    AGENT_STATUS.ERROR,
+  ]),
+  connectionStatus: ConnectionStatusSchema,
+  createdAt: z.number().nonnegative(),
+  lastActivityAt: z.number().nonnegative(),
+});
+export type SubAgent = z.infer<typeof SubAgentSchema>;
+
+export const AgentMessageSchema = z.object({
+  from: SubAgentIdSchema,
+  to: SubAgentIdSchema.optional(), // undefined = broadcast
+  type: z.enum([
+    AGENT_MESSAGE_TYPE.TASK_COMPLETE,
+    AGENT_MESSAGE_TYPE.TASK_FAILED,
+    AGENT_MESSAGE_TYPE.NEED_HELP,
+    AGENT_MESSAGE_TYPE.SHARE_RESULT,
+    AGENT_MESSAGE_TYPE.COORDINATE,
+  ]),
+  payload: z.record(z.unknown()),
+  timestamp: z.number().nonnegative(),
+});
+export type AgentMessage = z.infer<typeof AgentMessageSchema>;
+
 export const FileChangeSchema = z.object({
   path: z.string().min(1),
   before: z.string().nullable(),
@@ -336,6 +370,7 @@ export const AppStateSchema = z.object({
   sessions: z.record(SessionIdSchema, SessionSchema).default({}),
   messages: z.record(MessageIdSchema, MessageSchema).default({}),
   plans: z.record(PlanIdSchema, PlanSchema).default({}),
+  subAgents: z.record(SubAgentIdSchema, SubAgentSchema).default({}),
   contextAttachments: z.record(SessionIdSchema, z.array(z.string()).default([])).default({}),
   uiState: z
     .object({
@@ -348,37 +383,3 @@ export const AppStateSchema = z.object({
     .default({}),
 });
 export type AppState = z.infer<typeof AppStateSchema>;
-
-export const SubAgentSchema = z.object({
-  id: SubAgentIdSchema,
-  planId: PlanIdSchema,
-  agentId: AgentIdSchema,
-  sessionId: SessionIdSchema,
-  currentTaskId: TaskIdSchema.optional(),
-  status: z.enum([
-    AGENT_STATUS.IDLE,
-    AGENT_STATUS.WORKING,
-    AGENT_STATUS.WAITING,
-    AGENT_STATUS.COMPLETED,
-    AGENT_STATUS.ERROR,
-  ]),
-  connectionStatus: ConnectionStatusSchema,
-  createdAt: z.number().nonnegative(),
-  lastActivityAt: z.number().nonnegative(),
-});
-export type SubAgent = z.infer<typeof SubAgentSchema>;
-
-export const AgentMessageSchema = z.object({
-  from: SubAgentIdSchema,
-  to: SubAgentIdSchema.optional(), // undefined = broadcast
-  type: z.enum([
-    AGENT_MESSAGE_TYPE.TASK_COMPLETE,
-    AGENT_MESSAGE_TYPE.TASK_FAILED,
-    AGENT_MESSAGE_TYPE.NEED_HELP,
-    AGENT_MESSAGE_TYPE.SHARE_RESULT,
-    AGENT_MESSAGE_TYPE.COORDINATE,
-  ]),
-  payload: z.record(z.unknown()),
-  timestamp: z.number().nonnegative(),
-});
-export type AgentMessage = z.infer<typeof AgentMessageSchema>;

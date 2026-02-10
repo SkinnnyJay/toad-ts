@@ -38,6 +38,7 @@ import {
   useAppKeyboardShortcuts,
   useCheckpointUI,
   useDefaultAgentSelection,
+  useExecutionEngine,
   useHarnessConnection,
   useSessionHydration,
   useTerminalDimensions,
@@ -125,6 +126,8 @@ export function App(): ReactNode {
       }),
     [harnessConfigs, harnessRegistry, sessionStream]
   );
+
+  useExecutionEngine({ subAgentRunner, agentInfoMap });
 
   // Harness connection hook
   const { client, sessionId: connectionSessionId } = useHarnessConnection({
