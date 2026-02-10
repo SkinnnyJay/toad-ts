@@ -1,6 +1,5 @@
 import { SERVER_CONFIG } from "@/config/server";
 import { ENV_KEY } from "@/constants/env-keys";
-import { HOST_FLAG, PORT_FLAG } from "@/constants/server-cli";
 import { EnvManager } from "@/utils/env/env.utils";
 
 export interface ServerRuntimeConfig {
@@ -8,31 +7,28 @@ export interface ServerRuntimeConfig {
   port: number;
 }
 
-const parsePort = (value: string | undefined): number => {
-  if (!value) {
+export interface ServerConfigOverrides {
+  host?: string;
+  port?: number;
+}
+
+const parsePort = (value: string | number | undefined): number => {
+  if (value === undefined) {
     return SERVER_CONFIG.DEFAULT_PORT;
   }
-  const parsed = Number.parseInt(value, 10);
-  return Number.isFinite(parsed) ? parsed : SERVER_CONFIG.DEFAULT_PORT;
-};
-
-const readArgValue = (args: string[], flag: string): string | undefined => {
-  const index = args.indexOf(flag);
-  if (index === -1) {
-    return undefined;
-  }
-  return args[index + 1];
+  const n = typeof value === "number" ? value : Number.parseInt(String(value), 10);
+  return Number.isFinite(n) ? n : SERVER_CONFIG.DEFAULT_PORT;
 };
 
 export const resolveServerConfig = (
-  args: string[],
+  overrides: ServerConfigOverrides = {},
   env: NodeJS.ProcessEnv = EnvManager.getInstance().getSnapshot()
 ): ServerRuntimeConfig => {
-  const host = readArgValue(args, HOST_FLAG) ?? env[ENV_KEY.TOADSTOOL_SERVER_HOST];
+  const host = overrides.host ?? env[ENV_KEY.TOADSTOOL_SERVER_HOST] ?? SERVER_CONFIG.DEFAULT_HOST;
   const portValue =
-    readArgValue(args, PORT_FLAG) ?? env[ENV_KEY.TOADSTOOL_SERVER_PORT] ?? undefined;
+    overrides.port !== undefined ? overrides.port : env[ENV_KEY.TOADSTOOL_SERVER_PORT];
   return {
-    host: host ?? SERVER_CONFIG.DEFAULT_HOST,
+    host,
     port: parsePort(portValue),
   };
 };
