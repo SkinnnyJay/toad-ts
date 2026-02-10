@@ -45,7 +45,7 @@
   - [X] /undo, /redo, /rewind wired to checkpoints
   - [X] /rewind list/delete support
   - [X] Rewind menu + status footer indicator
-  - [ ] Git-based undo/redo integration
+  - [X] Git-based undo/redo integration (patch apply fallback)
 
 ## Phase 9: Configuration & Keybind System
 - [ ] Phase 9 tasks (see PLAN.md)

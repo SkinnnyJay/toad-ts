@@ -44,3 +44,4 @@
 - [X] Checkpoint tracking for file changes (write/edit + ACP host)
 - [X] /rewind list/delete with checkpoint restore
 - [X] Rewind modal (Esc+Esc) and status footer indicator
+- [X] Git-backed patch apply for checkpoint undo/redo

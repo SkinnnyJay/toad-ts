@@ -305,6 +305,12 @@ export const FileChangeSchema = z.object({
 });
 export type FileChange = z.infer<typeof FileChangeSchema>;
 
+export const FilePatchSchema = z.object({
+  path: z.string().min(1),
+  patch: z.string().min(1),
+});
+export type FilePatch = z.infer<typeof FilePatchSchema>;
+
 export const CheckpointSnapshotSchema = z.object({
   session: SessionSchema,
   messages: z.array(MessageSchema),
@@ -320,6 +326,7 @@ export const CheckpointSchema = z.object({
   before: CheckpointSnapshotSchema,
   after: CheckpointSnapshotSchema,
   fileChanges: z.array(FileChangeSchema).default([]),
+  patches: z.array(FilePatchSchema).default([]),
 });
 export type Checkpoint = z.infer<typeof CheckpointSchema>;
 

@@ -21,3 +21,4 @@
 - 2026-02-10 01:30 - Added /themes selector and /connect agent selection flow.
 - 2026-02-10 02:20 - Added checkpoint manager, file change tracking, and /rewind list/delete.
 - 2026-02-10 02:55 - Added rewind modal (Esc+Esc) and checkpoint status footer.
+- 2026-02-10 03:30 - Added git patch apply fallback for checkpoint undo/redo.

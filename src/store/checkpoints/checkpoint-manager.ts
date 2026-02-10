@@ -15,6 +15,7 @@ import {
   type CheckpointSnapshot,
   CheckpointSnapshotSchema,
   type FileChange,
+  type FilePatch,
   type Message,
   MessageSchema,
   type Plan,
@@ -23,6 +24,8 @@ import {
   SessionSchema,
 } from "@/types/domain";
 import { createClassLogger } from "@/utils/logging/logger.utils";
+import { createTwoFilesPatch } from "diff";
+import { execa } from "execa";
 import { nanoid } from "nanoid";
 import type { StoreApi } from "zustand";
 
@@ -83,6 +86,7 @@ export class CheckpointManager {
   private readonly drafts = new Map<SessionId, CheckpointDraft>();
   private readonly logger = createClassLogger("CheckpointManager");
   private readonly listeners = new Set<(sessionId: SessionId) => void>();
+  private gitRoot: string | null | undefined;
 
   constructor(private readonly store: StoreApi<AppStore>) {}
 
@@ -113,6 +117,7 @@ export class CheckpointManager {
       return null;
     }
     const after = this.buildSnapshot(sessionId);
+    const patches = await this.buildPatches(Array.from(draft.fileChanges.values()));
     const checkpoint = CheckpointSchema.parse({
       id: draft.id,
       sessionId: draft.sessionId,
@@ -121,6 +126,7 @@ export class CheckpointManager {
       before: draft.before,
       after,
       fileChanges: Array.from(draft.fileChanges.values()),
+      patches,
     });
     this.drafts.delete(sessionId);
     await this.persistCheckpoint(checkpoint);
@@ -376,18 +382,21 @@ export class CheckpointManager {
     const snapshot = snapshotTarget === "after" ? checkpoint.after : checkpoint.before;
 
     if (restoreCode) {
-      const changes = checkpoint.fileChanges;
-      await Promise.all(
-        changes.map(async (change) => {
-          const content = snapshotTarget === "after" ? change.after : change.before;
-          if (content === null) {
-            await rm(change.path, { force: true });
-          } else {
-            await mkdir(path.dirname(change.path), { recursive: true });
-            await writeFile(change.path, content, ENCODING.UTF8);
-          }
-        })
-      );
+      const applied = await this.applyGitPatches(checkpoint.patches, snapshotTarget === "before");
+      if (!applied) {
+        const changes = checkpoint.fileChanges;
+        await Promise.all(
+          changes.map(async (change) => {
+            const content = snapshotTarget === "after" ? change.after : change.before;
+            if (content === null) {
+              await rm(change.path, { force: true });
+            } else {
+              await mkdir(path.dirname(change.path), { recursive: true });
+              await writeFile(change.path, content, ENCODING.UTF8);
+            }
+          })
+        );
+      }
     }
 
     if (restoreConversation || mode === REWIND_MODE.SUMMARIZE) {
@@ -395,6 +404,89 @@ export class CheckpointManager {
         .getState()
         .restoreSessionSnapshot(snapshot.session, snapshot.messages, snapshot.plan);
       this.store.getState().setCurrentSession(snapshot.session.id);
+    }
+  }
+
+  private async getGitRoot(): Promise<string | null> {
+    if (this.gitRoot !== undefined) {
+      return this.gitRoot;
+    }
+    try {
+      const { stdout } = await execa("git", ["rev-parse", "--show-toplevel"]);
+      const root = stdout.trim();
+      this.gitRoot = root.length > 0 ? root : null;
+      return this.gitRoot;
+    } catch {
+      this.gitRoot = null;
+      return null;
+    }
+  }
+
+  private async isGitClean(root: string): Promise<boolean> {
+    try {
+      const { stdout } = await execa("git", ["status", "--porcelain"], { cwd: root });
+      return stdout.trim().length === 0;
+    } catch {
+      return false;
+    }
+  }
+
+  private async buildPatches(changes: FileChange[]): Promise<FilePatch[]> {
+    const gitRoot = await this.getGitRoot();
+    if (!gitRoot || changes.length === 0) {
+      return [];
+    }
+    const patches: FilePatch[] = [];
+    for (const change of changes) {
+      const relative = path.relative(gitRoot, change.path);
+      if (!relative || relative.startsWith("..")) {
+        continue;
+      }
+      const normalizedPath = relative.split(path.sep).join("/");
+      const oldName = change.before === null ? "/dev/null" : `a/${normalizedPath}`;
+      const newName = change.after === null ? "/dev/null" : `b/${normalizedPath}`;
+      const patch = createTwoFilesPatch(
+        oldName,
+        newName,
+        change.before ?? "",
+        change.after ?? "",
+        "",
+        "",
+        { context: LIMIT.DIFF_CONTEXT_LINES }
+      );
+      if (patch.trim().length > 0) {
+        patches.push({ path: normalizedPath, patch });
+      }
+    }
+    return patches;
+  }
+
+  private async applyGitPatches(patches: FilePatch[], reverse: boolean): Promise<boolean> {
+    if (patches.length === 0) {
+      return false;
+    }
+    const gitRoot = await this.getGitRoot();
+    if (!gitRoot) {
+      return false;
+    }
+    const clean = await this.isGitClean(gitRoot);
+    if (!clean) {
+      this.logger.warn("Skipping git apply due to uncommitted changes");
+      return false;
+    }
+    const patchContent = patches.map((entry) => entry.patch).join("\n");
+    try {
+      const args = ["apply"];
+      if (reverse) {
+        args.push("--reverse");
+      }
+      await execa("git", args, { cwd: gitRoot, input: patchContent });
+      return true;
+    } catch (error) {
+      this.logger.warn("Failed to apply git patches", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return false;
     }
   }
 }
