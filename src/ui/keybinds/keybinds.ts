@@ -144,6 +144,29 @@ export const matchesKeyChord = (key: KeyEvent, chord: KeybindChord): boolean => 
   );
 };
 
+export const formatKeyEvent = (key: KeyEvent): string | null => {
+  const name = normalizeKeyName(key.name);
+  if (!name) {
+    return null;
+  }
+  const parts: string[] = [];
+  if (key.ctrl) {
+    parts.push(KEYBIND.MODIFIER.CTRL);
+  }
+  if (key.meta) {
+    parts.push(KEYBIND.MODIFIER.META);
+  }
+  const altPressed = Boolean(key.option) || ("alt" in key ? Boolean(key.alt) : false);
+  if (altPressed) {
+    parts.push(KEYBIND.MODIFIER.ALT);
+  }
+  if (key.shift) {
+    parts.push(KEYBIND.MODIFIER.SHIFT);
+  }
+  parts.push(name);
+  return parts.join(CHORD_SEPARATOR);
+};
+
 const parseBindings = (raw: string): KeybindDefinition[] => {
   const trimmed = raw.trim();
   if (!trimmed || trimmed.toLowerCase() === NONE) {

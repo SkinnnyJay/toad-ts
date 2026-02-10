@@ -23,4 +23,5 @@
 - 2026-02-10 02:55 - Added rewind modal (Esc+Esc) and checkpoint status footer.
 - 2026-02-10 03:30 - Added git patch apply fallback for checkpoint undo/redo.
 - 2026-02-10 05:05 - Added config loader (JSONC + env/file substitution) and keybind runtime.
+- 2026-02-10 05:45 - Added keybind editor tab and persistence to global config.
 - 2026-02-10 04:20 - Added execution engine wiring for plan task orchestration.

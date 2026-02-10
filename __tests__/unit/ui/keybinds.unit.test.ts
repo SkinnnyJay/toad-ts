@@ -1,6 +1,7 @@
 import { KEYBIND_ACTION } from "@/constants/keybind-actions";
 import {
   createKeybindRuntime,
+  formatKeyEvent,
   isActionTriggered,
   isLeaderKey,
   parseKeyChord,
@@ -37,5 +38,16 @@ describe("keybinds", () => {
     expect(isActionTriggered(rightKey, runtime, KEYBIND_ACTION.SESSION_CHILD_CYCLE, false)).toBe(
       false
     );
+  });
+
+  it("formats key events into config strings", () => {
+    const formatted = formatKeyEvent({
+      name: "k",
+      ctrl: true,
+      meta: false,
+      shift: false,
+      option: false,
+    });
+    expect(formatted).toBe("ctrl+k");
   });
 });

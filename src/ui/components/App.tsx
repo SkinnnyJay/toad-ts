@@ -1,4 +1,5 @@
 import { SubAgentRunner } from "@/agents/subagent-runner";
+import type { KeybindConfig } from "@/config/app-config";
 import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
@@ -99,7 +100,7 @@ export function App(): ReactNode {
     initialStatusMessage: "Preparing…",
   });
 
-  const { config: appConfig } = useAppConfig();
+  const { config: appConfig, updateConfig } = useAppConfig();
   const configDefaultAgentId = useMemo(() => {
     const candidate = appConfig.defaults?.agent;
     if (!candidate) {
@@ -329,6 +330,13 @@ export function App(): ReactNode {
     onNavigateChildSession: navigateChildSession,
     keybinds: appConfig.keybinds,
   });
+  const handleUpdateKeybinds = useCallback(
+    (keybinds: KeybindConfig) => {
+      void updateConfig({ keybinds });
+    },
+    [updateConfig]
+  );
+
   const { checkpointStatus, handleRewindSelect } = useCheckpointUI({
     checkpointManager,
     activeSessionId,
@@ -435,6 +443,8 @@ export function App(): ReactNode {
                       setIsSettingsOpen(false);
                     }}
                     agents={agentOptions}
+                    keybinds={appConfig.keybinds}
+                    onUpdateKeybinds={handleUpdateKeybinds}
                   />
                 ) : isThemesOpen ? (
                   <ThemesModal

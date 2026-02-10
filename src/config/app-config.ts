@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
 import { CONFIG_FILE, PROJECT_CONFIG_FILES } from "@/constants/config-files";
@@ -104,6 +104,15 @@ const readConfigFile = async (
   }
 };
 
+const resolveGlobalConfigPath = (homeDir: string): string => {
+  return path.join(
+    homeDir,
+    CONFIG_FILE.GLOBAL_CONFIG_DIR,
+    CONFIG_FILE.GLOBAL_APP_DIR,
+    CONFIG_FILE.GLOBAL_CONFIG_FILE
+  );
+};
+
 const parseJsonWithComments = (raw: string): unknown => {
   const withoutComments = raw.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
   const withoutTrailing = withoutComments.replace(/,\s*([}\]])/g, "$1");
@@ -172,7 +181,7 @@ const parseConfig = (raw: unknown, filePath: string): AppConfigInput => {
   }
 };
 
-const mergeConfigs = (base: AppConfig, override: AppConfigInput): AppConfig => {
+export const mergeAppConfig = (base: AppConfig, override: AppConfigInput): AppConfig => {
   return {
     defaults: {
       ...(base.defaults ?? {}),
@@ -204,12 +213,7 @@ const loadGlobalConfig = async (
   homeDir: string,
   env: NodeJS.ProcessEnv
 ): Promise<AppConfigInput | null> => {
-  const filePath = path.join(
-    homeDir,
-    CONFIG_FILE.GLOBAL_CONFIG_DIR,
-    CONFIG_FILE.GLOBAL_APP_DIR,
-    CONFIG_FILE.GLOBAL_CONFIG_FILE
-  );
+  const filePath = resolveGlobalConfigPath(homeDir);
   const raw = await readConfigFile(filePath, env);
   return raw ? parseConfig(raw, filePath) : null;
 };
@@ -254,7 +258,7 @@ export const loadAppConfig = async (options: LoadAppConfigOptions = {}): Promise
   }
 
   const merged = configs.reduce<AppConfig>(
-    (current, config) => mergeConfigs(current, config),
+    (current, config) => mergeAppConfig(current, config),
     DEFAULT_APP_CONFIG
   );
   logger.debug("Loaded config", {
@@ -263,4 +267,30 @@ export const loadAppConfig = async (options: LoadAppConfigOptions = {}): Promise
     leader: merged.keybinds.leader,
   });
   return merged;
+};
+
+const serializeConfig = (config: AppConfig): AppConfigInput => {
+  return {
+    defaults: config.defaults,
+    keybinds: {
+      leader: config.keybinds.leader,
+      bindings: config.keybinds.bindings,
+    },
+  };
+};
+
+export interface SaveAppConfigOptions {
+  homeDir?: string;
+}
+
+export const saveAppConfig = async (
+  config: AppConfig,
+  options: SaveAppConfigOptions = {}
+): Promise<void> => {
+  const homeDir = options.homeDir ?? homedir();
+  const filePath = resolveGlobalConfigPath(homeDir);
+  await mkdir(path.dirname(filePath), { recursive: true });
+  const payload = serializeConfig(config);
+  const contents = JSON.stringify(payload, null, 2);
+  await writeFile(filePath, contents, ENCODING.UTF8);
 };
