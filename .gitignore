@@ -44,6 +44,7 @@ Thumbs.db
 *.tmp
 *.temp
 .cache/
+.test-temp-*
 ./public/
 ./scratchpad/*
 ./data/*
