@@ -85,9 +85,14 @@ export const handleConfigCommand = (deps: SlashCommandDeps): void => {
 
 export const handleInitCommand = (deps: SlashCommandDeps): void => {
   deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.INIT_STARTING);
-  deps.appendSystemMessage(
-    "Create a TOADSTOOL.md file in your project root with project-specific instructions for agents."
-  );
+  void import("@/core/cross-tool/init-generator")
+    .then(({ generateToadstoolMd }) => generateToadstoolMd(process.cwd()))
+    .then((filePath) => {
+      deps.appendSystemMessage(`${SLASH_COMMAND_MESSAGE.INIT_COMPLETE} Created: ${filePath}`);
+    })
+    .catch(() => {
+      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.INIT_FAILED);
+    });
 };
 
 export const handleReviewCommand = (deps: SlashCommandDeps): void => {

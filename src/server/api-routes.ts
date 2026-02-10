@@ -2,10 +2,6 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadAppConfig } from "@/config/app-config";
 import { useAppStore } from "@/store/app-store";
 import type { Session, SessionId } from "@/types/domain";
-import { createClassLogger } from "@/utils/logging/logger.utils";
-
-const logger = createClassLogger("APIRoutes");
-
 type RouteHandler = (
   req: IncomingMessage,
   res: ServerResponse,

@@ -1,5 +1,5 @@
 import { readFile, readdir, stat, writeFile } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { join } from "node:path";
 import { ENCODING } from "@/constants/encodings";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 

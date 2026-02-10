@@ -11,6 +11,7 @@ import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { HarnessRegistry } from "@/harness/harnessRegistry";
+import { matchRoute } from "@/server/api-routes";
 import type { ServerRuntimeConfig } from "@/server/server-config";
 import { createSessionRequestSchema, promptSessionRequestSchema } from "@/server/server-types";
 import { useAppStore } from "@/store/app-store";
@@ -175,6 +176,13 @@ export const startHeadlessServer = async (
         }
         const messages = store.getState().getMessagesForSession(parsedSession.data);
         sendJson(res, 200, { messages });
+        return;
+      }
+
+      // Try API routes from api-routes.ts
+      const matched = matchRoute(req.method ?? "GET", url.pathname);
+      if (matched) {
+        await matched.handler(req, res, matched.params);
         return;
       }
 
