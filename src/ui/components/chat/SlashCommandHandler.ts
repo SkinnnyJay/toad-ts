@@ -1,7 +1,10 @@
 import type { AgentInfo } from "@/agents/agent-manager";
 import { findHiddenAgentBySuffix } from "@/agents/agent-utils";
 import type { SubAgentRunner } from "@/agents/subagent-runner";
+import { TIMEOUT } from "@/config/timeouts";
 import { COMPACTION, SUMMARY } from "@/constants/agent-ids";
+import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { loadMcpConfig } from "@/core/mcp-config-loader";
@@ -9,7 +12,7 @@ import { SessionManager } from "@/core/session-manager";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { useAppStore } from "@/store/app-store";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
-import type { Session, SessionId } from "@/types/domain";
+import type { Message, Session, SessionId } from "@/types/domain";
 import { copyToClipboard } from "@/utils/clipboard/clipboard.utils";
 import { openExternalEditorForFile } from "@/utils/editor/externalEditor";
 import { EnvManager } from "@/utils/env/env.utils";
@@ -29,6 +32,7 @@ export interface SlashCommandHandlerOptions {
   onOpenEditor?: (initialValue: string) => Promise<void>;
   onOpenAgentSelect?: () => void;
   onOpenThemes?: () => void;
+  onOpenContext?: () => void;
   onOpenHooks?: () => void;
   onToggleVimMode?: () => boolean;
   checkpointManager?: CheckpointManager;
@@ -48,6 +52,7 @@ export const useSlashCommandHandler = ({
   onOpenEditor,
   onOpenAgentSelect,
   onOpenThemes,
+  onOpenContext,
   onOpenHooks,
   onToggleVimMode,
   checkpointManager,
@@ -82,6 +87,83 @@ export const useSlashCommandHandler = ({
     [renderer]
   );
 
+  const extractSummary = useCallback((messages: Message[]): string => {
+    const assistantMessages = messages.filter(
+      (message) => message.role === MESSAGE_ROLE.ASSISTANT && !message.isStreaming
+    );
+    const latest = assistantMessages[assistantMessages.length - 1];
+    if (!latest) {
+      return "";
+    }
+    return latest.content
+      .filter((block) => block.type === CONTENT_BLOCK_TYPE.TEXT)
+      .map((block) => block.text ?? "")
+      .join("\n")
+      .trim();
+  }, []);
+
+  const waitForCompactionSummary = useCallback(
+    async (compactionSessionId: SessionId): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const attemptResolve = (): boolean => {
+          const messages = useAppStore.getState().getMessagesForSession(compactionSessionId);
+          const summary = extractSummary(messages);
+          if (!summary) {
+            return false;
+          }
+          resolve(summary);
+          return true;
+        };
+
+        if (attemptResolve()) {
+          return;
+        }
+
+        const timeout = setTimeout(() => {
+          unsubscribe();
+          reject(new Error("Compaction summary timed out."));
+        }, TIMEOUT.COMPACTION_SUMMARY_MS);
+
+        const unsubscribe = useAppStore.subscribe(() => {
+          if (attemptResolve()) {
+            clearTimeout(timeout);
+            unsubscribe();
+          }
+        });
+      });
+    },
+    [extractSummary]
+  );
+
+  const recordCompactionSummary = useCallback(
+    async (parentSessionId: SessionId, compactionSessionId: SessionId) => {
+      try {
+        const summary = await waitForCompactionSummary(compactionSessionId);
+        const session = getSession(parentSessionId);
+        if (!session) {
+          return;
+        }
+        upsertSession({
+          session: {
+            ...session,
+            metadata: {
+              mcpServers: session.metadata?.mcpServers ?? [],
+              model: session.metadata?.model,
+              temperature: session.metadata?.temperature,
+              parentSessionId: session.metadata?.parentSessionId,
+              availableModels: session.metadata?.availableModels,
+              compactionSessionId,
+              compactionSummary: summary,
+            },
+          },
+        });
+      } catch (_error) {
+        // Ignore compaction summary failures
+      }
+    },
+    [getSession, upsertSession, waitForCompactionSummary]
+  );
+
   const runCompaction = useCallback(
     async (targetSessionId: SessionId) => {
       if (!subAgentRunner) {
@@ -91,13 +173,15 @@ export const useSlashCommandHandler = ({
       if (!compactionAgent) {
         return null;
       }
-      return subAgentRunner.run({
+      const compactionSessionId = await subAgentRunner.run({
         parentSessionId: targetSessionId,
         agent: compactionAgent,
         prompt: "Summarize the session for compaction.",
       });
+      void recordCompactionSummary(targetSessionId, compactionSessionId);
+      return compactionSessionId;
     },
-    [agent?.harnessId, agents, subAgentRunner]
+    [agent?.harnessId, agents, recordCompactionSummary, subAgentRunner]
   );
 
   const runSummary = useCallback(
@@ -209,6 +293,7 @@ export const useSlashCommandHandler = ({
         toggleVimMode: onToggleVimMode,
         openEditor: onOpenEditor,
         openThemes: onOpenThemes,
+        openContext: onOpenContext,
         openHooks: onOpenHooks,
         openMemoryFile,
         copyToClipboard,
@@ -238,6 +323,7 @@ export const useSlashCommandHandler = ({
       onOpenEditor,
       onOpenAgentSelect,
       onOpenThemes,
+      onOpenContext,
       onOpenHooks,
       onToggleVimMode,
       checkpointManager,

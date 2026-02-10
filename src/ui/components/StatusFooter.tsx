@@ -2,6 +2,7 @@ import { LIMIT } from "@/config/limits";
 import { COLOR } from "@/constants/colors";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
 import type { ConnectionStatus, SessionId, SessionMode } from "@/types/domain";
+import { ContextProgress } from "@/ui/components/ContextProgress";
 import { TextAttributes } from "@opentui/core";
 import type { ReactNode } from "react";
 
@@ -9,6 +10,7 @@ export interface StatusFooterProps {
   taskProgress?: { completed: number; total: number };
   planProgress?: { completed: number; total: number };
   checkpointStatus?: { cursor: number; total: number };
+  contextStats?: { tokens: number; limit: number };
   focusTarget?: FocusTarget;
   connectionStatus?: ConnectionStatus;
   sessionMode?: SessionMode;
@@ -37,6 +39,7 @@ export function StatusFooter({
   taskProgress,
   planProgress,
   checkpointStatus,
+  contextStats,
   focusTarget = FOCUS_TARGET.CHAT,
   connectionStatus,
   sessionMode,
@@ -109,6 +112,9 @@ export function StatusFooter({
         {planText ? <text fg={COLOR.GRAY}>{planText}</text> : null}
         {taskText ? <text fg={COLOR.GRAY}>{taskText}</text> : null}
         {checkpointText ? <text fg={COLOR.GRAY}>{checkpointText}</text> : null}
+        {contextStats ? (
+          <ContextProgress tokens={contextStats.tokens} limit={contextStats.limit} />
+        ) : null}
       </box>
     </box>
   );

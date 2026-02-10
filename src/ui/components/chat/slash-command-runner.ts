@@ -65,6 +65,7 @@ export interface SlashCommandDeps {
   toggleThinking?: () => boolean;
   openEditor?: (initialValue: string) => Promise<void>;
   openThemes?: () => void;
+  openContext?: () => void;
   openHooks?: () => void;
   openMemoryFile?: (filePath: string) => Promise<boolean>;
   copyToClipboard?: (text: string) => Promise<boolean>;
@@ -185,6 +186,10 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     case SLASH_COMMAND.CONTEXT: {
       if (!deps.sessionId) {
         deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
+        return true;
+      }
+      if (deps.openContext) {
+        deps.openContext();
         return true;
       }
       const messages = deps.getMessagesForSession(deps.sessionId);

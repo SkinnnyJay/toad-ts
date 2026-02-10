@@ -11,7 +11,7 @@ export interface CommandDefinition {
 export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   { name: SLASH_COMMAND.CONNECT, description: "Open provider connection settings" },
   { name: SLASH_COMMAND.COMPACT, description: "Run compaction for the current session" },
-  { name: SLASH_COMMAND.CONTEXT, description: "Show context usage" },
+  { name: SLASH_COMMAND.CONTEXT, description: "Manage context attachments" },
   { name: SLASH_COMMAND.COST, description: "Show usage cost" },
   { name: SLASH_COMMAND.DOCTOR, description: "Run diagnostics" },
   { name: SLASH_COMMAND.DEBUG, description: "Show debug info" },

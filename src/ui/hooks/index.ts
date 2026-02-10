@@ -53,6 +53,9 @@ export type { UseAppConfigResult } from "./useAppConfig";
 export { useHookManager } from "./useHookManager";
 export type { UseHookManagerOptions } from "./useHookManager";
 
+export { useContextStats } from "./useContextStats";
+export type { ContextStats } from "./useContextStats";
+
 // InputWithAutocomplete.tsx hooks
 export {
   useProjectFiles,

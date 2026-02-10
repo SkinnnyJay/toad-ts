@@ -49,6 +49,7 @@ export interface ChatProps {
   onOpenSessions?: () => void;
   onOpenAgentSelect?: () => void;
   onOpenThemes?: () => void;
+  onOpenContext?: () => void;
   onOpenHooks?: () => void;
   onToggleVimMode?: () => boolean;
   vimEnabled?: boolean;
@@ -69,6 +70,7 @@ export const Chat = memo(
     onOpenSessions,
     onOpenAgentSelect,
     onOpenThemes,
+    onOpenContext,
     onOpenHooks,
     onToggleVimMode,
     vimEnabled,
@@ -187,6 +189,7 @@ export const Chat = memo(
       onOpenEditor: handleOpenEditor,
       onOpenAgentSelect,
       onOpenThemes,
+      onOpenContext,
       onOpenHooks,
       onToggleVimMode,
       client,

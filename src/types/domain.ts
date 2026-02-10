@@ -186,6 +186,8 @@ export const SessionMetadataSchema = z
     model: z.string().min(1).optional(),
     temperature: z.number().nonnegative().optional(),
     parentSessionId: SessionIdSchema.optional(),
+    compactionSessionId: SessionIdSchema.optional(),
+    compactionSummary: z.string().min(1).optional(),
     availableModels: z.array(ModelInfoSchema).optional(),
   })
   .strict();

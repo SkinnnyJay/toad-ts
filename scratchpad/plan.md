@@ -59,8 +59,11 @@
   - [X] Hooks system (config + hooks manager + UI panel)
 
 ## Phase 10: Compaction & Context Management
-- [ ] Phase 10 tasks (see PLAN.md)
+- [X] Phase 10 tasks (see PLAN.md)
   - [X] /compact triggers compaction subagent
+  - [X] Compaction summary stored on parent session
+  - [X] Context budget indicator in status footer
+  - [X] Context attachments modal (/context)
 
 ## Phase 11: Session Management, Sharing & Export
 - [ ] Phase 11 tasks (see PLAN.md)

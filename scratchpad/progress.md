@@ -52,3 +52,6 @@
 - [X] Permission mode cycling (Shift+Tab)
 - [X] Vim input mode (normal/insert + motions/operators)
 - [X] Hooks system (config + hook runner + /hooks panel)
+- [X] Compaction summary storage
+- [X] Context budget indicator
+- [X] Context attachments modal

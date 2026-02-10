@@ -2,7 +2,6 @@ import type {
   ContentBlock as ACPContentBlock,
   SessionNotification,
   ToolCall,
-  ToolCallStatus,
   ToolCallUpdate,
 } from "@agentclientprotocol/sdk";
 import { nanoid } from "nanoid";
@@ -15,10 +14,10 @@ import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-m
 import { SESSION_MODE } from "@/constants/session-modes";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { STREAM_METADATA_KEY } from "@/constants/stream-metadata";
-import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import type { AgentPort } from "@/core/agent-port";
 import { MessageHandler } from "@/core/message-handler";
 import { emitStopHook } from "@/core/session-stream-hooks";
+import { mapEmbeddedResource, mapResourceSize, mapToolCall } from "@/core/session-stream-mappers";
 import type { AppStore } from "@/store/app-store";
 import {
   type ContentBlock,
@@ -30,7 +29,6 @@ import {
   type SessionId,
   SessionIdSchema,
   type ToolCallId,
-  ToolCallIdSchema,
 } from "@/types/domain";
 import { EnvManager } from "@/utils/env/env.utils";
 const STREAM_FINAL_KEYS = [STREAM_METADATA_KEY.IS_FINAL, STREAM_METADATA_KEY.FINAL] as const;
@@ -436,12 +434,12 @@ export class SessionStream {
           title: block.title ?? undefined,
           description: block.description ?? undefined,
           mimeType: block.mimeType ?? undefined,
-          size: this.mapResourceSize(block.size),
+          size: mapResourceSize(block.size),
         };
       case "resource":
         return {
           type: CONTENT_BLOCK_TYPE.RESOURCE,
-          resource: this.mapEmbeddedResource(block.resource),
+          resource: mapEmbeddedResource(block.resource),
         };
       case "image":
         return {
@@ -468,71 +466,7 @@ export class SessionStream {
     }
   }
 
-  private mapEmbeddedResource(
-    resource: { uri: string } & (
-      | { text: string; mimeType?: string | null }
-      | { blob: string; mimeType?: string | null }
-    )
-  ):
-    | { uri: string; text: string; mimeType?: string }
-    | { uri: string; blob: string; mimeType?: string } {
-    if ("text" in resource) {
-      return {
-        uri: resource.uri,
-        text: resource.text,
-        mimeType: resource.mimeType ?? undefined,
-      };
-    }
-
-    return {
-      uri: resource.uri,
-      blob: resource.blob,
-      mimeType: resource.mimeType ?? undefined,
-    };
-  }
-
   private mapToolCall(call: ToolCall | ToolCallUpdate): ContentBlock {
-    const name = "title" in call && call.title ? call.title : undefined;
-    return {
-      type: CONTENT_BLOCK_TYPE.TOOL_CALL,
-      toolCallId: ToolCallIdSchema.parse(call.toolCallId),
-      name,
-      arguments: this.mapToolArguments(call.rawInput),
-      status: this.mapToolStatus(call.status),
-      result: call.rawOutput,
-    };
-  }
-  private mapToolArguments(rawInput: unknown): Record<string, unknown> {
-    if (rawInput && typeof rawInput === "object" && !Array.isArray(rawInput)) {
-      return rawInput as Record<string, unknown>;
-    }
-    return {};
-  }
-  private mapToolStatus(
-    status?: ToolCallStatus | null
-  ):
-    | typeof TOOL_CALL_STATUS.PENDING
-    | typeof TOOL_CALL_STATUS.RUNNING
-    | typeof TOOL_CALL_STATUS.SUCCEEDED
-    | typeof TOOL_CALL_STATUS.FAILED {
-    switch (status) {
-      case "in_progress":
-        return TOOL_CALL_STATUS.RUNNING;
-      case "completed":
-        return TOOL_CALL_STATUS.SUCCEEDED;
-      case "failed":
-        return TOOL_CALL_STATUS.FAILED;
-      default:
-        return TOOL_CALL_STATUS.PENDING;
-    }
-  }
-  private mapResourceSize(size?: bigint | null): number | undefined {
-    if (typeof size === "bigint") {
-      return Number(size);
-    }
-    if (typeof size === "number") {
-      return size;
-    }
-    return undefined;
+    return mapToolCall(call);
   }
 }

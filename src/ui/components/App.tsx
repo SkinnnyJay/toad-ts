@@ -30,6 +30,7 @@ import { AgentSelect } from "@/ui/components/AgentSelect";
 import { AsciiBanner } from "@/ui/components/AsciiBanner";
 import { BackgroundTasksModal } from "@/ui/components/BackgroundTasksModal";
 import { Chat } from "@/ui/components/Chat";
+import { ContextModal } from "@/ui/components/ContextModal";
 import { HelpModal } from "@/ui/components/HelpModal";
 import { HooksModal } from "@/ui/components/HooksModal";
 import { LoadingScreen } from "@/ui/components/LoadingScreen";
@@ -44,6 +45,7 @@ import {
   useAppKeyboardShortcuts,
   useAppNavigation,
   useCheckpointUI,
+  useContextStats,
   useDefaultAgentSelection,
   useExecutionEngine,
   useHarnessConnection,
@@ -59,6 +61,7 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 
 export function App(): ReactNode {
   const [view, setView] = useState<View>(VIEW.AGENT_SELECT);
+  const [isContextOpen, setIsContextOpen] = useState(false);
   const [isHooksOpen, setIsHooksOpen] = useState(false);
   const startupMeasured = useRef(false);
 
@@ -173,6 +176,7 @@ export function App(): ReactNode {
   }, [currentSessionId]);
 
   const activeSessionId = sessionId ?? currentSessionId;
+  const contextStats = useContextStats(activeSessionId);
 
   const backgroundTasks = useBackgroundTaskStore((state) => state.tasks);
   const taskProgress = useMemo(() => {
@@ -225,7 +229,6 @@ export function App(): ReactNode {
     );
     startupMeasured.current = true;
   }, [stage]);
-
   const handlePromptComplete = useCallback(
     (id: SessionId) => {
       sessionStream.finalizeSession(id);
@@ -253,7 +256,6 @@ export function App(): ReactNode {
     selectedAgent,
     selectAgent,
   });
-
   const handleUpdateKeybinds = useCallback(
     (keybinds: KeybindConfig) => {
       void updateConfig({ keybinds });
@@ -320,7 +322,6 @@ export function App(): ReactNode {
     keybinds: appConfig.keybinds,
     onCyclePermissionMode: handleCyclePermissionMode,
   });
-
   const { checkpointStatus, handleRewindSelect } = useCheckpointUI({
     checkpointManager,
     activeSessionId,
@@ -331,7 +332,6 @@ export function App(): ReactNode {
     subAgentRunner,
     onCloseRewind: () => setIsRewindOpen(false),
   });
-
   if (stage === RENDER_STAGE.ERROR) {
     return (
       <ThemeProvider theme={theme}>
@@ -342,7 +342,6 @@ export function App(): ReactNode {
       </ThemeProvider>
     );
   }
-
   if (
     stage === RENDER_STAGE.LOADING ||
     stage === RENDER_STAGE.CONNECTING ||
@@ -355,10 +354,8 @@ export function App(): ReactNode {
       </ThemeProvider>
     );
   }
-
   const sidebarWidth = Math.floor(terminalDimensions.columns * UI.SIDEBAR_WIDTH_RATIO);
   const mainWidth = terminalDimensions.columns - sidebarWidth - LIMIT.LAYOUT_BORDER_PADDING;
-
   return (
     <ThemeProvider theme={theme}>
       <box key={`theme-${theme}`} flexDirection="column" height={terminalDimensions.rows}>
@@ -419,6 +416,14 @@ export function App(): ReactNode {
                     }}
                     onSelect={handleRewindSelect}
                   />
+                ) : isContextOpen ? (
+                  <ContextModal
+                    isOpen={isContextOpen}
+                    sessionId={activeSessionId}
+                    onClose={() => {
+                      setIsContextOpen(false);
+                    }}
+                  />
                 ) : isSettingsOpen ? (
                   <SettingsModal
                     key="settings-modal"
@@ -465,6 +470,7 @@ export function App(): ReactNode {
                     onOpenHelp={() => setIsHelpOpen(true)}
                     onOpenSessions={() => setIsSessionsPopupOpen(true)}
                     onOpenThemes={() => setIsThemesOpen(true)}
+                    onOpenContext={() => setIsContextOpen(true)}
                     onOpenHooks={() => setIsHooksOpen(true)}
                     onOpenAgentSelect={handleAgentSwitchRequest}
                     onToggleVimMode={handleToggleVimMode}
@@ -481,6 +487,7 @@ export function App(): ReactNode {
                 taskProgress={taskProgress}
                 planProgress={planProgress}
                 checkpointStatus={checkpointStatus}
+                contextStats={contextStats ?? undefined}
                 focusTarget={focusTarget}
               />
             </box>
