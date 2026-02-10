@@ -7,6 +7,8 @@ import { RENDER_STAGE, type RenderStage } from "@/constants/render-stage";
 import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
 import type { HarnessConfig } from "@/harness/harnessConfig";
+import { loadRules } from "@/rules/rules-loader";
+import { setRulesState } from "@/rules/rules-service";
 import type { PersistenceManager } from "@/store/persistence/persistence-manager";
 import type { AgentId } from "@/types/domain";
 import { AgentIdSchema } from "@/types/domain";
@@ -108,6 +110,18 @@ export function useSessionHydration({
     setStatusMessage("Loading providers…");
     setProgress((current) => Math.max(current, UI.PROGRESS.CONFIG_LOADING));
 
+    const loadRulesState = async (): Promise<void> => {
+      try {
+        const rules = await loadRules({ projectRoot: process.cwd() });
+        if (!active) return;
+        setRulesState(rules);
+      } catch (error) {
+        if (!active) return;
+        const message = error instanceof Error ? error.message : String(error);
+        setLoadError(message);
+      }
+    };
+
     void (async () => {
       try {
         const config = await loadHarnessConfig();
@@ -124,6 +138,7 @@ export function useSessionHydration({
         const parsedDefault = AgentIdSchema.safeParse(config.harnessId);
         const defaultAgent = parsedDefault.success ? infoMap.get(parsedDefault.data) : undefined;
         setDefaultAgentId(defaultAgent?.id ?? null);
+        await loadRulesState();
         setProgress((current) => Math.max(current, UI.PROGRESS.CONFIG_LOADED));
       } catch (error) {
         const fallback = createDefaultHarnessConfig();
@@ -140,6 +155,7 @@ export function useSessionHydration({
         if (error instanceof Error && error.message !== "No harnesses configured.") {
           setLoadError(error.message);
         }
+        await loadRulesState();
         setProgress((current) => Math.max(current, UI.PROGRESS.CONFIG_LOADED));
       }
     })();

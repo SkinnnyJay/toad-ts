@@ -75,7 +75,9 @@
   - [X] Provider health checks in /doctor
 
 ## Phase 13: Cross-Tool Compatibility & Rules System
-- [ ] Phase 13 tasks (see PLAN.md)
+- [X] Phase 13 tasks (see PLAN.md)
+  - [X] Unified rules loader with precedence
+  - [X] Permission rule ingestion + validation
 
 ## Phase 14: Server Mode & Headless CLI
 - [ ] Phase 14 tasks (see PLAN.md)

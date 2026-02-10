@@ -1,5 +1,6 @@
 import { PERMISSION, type Permission } from "@/constants/permissions";
 import { TOOL_KIND, type ToolKind } from "@/constants/tool-kinds";
+import { getRulesState } from "@/rules/rules-service";
 import type {
   PermissionOption,
   RequestPermissionRequest,
@@ -48,7 +49,9 @@ export const createPermissionHandler = (
 ): ((request: RequestPermissionRequest) => Promise<RequestPermissionResponse>) => {
   return async (request) => {
     const kind = request.toolCall.kind ?? TOOL_KIND.OTHER;
-    const permission = overrides[kind] ?? DEFAULT_PERMISSIONS[kind] ?? PERMISSION.ASK;
+    const { permissions } = getRulesState();
+    const permission =
+      permissions[kind] ?? overrides[kind] ?? DEFAULT_PERMISSIONS[kind] ?? PERMISSION.ASK;
     const selected = selectOption(request.options, permission);
     if (!selected) {
       return { outcome: { outcome: "cancelled" } };
