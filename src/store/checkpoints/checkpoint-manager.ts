@@ -39,6 +39,11 @@ export interface RewindResult {
   direction: "undo" | "redo" | "rewind";
 }
 
+export interface CheckpointStatus {
+  cursor: number;
+  total: number;
+}
+
 interface CheckpointDraft {
   id: Checkpoint["id"];
   sessionId: SessionId;
@@ -77,6 +82,7 @@ export class CheckpointManager {
   private readonly cursor = new Map<SessionId, number>();
   private readonly drafts = new Map<SessionId, CheckpointDraft>();
   private readonly logger = createClassLogger("CheckpointManager");
+  private readonly listeners = new Set<(sessionId: SessionId) => void>();
 
   constructor(private readonly store: StoreApi<AppStore>) {}
 
@@ -120,6 +126,19 @@ export class CheckpointManager {
     await this.persistCheckpoint(checkpoint);
     await this.registerCheckpoint(checkpoint);
     return checkpoint;
+  }
+
+  subscribe(listener: (sessionId: SessionId) => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  async getStatus(sessionId: SessionId): Promise<CheckpointStatus> {
+    const checkpoints = await this.ensureLoaded(sessionId);
+    const cursor = this.cursor.get(sessionId) ?? checkpoints.length;
+    return { cursor, total: checkpoints.length };
   }
 
   recordFileChange(change: FileChange, sessionId?: SessionId): void {
@@ -166,6 +185,7 @@ export class CheckpointManager {
     }
     await this.applyCheckpoint(checkpoint, mode, "before");
     this.cursor.set(sessionId, nextCursor);
+    this.emit(sessionId);
     return { checkpoint, mode, direction: "undo" };
   }
 
@@ -181,6 +201,7 @@ export class CheckpointManager {
     }
     await this.applyCheckpoint(checkpoint, mode, "after");
     this.cursor.set(sessionId, currentCursor + 1);
+    this.emit(sessionId);
     return { checkpoint, mode, direction: "redo" };
   }
 
@@ -198,6 +219,7 @@ export class CheckpointManager {
       result = step;
     }
     if (result) {
+      this.emit(sessionId);
       return { ...result, direction: "rewind" };
     }
     return null;
@@ -214,6 +236,7 @@ export class CheckpointManager {
     const nextCursor = index < cursor ? Math.max(0, cursor - 1) : cursor;
     this.cursor.set(sessionId, nextCursor);
     await this.removeCheckpointFile(sessionId, checkpointId);
+    this.emit(sessionId);
     return true;
   }
 
@@ -304,6 +327,11 @@ export class CheckpointManager {
     checkpoints.push(checkpoint);
     this.cursor.set(checkpoint.sessionId, checkpoints.length);
     await this.trimCheckpoints(checkpoint.sessionId, checkpoints);
+    this.emit(checkpoint.sessionId);
+  }
+
+  private emit(sessionId: SessionId): void {
+    this.listeners.forEach((listener) => listener(sessionId));
   }
 
   private async trimCheckpoints(sessionId: SessionId, checkpoints: Checkpoint[]): Promise<void> {

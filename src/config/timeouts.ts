@@ -15,6 +15,7 @@ export const TIMEOUT = {
   MENTION_DEBOUNCE_MS: 150,
   WEBFETCH_MS: 10000,
   LEADER_KEY_TIMEOUT_MS: 1200,
+  DOUBLE_ESCAPE_MS: 600,
 } as const;
 
 // Re-export for convenience
@@ -35,4 +36,5 @@ export const {
   MENTION_DEBOUNCE_MS,
   WEBFETCH_MS,
   LEADER_KEY_TIMEOUT_MS,
+  DOUBLE_ESCAPE_MS,
 } = TIMEOUT;

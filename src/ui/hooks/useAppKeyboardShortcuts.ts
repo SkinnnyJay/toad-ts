@@ -23,6 +23,8 @@ export interface UseAppKeyboardShortcutsResult {
   setIsBackgroundTasksOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   isThemesOpen: boolean;
   setIsThemesOpen: (open: boolean) => void;
+  isRewindOpen: boolean;
+  setIsRewindOpen: (open: boolean) => void;
 }
 
 /**
@@ -59,8 +61,10 @@ export function useAppKeyboardShortcuts({
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isBackgroundTasksOpen, setIsBackgroundTasksOpen] = useState(false);
   const [isThemesOpen, setIsThemesOpen] = useState(false);
+  const [isRewindOpen, setIsRewindOpen] = useState(false);
   const leaderActive = useRef(false);
   const leaderTimeout = useRef<NodeJS.Timeout | null>(null);
+  const lastEscapeAt = useRef<number | null>(null);
 
   const resetLeader = useCallback(() => {
     leaderActive.current = false;
@@ -148,6 +152,14 @@ export function useAppKeyboardShortcuts({
     if (key.name === "escape") {
       key.preventDefault();
       key.stopPropagation();
+      const now = Date.now();
+      const last = lastEscapeAt.current;
+      lastEscapeAt.current = now;
+      if (last && now - last <= TIMEOUT.DOUBLE_ESCAPE_MS) {
+        setIsRewindOpen(true);
+        lastEscapeAt.current = null;
+        return;
+      }
       resetLeader();
       setFocusTarget(FOCUS_TARGET.CHAT);
       return;
@@ -174,5 +186,7 @@ export function useAppKeyboardShortcuts({
     setIsBackgroundTasksOpen,
     isThemesOpen,
     setIsThemesOpen,
+    isRewindOpen,
+    setIsRewindOpen,
   };
 }

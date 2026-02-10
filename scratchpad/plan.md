@@ -44,7 +44,7 @@
   - [X] Track tool file changes in checkpoints (write/edit + ACP)
   - [X] /undo, /redo, /rewind wired to checkpoints
   - [X] /rewind list/delete support
-  - [ ] Rewind menu + status footer indicator
+  - [X] Rewind menu + status footer indicator
   - [ ] Git-based undo/redo integration
 
 ## Phase 9: Configuration & Keybind System

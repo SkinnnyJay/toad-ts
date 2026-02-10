@@ -74,7 +74,7 @@ const parseRewindArgs = (
   };
 };
 
-const buildSummaryPrompt = (
+export const buildSummaryPrompt = (
   sessionId: SessionId,
   getMessages: CheckpointCommandDeps["getMessagesForSession"]
 ): string => {

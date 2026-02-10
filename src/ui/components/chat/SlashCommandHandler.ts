@@ -1,6 +1,7 @@
 import type { AgentInfo } from "@/agents/agent-manager";
+import { findHiddenAgentBySuffix } from "@/agents/agent-utils";
 import type { SubAgentRunner } from "@/agents/subagent-runner";
-import { AGENT_ID_SEPARATOR, COMPACTION, SUMMARY } from "@/constants/agent-ids";
+import { COMPACTION, SUMMARY } from "@/constants/agent-ids";
 import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { loadMcpConfig } from "@/core/mcp-config-loader";
@@ -77,35 +78,12 @@ export const useSlashCommandHandler = ({
     [renderer]
   );
 
-  const resolveHiddenAgent = useCallback(
-    (suffix: string) => {
-      if (agents.length === 0) {
-        return null;
-      }
-      const currentHarnessId = agent?.harnessId;
-      return (
-        agents.find(
-          (candidate) =>
-            candidate.hidden &&
-            String(candidate.id).endsWith(`${AGENT_ID_SEPARATOR}${suffix}`) &&
-            (!currentHarnessId || candidate.harnessId === currentHarnessId)
-        ) ??
-        agents.find(
-          (candidate) =>
-            candidate.hidden && String(candidate.id).endsWith(`${AGENT_ID_SEPARATOR}${suffix}`)
-        ) ??
-        null
-      );
-    },
-    [agent?.harnessId, agents]
-  );
-
   const runCompaction = useCallback(
     async (targetSessionId: SessionId) => {
       if (!subAgentRunner) {
         return null;
       }
-      const compactionAgent = resolveHiddenAgent(COMPACTION);
+      const compactionAgent = findHiddenAgentBySuffix(agents, COMPACTION, agent?.harnessId);
       if (!compactionAgent) {
         return null;
       }
@@ -115,7 +93,7 @@ export const useSlashCommandHandler = ({
         prompt: "Summarize the session for compaction.",
       });
     },
-    [resolveHiddenAgent, subAgentRunner]
+    [agent?.harnessId, agents, subAgentRunner]
   );
 
   const runSummary = useCallback(
@@ -123,7 +101,7 @@ export const useSlashCommandHandler = ({
       if (!subAgentRunner) {
         return null;
       }
-      const summaryAgent = resolveHiddenAgent(SUMMARY);
+      const summaryAgent = findHiddenAgentBySuffix(agents, SUMMARY, agent?.harnessId);
       if (!summaryAgent) {
         return null;
       }
@@ -133,7 +111,7 @@ export const useSlashCommandHandler = ({
         prompt,
       });
     },
-    [resolveHiddenAgent, subAgentRunner]
+    [agent?.harnessId, agents, subAgentRunner]
   );
 
   return useCallback(

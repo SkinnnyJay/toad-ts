@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 export interface StatusFooterProps {
   taskProgress?: { completed: number; total: number };
   planProgress?: { completed: number; total: number };
+  checkpointStatus?: { cursor: number; total: number };
   focusTarget?: FocusTarget;
   connectionStatus?: ConnectionStatus;
   sessionMode?: SessionMode;
@@ -19,6 +20,7 @@ const globalShortcuts = [
   { key: "^C", label: "Exit" },
   { key: "^P", label: "Commands" },
   { key: "^B", label: "Tasks" },
+  { key: "Esc Esc", label: "Rewind" },
   { key: "^X←/→", label: "Child Sessions" },
   { key: "Esc", label: "Back to Chat" },
   { key: "Cmd+F", label: "Focus Files" },
@@ -34,6 +36,7 @@ const truncateMiddle = (value: string, max: number): string => {
 export function StatusFooter({
   taskProgress,
   planProgress,
+  checkpointStatus,
   focusTarget = FOCUS_TARGET.CHAT,
   connectionStatus,
   sessionMode,
@@ -47,6 +50,10 @@ export function StatusFooter({
   const taskText = taskProgress
     ? `Tasks ${taskProgress.completed}/${taskProgress.total}`
     : undefined;
+  const checkpointText =
+    checkpointStatus && checkpointStatus.total > 0
+      ? `Checkpoint ${checkpointStatus.cursor}/${checkpointStatus.total}`
+      : undefined;
 
   const trimmedAgent = agentName
     ? truncateMiddle(agentName, LIMIT.STRING_TRUNCATE_LONG)
@@ -101,6 +108,7 @@ export function StatusFooter({
         ))}
         {planText ? <text fg={COLOR.GRAY}>{planText}</text> : null}
         {taskText ? <text fg={COLOR.GRAY}>{taskText}</text> : null}
+        {checkpointText ? <text fg={COLOR.GRAY}>{checkpointText}</text> : null}
       </box>
     </box>
   );

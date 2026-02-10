@@ -28,6 +28,7 @@ import { BackgroundTasksModal } from "@/ui/components/BackgroundTasksModal";
 import { Chat } from "@/ui/components/Chat";
 import { HelpModal } from "@/ui/components/HelpModal";
 import { LoadingScreen } from "@/ui/components/LoadingScreen";
+import { RewindModal } from "@/ui/components/RewindModal";
 import { SessionsPopup } from "@/ui/components/SessionsPopup";
 import { SettingsModal } from "@/ui/components/SettingsModal";
 import { Sidebar } from "@/ui/components/Sidebar";
@@ -35,6 +36,7 @@ import { StatusFooter } from "@/ui/components/StatusFooter";
 import { ThemesModal } from "@/ui/components/ThemesModal";
 import {
   useAppKeyboardShortcuts,
+  useCheckpointUI,
   useDefaultAgentSelection,
   useHarnessConnection,
   useSessionHydration,
@@ -55,6 +57,8 @@ export function App(): ReactNode {
   const getPlanBySession = useAppStore((state) => state.getPlanBySession);
   const setCurrentSession = useAppStore((state) => state.setCurrentSession);
   const sessionsById = useAppStore((state) => state.sessions);
+  const appendMessage = useAppStore((state) => state.appendMessage);
+  const getMessagesForSession = useAppStore((state) => state.getMessagesForSession);
 
   // Terminal dimensions hook
   const terminalDimensions = useTerminalDimensions();
@@ -152,6 +156,8 @@ export function App(): ReactNode {
     }
   }, [currentSessionId]);
 
+  const activeSessionId = sessionId ?? currentSessionId;
+
   const backgroundTasks = useBackgroundTaskStore((state) => state.tasks);
   const taskProgress = useMemo(() => {
     const tasks = Object.values(backgroundTasks);
@@ -209,7 +215,6 @@ export function App(): ReactNode {
     startupMeasured.current = true;
   }, [stage]);
 
-  // Handlers
   const handlePromptComplete = useCallback(
     (id: SessionId) => {
       sessionStream.finalizeSession(id);
@@ -290,7 +295,6 @@ export function App(): ReactNode {
     [currentSessionId, sessionId, sessionsById, setCurrentSession, view]
   );
 
-  // Keyboard shortcuts hook
   const {
     focusTarget,
     isSessionsPopupOpen,
@@ -303,9 +307,20 @@ export function App(): ReactNode {
     setIsBackgroundTasksOpen,
     isThemesOpen,
     setIsThemesOpen,
+    isRewindOpen,
+    setIsRewindOpen,
   } = useAppKeyboardShortcuts({ view, onNavigateChildSession: navigateChildSession });
+  const { checkpointStatus, handleRewindSelect } = useCheckpointUI({
+    checkpointManager,
+    activeSessionId,
+    appendMessage,
+    getMessagesForSession,
+    agentInfoMap,
+    selectedAgent,
+    subAgentRunner,
+    onCloseRewind: () => setIsRewindOpen(false),
+  });
 
-  // Render error state
   if (stage === RENDER_STAGE.ERROR) {
     return (
       <ThemeProvider theme={theme}>
@@ -317,7 +332,6 @@ export function App(): ReactNode {
     );
   }
 
-  // Render loading state
   if (
     stage === RENDER_STAGE.LOADING ||
     stage === RENDER_STAGE.CONNECTING ||
@@ -331,7 +345,6 @@ export function App(): ReactNode {
     );
   }
 
-  // Calculate layout dimensions
   const sidebarWidth = Math.floor(terminalDimensions.columns * UI.SIDEBAR_WIDTH_RATIO);
   const mainWidth = terminalDimensions.columns - sidebarWidth - LIMIT.LAYOUT_BORDER_PADDING;
 
@@ -386,6 +399,15 @@ export function App(): ReactNode {
                     onClose={() => setIsBackgroundTasksOpen(false)}
                     tasks={Object.values(backgroundTasks)}
                   />
+                ) : isRewindOpen ? (
+                  <RewindModal
+                    isOpen={isRewindOpen}
+                    checkpointStatus={checkpointStatus}
+                    onClose={() => {
+                      setIsRewindOpen(false);
+                    }}
+                    onSelect={handleRewindSelect}
+                  />
                 ) : isSettingsOpen ? (
                   <SettingsModal
                     key="settings-modal"
@@ -434,6 +456,7 @@ export function App(): ReactNode {
               <StatusFooter
                 taskProgress={taskProgress}
                 planProgress={planProgress}
+                checkpointStatus={checkpointStatus}
                 focusTarget={focusTarget}
               />
             </box>

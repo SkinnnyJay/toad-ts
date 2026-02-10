@@ -38,6 +38,9 @@ export type {
   UseAppKeyboardShortcutsResult,
 } from "./useAppKeyboardShortcuts";
 
+export { useCheckpointUI } from "./useCheckpointUI";
+export type { UseCheckpointUIOptions, UseCheckpointUIResult } from "./useCheckpointUI";
+
 // InputWithAutocomplete.tsx hooks
 export {
   useProjectFiles,
