@@ -29,6 +29,7 @@ export interface SlashCommandHandlerOptions {
   onOpenEditor?: (initialValue: string) => Promise<void>;
   onOpenAgentSelect?: () => void;
   onOpenThemes?: () => void;
+  onToggleVimMode?: () => boolean;
   checkpointManager?: CheckpointManager;
   client?: HarnessRuntime | null;
   agent?: AgentInfo;
@@ -46,6 +47,7 @@ export const useSlashCommandHandler = ({
   onOpenEditor,
   onOpenAgentSelect,
   onOpenThemes,
+  onToggleVimMode,
   checkpointManager,
   client,
   agent,
@@ -202,6 +204,7 @@ export const useSlashCommandHandler = ({
           setShowThinking(next);
           return next;
         },
+        toggleVimMode: onToggleVimMode,
         openEditor: onOpenEditor,
         openThemes: onOpenThemes,
         openMemoryFile,
@@ -232,6 +235,7 @@ export const useSlashCommandHandler = ({
       onOpenEditor,
       onOpenAgentSelect,
       onOpenThemes,
+      onToggleVimMode,
       checkpointManager,
       client,
       agent,

@@ -1,11 +1,10 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { COLOR } from "@/constants/colors";
 import { COMMAND_DEFINITIONS, type CommandDefinition } from "@/constants/command-definitions";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
-import { IGNORE_PATTERN } from "@/constants/ignore-patterns";
+import { createIgnoreFilter } from "@/ui/components/input-helpers";
+import { useVimInput } from "@/ui/hooks/useVimInput";
 import type {
   InputRenderable,
   KeyBinding as TextareaKeyBinding,
@@ -15,7 +14,6 @@ import { type SubmitEvent, TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import fg from "fast-glob";
 import fuzzysort from "fuzzysort";
-import ignore from "ignore";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export type SlashCommand = CommandDefinition;
@@ -35,8 +33,8 @@ export interface InputWithAutocompleteProps {
   shellCompletion?: ShellCompletionProvider;
   /** Optional handler to open agent selector on Tab. */
   onAgentSwitch?: () => void;
-  /** Optional handler to cycle permission mode on Shift+Tab. */
-  onCyclePermissionMode?: () => void;
+  /** Enable vim-style editing. */
+  vimEnabled?: boolean;
 }
 
 export interface ShellCompletionProvider {
@@ -47,20 +45,6 @@ export interface ShellCompletionProvider {
 const DEFAULT_COMMANDS: SlashCommand[] = COMMAND_DEFINITIONS;
 const MENTION_REGEX = /@([\w./-]*)$/;
 const MENTION_SUGGESTION_LIMIT = 8;
-
-const toPosix = (value: string): string => value.split(path.sep).join("/");
-
-const createIgnoreFilter = async (cwd: string): Promise<(relativePath: string) => boolean> => {
-  const ig = ignore();
-  ig.add(IGNORE_PATTERN.PROJECT_FILES);
-  try {
-    const gitignore = await readFile(path.join(cwd, ".gitignore"), "utf8");
-    ig.add(gitignore);
-  } catch (_error) {
-    // ignore missing .gitignore
-  }
-  return (relativePath: string): boolean => ig.ignores(toPosix(relativePath));
-};
 
 const TEXTAREA_KEYBINDINGS: TextareaKeyBinding[] = [
   { name: "return", shift: true, action: "newline" },
@@ -78,7 +62,7 @@ export function InputWithAutocomplete({
   focusTarget = FOCUS_TARGET.CHAT,
   shellCompletion,
   onAgentSwitch,
-  onCyclePermissionMode,
+  vimEnabled = false,
 }: InputWithAutocompleteProps): ReactNode {
   const inputRef = useRef<InputRenderable | null>(null);
   const textareaRef = useRef<TextareaRenderable | null>(null);
@@ -123,7 +107,14 @@ export function InputWithAutocomplete({
     [multiline]
   );
 
-  // Load project file list for @ mentions (basic ignore for node_modules/.git)
+  const { handleVimKey } = useVimInput({
+    enabled: vimEnabled,
+    value,
+    cursorPosition,
+    setCursorOffset,
+    onChange,
+  });
+
   useEffect(() => {
     if (!enableMentions) return;
     let cancelled = false;
@@ -174,14 +165,12 @@ export function InputWithAutocomplete({
     }
   }, [multiline, value]);
 
-  // Calculate autocomplete suggestions for slash commands
   const commandSuggestions = useMemo(() => {
     if (!value.startsWith("/")) return [];
     const query = value.toLowerCase();
     return slashCommands.filter((cmd) => cmd.name.toLowerCase().startsWith(query));
   }, [value, slashCommands]);
 
-  // Detect active @ mention token before cursor
   const mentionQuery = useMemo(() => {
     if (!enableMentions) return null;
     const beforeCursor = value.slice(0, cursorPosition);
@@ -207,7 +196,6 @@ export function InputWithAutocomplete({
     return () => clearTimeout(handle);
   }, [enableMentions, filePaths, mentionQuery]);
 
-  // Show/hide autocomplete based on input
   useEffect(() => {
     setShowAutocomplete(value.startsWith("/") && commandSuggestions.length > 0);
     setSelectedIndex(0);
@@ -314,6 +302,12 @@ export function InputWithAutocomplete({
   useKeyboard((key) => {
     if (focusTarget !== FOCUS_TARGET.CHAT) return;
 
+    if (handleVimKey(key)) {
+      key.preventDefault();
+      key.stopPropagation();
+      return;
+    }
+
     if (showAutocomplete && commandSuggestions.length > 0) {
       if (key.name === "up") {
         key.preventDefault();
@@ -327,7 +321,7 @@ export function InputWithAutocomplete({
         setSelectedIndex((prev) => (prev < commandSuggestions.length - 1 ? prev + 1 : 0));
         return;
       }
-      if (key.name === "tab" || key.name === "return" || key.name === "linefeed") {
+      if ((key.name === "tab" && !key.shift) || key.name === "return" || key.name === "linefeed") {
         key.preventDefault();
         key.stopPropagation();
         const selected = commandSuggestions[selectedIndex];
@@ -357,7 +351,7 @@ export function InputWithAutocomplete({
         setSelectedIndex((prev) => (prev < mentionSuggestions.length - 1 ? prev + 1 : 0));
         return;
       }
-      if (key.name === "tab" || key.name === "return" || key.name === "linefeed") {
+      if ((key.name === "tab" && !key.shift) || key.name === "return" || key.name === "linefeed") {
         key.preventDefault();
         key.stopPropagation();
         const selected = mentionSuggestions[selectedIndex];
@@ -374,21 +368,14 @@ export function InputWithAutocomplete({
       }
     }
 
-    if (key.name === "tab" && key.shift && onCyclePermissionMode) {
-      key.preventDefault();
-      key.stopPropagation();
-      onCyclePermissionMode();
-      return;
-    }
-
-    if (key.name === "tab" && shellCompletion?.isShellInput(value)) {
+    if (key.name === "tab" && !key.shift && shellCompletion?.isShellInput(value)) {
       key.preventDefault();
       key.stopPropagation();
       void handleShellTab();
       return;
     }
 
-    if (key.name === "tab" && onAgentSwitch && value.trim().length === 0) {
+    if (key.name === "tab" && !key.shift && onAgentSwitch && value.trim().length === 0) {
       key.preventDefault();
       key.stopPropagation();
       onAgentSwitch();

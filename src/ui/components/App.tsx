@@ -355,6 +355,12 @@ export function App(): ReactNode {
     appendSystemMessage(formatModeUpdatedMessage(nextMode));
   }, [activeSessionId, appendSystemMessage, getSession, upsertSession]);
 
+  const handleToggleVimMode = useCallback(() => {
+    const nextEnabled = !appConfig.vim.enabled;
+    void updateConfig({ vim: { enabled: nextEnabled } });
+    return nextEnabled;
+  }, [appConfig.vim.enabled, updateConfig]);
+
   const {
     focusTarget,
     isSessionsPopupOpen,
@@ -513,7 +519,8 @@ export function App(): ReactNode {
                     onOpenSessions={() => setIsSessionsPopupOpen(true)}
                     onOpenThemes={() => setIsThemesOpen(true)}
                     onOpenAgentSelect={handleAgentSwitchRequest}
-                    onCyclePermissionMode={handleCyclePermissionMode}
+                    onToggleVimMode={handleToggleVimMode}
+                    vimEnabled={appConfig.vim.enabled}
                     checkpointManager={checkpointManager}
                     subAgentRunner={subAgentRunner}
                     focusTarget={focusTarget}

@@ -49,15 +49,23 @@ export const defaultsSchema = z
   })
   .strict();
 
+export const vimSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+  })
+  .strict();
+
 export const appConfigSchema = z
   .object({
     defaults: defaultsSchema.optional(),
     keybinds: keybindsSchema.optional(),
+    vim: vimSchema.optional(),
   })
   .strict();
 
 export type KeybindConfig = z.infer<typeof keybindsSchema>;
 export type AppConfigDefaults = z.infer<typeof defaultsSchema>;
+export type VimConfig = z.infer<typeof vimSchema>;
 export type AppConfigInput = z.infer<typeof appConfigSchema>;
 
 export interface ResolvedKeybindConfig {
@@ -68,6 +76,9 @@ export interface ResolvedKeybindConfig {
 export interface AppConfig {
   defaults?: AppConfigDefaults;
   keybinds: ResolvedKeybindConfig;
+  vim: {
+    enabled: boolean;
+  };
 }
 
 export const DEFAULT_APP_CONFIG: AppConfig = {
@@ -75,6 +86,9 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
   keybinds: {
     leader: DEFAULT_LEADER_KEY,
     bindings: { ...defaultKeybinds },
+  },
+  vim: {
+    enabled: false,
   },
 };
 
@@ -195,6 +209,9 @@ export const mergeAppConfig = (base: AppConfig, override: AppConfigInput): AppCo
         ...(override.keybinds?.bindings ?? {}),
       },
     },
+    vim: {
+      enabled: override.vim?.enabled ?? base.vim.enabled,
+    },
   };
 };
 
@@ -276,6 +293,9 @@ const serializeConfig = (config: AppConfig): AppConfigInput => {
     keybinds: {
       leader: config.keybinds.leader,
       bindings: config.keybinds.bindings,
+    },
+    vim: {
+      enabled: config.vim.enabled,
     },
   };
 };

@@ -23,6 +23,7 @@ import {
   formatThinkingMessage,
   formatToolDetailsMessage,
   formatUnknownCommandMessage,
+  formatVimModeMessage,
 } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { TASK_STATUS } from "@/constants/task-status";
@@ -69,6 +70,7 @@ export interface SlashCommandDeps {
   runCompaction?: (sessionId: SessionId) => Promise<SessionId | null>;
   runSummary?: (prompt: string, sessionId: SessionId) => Promise<SessionId | null>;
   checkpointManager?: CheckpointManager;
+  toggleVimMode?: () => boolean;
   connectionStatus?: string;
   now?: () => number;
 }
@@ -87,7 +89,8 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     command === SLASH_COMMAND.DEBUG ||
     command === SLASH_COMMAND.STATS ||
     command === SLASH_COMMAND.MEMORY ||
-    command === SLASH_COMMAND.THEMES;
+    command === SLASH_COMMAND.THEMES ||
+    command === SLASH_COMMAND.VIM;
   if (!deps.sessionId && !allowsWithoutSession) {
     deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
     return true;
@@ -328,6 +331,15 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         return true;
       }
       deps.appendSystemMessage(formatThinkingMessage(enabled));
+      return true;
+    }
+    case SLASH_COMMAND.VIM: {
+      const enabled = deps.toggleVimMode?.();
+      if (enabled === undefined) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.VIM_NOT_AVAILABLE);
+        return true;
+      }
+      deps.appendSystemMessage(formatVimModeMessage(enabled));
       return true;
     }
     case SLASH_COMMAND.COMPACT: {

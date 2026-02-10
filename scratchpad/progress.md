@@ -50,3 +50,4 @@
 - [X] Leader keybind defaults + runtime wiring
 - [X] Keybind editor UI in settings modal
 - [X] Permission mode cycling (Shift+Tab)
+- [X] Vim input mode (normal/insert + motions/operators)

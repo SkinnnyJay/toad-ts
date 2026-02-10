@@ -55,7 +55,8 @@
   - [X] Leader-key keybind runtime + defaults
   - [X] Keybind editor UI + extended action map
   - [X] Permission mode cycling (Shift+Tab) using session modes
-  - [ ] Vim input mode + hooks system
+  - [X] Vim input mode (normal/insert + motions/operators)
+  - [ ] Hooks system
 
 ## Phase 10: Compaction & Context Management
 - [ ] Phase 10 tasks (see PLAN.md)

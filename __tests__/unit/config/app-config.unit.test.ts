@@ -51,6 +51,16 @@ describe("app-config", () => {
     expect(config.keybinds.leader).toBe("ctrl+e");
   });
 
+  it("defaults vim to disabled", async () => {
+    const homeDir = await createTempDir("toadstool-config-home-");
+    const projectDir = await createTempDir("toadstool-config-project-");
+    const env: NodeJS.ProcessEnv = {};
+
+    const config = await loadAppConfig({ cwd: projectDir, homeDir, env });
+
+    expect(config.vim.enabled).toBe(false);
+  });
+
   it("resolves env and file variables", async () => {
     const homeDir = await createTempDir("toadstool-config-home-");
     const projectDir = await createTempDir("toadstool-config-project-");

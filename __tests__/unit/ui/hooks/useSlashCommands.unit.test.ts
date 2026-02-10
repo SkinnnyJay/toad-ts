@@ -99,6 +99,7 @@ describe("useSlashCommands", () => {
       expect(SLASH_COMMAND.STATS).toBe("/stats");
       expect(SLASH_COMMAND.THEMES).toBe("/themes");
       expect(SLASH_COMMAND.THINKING).toBe("/thinking");
+      expect(SLASH_COMMAND.VIM).toBe("/vim");
       expect(SLASH_COMMAND.UNDO).toBe("/undo");
       expect(SLASH_COMMAND.REDO).toBe("/redo");
       expect(SLASH_COMMAND.SHARE).toBe("/share");

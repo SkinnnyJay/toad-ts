@@ -5,7 +5,7 @@ export const SLASH_COMMAND_MESSAGE = {
   NO_ACTIVE_SESSION: "No active session for slash command.",
   NO_ACTIVE_CLIENT: "No active agent connection for slash command.",
   HELP_SUMMARY:
-    "Commands: /help, /connect, /sessions, /new, /rename, /editor, /memory, /mode <read-only|auto|full-access>, /models <id>, /details, /thinking, /themes, /context, /doctor, /debug, /stats, /cost, /copy, /share, /unshare, /undo, /redo, /rewind <count|list|delete>, /clear, /plan <title>, /compact",
+    "Commands: /help, /connect, /sessions, /new, /rename, /editor, /memory, /mode <read-only|auto|full-access>, /models <id>, /details, /thinking, /themes, /vim, /context, /doctor, /debug, /stats, /cost, /copy, /share, /unshare, /undo, /redo, /rewind <count|list|delete>, /clear, /plan <title>, /compact",
   INVALID_MODE: "Invalid mode. Use read-only, auto, or full-access.",
   NO_SESSION_TO_UPDATE: "No session to update mode.",
   SESSION_CLEARED: "Session messages cleared.",
@@ -22,6 +22,7 @@ export const SLASH_COMMAND_MESSAGE = {
   COPY_NOT_AVAILABLE: "Clipboard copy is not available.",
   COPY_FAILED: "Failed to copy to clipboard.",
   COPY_NO_CONTENT: "No assistant response available to copy.",
+  VIM_NOT_AVAILABLE: "Vim mode is not available.",
   SHARE_FAILED: "Failed to share session.",
   UNSHARE_FAILED: "Failed to unshare session.",
   CHECKPOINT_NOT_AVAILABLE: "Checkpointing is not available.",
@@ -90,6 +91,9 @@ export const formatToolDetailsMessage = (enabled: boolean): string =>
 
 export const formatThinkingMessage = (enabled: boolean): string =>
   `Thinking blocks ${enabled ? "shown" : "hidden"}.`;
+
+export const formatVimModeMessage = (enabled: boolean): string =>
+  `Vim mode ${enabled ? "enabled" : "disabled"}.`;
 
 export const formatDoctorMessage = (lines: string[]): string =>
   `Doctor check:\n${lines.join("\n")}`;

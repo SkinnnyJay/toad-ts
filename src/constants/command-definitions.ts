@@ -42,6 +42,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   { name: SLASH_COMMAND.STATS, description: "Show usage stats" },
   { name: SLASH_COMMAND.THEMES, description: "Open theme selector" },
   { name: SLASH_COMMAND.THINKING, description: "Toggle thinking blocks" },
+  { name: SLASH_COMMAND.VIM, description: "Toggle vim input mode" },
   { name: SLASH_COMMAND.UNDO, description: "Undo last message" },
   { name: SLASH_COMMAND.REDO, description: "Redo last undone message" },
   { name: SLASH_COMMAND.SHARE, description: "Share current session to file" },
