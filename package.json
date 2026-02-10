@@ -24,7 +24,7 @@
     "dev:watch": "bun --watch src/cli.ts",
     "build": "npx tsup",
     "start": "bun dist/cli.js",
-    "test": "TOADSTOOL_TEST_FORCE_EXIT=1 bunx vitest run",
+    "test": "bash scripts/run-tests.sh",
     "test:watch": "bunx vitest",
     "test:integration": "bunx vitest run --config vitest.integration.config.ts",
     "test:unit": "bunx vitest run --config vitest.unit.config.ts",

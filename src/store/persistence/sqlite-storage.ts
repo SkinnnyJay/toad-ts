@@ -1,3 +1,6 @@
+import { mkdir } from "node:fs/promises";
+import { dirname } from "node:path";
+
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { Prisma, PrismaClient } from "@prisma/client";
 import type { Message as PrismaMessage, Session as PrismaSession } from "@prisma/client";
@@ -17,6 +20,11 @@ export class SqliteStore {
   private constructor(private readonly prisma: PrismaClient) {}
 
   static async create(filePath: string): Promise<SqliteStore> {
+    const rawPath = filePath.startsWith(SQLITE_URL_PREFIX)
+      ? filePath.slice(SQLITE_URL_PREFIX.length)
+      : filePath;
+    await mkdir(dirname(rawPath), { recursive: true });
+
     const databaseUrl = filePath.startsWith(SQLITE_URL_PREFIX)
       ? filePath
       : `${SQLITE_URL_PREFIX}${filePath}`;
@@ -114,7 +122,7 @@ export class SqliteStore {
     }));
 
     const operations: Prisma.PrismaPromise<unknown>[] = [
-      this.prisma.$executeRaw(Prisma.sql`DELETE FROM messages_fts`),
+      this.prisma.$executeRawUnsafe("DELETE FROM messages_fts"),
       this.prisma.message.deleteMany(),
       this.prisma.session.deleteMany(),
     ];
@@ -254,22 +262,23 @@ export class SqliteStore {
   }
 
   private async ensureSchema(): Promise<void> {
-    await this.prisma.$executeRaw(Prisma.sql`PRAGMA journal_mode = WAL`);
-    await this.prisma.$executeRaw(Prisma.sql`PRAGMA synchronous = NORMAL`);
+    // DDL statements cannot use parameterized values, so we use $executeRawUnsafe
+    await this.prisma.$executeRawUnsafe("PRAGMA journal_mode = WAL");
+    await this.prisma.$executeRawUnsafe("PRAGMA synchronous = NORMAL");
     await this.prisma.$executeRawUnsafe(`PRAGMA busy_timeout = ${TIMEOUT.SQLITE_BUSY_MS}`);
-    await this.prisma.$executeRaw(
-      Prisma.sql`CREATE TABLE IF NOT EXISTS sessions (
+    await this.prisma.$executeRawUnsafe(
+      `CREATE TABLE IF NOT EXISTS sessions (
         id TEXT PRIMARY KEY,
         title TEXT,
         agentId TEXT,
         createdAt INTEGER,
         updatedAt INTEGER,
         metadata TEXT,
-        mode TEXT DEFAULT ${SESSION_MODE.AUTO}
+        mode TEXT DEFAULT '${SESSION_MODE.AUTO}'
       )`
     );
-    await this.prisma.$executeRaw(
-      Prisma.sql`CREATE TABLE IF NOT EXISTS messages (
+    await this.prisma.$executeRawUnsafe(
+      `CREATE TABLE IF NOT EXISTS messages (
         id TEXT PRIMARY KEY,
         sessionId TEXT NOT NULL,
         role TEXT NOT NULL,
@@ -278,14 +287,14 @@ export class SqliteStore {
         isStreaming INTEGER DEFAULT 0
       )`
     );
-    await this.prisma.$executeRaw(
-      Prisma.sql`CREATE INDEX IF NOT EXISTS messages_sessionId_idx ON messages(sessionId)`
+    await this.prisma.$executeRawUnsafe(
+      "CREATE INDEX IF NOT EXISTS messages_sessionId_idx ON messages(sessionId)"
     );
-    await this.prisma.$executeRaw(
-      Prisma.sql`CREATE INDEX IF NOT EXISTS messages_createdAt_idx ON messages(createdAt)`
+    await this.prisma.$executeRawUnsafe(
+      "CREATE INDEX IF NOT EXISTS messages_createdAt_idx ON messages(createdAt)"
     );
-    await this.prisma.$executeRaw(
-      Prisma.sql`CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(message_id, session_id, content)`
+    await this.prisma.$executeRawUnsafe(
+      "CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(message_id, session_id, content)"
     );
   }
 }

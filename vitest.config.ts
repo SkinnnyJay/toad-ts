@@ -52,5 +52,8 @@ export default defineConfig({
       ".opencode/**",
       "ref/**",
     ],
+    pool: "forks",
+    teardownTimeout: 3000,
+    testTimeout: 30000,
   },
 });
