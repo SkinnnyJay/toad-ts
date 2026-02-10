@@ -231,6 +231,49 @@ export class CheckpointManager {
     return null;
   }
 
+  async cleanupOldCheckpoints(): Promise<number> {
+    const baseDir = path.join(homedir(), FILE_PATH.TOADSTOOL_DIR, FILE_PATH.CHECKPOINTS_DIR);
+    let sessionDirs: string[];
+    try {
+      sessionDirs = await readdir(baseDir);
+    } catch {
+      return 0;
+    }
+    let removed = 0;
+    const now = Date.now();
+    for (const sessionDir of sessionDirs) {
+      const dir = path.join(baseDir, sessionDir);
+      let entries: string[];
+      try {
+        entries = await readdir(dir);
+      } catch {
+        continue;
+      }
+      for (const entry of entries) {
+        if (!entry.endsWith(CHECKPOINT.FILE_EXTENSION)) continue;
+        const filePath = path.join(dir, entry);
+        try {
+          const raw = await readFile(filePath, ENCODING.UTF8);
+          const parsed = JSON.parse(raw) as { createdAt?: number };
+          if (parsed.createdAt && now - parsed.createdAt > retentionMs) {
+            await rm(filePath);
+            removed += 1;
+          }
+        } catch {
+          // Corrupt checkpoint files get cleaned up
+          try {
+            await rm(filePath);
+            removed += 1;
+          } catch {
+            // ignore
+          }
+        }
+      }
+    }
+    this.logger.info("Cleaned up old checkpoints", { removed });
+    return removed;
+  }
+
   async deleteCheckpoint(sessionId: SessionId, checkpointId: Checkpoint["id"]): Promise<boolean> {
     const checkpoints = await this.ensureLoaded(sessionId);
     const index = checkpoints.findIndex((checkpoint) => checkpoint.id === checkpointId);
