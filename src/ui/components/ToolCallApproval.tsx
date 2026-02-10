@@ -4,7 +4,9 @@ import { APPROVAL_DECISION, type ApprovalDecision } from "@/constants/approval-d
 import { COLOR } from "@/constants/colors";
 import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { PERMISSION, type Permission } from "@/constants/permissions";
+import type { UiSymbols } from "@/constants/ui-symbols";
 import type { ToolCallId } from "@/types/domain";
+import { useUiSymbols } from "@/ui/hooks/useUiSymbols";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
@@ -27,7 +29,7 @@ export interface ToolCallApprovalProps {
   defaultPermission?: PermissionProfile;
 }
 
-const formatArguments = (args: Record<string, unknown>): string => {
+const formatArguments = (args: Record<string, unknown>, symbols: UiSymbols): string => {
   const entries = Object.entries(args);
   if (entries.length === 0) return "no arguments";
 
@@ -36,7 +38,7 @@ const formatArguments = (args: Record<string, unknown>): string => {
       const displayValue =
         typeof value === "string"
           ? value.length > LIMIT.STRING_TRUNCATE_MEDIUM
-            ? `"${value.slice(0, LIMIT.STRING_TRUNCATE_TOOL_ARG)}…"`
+            ? `"${value.slice(0, LIMIT.STRING_TRUNCATE_TOOL_ARG)}${symbols.ELLIPSIS}"`
             : `"${value}"`
           : JSON.stringify(value);
       return `  ${key}: ${displayValue}`;
@@ -53,6 +55,7 @@ export function ToolCallApproval({
   autoApproveTimeout = TIMEOUT.AUTO_APPROVE_DISABLED,
   defaultPermission = PERMISSION.ASK,
 }: ToolCallApprovalProps): ReactNode {
+  const symbols = useUiSymbols();
   const [countdown, setCountdown] = useState(autoApproveTimeout);
   const [decision, setDecision] = useState<ApprovalDecision | null>(null);
 
@@ -120,7 +123,7 @@ export function ToolCallApproval({
       return (
         <box>
           <text fg={decision === APPROVAL_DECISION.APPROVED ? COLOR.GREEN : COLOR.RED}>
-            ✓ Tool call "{request.name}" {decision}
+            {symbols.CHECK} Tool call "{request.name}" {decision}
           </text>
         </box>
       );
@@ -131,7 +134,7 @@ export function ToolCallApproval({
   return (
     <box flexDirection="column" padding={1} border={true} borderStyle="rounded">
       <box flexDirection="row" gap={1}>
-        <text fg={COLOR.YELLOW}>⚡</text>
+        <text fg={COLOR.YELLOW}>{symbols.LIGHTNING}</text>
         <text attributes={TextAttributes.BOLD}>Tool Request: {request.name}</text>
       </box>
 
@@ -142,7 +145,7 @@ export function ToolCallApproval({
       )}
 
       <box marginTop={1}>
-        <text fg={COLOR.CYAN}>Arguments: {formatArguments(request.arguments)}</text>
+        <text fg={COLOR.CYAN}>Arguments: {formatArguments(request.arguments, symbols)}</text>
       </box>
 
       <box marginTop={1} flexDirection="row" gap={2}>

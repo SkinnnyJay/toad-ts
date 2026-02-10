@@ -124,3 +124,5 @@ export type {
   UseSlashCommandsOptions,
   UseSlashCommandsResult,
 } from "./useSlashCommands";
+
+export { useUiSymbols } from "./useUiSymbols";

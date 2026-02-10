@@ -2,6 +2,7 @@ import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { useAppStore } from "@/store/app-store";
 import type { SessionId } from "@/types/domain";
+import { useUiSymbols } from "@/ui/hooks/useUiSymbols";
 import { taskStatusColor } from "@/ui/status-colors";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
@@ -14,6 +15,7 @@ interface ProgressModalProps {
 }
 
 export function ProgressModal({ isOpen, sessionId, onClose }: ProgressModalProps): ReactNode {
+  const symbols = useUiSymbols();
   const plan = useAppStore((state) => (sessionId ? state.getPlanBySession(sessionId) : undefined));
   const subAgents = useAppStore((state) =>
     Object.values(state.subAgents).filter((agent) => agent !== undefined)
@@ -64,7 +66,7 @@ export function ProgressModal({ isOpen, sessionId, onClose }: ProgressModalProps
           ) : (
             plan.tasks.map((task) => (
               <text key={task.id} fg={taskStatusColor(task.status)}>
-                • {task.title} ({task.status})
+                {symbols.BULLET} {task.title} ({task.status})
               </text>
             ))
           )}
@@ -79,7 +81,7 @@ export function ProgressModal({ isOpen, sessionId, onClose }: ProgressModalProps
           ) : (
             subAgents.map((agent) => (
               <text key={agent.id}>
-                • {agent.id} ({agent.status})
+                {symbols.BULLET} {agent.id} ({agent.status})
               </text>
             ))
           )}

@@ -28,6 +28,7 @@ import { createPersistenceConfig } from "@/store/persistence/persistence-config"
 import { PersistenceManager } from "@/store/persistence/persistence-manager";
 import { createPersistenceProvider } from "@/store/persistence/persistence-provider";
 import { AgentIdSchema, MessageIdSchema, type SessionId } from "@/types/domain";
+import { AgentDiscoveryModal } from "@/ui/components/AgentDiscoveryModal";
 import { AgentSelect } from "@/ui/components/AgentSelect";
 import { AsciiBanner } from "@/ui/components/AsciiBanner";
 import { BackgroundTasksModal } from "@/ui/components/BackgroundTasksModal";
@@ -66,6 +67,7 @@ export function App(): ReactNode {
   const [isContextOpen, setIsContextOpen] = useState(false);
   const [isHooksOpen, setIsHooksOpen] = useState(false);
   const [isProgressOpen, setIsProgressOpen] = useState(false);
+  const [isAgentDiscoveryOpen, setIsAgentDiscoveryOpen] = useState(false);
   const startupMeasured = useRef(false);
   const currentSessionId = useAppStore((state) => state.currentSessionId);
   const theme = useAppStore((state) => state.uiState.theme);
@@ -184,17 +186,14 @@ export function App(): ReactNode {
     ).length;
     return { completed, total: tasks.length };
   }, [backgroundTasks]);
-  const plan = useMemo(() => {
+  const planProgress = useMemo(() => {
     const id = sessionId ?? currentSessionId;
     if (!id) return undefined;
-    return getPlanBySession(id);
-  }, [currentSessionId, getPlanBySession, sessionId]);
-  const planProgress = useMemo(() => {
-    if (!plan || !plan.tasks || plan.tasks.length === 0) return undefined;
+    const plan = getPlanBySession(id);
+    if (!plan || plan.tasks.length === 0) return undefined;
     const completed = plan.tasks.filter((task) => task.status === PLAN_STATUS.COMPLETED).length;
     return { completed, total: plan.tasks.length };
-  }, [plan]);
-  void planProgress;
+  }, [currentSessionId, getPlanBySession, sessionId]);
   useEffect(() => {
     setProgress(5);
     setStatusMessage("Loading TOADSTOOL…");
@@ -430,25 +429,22 @@ export function App(): ReactNode {
                   <HooksModal
                     isOpen={isHooksOpen}
                     hooks={appConfig.hooks}
-                    onClose={() => {
-                      setIsHooksOpen(false);
-                    }}
+                    onClose={() => setIsHooksOpen(false)}
+                  />
+                ) : isAgentDiscoveryOpen ? (
+                  <AgentDiscoveryModal
+                    isOpen={isAgentDiscoveryOpen}
+                    agents={Array.from(agentInfoMap.values())}
+                    onClose={() => setIsAgentDiscoveryOpen(false)}
                   />
                 ) : isProgressOpen ? (
                   <ProgressModal
                     isOpen={isProgressOpen}
                     sessionId={activeSessionId ?? undefined}
-                    onClose={() => {
-                      setIsProgressOpen(false);
-                    }}
+                    onClose={() => setIsProgressOpen(false)}
                   />
                 ) : isThemesOpen ? (
-                  <ThemesModal
-                    isOpen={isThemesOpen}
-                    onClose={() => {
-                      setIsThemesOpen(false);
-                    }}
-                  />
+                  <ThemesModal isOpen={isThemesOpen} onClose={() => setIsThemesOpen(false)} />
                 ) : isHelpOpen ? (
                   <HelpModal
                     key="help-modal"
@@ -472,6 +468,7 @@ export function App(): ReactNode {
                     onOpenContext={() => setIsContextOpen(true)}
                     onOpenHooks={() => setIsHooksOpen(true)}
                     onOpenProgress={() => setIsProgressOpen(true)}
+                    onOpenAgents={() => setIsAgentDiscoveryOpen(true)}
                     onOpenAgentSelect={handleAgentSwitchRequest}
                     onToggleVimMode={handleToggleVimMode}
                     vimEnabled={appConfig.vim.enabled}

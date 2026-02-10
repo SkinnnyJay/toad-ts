@@ -4,7 +4,9 @@ import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { TASK_DECISION, type TaskDecision } from "@/constants/task-decisions";
 import { TASK_STATUS } from "@/constants/task-status";
+import type { UiSymbols } from "@/constants/ui-symbols";
 import type { Plan, PlanId, Task } from "@/types/domain";
+import { useUiSymbols } from "@/ui/hooks/useUiSymbols";
 import { statusColor } from "@/ui/status-colors";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
@@ -19,22 +21,22 @@ export interface PlanApprovalPanelProps {
   showTaskDetails?: boolean;
 }
 
-const taskStatusIcon = (status: Task["status"]): string => {
+const taskStatusIcon = (status: Task["status"], symbols: UiSymbols): string => {
   switch (status) {
     case TASK_STATUS.PENDING:
-      return "○";
+      return symbols.DOT_EMPTY;
     case TASK_STATUS.ASSIGNED:
-      return "◑";
+      return symbols.HALF;
     case TASK_STATUS.RUNNING:
-      return "⟳";
+      return symbols.SPINNER;
     case TASK_STATUS.COMPLETED:
-      return "✓";
+      return symbols.CHECK;
     case TASK_STATUS.FAILED:
-      return "✗";
+      return symbols.CROSS;
     case TASK_STATUS.BLOCKED:
-      return "⊘";
+      return symbols.BLOCKED;
     default:
-      return "?";
+      return symbols.UNKNOWN;
   }
 };
 
@@ -46,6 +48,7 @@ export function PlanApprovalPanel({
   autoApprove = false,
   showTaskDetails = true,
 }: PlanApprovalPanelProps): ReactNode {
+  const symbols = useUiSymbols();
   const [decision, setDecision] = useState<ApprovalDecision | null>(null);
   const [selectedTaskIndex, setSelectedTaskIndex] = useState(0);
   const [taskDecisions, setTaskDecisions] = useState<Map<string, TaskDecision>>(new Map());
@@ -166,7 +169,7 @@ export function PlanApprovalPanel({
               <box key={task.id} paddingLeft={1}>
                 <text fg={isSelected ? COLOR.YELLOW : statusColor(task.status)}>
                   {isSelected ? "▶ " : "  "}
-                  {taskStatusIcon(task.status)} {task.title}
+                  {taskStatusIcon(task.status, symbols)} {task.title}
                   {taskDecision && (
                     <span
                       fg={
@@ -231,7 +234,8 @@ export function PlanApprovalPanel({
       {plan.status === PLAN_STATUS.EXECUTING && (
         <box marginTop={1}>
           <text fg={COLOR.BLUE}>
-            ⟳ Executing… {plan.tasks.filter((t) => t.status === TASK_STATUS.COMPLETED).length}/
+            {symbols.SPINNER} Executing{symbols.ELLIPSIS}{" "}
+            {plan.tasks.filter((t) => t.status === TASK_STATUS.COMPLETED).length}/
             {plan.tasks.length} tasks completed
           </text>
         </box>
@@ -243,7 +247,9 @@ export function PlanApprovalPanel({
             fg={plan.status === PLAN_STATUS.COMPLETED ? COLOR.GREEN : COLOR.RED}
             attributes={TextAttributes.BOLD}
           >
-            {plan.status === PLAN_STATUS.COMPLETED ? "✓ Plan completed" : "✗ Plan failed"}
+            {plan.status === PLAN_STATUS.COMPLETED
+              ? `${symbols.CHECK} Plan completed`
+              : `${symbols.CROSS} Plan failed`}
           </text>
           {plan.tasks.length > 0 && (
             <text fg={COLOR.GRAY}>

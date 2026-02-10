@@ -2,6 +2,7 @@ import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { REWIND_MODE, type RewindMode } from "@/constants/rewind-modes";
 import type { CheckpointStatus } from "@/store/checkpoints/checkpoint-manager";
+import { useUiSymbols } from "@/ui/hooks/useUiSymbols";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import { type ReactNode, useMemo, useState } from "react";
@@ -42,6 +43,7 @@ export function RewindModal({
   onClose,
   onSelect,
 }: RewindModalProps): ReactNode {
+  const symbols = useUiSymbols();
   const [index, setIndex] = useState(0);
   const options = useMemo(() => REWIND_OPTIONS, []);
   const checkpointText =
@@ -110,7 +112,7 @@ export function RewindModal({
           return (
             <box key={option.mode} flexDirection="column" paddingLeft={1} paddingRight={1}>
               <text fg={isSelected ? COLOR.GREEN : COLOR.WHITE}>
-                {isSelected ? "› " : "  "}
+                {isSelected ? `${symbols.CHEVRON} ` : "  "}
                 {option.label}
               </text>
               <text attributes={TextAttributes.DIM}>{option.description}</text>

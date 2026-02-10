@@ -53,6 +53,7 @@ export interface ChatProps {
   onOpenContext?: () => void;
   onOpenHooks?: () => void;
   onOpenProgress?: () => void;
+  onOpenAgents?: () => void;
   onToggleVimMode?: () => boolean;
   vimEnabled?: boolean;
   harnesses?: Record<string, HarnessConfig>;
@@ -76,6 +77,7 @@ export const Chat = memo(
     onOpenContext,
     onOpenHooks,
     onOpenProgress,
+    onOpenAgents,
     onToggleVimMode,
     vimEnabled,
     harnesses,
@@ -197,6 +199,7 @@ export const Chat = memo(
       onOpenContext,
       onOpenHooks,
       onOpenProgress,
+      onOpenAgents,
       onToggleVimMode,
       harnesses,
       client,

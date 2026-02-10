@@ -5,7 +5,7 @@ export const SLASH_COMMAND_MESSAGE = {
   NO_ACTIVE_SESSION: "No active session for slash command.",
   NO_ACTIVE_CLIENT: "No active agent connection for slash command.",
   HELP_SUMMARY:
-    "Commands: /help, /connect, /sessions, /new, /rename, /editor, /memory, /mode <read-only|auto|full-access>, /models <id>, /details, /thinking, /themes, /hooks, /progress, /vim, /context, /doctor, /debug, /stats, /cost, /copy, /share, /unshare, /undo, /redo, /rewind <count|list|delete>, /clear, /plan <title>, /compact",
+    "Commands: /help, /connect, /sessions, /new, /rename, /editor, /memory, /mode <read-only|auto|full-access>, /models <id>, /details, /thinking, /themes, /hooks, /progress, /agents, /vim, /context, /doctor, /debug, /stats, /cost, /copy, /share, /unshare, /undo, /redo, /rewind <count|list|delete>, /clear, /plan <title>, /compact",
   INVALID_MODE: "Invalid mode. Use read-only, auto, or full-access.",
   NO_SESSION_TO_UPDATE: "No session to update mode.",
   SESSION_CLEARED: "Session messages cleared.",
@@ -24,6 +24,7 @@ export const SLASH_COMMAND_MESSAGE = {
   COPY_NO_CONTENT: "No assistant response available to copy.",
   HOOKS_NOT_AVAILABLE: "Hooks panel is not available.",
   PROGRESS_NOT_AVAILABLE: "Progress panel is not available.",
+  AGENTS_NOT_AVAILABLE: "Agent discovery panel is not available.",
   VIM_NOT_AVAILABLE: "Vim mode is not available.",
   SHARE_FAILED: "Failed to share session.",
   UNSHARE_FAILED: "Failed to unshare session.",

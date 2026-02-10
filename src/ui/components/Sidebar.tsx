@@ -4,9 +4,11 @@ import { COLOR } from "@/constants/colors";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { SIDEBAR_TAB_VALUES, type SidebarTab } from "@/constants/sidebar-tabs";
+import type { UiSymbols } from "@/constants/ui-symbols";
 import { useAppStore } from "@/store/app-store";
 import type { Plan, Session, SessionId } from "@/types/domain";
 import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
+import { useUiSymbols } from "@/ui/hooks/useUiSymbols";
 import { TextAttributes } from "@opentui/core";
 import { type BoxProps, useKeyboard } from "@opentui/react";
 import { type ReactNode, memo, useCallback, useEffect, useMemo, useState } from "react";
@@ -15,11 +17,11 @@ import { FileTree } from "./FileTree";
 import { ScrollArea } from "./ScrollArea";
 
 // Helper function to truncate text with ellipsis
-const truncateText = (text: string, maxLength: number): string => {
-  if (maxLength <= 0) return "…";
+const truncateText = (text: string, maxLength: number, ellipsis: string): string => {
+  if (maxLength <= 0) return ellipsis;
   if (text.length <= maxLength) return text;
   const truncateAt = Math.max(1, maxLength - 1);
-  return `${text.slice(0, truncateAt)}…`;
+  return `${text.slice(0, truncateAt)}${ellipsis}`;
 };
 
 interface SidebarProps {
@@ -31,10 +33,14 @@ interface SidebarProps {
   focusTarget?: FocusTarget;
 }
 
-const PlanSection = memo(({ plan }: { plan?: Plan }) => {
+const PlanSection = memo(({ plan, symbols }: { plan?: Plan; symbols: UiSymbols }) => {
   if (!plan) return <text attributes={TextAttributes.DIM}>No plan</text>;
   const statusIcon =
-    plan.status === PLAN_STATUS.COMPLETED ? "✓" : plan.status === PLAN_STATUS.FAILED ? "✗" : "⟳";
+    plan.status === PLAN_STATUS.COMPLETED
+      ? symbols.CHECK
+      : plan.status === PLAN_STATUS.FAILED
+        ? symbols.CROSS
+        : symbols.SPINNER;
 
   return (
     <box flexDirection="column" gap={0} width="100%" overflow="hidden" minWidth={0}>
@@ -44,15 +50,15 @@ const PlanSection = memo(({ plan }: { plan?: Plan }) => {
       {plan.tasks.slice(0, LIMIT.SIDEBAR_TASKS_DISPLAY).map((task) => (
         <text key={task.id} attributes={TextAttributes.DIM} wrapMode="word">
           {task.status === PLAN_STATUS.COMPLETED
-            ? "✓"
+            ? symbols.CHECK
             : task.status === PLAN_STATUS.FAILED
-              ? "✗"
-              : "⟳"}{" "}
+              ? symbols.CROSS
+              : symbols.SPINNER}{" "}
           {task.title}
         </text>
       ))}
       {plan.tasks.length > LIMIT.SIDEBAR_TASKS_DISPLAY ? (
-        <text attributes={TextAttributes.DIM}>…</text>
+        <text attributes={TextAttributes.DIM}>{symbols.ELLIPSIS}</text>
       ) : null}
     </box>
   );
@@ -89,17 +95,19 @@ const SessionsSection = memo(
     currentSessionId,
     selectedIndex,
     maxWidth,
+    symbols,
   }: {
     sessions: Session[];
     currentSessionId?: SessionId;
     selectedIndex: number;
     maxWidth: number;
+    symbols: UiSymbols;
   }) => {
     if (sessions.length === 0) {
       return <text attributes={TextAttributes.DIM}>No sessions</text>;
     }
 
-    const prefixLength = `${"›"} ${"●"} `.length;
+    const prefixLength = `${symbols.CHEVRON} ${symbols.DOT_FILLED} `.length;
     const safetyMargin = LIMIT.FILE_TREE_SAFETY_MARGIN;
     const maxSessionIdLength = Math.max(1, maxWidth - prefixLength - safetyMargin);
 
@@ -108,14 +116,15 @@ const SessionsSection = memo(
         {sessions.map((session, idx) => {
           const isCurrent = session.id === currentSessionId;
           const isSelected = idx === selectedIndex;
-          const truncatedId = truncateText(session.id, maxSessionIdLength);
+          const truncatedId = truncateText(session.id, maxSessionIdLength, symbols.ELLIPSIS);
           return (
             <text
               key={session.id}
               fg={isSelected ? COLOR.CYAN : isCurrent ? COLOR.GREEN : undefined}
               attributes={!isSelected && !isCurrent ? TextAttributes.DIM : 0}
             >
-              {isSelected ? "›" : " "} {isCurrent ? "●" : "○"} {truncatedId}
+              {isSelected ? symbols.CHEVRON : " "}{" "}
+              {isCurrent ? symbols.DOT_FILLED : symbols.DOT_EMPTY} {truncatedId}
             </text>
           );
         })}
@@ -147,6 +156,7 @@ export function Sidebar({
   onSelectSession,
   focusTarget = FOCUS_TARGET.CHAT,
 }: SidebarProps): ReactNode {
+  const symbols = useUiSymbols();
   const terminal = useTerminalDimensions();
   const terminalRows = terminal.rows ?? UI.TERMINAL_DEFAULT_ROWS;
   const terminalWidth = terminal.columns ?? UI.TERMINAL_DEFAULT_COLUMNS;
@@ -321,7 +331,7 @@ export function Sidebar({
           >
             {!isCollapsed(FOCUS_TARGET.PLAN) ? (
               <box padding={1} paddingTop={0} gap={1} flexDirection="column">
-                <PlanSection plan={plan} />
+                <PlanSection plan={plan} symbols={symbols} />
               </box>
             ) : null}
           </AccordionSection>
@@ -339,11 +349,14 @@ export function Sidebar({
                   <box flexDirection="column" gap={0} minWidth={0} width="100%">
                     {displayedContext.map((file) => (
                       <text key={file} truncate={true}>
-                        • {truncateText(file, LIMIT.SIDEBAR_TRUNCATE_LENGTH)}
+                        {symbols.BULLET}{" "}
+                        {truncateText(file, LIMIT.SIDEBAR_TRUNCATE_LENGTH, symbols.ELLIPSIS)}
                       </text>
                     ))}
                     {hiddenContextCount > 0 ? (
-                      <text attributes={TextAttributes.DIM}>{`… ${hiddenContextCount} more`}</text>
+                      <text attributes={TextAttributes.DIM}>
+                        {`${symbols.ELLIPSIS} ${hiddenContextCount} more`}
+                      </text>
                     ) : null}
                   </box>
                 )}
@@ -364,6 +377,7 @@ export function Sidebar({
                   currentSessionId={activeSessionId}
                   selectedIndex={sessionIndex}
                   maxWidth={maxSessionIdWidth}
+                  symbols={symbols}
                 />
               </box>
             ) : null}

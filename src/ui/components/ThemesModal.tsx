@@ -1,6 +1,7 @@
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { useAppStore } from "@/store/app-store";
+import { useUiSymbols } from "@/ui/hooks/useUiSymbols";
 import { THEME_DEFINITIONS, THEME_ORDER } from "@/ui/theme/theme-definitions";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
@@ -12,6 +13,7 @@ interface ThemesModalProps {
 }
 
 export function ThemesModal({ isOpen, onClose }: ThemesModalProps): ReactNode {
+  const symbols = useUiSymbols();
   const currentTheme = useAppStore((state) => state.uiState.theme);
   const setTheme = useAppStore((state) => state.setTheme);
   const [index, setIndex] = useState(0);
@@ -87,8 +89,8 @@ export function ThemesModal({ isOpen, onClose }: ThemesModalProps): ReactNode {
           return (
             <box key={theme.id} flexDirection="column" paddingLeft={1} paddingRight={1}>
               <text fg={isSelected ? COLOR.GREEN : isActive ? COLOR.CYAN : COLOR.WHITE}>
-                {isSelected ? "› " : "  "}
-                {isActive && !isSelected ? "● " : "  "}
+                {isSelected ? `${symbols.CHEVRON} ` : "  "}
+                {isActive && !isSelected ? `${symbols.DOT_FILLED} ` : "  "}
                 {theme.label}
               </text>
               <text attributes={TextAttributes.DIM}>{theme.description}</text>

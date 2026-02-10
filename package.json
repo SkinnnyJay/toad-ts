@@ -41,6 +41,7 @@
     "db:reset": "bun run db:clear && bun run db:migrate",
     "persistence:export": "bunx tsx scripts/persistence/export.ts",
     "persistence:import": "bunx tsx scripts/persistence/import.ts",
+    "benchmark": "bunx tsx scripts/benchmarks/run.ts",
     "build:test:all": "bun run clean && bun run typecheck && bun run format && bun run lint && bun run build && bun run test:unit && bun run test:integration && bun run test:e2e"
   },
   "dependencies": {

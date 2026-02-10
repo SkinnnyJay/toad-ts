@@ -44,6 +44,24 @@ const SUNRISE_COLORS: ThemeColors = {
   DIFF_HUNK_BG: "#3B2F2A",
 };
 
+const HIGH_CONTRAST_COLORS: ThemeColors = {
+  ...DEFAULT_COLORS,
+  GREEN: "#00FF00",
+  RED: "#FF3333",
+  YELLOW: "#FFFF00",
+  BLUE: "#33CCFF",
+  CYAN: "#00FFFF",
+  MAGENTA: "#FF66FF",
+  ASSISTANT: "#FFFFFF",
+  CODE_BG: "#000000",
+  WARNING: "#FFFF00",
+  DIM: "#BFBFBF",
+  BORDER: "#FFFFFF",
+  DIFF_ADDED_BG: "#003300",
+  DIFF_REMOVED_BG: "#330000",
+  DIFF_HUNK_BG: "#000033",
+};
+
 export const THEME_DEFINITIONS: Record<ThemeName, ThemeDefinition> = {
   [THEME.DEFAULT]: {
     id: THEME.DEFAULT,
@@ -63,9 +81,20 @@ export const THEME_DEFINITIONS: Record<ThemeName, ThemeDefinition> = {
     description: "Warm accents with amber highlights.",
     colors: SUNRISE_COLORS,
   },
+  [THEME.HIGH_CONTRAST]: {
+    id: THEME.HIGH_CONTRAST,
+    label: "High Contrast",
+    description: "High-contrast palette for accessibility.",
+    colors: HIGH_CONTRAST_COLORS,
+  },
 };
 
-export const THEME_ORDER: ThemeName[] = [THEME.DEFAULT, THEME.MIDNIGHT, THEME.SUNRISE];
+export const THEME_ORDER: ThemeName[] = [
+  THEME.DEFAULT,
+  THEME.MIDNIGHT,
+  THEME.SUNRISE,
+  THEME.HIGH_CONTRAST,
+];
 
 export const getThemeDefinition = (theme: ThemeName): ThemeDefinition => {
   return THEME_DEFINITIONS[theme];

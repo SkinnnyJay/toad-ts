@@ -6,6 +6,7 @@ import type { SessionId } from "@/types/domain";
 import { ScrollArea } from "@/ui/components/ScrollArea";
 import { useContextStats } from "@/ui/hooks/useContextStats";
 import { useProjectFiles } from "@/ui/hooks/useProjectFiles";
+import { useUiSymbols } from "@/ui/hooks/useUiSymbols";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import type { ReactNode } from "react";
@@ -18,12 +19,8 @@ interface ContextModalProps {
   onClose: () => void;
 }
 
-const truncateText = (text: string, maxLength: number): string => {
-  if (text.length <= maxLength) return text;
-  return `${text.slice(0, maxLength - 1)}…`;
-};
-
 export function ContextModal({ isOpen, sessionId, onClose }: ContextModalProps): ReactNode {
+  const symbols = useUiSymbols();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const { filePaths, isLoading, error } = useProjectFiles({ enabled: isOpen });
   const contextStats = useContextStats(sessionId);
@@ -33,6 +30,10 @@ export function ContextModal({ isOpen, sessionId, onClose }: ContextModalProps):
   const setContextAttachments = useAppStore((state) => state.setContextAttachments);
 
   const list = useMemo(() => filePaths.slice(0, LIMIT.MAX_FILES), [filePaths]);
+  const truncateText = (text: string, maxLength: number): string => {
+    if (text.length <= maxLength) return text;
+    return `${text.slice(0, maxLength - 1)}${symbols.ELLIPSIS}`;
+  };
 
   useEffect(() => {
     if (selectedIndex >= list.length) {
@@ -114,7 +115,7 @@ export function ContextModal({ isOpen, sessionId, onClose }: ContextModalProps):
 
       <box flexDirection="column" flexGrow={1} minHeight={contentMinHeight}>
         {isLoading ? (
-          <text attributes={TextAttributes.DIM}>Loading project files…</text>
+          <text attributes={TextAttributes.DIM}>{`Loading project files${symbols.ELLIPSIS}`}</text>
         ) : error ? (
           <text fg={COLOR.RED}>Failed to load files: {error}</text>
         ) : list.length === 0 ? (
@@ -131,8 +132,8 @@ export function ContextModal({ isOpen, sessionId, onClose }: ContextModalProps):
                     fg={isSelected ? COLOR.GREEN : COLOR.WHITE}
                     attributes={isAttached ? TextAttributes.BOLD : undefined}
                   >
-                    {isSelected ? "› " : "  "}
-                    {isAttached ? "✓ " : "  "}
+                    {isSelected ? `${symbols.CHEVRON} ` : "  "}
+                    {isAttached ? `${symbols.CHECK} ` : "  "}
                     {truncateText(file, LIMIT.SIDEBAR_TRUNCATE_LENGTH)}
                   </text>
                 );

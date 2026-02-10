@@ -380,7 +380,9 @@ export const AppStateSchema = z.object({
       accordionCollapsed: z.record(z.enum(SIDEBAR_TAB_VALUES), z.boolean()).default({}),
       showToolDetails: z.boolean().default(true),
       showThinking: z.boolean().default(true),
-      theme: z.enum([THEME.DEFAULT, THEME.MIDNIGHT, THEME.SUNRISE]).default(THEME.DEFAULT),
+      theme: z
+        .enum([THEME.DEFAULT, THEME.MIDNIGHT, THEME.SUNRISE, THEME.HIGH_CONTRAST])
+        .default(THEME.DEFAULT),
     })
     .default({}),
 });

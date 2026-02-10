@@ -70,6 +70,7 @@ export interface SlashCommandDeps {
   openContext?: () => void;
   openHooks?: () => void;
   openProgress?: () => void;
+  openAgents?: () => void;
   openMemoryFile?: (filePath: string) => Promise<boolean>;
   copyToClipboard?: (text: string) => Promise<boolean>;
   runCompaction?: (sessionId: SessionId) => Promise<SessionId | null>;
@@ -98,6 +99,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     command === SLASH_COMMAND.THEMES ||
     command === SLASH_COMMAND.HOOKS ||
     command === SLASH_COMMAND.PROGRESS ||
+    command === SLASH_COMMAND.AGENTS ||
     command === SLASH_COMMAND.VIM;
   if (!deps.sessionId && !allowsWithoutSession) {
     deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
@@ -470,6 +472,14 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         return true;
       }
       deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.PROGRESS_NOT_AVAILABLE);
+      return true;
+    }
+    case SLASH_COMMAND.AGENTS: {
+      if (deps.openAgents) {
+        deps.openAgents();
+        return true;
+      }
+      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.AGENTS_NOT_AVAILABLE);
       return true;
     }
     default: {

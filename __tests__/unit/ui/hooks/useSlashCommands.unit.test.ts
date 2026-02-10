@@ -84,6 +84,7 @@ describe("useSlashCommands", () => {
       expect(SLASH_COMMAND.DOCTOR).toBe("/doctor");
       expect(SLASH_COMMAND.EDITOR).toBe("/editor");
       expect(SLASH_COMMAND.HELP).toBe("/help");
+      expect(SLASH_COMMAND.AGENTS).toBe("/agents");
       expect(SLASH_COMMAND.HOOKS).toBe("/hooks");
       expect(SLASH_COMMAND.DETAILS).toBe("/details");
       expect(SLASH_COMMAND.MEMORY).toBe("/memory");

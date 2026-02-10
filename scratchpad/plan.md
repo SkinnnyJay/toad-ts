@@ -90,7 +90,12 @@
   - [X] Progress modal panel (/progress)
 
 ## Phase 16: Distribution & Polish
-- [ ] Phase 16 tasks (see PLAN.md)
+- [X] Phase 16 tasks (see PLAN.md)
   - [X] CI workflow + publish config
   - [X] Headless server documentation
-  - [ ] Remaining distribution & polish work
+  - [X] Install script + Homebrew formula
+  - [X] Auto-update check
+  - [X] Terminal setup + compatibility docs
+  - [X] Accessibility improvements (ASCII/high-contrast)
+  - [X] Performance benchmarks + docs
+  - [X] Agent discovery modal

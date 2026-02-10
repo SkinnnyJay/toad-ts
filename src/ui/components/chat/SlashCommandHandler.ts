@@ -36,6 +36,7 @@ export interface SlashCommandHandlerOptions {
   onOpenContext?: () => void;
   onOpenHooks?: () => void;
   onOpenProgress?: () => void;
+  onOpenAgents?: () => void;
   onToggleVimMode?: () => boolean;
   checkpointManager?: CheckpointManager;
   client?: HarnessRuntime | null;
@@ -58,6 +59,7 @@ export const useSlashCommandHandler = ({
   onOpenContext,
   onOpenHooks,
   onOpenProgress,
+  onOpenAgents,
   onToggleVimMode,
   checkpointManager,
   client,
@@ -301,6 +303,7 @@ export const useSlashCommandHandler = ({
         openContext: onOpenContext,
         openHooks: onOpenHooks,
         openProgress: onOpenProgress,
+        openAgents: onOpenAgents,
         openMemoryFile,
         copyToClipboard,
         runCompaction,
@@ -333,6 +336,7 @@ export const useSlashCommandHandler = ({
       onOpenContext,
       onOpenHooks,
       onOpenProgress,
+      onOpenAgents,
       onToggleVimMode,
       checkpointManager,
       client,

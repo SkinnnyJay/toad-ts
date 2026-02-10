@@ -38,6 +38,14 @@ npm install -g toadstool-cli
 
 # Or use npx
 npx toadstool-cli
+
+# Install via script (from source checkout)
+./scripts/install.sh
+
+# (script installs the `toadstool-ts` package name)
+
+# Homebrew (HEAD build)
+brew install --HEAD ./homebrew/toadstool.rb
 ```
 
 ### Requirements
@@ -132,6 +140,49 @@ HTTP endpoints:
 - `GET /sessions/:id/messages`
 
 WebSocket connections receive session events for created sessions and streaming updates.
+
+---
+
+## 🖥️ Terminal Setup
+
+Generate a terminal setup script that configures recommended settings:
+
+```bash
+toadstool --setup
+```
+
+Source the generated script (path is printed after running the command). You can also force ASCII
+glyphs for compatibility:
+
+```bash
+export TOADSTOOL_ASCII=true
+```
+
+Disable update checks:
+
+```bash
+export TOADSTOOL_DISABLE_UPDATE_CHECK=true
+```
+
+See `docs/COMPATIBILITY.md` for terminal compatibility tips.
+
+---
+
+## 📈 Performance Benchmarks
+
+Run the benchmark script to capture baseline timings:
+
+```bash
+npm run benchmark
+```
+
+See `docs/PERFORMANCE.md` for details.
+
+---
+
+## 🤝 Contributing
+
+See `CONTRIBUTING.md` for development workflows and quality gates.
 
 ---
 
