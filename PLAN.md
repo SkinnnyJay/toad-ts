@@ -2533,7 +2533,7 @@ only rendering primitives change.
 - [ ] Replace `InputWithAutocomplete` multiline mode with `<textarea>` intrinsic
 - [ ] Audit OpenTUI best practices (focus, autoFocus, scrollbox, styling)
 - [ ] Validate OpenTUI input/textarea feature parity (mouse selection, word select, copy/paste)
-- [ ] Implement missing text editing shortcuts (kill ring, word jump, selection extend)
+- [X] Implement missing text editing shortcuts (kill ring, word jump, selection extend)
 
 **Hook migration:**
 - [X] `useTerminalDimensions.ts` -> OpenTUI `useTerminalDimensions()`
@@ -2772,11 +2772,11 @@ Establish performance patterns during migration while components are being rewri
   - [X] Add/remove workspace roots
   - [X] Switch active workspace in TUI
   - [X] Persist per-workspace settings + recent list
-  - [ ] Workspace indicator in status/footer
+  - [X] Workspace indicator in status/footer
   - [ ] Context attachments scoped per workspace
 - [X] **Block navigation (from TOAD):**
   - [X] Cursor through conversation blocks like Jupyter cells
-  - [ ] Per-block actions: copy, re-send, export
+  - [X] Per-block actions: copy, re-send, export
 - [X] **Session diff (from OpenCode):**
   - [X] View all file changes made in a session
   - [X] Per-message diff view
@@ -2838,9 +2838,9 @@ Establish performance patterns during migration while components are being rewri
   - [X] `skill` tool for on-demand loading by agents
   - [X] Skill permissions (allow/deny/ask with glob patterns)
 - [ ] **Resources system (skills/resources/commands parity):**
-  - [ ] Resource registry + loader (local + remote)
+  - [X] Resource registry + loader (local + remote)
   - [ ] Resource picker UI in TUI
-  - [ ] `resource` tool for on-demand loading
+  - [X] `resource` tool for on-demand loading
 - [X] **Universal commands loader:**
   - [X] Scan `.toadstool/commands/`, `.claude/commands/`, `.cursor/commands/`, `.opencode/command/`
   - [X] Parse command .md files, register as slash commands
@@ -3074,17 +3074,17 @@ export function MarkdownView({ content, streaming = false, syntaxStyle }: Markdo
 
 **Prompt Editor (TOAD-quality input):**
 The input component is the first thing users interact with. It must feel as polished as TOAD's:
-- [ ] Live Markdown syntax highlighting in the input (code fences highlighted *before* closing)
-- [ ] Mouse click to position cursor, drag to select
-- [ ] Full readline keybindings (Ctrl+A/E/B/F/K/U/W/D)
-- [ ] Kill ring (Ctrl+K/U stores, Ctrl+Y pastes, Alt+Y cycles)
-- [ ] Text selection with Shift+Arrows
-- [ ] Multi-line with Shift+Enter
-- [ ] `@` fuzzy file picker with Tab to switch to tree view
-- [ ] `/` slash command autocomplete
-- [ ] `!` bash mode (auto-detect configurable commands)
-- [ ] Reverse history search (Ctrl+R)
-- [ ] Tab completion for shell commands
+- [X] Live Markdown syntax highlighting in the input (code fences highlighted *before* closing)
+- [X] Mouse click to position cursor, drag to select
+- [X] Full readline keybindings (Ctrl+A/E/B/F/K/U/W/D)
+- [X] Kill ring (Ctrl+K/U stores, Ctrl+Y pastes, Alt+Y cycles)
+- [X] Text selection with Shift+Arrows
+- [X] Multi-line with Shift+Enter
+- [X] `@` fuzzy file picker with Tab to switch to tree view
+- [X] `/` slash command autocomplete
+- [X] `!` bash mode (auto-detect configurable commands)
+- [X] Reverse history search (Ctrl+R)
+- [X] Tab completion for shell commands
 
 **File Picker (TOAD dual-mode):**
 ```typescript
@@ -3377,11 +3377,11 @@ vscode-languageclient # LSP client (if adding LSP)
 ```
 
 ### External tools required:
-- [ ] `bun` - Runtime (replaces Node.js for app execution)
-- [ ] `git` - For undo/redo feature
-- [ ] `ripgrep` (`rg`) - Already a dependency via `@vscode/ripgrep`
-- [ ] `$EDITOR` env var - For external editor integration
-- [ ] `tree-sitter` - Built into OpenTUI (no separate install needed)
+- [X] `bun` - Runtime (replaces Node.js for app execution)
+- [X] `git` - For undo/redo feature
+- [X] `ripgrep` (`rg`) - Already a dependency via `@vscode/ripgrep`
+- [X] `$EDITOR` env var - For external editor integration
+- [X] `tree-sitter` - Built into OpenTUI (no separate install needed)
 
 ### Packages removed in Phase 4:
 ```
