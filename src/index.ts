@@ -66,6 +66,7 @@ export * from "@/core/cursor/cursor-stream-parser";
 export * from "@/core/cursor/cursor-cli-connection";
 export * from "@/core/cursor/cursor-to-acp-translator";
 export * from "@/core/cursor/hook-ipc-server";
+export * from "@/core/cursor/hooks-config-generator";
 export * from "@/core/permission-modes";
 export * from "@/core/prompt-suggestions";
 export * from "@/core/image-support";
