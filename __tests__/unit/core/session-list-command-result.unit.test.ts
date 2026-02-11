@@ -86,4 +86,21 @@ describe("session-list-command-result", () => {
 
     expect(parsed).toEqual([]);
   });
+
+  it("falls back to combined output when stdout has warning noise", () => {
+    const parsed = parseSessionListCommandResult({
+      stdout: "warning: sessions output redirected to stderr",
+      stderr: "session-resume-id Native title model: gpt-5 messages: 14",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual([
+      {
+        id: "session-resume-id",
+        title: "Native title",
+        model: "gpt-5",
+        messageCount: 14,
+      },
+    ]);
+  });
 });

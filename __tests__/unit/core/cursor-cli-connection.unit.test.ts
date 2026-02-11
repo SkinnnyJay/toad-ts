@@ -154,6 +154,31 @@ describe("CursorCliConnection", () => {
     ]);
   });
 
+  it("parses session listing from stderr when stdout has warning noise", async () => {
+    const connection = new CursorCliConnection({
+      commandRunner: async (_command, args) => {
+        if (args[0] === AGENT_MANAGEMENT_COMMAND.LIST) {
+          return {
+            stdout: "warning: sessions output redirected to stderr",
+            stderr: "session-resume-id Native title model: gpt-5 messages: 14",
+            exitCode: 0,
+          };
+        }
+        return { stdout: "", stderr: "", exitCode: 0 };
+      },
+    });
+
+    const sessions = await connection.listSessions();
+    expect(sessions).toEqual([
+      {
+        id: "session-resume-id",
+        title: "Native title",
+        model: "gpt-5",
+        messageCount: 14,
+      },
+    ]);
+  });
+
   it("surfaces list session command errors", async () => {
     const connection = new CursorCliConnection({
       commandRunner: async (_command, args) => {
