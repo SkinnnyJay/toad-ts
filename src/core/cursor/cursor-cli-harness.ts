@@ -149,6 +149,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
       cliAgent: new CursorCliAgentPort({
         connection: this.connection,
         getPromptEnvOverrides: () => this.getHookSocketEnvOverrides(),
+        isApiKeyConfigured: () => Boolean(this.env[ENV_KEY.CURSOR_API_KEY]),
       }),
     });
     this.installHooksFn = options.installHooksFn ?? installCursorHooks;
@@ -190,18 +191,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
     }
     this.setConnectionStatus(CONNECTION_STATUS.CONNECTING);
     try {
-      const installInfo = await this.connection.verifyInstallation();
-      if (!installInfo.installed) {
-        throw new Error("Cursor CLI is not installed. Install cursor-agent before connecting.");
-      }
-
-      const authStatus = await this.connection.verifyAuth();
-      this.cacheAuthStatus(authStatus.authenticated);
-      if (!authStatus.authenticated && !this.env[ENV_KEY.CURSOR_API_KEY]) {
-        throw new Error(
-          "Cursor CLI is not authenticated. Run `cursor-agent login` or set CURSOR_API_KEY."
-        );
-      }
+      await this.coreHarness.connect();
 
       this.hookAddress = await this.hookServer.start();
       const hookSocketTarget = this.hookAddress.url ?? this.hookAddress.socketPath;
@@ -218,6 +208,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
       this.installSignalHandlers();
       this.setConnectionStatus(CONNECTION_STATUS.CONNECTED);
     } catch (error) {
+      await this.coreHarness.disconnect().catch(() => undefined);
       this.removeSignalHandlers();
       if (this.hookInstallation) {
         await this.cleanupHooksFn(this.hookInstallation).catch(() => undefined);
@@ -228,13 +219,13 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
         this.hookAddress = null;
       }
       this.setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
-      throw error;
+      throw this.normalizeConnectError(error);
     }
   }
 
   async disconnect(): Promise<void> {
     try {
-      await this.connection.disconnect();
+      await this.coreHarness.disconnect();
     } finally {
       try {
         await this.hookServer.stop();
@@ -261,16 +252,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
   }
 
   async authenticate(_params: AuthenticateRequest): Promise<AuthenticateResponse> {
-    const cachedAuth = this.getCachedAuthStatus();
-    if (cachedAuth === true || this.env[ENV_KEY.CURSOR_API_KEY]) {
-      return {};
-    }
-    const authStatus = await this.connection.verifyAuth();
-    this.cacheAuthStatus(authStatus.authenticated);
-    if (!authStatus.authenticated && !this.env[ENV_KEY.CURSOR_API_KEY]) {
-      throw new Error("Cursor CLI authentication is required.");
-    }
-    return {};
+    return this.coreHarness.authenticate(_params);
   }
 
   async prompt(params: PromptRequest): Promise<PromptResponse> {
@@ -492,6 +474,16 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
       return undefined;
     }
     return injectHookSocketEnv({}, hookSocketTarget);
+  }
+
+  private normalizeConnectError(error: unknown): Error {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("CLI agent is not authenticated")) {
+      return new Error(
+        "Cursor CLI is not authenticated. Run `cursor-agent login` or set CURSOR_API_KEY."
+      );
+    }
+    return error instanceof Error ? error : new Error(message);
   }
 }
 

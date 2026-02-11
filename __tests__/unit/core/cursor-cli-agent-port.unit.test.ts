@@ -134,4 +134,20 @@ describe("CursorCliAgentPort", () => {
       supportsThinking: true,
     });
   });
+
+  it("treats api key as authenticated fallback", async () => {
+    const connection = new FakeCursorConnection();
+    connection.verifyAuth = async () => ({ authenticated: false });
+    const port = new CursorCliAgentPort({
+      connection,
+      isApiKeyConfigured: () => true,
+    });
+
+    const auth = await port.verifyAuth();
+
+    expect(auth).toEqual({
+      authenticated: true,
+      method: "api_key",
+    });
+  });
 });

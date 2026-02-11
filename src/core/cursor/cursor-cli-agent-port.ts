@@ -25,6 +25,7 @@ interface CursorCliConnectionLike {
 export interface CursorCliAgentPortOptions {
   connection: CursorCliConnectionLike;
   getPromptEnvOverrides?: () => NodeJS.ProcessEnv | undefined;
+  isApiKeyConfigured?: () => boolean;
 }
 
 const toCursorPromptMode = (mode: string | undefined): CursorPromptMode | undefined => {
@@ -47,10 +48,12 @@ const assertPromptSucceeded = (result: CursorPromptResult): void => {
 export class CursorCliAgentPort implements CliAgentPort {
   private readonly connection: CursorCliConnectionLike;
   private readonly getPromptEnvOverrides?: () => NodeJS.ProcessEnv | undefined;
+  private readonly isApiKeyConfigured?: () => boolean;
 
   constructor(options: CursorCliAgentPortOptions) {
     this.connection = options.connection;
     this.getPromptEnvOverrides = options.getPromptEnvOverrides;
+    this.isApiKeyConfigured = options.isApiKeyConfigured;
   }
 
   async verifyInstallation() {
@@ -65,9 +68,10 @@ export class CursorCliAgentPort implements CliAgentPort {
 
   async verifyAuth() {
     const result = await this.connection.verifyAuth();
+    const authenticated = result.authenticated || this.isApiKeyConfigured?.() === true;
     return {
-      authenticated: result.authenticated,
-      method: result.authenticated ? "browser_login" : "none",
+      authenticated,
+      method: result.authenticated ? "browser_login" : authenticated ? "api_key" : "none",
     } as const;
   }
 

@@ -269,6 +269,38 @@ describe("CursorCliHarnessAdapter", () => {
     expect(authHarness.connectionStatus).toBe(CONNECTION_STATUS.DISCONNECTED);
   });
 
+  it("allows connect with CURSOR_API_KEY when auth status is false", async () => {
+    const connection = new FakeCursorConnection();
+    connection.verifyAuth = async () => ({ authenticated: false });
+    const hookServer = new FakeHookServer();
+
+    const harness = new CursorCliHarnessAdapter({
+      connection,
+      hookServer,
+      installHooksFn: async () => ({
+        paths: {
+          hooksFilePath: "/tmp/hooks.json",
+          toadstoolHooksDir: "/tmp/.toadstool/hooks",
+          nodeShimPath: "/tmp/.toadstool/hooks/toadstool-hook.mjs",
+          bashShimPath: "/tmp/.toadstool/hooks/toadstool-hook.sh",
+        },
+        previousHooksRaw: null,
+        generatedCommand: "/tmp/.toadstool/hooks/toadstool-hook.mjs",
+        generatedConfig: {
+          version: 1,
+          hooks: {},
+        },
+      }),
+      cleanupHooksFn: async () => {},
+      env: { [ENV_KEY.CURSOR_API_KEY]: "token" },
+    });
+
+    await harness.connect();
+    expect(harness.connectionStatus).toBe(CONNECTION_STATUS.CONNECTED);
+    expect(hookServer.started).toBe(true);
+    await harness.disconnect();
+  });
+
   it("rejects concurrent prompts while one prompt is in flight", async () => {
     const connection = new FakeCursorConnection();
     let releasePrompt: (() => void) | null = null;
