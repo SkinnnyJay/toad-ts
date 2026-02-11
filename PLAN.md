@@ -2528,11 +2528,11 @@ only rendering primitives change.
 - [X] Update `AgentSelect.tsx` to use `<select>`
 - [X] Update `CommandPalette.tsx` to use `<select>`
 - [X] Update `SessionsPopup.tsx` to use `<select>` + `<box>`
-- [ ] Replace remaining custom selects with `<select>` intrinsic (AgentSelect, CommandPalette, SessionsPopup)
-- [ ] Replace sidebar tabs with `<tab-select>` intrinsic
-- [ ] Replace `InputWithAutocomplete` multiline mode with `<textarea>` intrinsic
+- [X] Replace remaining custom selects with `<select>` intrinsic (AgentSelect, CommandPalette, SessionsPopup)
+- [X] Replace sidebar tabs with `<tab-select>` intrinsic
+- [X] Replace `InputWithAutocomplete` multiline mode with `<textarea>` intrinsic
 - [ ] Audit OpenTUI best practices (focus, autoFocus, scrollbox, styling)
-- [ ] Validate OpenTUI input/textarea feature parity (mouse selection, word select, copy/paste)
+- [X] Validate OpenTUI input/textarea feature parity (mouse selection, word select, copy/paste)
 - [X] Implement missing text editing shortcuts (kill ring, word jump, selection extend)
 
 **Hook migration:**
@@ -2773,7 +2773,7 @@ Establish performance patterns during migration while components are being rewri
   - [X] Switch active workspace in TUI
   - [X] Persist per-workspace settings + recent list
   - [X] Workspace indicator in status/footer
-  - [ ] Context attachments scoped per workspace
+  - [X] Context attachments scoped per workspace
 - [X] **Block navigation (from TOAD):**
   - [X] Cursor through conversation blocks like Jupyter cells
   - [X] Per-block actions: copy, re-send, export
@@ -2839,7 +2839,7 @@ Establish performance patterns during migration while components are being rewri
   - [X] Skill permissions (allow/deny/ask with glob patterns)
 - [ ] **Resources system (skills/resources/commands parity):**
   - [X] Resource registry + loader (local + remote)
-  - [ ] Resource picker UI in TUI
+  - [X] Resource picker UI in TUI
   - [X] `resource` tool for on-demand loading
 - [X] **Universal commands loader:**
   - [X] Scan `.toadstool/commands/`, `.claude/commands/`, `.cursor/commands/`, `.opencode/command/`
@@ -2920,14 +2920,14 @@ Establish performance patterns during migration while components are being rewri
 - [X] **Prompt suggestions (from Claude Code):**
   - [X] AI-generated next-step suggestions after each response
   - [X] Based on conversation history + git history
-  - [ ] Tab to accept, Enter to accept+submit
+  - [X] Tab to accept, Enter to accept+submit
   - [ ] Reuse prompt cache for minimal cost
 - [X] **PR review status (from Claude Code):**
   - [X] Clickable PR link in footer (requires `gh` CLI)
   - [X] Colored underline: green=approved, yellow=pending, red=changes
   - [X] Auto-refresh every 60 seconds
 - [X] **Image support (from Claude Code):**
-  - [ ] Clipboard image paste (Ctrl+V) for vision models
+  - [X] Clipboard image paste (Ctrl+V) for vision models
   - [X] `@image.png` file mention for image files
   - [ ] Image rendering in responses (ASCII art or external viewer)
 - [X] **Model variant cycling (from OpenCode):**
@@ -2935,7 +2935,7 @@ Establish performance patterns during migration while components are being rewri
   - [X] F2 to cycle recent models
   - [X] Shift+F2 to cycle reverse
 - [X] Multi-edit/patch tool (batch file modifications)
-- [ ] Scroll acceleration (`<scrollbox scrollAcceleration={...}>`)
+- [X] Scroll acceleration (`<scrollbox scrollAcceleration={...}>`)
 - [ ] OpenTUI animations for modals and transitions (`useTimeline()`)
 - [ ] **Beads integration (bd):**
   - [ ] Add `bd` tool wrapper for task/memory workflows
