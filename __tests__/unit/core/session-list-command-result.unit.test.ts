@@ -137,6 +137,16 @@ describe("session-list-command-result", () => {
     expect(parsed).toEqual([]);
   });
 
+  it("treats no-history status output as explicit empty result", () => {
+    const parsed = parseSessionListCommandResult({
+      stdout: "No history yet.",
+      stderr: "warning: stale cached session-noise-id",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual([]);
+  });
+
   it("falls back to combined output when stdout has warning noise", () => {
     const parsed = parseSessionListCommandResult({
       stdout: "warning: sessions output redirected to stderr",
