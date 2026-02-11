@@ -1,3 +1,4 @@
+import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import type { HarnessRuntime, HarnessRuntimeEvents } from "@/harness/harnessAdapter";
 import type {
@@ -126,14 +127,14 @@ export abstract class CliAgentBase
   }
 
   async login(): Promise<AgentManagementCommandResult> {
-    return this.runAgentCommand(["login"]);
+    return this.runAgentCommand([AGENT_MANAGEMENT_COMMAND.LOGIN]);
   }
 
   async logout(): Promise<AgentManagementCommandResult> {
-    return this.runAgentCommand(["logout"]);
+    return this.runAgentCommand([AGENT_MANAGEMENT_COMMAND.LOGOUT]);
   }
 
   async getStatus(): Promise<AgentManagementCommandResult> {
-    return this.runAgentCommand(["status"]);
+    return this.runAgentCommand([AGENT_MANAGEMENT_COMMAND.STATUS]);
   }
 }

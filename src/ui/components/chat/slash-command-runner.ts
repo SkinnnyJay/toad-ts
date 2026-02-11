@@ -309,7 +309,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
           }
           deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.MODELS_FETCHING);
           void deps
-            .runAgentCommand(["models"])
+            .runAgentCommand([AGENT_MANAGEMENT_COMMAND.MODELS])
             .then((result) => {
               if (result.exitCode !== 0) {
                 deps.appendSystemMessage(

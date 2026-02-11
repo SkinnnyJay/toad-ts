@@ -1,6 +1,7 @@
 import { existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { SESSION_MODE } from "@/constants/session-modes";
@@ -20,12 +21,12 @@ import { EnvManager } from "@/utils/env/env.utils";
 import type { SlashCommandDeps } from "./slash-command-runner";
 
 const MANAGEMENT_COMMAND = {
-  LOGIN: "login",
-  LOGOUT: "logout",
-  STATUS: "status",
+  LOGIN: AGENT_MANAGEMENT_COMMAND.LOGIN,
+  LOGOUT: AGENT_MANAGEMENT_COMMAND.LOGOUT,
+  STATUS: AGENT_MANAGEMENT_COMMAND.STATUS,
   SETUP_TOKEN: "setup-token",
-  MODELS: "models",
-  MCP: "mcp",
+  MODELS: AGENT_MANAGEMENT_COMMAND.MODELS,
+  MCP: AGENT_MANAGEMENT_COMMAND.MCP,
   LIST: "list",
 } as const;
 
