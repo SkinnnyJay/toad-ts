@@ -31,7 +31,11 @@ program
   .option("--max-turns <turns>", "Maximum conversation turns (headless)")
   .option("--max-budget-usd <budget>", "Maximum budget in USD (headless)")
   .option("--model <model>", "Model to use")
-  .option("--allowedTools <tools>", "Comma-separated allowed tools for auto-approval");
+  .option("--allowedTools <tools>", "Comma-separated allowed tools for auto-approval")
+  .option("--json-schema <schema>", "JSON schema for validated responses")
+  .option("--append-system-prompt <prompt>", "Append to system prompt")
+  .option("--fallback-model <model>", "Fallback model for overloaded servers")
+  .option("--from-pr <pr>", "Resume session linked to a PR number");
 
 // Subcommand: run
 program
@@ -100,6 +104,50 @@ program
     process.stdout.write("  OPENAI_API_KEY - for OpenAI\n");
   });
 
+// Subcommand: agent create
+program
+  .command("agent <action>")
+  .description("Agent management (create)")
+  .action((action: string) => {
+    if (action === "create") {
+      process.stdout.write("Agent creation wizard:\n");
+      process.stdout.write("1. Create a .md file in .toadstool/agents/\n");
+      process.stdout.write("2. Add YAML frontmatter with name, description, model, tools\n");
+      process.stdout.write("3. Add markdown body with agent instructions\n");
+      process.stdout.write("\nExample:\n");
+      process.stdout.write(
+        "---\nname: reviewer\ndescription: Code reviewer\nmodel: claude-sonnet-4\n---\n\nReview all code changes.\n"
+      );
+    } else {
+      process.stderr.write(`Unknown agent action: ${action}\n`);
+    }
+  });
+
+// Subcommand: mcp
+program
+  .command("mcp [action]")
+  .description("MCP server management (list, add, remove)")
+  .action((action?: string) => {
+    if (!action || action === "list") {
+      process.stdout.write(
+        "MCP servers are configured in .toadstool/mcp.json or .cursor/mcp.json\n"
+      );
+    } else {
+      process.stdout.write(`MCP action '${action}' — edit your mcp.json configuration file.\n`);
+    }
+  });
+
+// Subcommand: attach
+program
+  .command("attach [url]")
+  .description("Attach to a running TOADSTOOL server")
+  .option("--port <port>", "Server port")
+  .action((url?: string, subOpts?: { port?: string }) => {
+    const target = url ?? `http://127.0.0.1:${subOpts?.port ?? "4141"}`;
+    process.stdout.write(`Connecting to ${target}...\n`);
+    process.stdout.write("Use 'toadstool serve' on the remote machine first.\n");
+  });
+
 // Subcommand: version
 program
   .command("version")
@@ -123,7 +171,14 @@ const opts = program.opts<{
   maxBudgetUsd?: string;
   model?: string;
   allowedTools?: string;
+  jsonSchema?: string;
+  appendSystemPrompt?: string;
+  fallbackModel?: string;
+  fromPr?: string;
 }>();
+
+// Detect piped stdin (e.g., cat file | toadstool -p "query")
+const hasPipedInput = !process.stdin.isTTY;
 
 // Only run TUI/server/setup if no subcommand was handled
 const subcommandUsed =
@@ -134,15 +189,33 @@ if (!subcommandUsed) {
     process.stdout.write(`Wrote terminal setup script to ${result.scriptPath}\n`);
     process.stdout.write(`Run: source ${result.scriptPath}\n`);
   } else if (opts.prompt) {
+    // Read piped stdin if available
+    let stdinContent = "";
+    if (hasPipedInput) {
+      const chunks: Buffer[] = [];
+      for await (const chunk of process.stdin) {
+        chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+      }
+      stdinContent = Buffer.concat(chunks).toString("utf8");
+    }
+
+    const fullPrompt = stdinContent ? `${stdinContent}\n\n${opts.prompt}` : opts.prompt;
+
     // Headless prompt mode
     process.stdout.write(
       `${JSON.stringify({
         mode: "headless",
-        prompt: opts.prompt,
+        prompt: fullPrompt,
         model: opts.model,
         outputFormat: opts.outputFormat ?? "text",
         maxTurns: opts.maxTurns ? Number.parseInt(opts.maxTurns, 10) : undefined,
         maxBudgetUsd: opts.maxBudgetUsd ? Number.parseFloat(opts.maxBudgetUsd) : undefined,
+        jsonSchema: opts.jsonSchema,
+        appendSystemPrompt: opts.appendSystemPrompt,
+        fallbackModel: opts.fallbackModel,
+        fromPr: opts.fromPr,
+        allowedTools: opts.allowedTools?.split(",").map((t) => t.trim()),
+        hasPipedInput,
       })}\n`
     );
     process.stdout.write("Headless mode: prompt queued for execution.\n");

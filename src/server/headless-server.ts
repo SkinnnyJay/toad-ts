@@ -13,6 +13,7 @@ import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { HarnessRegistry } from "@/harness/harnessRegistry";
 import { matchRoute } from "@/server/api-routes";
+import { checkServerAuth } from "@/server/server-auth";
 import type { ServerRuntimeConfig } from "@/server/server-config";
 import { createSessionRequestSchema, promptSessionRequestSchema } from "@/server/server-types";
 import { useAppStore } from "@/store/app-store";
@@ -89,6 +90,12 @@ export const startHeadlessServer = async (
     try {
       if (!req.url || !req.method) {
         sendError(res, HTTP_STATUS.BAD_REQUEST, "Invalid request.");
+        return;
+      }
+
+      // Auth check (skip for health endpoint)
+      const authUrl = new URL(req.url, `http://${req.headers.host ?? "localhost"}`);
+      if (authUrl.pathname !== "/health" && !checkServerAuth(req, res)) {
         return;
       }
       const url = new URL(req.url, `http://${req.headers.host ?? "localhost"}`);

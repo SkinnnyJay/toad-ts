@@ -115,6 +115,12 @@ export const compatibilitySchema = z
   })
   .strict();
 
+export const shareSchema = z
+  .object({
+    mode: z.enum(["manual", "auto", "disabled"]).optional(),
+  })
+  .strict();
+
 export const formatterSchema = z
   .object({
     command: z.array(z.string()).optional(),
@@ -137,6 +143,7 @@ export const appConfigSchema = z
     compatibility: compatibilitySchema.optional(),
     formatters: z.record(formatterSchema).optional(),
     instructions: z.array(z.string()).optional(),
+    share: shareSchema.optional(),
   })
   .strict();
 

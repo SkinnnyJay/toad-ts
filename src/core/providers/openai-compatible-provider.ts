@@ -251,3 +251,67 @@ export const createXAIProvider = (apiKey: string): OpenAICompatibleProvider =>
       { id: "grok-2-mini", name: "Grok 2 Mini", contextWindow: 128_000, supportsStreaming: true },
     ],
   });
+
+export const createBedrockProvider = (
+  apiKey: string,
+  region = "us-east-1"
+): OpenAICompatibleProvider =>
+  new OpenAICompatibleProvider(
+    "bedrock",
+    "AWS Bedrock",
+    apiKey,
+    `https://bedrock-runtime.${region}.amazonaws.com`,
+    {
+      headers: { "X-Amzn-Bedrock-Accept": "application/json" },
+      models: [
+        {
+          id: "anthropic.claude-3-5-sonnet-20241022-v2:0",
+          name: "Claude 3.5 Sonnet (Bedrock)",
+          contextWindow: 200_000,
+          supportsStreaming: true,
+        },
+        {
+          id: "anthropic.claude-3-haiku-20240307-v1:0",
+          name: "Claude 3 Haiku (Bedrock)",
+          contextWindow: 200_000,
+          supportsStreaming: true,
+        },
+      ],
+    }
+  );
+
+export const createVertexProvider = (
+  apiKey: string,
+  projectId: string,
+  region = "us-central1"
+): OpenAICompatibleProvider =>
+  new OpenAICompatibleProvider(
+    "vertex",
+    "Google Vertex AI",
+    apiKey,
+    `https://${region}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${region}/publishers/google/models`,
+    {
+      models: [
+        {
+          id: "gemini-2.0-flash",
+          name: "Gemini 2.0 Flash (Vertex)",
+          contextWindow: 1_000_000,
+          supportsStreaming: true,
+        },
+        {
+          id: "gemini-1.5-pro",
+          name: "Gemini 1.5 Pro (Vertex)",
+          contextWindow: 2_000_000,
+          supportsStreaming: true,
+        },
+      ],
+    }
+  );
+
+export const createCohereProvider = (apiKey: string): OpenAICompatibleProvider =>
+  new OpenAICompatibleProvider("cohere", "Cohere", apiKey, "https://api.cohere.ai/compatibility", {
+    models: [
+      { id: "command-r-plus", name: "Command R+", contextWindow: 128_000, supportsStreaming: true },
+      { id: "command-r", name: "Command R", contextWindow: 128_000, supportsStreaming: true },
+    ],
+  });
