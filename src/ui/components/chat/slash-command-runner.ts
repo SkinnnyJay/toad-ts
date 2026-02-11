@@ -26,8 +26,7 @@ import {
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { TASK_STATUS } from "@/constants/task-status";
 import { parseModelsOutput } from "@/core/agent-management/cli-output-parser";
-import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
-import { toAgentManagementSessions } from "@/core/agent-management/session-summary-mapper";
+import { parseAgentManagementSessionsFromCommandResult } from "@/core/agent-management/session-list-command-result";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { AgentManagementSession } from "@/types/agent-management.types";
@@ -222,7 +221,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         void deps
           .runAgentCommand([AGENT_MANAGEMENT_COMMAND.LIST])
           .then((result) => {
-            const sessions = toAgentManagementSessions(parseSessionListCommandResult(result));
+            const sessions = parseAgentManagementSessionsFromCommandResult(result);
             deps.appendSystemMessage(formatAgentSessionListMessage(sessions));
           })
           .catch((error) => {

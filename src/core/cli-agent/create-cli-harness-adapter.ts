@@ -2,7 +2,7 @@ import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands"
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { ALLOW_ONCE, REJECT_ONCE } from "@/constants/permission-option-kinds";
-import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
+import { parseNormalizedAgentManagementSessionsFromCommandResult } from "@/core/agent-management/session-list-command-result";
 import {
   toAgentManagementSessions,
   toNormalizedAgentManagementSessions,
@@ -183,9 +183,7 @@ export class CliHarnessAdapter extends CliAgentBase {
 
     if (this.cliAgent.runManagementCommand) {
       const result = await this.cliAgent.runManagementCommand([AGENT_MANAGEMENT_COMMAND.LIST]);
-      return toNormalizedAgentManagementSessions(
-        toAgentManagementSessions(parseSessionListCommandResult(result))
-      );
+      return parseNormalizedAgentManagementSessionsFromCommandResult(result);
     }
 
     throw new Error("CLI agent does not support session listing.");

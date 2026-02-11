@@ -1,4 +1,8 @@
-import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
+import {
+  parseAgentManagementSessionsFromCommandResult,
+  parseNormalizedAgentManagementSessionsFromCommandResult,
+  parseSessionListCommandResult,
+} from "@/core/agent-management/session-list-command-result";
 import { describe, expect, it } from "vitest";
 
 describe("session-list-command-result", () => {
@@ -27,5 +31,49 @@ describe("session-list-command-result", () => {
         exitCode: 1,
       })
     ).toThrow("requires tty");
+  });
+
+  it("maps successful command output to agent-management sessions", () => {
+    const mapped = parseAgentManagementSessionsFromCommandResult({
+      stdout: "session-resume-id Native title model: gpt-5 messages: 14",
+      stderr: "",
+      exitCode: 0,
+    });
+
+    expect(mapped).toEqual([
+      {
+        id: "session-resume-id",
+        title: "Native title",
+        model: "gpt-5",
+        messageCount: 14,
+      },
+    ]);
+  });
+
+  it("returns normalized deduplicated sessions from command output", () => {
+    const normalized = parseNormalizedAgentManagementSessionsFromCommandResult({
+      stdout: [
+        "session-old Older title createdAt=2026-02-10T18:30:00Z",
+        "session-new Newer title createdAt=2026-02-11T18:30:00Z",
+        "session-new Newer title model: gpt-5 messages: 12",
+      ].join("\n"),
+      stderr: "",
+      exitCode: 0,
+    });
+
+    expect(normalized).toEqual([
+      {
+        id: "session-new",
+        title: "Newer title",
+        createdAt: "2026-02-11T18:30:00.000Z",
+        model: "gpt-5",
+        messageCount: 12,
+      },
+      {
+        id: "session-old",
+        title: "Older title",
+        createdAt: "2026-02-10T18:30:00.000Z",
+      },
+    ]);
   });
 });

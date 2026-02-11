@@ -1,9 +1,6 @@
 import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
-import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
-import {
-  toAgentManagementSessions,
-  toNormalizedAgentManagementSessions,
-} from "@/core/agent-management/session-summary-mapper";
+import { parseAgentManagementSessionsFromCommandResult } from "@/core/agent-management/session-list-command-result";
+import { toNormalizedAgentManagementSessions } from "@/core/agent-management/session-summary-mapper";
 import type {
   AgentManagementCommandResult,
   AgentManagementSession,
@@ -62,7 +59,7 @@ const toUniqueSessionIdsFromList = (sessionIds: string[]): SessionId[] => {
 const toUniqueSessionsFromCommandResult = (
   result: AgentManagementCommandResult
 ): AgentManagementSession[] =>
-  toSortedUniqueValidatedSessions(toAgentManagementSessions(parseSessionListCommandResult(result)));
+  toSortedUniqueValidatedSessions(parseAgentManagementSessionsFromCommandResult(result));
 
 export interface UseCursorNativeSessionIdsOptions {
   enabled?: boolean;
