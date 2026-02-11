@@ -84,6 +84,20 @@ describe("command-result-utils", () => {
     expect(parsed).toBe(true);
   });
 
+  it("uses combined output when stdout is empty", () => {
+    const parsed = parseStdoutWithCombinedFallback({
+      result: {
+        stdout: "",
+        stderr: "value=42",
+        exitCode: 0,
+      },
+      parse: (output) => output.includes("value=42"),
+      shouldAcceptParsed: (accepted) => accepted,
+    });
+
+    expect(parsed).toBe(true);
+  });
+
   it("skips combined fallback when predicate disallows it", () => {
     const parsed = parseStdoutWithCombinedFallback({
       result: {
