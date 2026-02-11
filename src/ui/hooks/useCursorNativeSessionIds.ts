@@ -1,5 +1,5 @@
 import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
-import { parseSessionSummariesOutput } from "@/core/agent-management/cli-output-parser";
+import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
 import { useCallback, useEffect, useState } from "react";
@@ -34,9 +34,13 @@ const toUniqueSessions = (sessions: AgentManagementSession[]): AgentManagementSe
   return Array.from(uniqueById.values());
 };
 
-const toUniqueSessionsFromOutput = (value: string): AgentManagementSession[] =>
+const toUniqueSessionsFromCommandResult = (result: {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+}): AgentManagementSession[] =>
   toUniqueSessions(
-    parseSessionSummariesOutput(value).filter(
+    parseSessionListCommandResult(result).filter(
       (session): session is AgentManagementSession => SessionIdSchema.safeParse(session.id).success
     )
   );
@@ -95,11 +99,7 @@ export function useCursorNativeSessionIds(
         return;
       }
       const result = await client.runAgentCommand([CURSOR_NATIVE_SESSION_COMMAND.LIST]);
-      if (result.exitCode !== 0) {
-        const output = `${result.stderr}\n${result.stdout}`.trim();
-        throw new Error(output.length > 0 ? output : "Cursor session listing command failed.");
-      }
-      const parsed = toUniqueSessionsFromOutput(`${result.stdout}\n${result.stderr}`);
+      const parsed = toUniqueSessionsFromCommandResult(result);
       setSessions(parsed);
     } catch (error) {
       setSessions([]);

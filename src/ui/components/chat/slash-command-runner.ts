@@ -25,10 +25,8 @@ import {
 } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { TASK_STATUS } from "@/constants/task-status";
-import {
-  parseModelsOutput,
-  parseSessionSummariesOutput,
-} from "@/core/agent-management/cli-output-parser";
+import { parseModelsOutput } from "@/core/agent-management/cli-output-parser";
+import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { AgentManagementSession } from "@/types/agent-management.types";
@@ -223,13 +221,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         void deps
           .runAgentCommand([AGENT_MANAGEMENT_COMMAND.LIST])
           .then((result) => {
-            if (result.exitCode !== 0) {
-              deps.appendSystemMessage(
-                `${SLASH_COMMAND_MESSAGE.SESSIONS_NOT_AVAILABLE} ${result.stderr || result.stdout}`
-              );
-              return;
-            }
-            const sessions = parseSessionSummariesOutput(`${result.stdout}\n${result.stderr}`);
+            const sessions = parseSessionListCommandResult(result);
             deps.appendSystemMessage(formatAgentSessionListMessage(sessions));
           })
           .catch((error) => {
