@@ -117,6 +117,26 @@ describe("session-list-command-result", () => {
     expect(parsed).toEqual([]);
   });
 
+  it("treats zero-chats status output as explicit empty result", () => {
+    const parsed = parseSessionListCommandResult({
+      stdout: "0 chats",
+      stderr: "warning: stale cached session-noise-id",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual([]);
+  });
+
+  it("treats zero-conversations status output as explicit empty result", () => {
+    const parsed = parseSessionListCommandResult({
+      stdout: "0 conversations",
+      stderr: "warning: stale cached session-noise-id",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual([]);
+  });
+
   it("falls back to combined output when stdout has warning noise", () => {
     const parsed = parseSessionListCommandResult({
       stdout: "warning: sessions output redirected to stderr",
