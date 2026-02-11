@@ -3,7 +3,10 @@ import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { KEY_NAME } from "@/constants/key-names";
 import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
-import { toUniqueAgentManagementSessions } from "@/core/agent-management/session-summary-mapper";
+import {
+  sortAgentManagementSessionsByRecency,
+  toUniqueAgentManagementSessions,
+} from "@/core/agent-management/session-summary-mapper";
 import { useAppStore } from "@/store/app-store";
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
@@ -27,7 +30,6 @@ interface SessionEntry {
   title: string;
   searchText: string;
   description: string;
-  sortTimestamp?: number;
 }
 
 export function SessionsPopup({
@@ -69,7 +71,7 @@ export function SessionsPopup({
     });
     const localIds = new Set(localEntries.map((entry) => entry.id));
     const externalEntries: SessionEntry[] = [];
-    for (const session of uniqueExternalSessions) {
+    for (const session of sortAgentManagementSessionsByRecency(uniqueExternalSessions)) {
       const parsedId = SessionIdSchema.safeParse(session.id);
       if (!parsedId.success) {
         continue;
@@ -93,7 +95,6 @@ export function SessionsPopup({
         details.push(`Messages: ${session.messageCount}`);
       }
       const suffix = details.length > 0 ? ` · ${details.join(" · ")}` : "";
-      const createdTimestamp = session.createdAt ? Date.parse(session.createdAt) : Number.NaN;
       externalEntries.push({
         id: sessionId,
         title: `Native: ${shortId}`,
@@ -101,14 +102,8 @@ export function SessionsPopup({
           session.model ?? ""
         } ${session.messageCount ?? ""} cursor`,
         description: `Native Cursor session (${session.id})${suffix}`,
-        sortTimestamp: Number.isNaN(createdTimestamp) ? undefined : createdTimestamp,
       });
     }
-    externalEntries.sort((left, right) => {
-      const leftValue = left.sortTimestamp ?? 0;
-      const rightValue = right.sortTimestamp ?? 0;
-      return rightValue - leftValue;
-    });
     return [...localEntries, ...externalEntries];
   }, [sortedSessions, uniqueExternalSessions]);
 
