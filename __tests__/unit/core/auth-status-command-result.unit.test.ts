@@ -16,6 +16,20 @@ describe("auth-status-command-result", () => {
     });
   });
 
+  it("parses authenticated key-value status from stdout output", () => {
+    const parsed = parseAuthStatusCommandResult({
+      stdout: "Authenticated: true\nEmail: kv-user@example.com",
+      stderr: "",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual({
+      authenticated: true,
+      method: "browser_login",
+      email: "kv-user@example.com",
+    });
+  });
+
   it("falls back to stderr when stdout is empty", () => {
     const parsed = parseAuthStatusCommandResult({
       stdout: "",

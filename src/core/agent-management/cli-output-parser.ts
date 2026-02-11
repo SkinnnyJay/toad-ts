@@ -21,6 +21,8 @@ const SESSION_CREATED_AT_PATTERN =
   /\b(?:created(?:_?at)?\s*[:=]\s*)?(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))\b/i;
 const MODEL_LINE_PATTERN = /^(\S+)\s+-\s+(.+)$/;
 const LOGGED_IN_PATTERN = /logged in as\s+([^\s]+@[^\s]+)/i;
+const AUTHENTICATED_STATUS_PATTERN = /\bauthenticated\b\s*[:=]\s*(true|false|yes|no|1|0)\b/i;
+const AUTH_EMAIL_PATTERN = /\b(?:email|user|account)\b\s*[:=]\s*([^\s]+@[^\s]+)/i;
 const REQUIRES_TTY_PATTERN = /requires tty/i;
 
 const getNonEmptyLines = (input: string): string[] =>
@@ -29,12 +31,35 @@ const getNonEmptyLines = (input: string): string[] =>
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
 
+const parseBooleanToken = (value: string): boolean =>
+  value.trim().toLowerCase() === "true" ||
+  value.trim().toLowerCase() === "yes" ||
+  value.trim() === "1";
+
 export const parseAuthStatusOutput = (stdout: string): CliAgentAuthStatus => {
   const loggedIn = LOGGED_IN_PATTERN.exec(stdout);
+  if (loggedIn) {
+    return CliAgentAuthStatusSchema.parse({
+      authenticated: true,
+      method: "browser_login",
+      email: loggedIn[1],
+    });
+  }
+
+  const authenticatedStatus = AUTHENTICATED_STATUS_PATTERN.exec(stdout);
+  if (authenticatedStatus?.[1]) {
+    const authenticated = parseBooleanToken(authenticatedStatus[1]);
+    const email = AUTH_EMAIL_PATTERN.exec(stdout)?.[1];
+    return CliAgentAuthStatusSchema.parse({
+      authenticated,
+      method: authenticated ? "browser_login" : "none",
+      email: authenticated ? email : undefined,
+    });
+  }
+
   return CliAgentAuthStatusSchema.parse({
-    authenticated: loggedIn !== null,
-    method: loggedIn ? "browser_login" : "none",
-    email: loggedIn?.[1],
+    authenticated: false,
+    method: "none",
   });
 };
 

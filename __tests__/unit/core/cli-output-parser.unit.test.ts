@@ -16,6 +16,18 @@ describe("cli-output-parser", () => {
     expect(parsed.email).toBe("test@example.com");
   });
 
+  it("parses key-value auth status output", () => {
+    const parsed = parseAuthStatusOutput("Authenticated: true\nEmail: kv@example.com");
+    expect(parsed.authenticated).toBe(true);
+    expect(parsed.email).toBe("kv@example.com");
+  });
+
+  it("parses unauthenticated key-value status output", () => {
+    const parsed = parseAuthStatusOutput("authenticated = false");
+    expect(parsed.authenticated).toBe(false);
+    expect(parsed.email).toBeUndefined();
+  });
+
   it("parses model list output and default model flag", () => {
     const parsed = parseModelsOutput(
       "auto - Auto\nopus-4.6-thinking - Claude 4.6 Opus (Thinking) (default)"
