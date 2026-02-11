@@ -242,6 +242,10 @@ describe("slash command agent management", () => {
     const listAgentSessions = vi.fn(async () => [
       {
         id: "9b7418b2-5b71-4a12-97b4-64f2131e5241",
+        title: "Old title",
+      },
+      {
+        id: "9b7418b2-5b71-4a12-97b4-64f2131e5241",
         title: "Native runtime session",
         createdAt: "2026-02-11T18:30:00.000Z",
         model: "gpt-5",
@@ -275,6 +279,13 @@ describe("slash command agent management", () => {
     );
     expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("model: gpt-5"));
     expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("messages: 14"));
+    const lastMessage = appendSystemMessage.mock.calls.at(-1)?.[0];
+    expect(typeof lastMessage).toBe("string");
+    if (typeof lastMessage === "string") {
+      const id = "9b7418b2-5b71-4a12-97b4-64f2131e5241";
+      expect(lastMessage.indexOf(id)).toBeGreaterThanOrEqual(0);
+      expect(lastMessage.lastIndexOf(id)).toBe(lastMessage.indexOf(id));
+    }
   });
 
   it("reports native session listing failures for /sessions", async () => {
