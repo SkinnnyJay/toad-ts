@@ -165,8 +165,9 @@ Skills, commands, agents, hooks, and rules from all tools are merged automatical
 /add-dir   /agents    /clear     /compact   /config
 /connect   /context   /copy      /cost      /debug
 /details   /doctor    /editor    /export    /help
-/hooks     /import    /init      /login     /memory
-/mode      /models    /new       /permissions /plan
+/hooks     /import    /init      /login     /logout
+/mcp       /memory    /mode      /model     /models
+/new       /permissions /plan    /agent
 /progress  /rename    /review    /rewind    /security-review
 /sessions  /settings  /share     /stats     /status
 /themes    /thinking  /undo      /unshare   /redo

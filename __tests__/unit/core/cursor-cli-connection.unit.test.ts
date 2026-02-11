@@ -84,6 +84,7 @@ describe("CursorCliConnection", () => {
     const install = await connection.verifyInstallation();
     const auth = await connection.verifyAuth();
     const models = await connection.listModels();
+    const managementStatus = await connection.runManagementCommand(["status"]);
     const sessions = await connection.listSessions();
     const createdSessionId = await connection.createChat();
 
@@ -93,6 +94,7 @@ describe("CursorCliConnection", () => {
     expect(auth.email).toBe("netwearcdz@gmail.com");
     expect(models.models.length).toBe(2);
     expect(models.defaultModel).toBe("opus-4.6-thinking");
+    expect(managementStatus.stdout).toContain("Logged in as");
     expect(sessions).toEqual([]);
     expect(createdSessionId).toBe(TEST_SESSION_ID);
   });
