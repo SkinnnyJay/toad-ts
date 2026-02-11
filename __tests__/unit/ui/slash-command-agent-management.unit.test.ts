@@ -240,7 +240,13 @@ describe("slash command agent management", () => {
 
   it("prefers runtime-native session listing for /sessions when available", async () => {
     const listAgentSessions = vi.fn(async () => [
-      { id: "9b7418b2-5b71-4a12-97b4-64f2131e5241" },
+      {
+        id: "9b7418b2-5b71-4a12-97b4-64f2131e5241",
+        title: "Native runtime session",
+        createdAt: "2026-02-11T18:30:00.000Z",
+        model: "gpt-5",
+        messageCount: 14,
+      },
       { id: "36bf2c71-c56a-4c0a-a2e6-f7d47c2cd2e7" },
     ]);
     const runAgentCommand = vi.fn(async () => ({
@@ -264,6 +270,11 @@ describe("slash command agent management", () => {
     expect(appendSystemMessage).toHaveBeenCalledWith(
       expect.stringContaining("9b7418b2-5b71-4a12-97b4-64f2131e5241")
     );
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("created: 2026-02-11T18:30:00.000Z")
+    );
+    expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("model: gpt-5"));
+    expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("messages: 14"));
   });
 
   it("reports native session listing failures for /sessions", async () => {

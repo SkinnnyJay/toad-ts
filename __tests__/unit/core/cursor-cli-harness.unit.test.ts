@@ -54,7 +54,15 @@ class FakeCursorConnection extends EventEmitter<{
   }
 
   async listSessions() {
-    return [{ id: sessionId }];
+    return [
+      {
+        id: sessionId,
+        title: "Native session",
+        createdAt: "2026-02-11T18:30:00.000Z",
+        model: "opus-4.6-thinking",
+        messageCount: 14,
+      },
+    ];
   }
 
   async spawnPrompt(request: CursorPromptRequest): Promise<CursorPromptResult> {
@@ -227,7 +235,15 @@ describe("CursorCliHarnessAdapter", () => {
     expect(managementResult.stdout).toBe("ok");
     expect(connection.managementRequests[0]).toEqual(["status"]);
     const listedSessions = await harness.listAgentSessions();
-    expect(listedSessions).toEqual([{ id: sessionId }]);
+    expect(listedSessions).toEqual([
+      {
+        id: sessionId,
+        title: "Native session",
+        createdAt: "2026-02-11T18:30:00.000Z",
+        model: "opus-4.6-thinking",
+        messageCount: 14,
+      },
+    ]);
     expect(permissionRequestIds).toEqual(["hook-14855632-18d5-44a3-ab27-5c93e95a8011-1"]);
     expect(sessionUpdates).toContain(SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK);
     expect(sessionUpdates).toContain(SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK);
