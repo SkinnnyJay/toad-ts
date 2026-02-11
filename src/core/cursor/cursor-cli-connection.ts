@@ -1,5 +1,6 @@
 import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { TIMEOUT } from "@/config/timeouts";
+import { CURSOR_CLI_COMMAND } from "@/constants/cursor-cli-commands";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
@@ -134,7 +135,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
   }
 
   async verifyInstallation(): Promise<{ installed: boolean; version?: string }> {
-    const result = await this.runCommand(["--version"]);
+    const result = await this.runCommand([CURSOR_CLI_COMMAND.VERSION]);
     if (result.exitCode !== 0) {
       return { installed: false };
     }
@@ -147,17 +148,17 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
   }
 
   async verifyAuth(): Promise<CliAgentAuthStatus> {
-    const result = await this.runCommand(["status"]);
+    const result = await this.runCommand([CURSOR_CLI_COMMAND.STATUS]);
     return parseAuthStatusOutput(`${result.stdout}\n${result.stderr}`);
   }
 
   async listModels(): Promise<CliAgentModelsResponse> {
-    const result = await this.runCommand(["models"]);
+    const result = await this.runCommand([CURSOR_CLI_COMMAND.MODELS]);
     return parseModelsOutput(result.stdout);
   }
 
   async listSessions(): Promise<string[]> {
-    const result = await this.runCommand(["ls"]);
+    const result = await this.runCommand([CURSOR_CLI_COMMAND.LIST]);
     const stdout = `${result.stdout}\n${result.stderr}`;
     if (/requires tty/i.test(stdout)) {
       return [];
@@ -167,7 +168,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
   }
 
   async createChat(): Promise<string> {
-    const result = await this.runCommand(["create-chat"]);
+    const result = await this.runCommand([CURSOR_CLI_COMMAND.CREATE_CHAT]);
     const sessionId = extractFirstUuid(`${result.stdout}\n${result.stderr}`);
     if (!sessionId) {
       throw new Error("Unable to parse session id from `agent create-chat` output.");
