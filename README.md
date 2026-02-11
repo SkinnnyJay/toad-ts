@@ -206,6 +206,9 @@ export CURSOR_API_KEY=...
 - Renders hook-based file edits in the inline diff tool UI
 - Supports management commands through slash commands:
   - `/status`, `/login`, `/logout`, `/models`, `/model`, `/mcp`, `/agent`
+  - `/sessions <id>` to switch/resume a known Cursor session id
+- Supports cloud-dispatch prompts with `&` prefix (for Cursor CLI sessions):
+  - Example: `&investigate failing CI checks`
 
 ## Development
 
