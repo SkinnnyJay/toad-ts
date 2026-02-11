@@ -1,6 +1,7 @@
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { CURSOR_STREAM_SUBTYPE, CURSOR_STREAM_TYPE } from "@/constants/cursor-event-types";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
+import { TOOL_RESULT_MAX_BYTES } from "@/constants/stream-size-limits";
 import { CliAgentBridge } from "@/core/cli-agent/cli-agent.bridge";
 import { STREAM_EVENT_TYPE, type StreamEvent } from "@/types/cli-agent.types";
 import type { CursorStreamEvent, CursorToolCallCompletedEvent } from "@/types/cursor-cli.types";
@@ -8,7 +9,7 @@ import type { SessionNotification } from "@agentclientprotocol/sdk";
 import { EventEmitter } from "eventemitter3";
 
 export const CURSOR_TRANSLATOR_DEFAULT = {
-  TOOL_RESULT_MAX_BYTES: 50 * 1024,
+  TOOL_RESULT_MAX_BYTES,
 } as const;
 
 const TOOL_CALL_KEY_TO_NAME: Record<string, string> = {

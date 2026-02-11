@@ -1,4 +1,5 @@
 import { CURSOR_STREAM_TYPE } from "@/constants/cursor-event-types";
+import { CURSOR_ACCUMULATED_TEXT_MAX_BYTES } from "@/constants/stream-size-limits";
 import {
   type StreamLineParseResult,
   StreamLineParser,
@@ -7,7 +8,7 @@ import {
 import { type CursorStreamEvent, CursorStreamEventSchema } from "@/types/cursor-cli.types";
 
 export const CURSOR_STREAM_PARSER_DEFAULT = {
-  MAX_ACCUMULATED_TEXT_BYTES: 50 * 1024,
+  MAX_ACCUMULATED_TEXT_BYTES: CURSOR_ACCUMULATED_TEXT_MAX_BYTES,
   BACKPRESSURE_HIGH_WATERMARK: 128,
 } as const;
 

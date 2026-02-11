@@ -1,11 +1,12 @@
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
+import { TOOL_RESULT_MAX_BYTES } from "@/constants/stream-size-limits";
 import { STREAM_EVENT_TYPE, type StreamEvent } from "@/types/cli-agent.types";
 import type { SessionNotification } from "@agentclientprotocol/sdk";
 import { EventEmitter } from "eventemitter3";
 
 export const CLI_AGENT_BRIDGE_DEFAULT = {
-  TOOL_RESULT_MAX_BYTES: 50 * 1024,
+  TOOL_RESULT_MAX_BYTES,
 } as const;
 
 export interface CliAgentBridgeResult {
