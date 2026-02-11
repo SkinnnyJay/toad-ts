@@ -39,12 +39,14 @@ describe("cli-output-parser", () => {
     const output = [
       "03db60d8-ec0a-4376-aa2b-d89acc9b4abc Active session",
       "session-resume-id Native resume session",
+      "session_resume_id Another resume session",
       "03db60d8-ec0a-4376-aa2b-d89acc9b4abc Active session",
     ].join("\n");
 
     expect(parseSessionListOutput(output)).toEqual([
       "03db60d8-ec0a-4376-aa2b-d89acc9b4abc",
       "session-resume-id",
+      "session_resume_id",
     ]);
   });
 
