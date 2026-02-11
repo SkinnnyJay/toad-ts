@@ -341,6 +341,32 @@ describe("slash command agent management", () => {
     }
   });
 
+  it("parses fallback /sessions output from stderr when stdout has warning noise", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "warning: sessions output redirected to stderr",
+      stderr: "session-resume-id Native title model: gpt-5 messages: 14",
+      exitCode: 0,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.SESSIONS, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runAgentCommand).toHaveBeenCalledWith(["ls"]);
+    const lastMessage = appendSystemMessage.mock.calls.at(-1)?.[0];
+    expect(typeof lastMessage).toBe("string");
+    if (typeof lastMessage === "string") {
+      expect(lastMessage).toContain("session-resume-id");
+      expect(lastMessage).toContain("Native title");
+      expect(lastMessage).toContain("model: gpt-5");
+      expect(lastMessage).toContain("messages: 14");
+    }
+  });
+
   it("prefers runtime-native session listing for /sessions when available", async () => {
     const listAgentSessions = vi.fn(async () => [
       {
