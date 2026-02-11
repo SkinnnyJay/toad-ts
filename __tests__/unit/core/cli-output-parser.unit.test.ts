@@ -182,6 +182,22 @@ describe("cli-output-parser", () => {
     expect(parsed.defaultModel).toBe("gpt-5");
   });
 
+  it("ignores warning-style noise lines in model output", () => {
+    const parsed = parseModelsOutput(
+      ["warning: models command switched output stream", "gpt-5 - GPT-5 (default)"].join("\n")
+    );
+
+    expect(parsed.models).toEqual([
+      {
+        id: "gpt-5",
+        name: "GPT-5",
+        isDefault: true,
+        supportsThinking: false,
+      },
+    ]);
+    expect(parsed.defaultModel).toBe("gpt-5");
+  });
+
   it("extracts UUID values from output lines", () => {
     const output = [
       "session: 03db60d8-ec0a-4376-aa2b-d89acc9b4abc",

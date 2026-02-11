@@ -78,4 +78,17 @@ describe("models-command-result", () => {
       },
     ]);
   });
+
+  it("does not treat warning-only stderr as model output", () => {
+    const parsed = parseModelsCommandResult({
+      stdout: "",
+      stderr: "warning: models command switched output stream",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual({
+      models: [],
+      defaultModel: undefined,
+    });
+  });
 });

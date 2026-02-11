@@ -33,6 +33,8 @@ const MODEL_STATE_SUFFIX_PATTERN =
   /\s+(?:\((?:current|default|,|\s)+\)|\[(?:current|default|,|\s)+\])/gi;
 const MODEL_STATE_MARKER_PATTERN =
   /(?:\((?:current|default|,|\s)+\)|\[(?:current|default|,|\s)+\])/i;
+const MODEL_NOISE_LINE_PATTERN = /^(?:warning|warn|error|info|debug|note)\b(?:\s*[:=-].*)?$/i;
+const THINKING_MODEL_PATTERN = /\bthinking\b/i;
 const LOGGED_IN_PATTERN = /logged in as\s+([^\s]+@[^\s]+)/i;
 const AUTHENTICATED_AS_PATTERN = /\bauthenticated\s+as\s+([^\s]+@[^\s]+)/i;
 const AUTHENTICATED_STATUS_PATTERN = /\bauthenticated\b\s*[:=]\s*(true|false|yes|no|1|0)\b/i;
@@ -128,6 +130,7 @@ export const parseAuthStatusOutput = (stdout: string): CliAgentAuthStatus => {
 
 export const parseModelsOutput = (stdout: string): CliAgentModelsResponse => {
   const models = getNonEmptyLines(stdout)
+    .filter((line) => !MODEL_NOISE_LINE_PATTERN.test(line))
     .map((line) => {
       const match = MODEL_LINE_PATTERN.exec(line);
       if (!match) {
@@ -142,7 +145,7 @@ export const parseModelsOutput = (stdout: string): CliAgentModelsResponse => {
         id,
         name,
         isDefault: MODEL_STATE_MARKER_PATTERN.test(line),
-        supportsThinking: /\bthinking\b/i.test(line),
+        supportsThinking: THINKING_MODEL_PATTERN.test(line),
       };
     })
     .filter(
