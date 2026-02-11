@@ -43,6 +43,18 @@ const toValidatedSession = (
   };
 };
 
+const toSortedUniqueValidatedSessions = (
+  sessions: AgentManagementSession[]
+): AgentManagementSession[] => {
+  return sortAgentManagementSessionsByRecency(
+    toUniqueAgentManagementSessions(
+      sessions
+        .map((session) => toValidatedSession(session))
+        .filter((session): session is AgentManagementSession => session !== undefined)
+    )
+  );
+};
+
 const toUniqueSessionIdsFromList = (sessionIds: string[]): SessionId[] => {
   const parsedIds = sessionIds
     .map((sessionId) => toNormalizedSessionId(sessionId))
@@ -53,13 +65,7 @@ const toUniqueSessionIdsFromList = (sessionIds: string[]): SessionId[] => {
 const toUniqueSessionsFromCommandResult = (
   result: AgentManagementCommandResult
 ): AgentManagementSession[] =>
-  sortAgentManagementSessionsByRecency(
-    toUniqueAgentManagementSessions(
-      toAgentManagementSessions(parseSessionListCommandResult(result))
-        .map((session) => toValidatedSession(session))
-        .filter((session): session is AgentManagementSession => session !== undefined)
-    )
-  );
+  toSortedUniqueValidatedSessions(toAgentManagementSessions(parseSessionListCommandResult(result)));
 
 export interface UseCursorNativeSessionIdsOptions {
   enabled?: boolean;
@@ -102,12 +108,7 @@ export function useCursorNativeSessionIds(
     try {
       if (client.listAgentSessions) {
         const listedSessions = await client.listAgentSessions();
-        const deduped = toUniqueAgentManagementSessions(
-          listedSessions
-            .map((session) => toValidatedSession(session))
-            .filter((session): session is AgentManagementSession => session !== undefined)
-        );
-        setSessions(sortAgentManagementSessionsByRecency(deduped));
+        setSessions(toSortedUniqueValidatedSessions(listedSessions));
         return;
       }
       if (!client.runAgentCommand) {

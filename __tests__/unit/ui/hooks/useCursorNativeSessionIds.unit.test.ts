@@ -91,6 +91,7 @@ describe("useCursorNativeSessionIds", () => {
     expect(frame).toContain(first);
     expect(frame).toContain(second);
     expect(frame).toContain(third);
+    expect(frame.lastIndexOf(first)).toBe(frame.indexOf(first));
     expect(frame).toContain("Native title");
     expect(frame).toContain("gpt-5");
     expect(frame).toContain("14");
