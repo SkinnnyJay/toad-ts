@@ -29,4 +29,31 @@ describe("slash command message formatters", () => {
     expect(message).toContain("… 1 more agent sessions");
     expect(message).not.toContain(`session-${LIMIT.SESSION_LIST_PREVIEW + 1}`);
   });
+
+  it("orders native sessions by newest created timestamp first", () => {
+    const message = formatAgentSessionListMessage([
+      {
+        id: "session-oldest",
+        createdAt: "2026-02-10T10:00:00.000Z",
+      },
+      {
+        id: "session-newest",
+        createdAt: "2026-02-11T10:00:00.000Z",
+      },
+      {
+        id: "session-middle",
+        createdAt: "2026-02-10T22:00:00.000Z",
+      },
+    ]);
+
+    const newestIndex = message.indexOf("session-newest");
+    const middleIndex = message.indexOf("session-middle");
+    const oldestIndex = message.indexOf("session-oldest");
+
+    expect(newestIndex).toBeGreaterThanOrEqual(0);
+    expect(middleIndex).toBeGreaterThanOrEqual(0);
+    expect(oldestIndex).toBeGreaterThanOrEqual(0);
+    expect(newestIndex).toBeLessThan(middleIndex);
+    expect(middleIndex).toBeLessThan(oldestIndex);
+  });
 });
