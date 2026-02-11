@@ -4,6 +4,7 @@ import { COLOR } from "@/constants/colors";
 import { KEY_NAME } from "@/constants/key-names";
 import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { useAppStore } from "@/store/app-store";
+import type { AgentManagementSession } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
 import type { SelectOption } from "@opentui/core";
 import { TextAttributes } from "@opentui/core";
@@ -15,7 +16,7 @@ interface SessionsPopupProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectSession: (sessionId: SessionId) => void;
-  externalSessionIds?: SessionId[];
+  externalSessions?: AgentManagementSession[];
   externalSessionLoading?: boolean;
   externalSessionError?: string | null;
 }
@@ -23,7 +24,7 @@ interface SessionsPopupProps {
 interface SessionEntry {
   id: SessionId;
   title: string;
-  searchAgentLabel: string;
+  searchText: string;
   description: string;
 }
 
@@ -31,7 +32,7 @@ export function SessionsPopup({
   isOpen,
   onClose,
   onSelectSession,
-  externalSessionIds = [],
+  externalSessions = [],
   externalSessionLoading = false,
   externalSessionError = null,
 }: SessionsPopupProps): ReactNode {
@@ -56,24 +57,45 @@ export function SessionsPopup({
       return {
         id: session.id,
         title: sessionTitle,
-        searchAgentLabel: agentLabel,
+        searchText: `${session.id} ${sessionTitle} ${agentLabel}`,
         description: `Agent: ${agentLabel} · Created: ${createdAt} · Updated: ${updatedAt}`,
       };
     });
     const localIds = new Set(localEntries.map((entry) => entry.id));
-    const externalEntries = externalSessionIds
-      .filter((sessionId) => !localIds.has(sessionId))
-      .map((sessionId) => {
-        const shortId = sessionId.slice(0, LIMIT.ID_TRUNCATE_LENGTH);
+    const externalEntries = externalSessions
+      .map((session) => {
+        const parsedId = SessionIdSchema.safeParse(session.id);
+        if (!parsedId.success) {
+          return null;
+        }
+        const sessionId = parsedId.data;
+        if (localIds.has(sessionId)) {
+          return null;
+        }
+        const shortId = session.id.slice(0, LIMIT.ID_TRUNCATE_LENGTH);
+        const details: string[] = [];
+        if (session.title) {
+          details.push(session.title);
+        }
+        if (session.model) {
+          details.push(`Model: ${session.model}`);
+        }
+        if (session.messageCount !== undefined) {
+          details.push(`Messages: ${session.messageCount}`);
+        }
+        const suffix = details.length > 0 ? ` · ${details.join(" · ")}` : "";
         return {
           id: sessionId,
           title: `Native: ${shortId}`,
-          searchAgentLabel: "cursor",
-          description: `Native Cursor session (${sessionId})`,
+          searchText: `${session.id} ${session.title ?? ""} ${session.model ?? ""} ${
+            session.messageCount ?? ""
+          } cursor`,
+          description: `Native Cursor session (${session.id})${suffix}`,
         };
-      });
+      })
+      .filter((entry): entry is SessionEntry => entry !== null);
     return [...localEntries, ...externalEntries];
-  }, [externalSessionIds, sortedSessions]);
+  }, [externalSessions, sortedSessions]);
 
   const filteredSessions = useMemo(() => {
     if (!query.trim()) {
@@ -81,13 +103,7 @@ export function SessionsPopup({
     }
     const normalized = query.trim().toLowerCase();
     return sessionEntries.filter((session) => {
-      const title = session.title;
-      const agentLabel = session.searchAgentLabel;
-      return (
-        session.id.toLowerCase().includes(normalized) ||
-        title.toLowerCase().includes(normalized) ||
-        agentLabel.toLowerCase().includes(normalized)
-      );
+      return session.searchText.toLowerCase().includes(normalized);
     });
   }, [query, sessionEntries]);
 

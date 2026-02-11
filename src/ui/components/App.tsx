@@ -395,7 +395,7 @@ export function App(): ReactNode {
     hasOtherModalOpen: isContextOpen || isHooksOpen || isProgressOpen || isAgentDiscoveryOpen,
   });
   const {
-    sessionIds: nativeCursorSessionIds,
+    sessions: nativeCursorSessions,
     loading: nativeCursorSessionsLoading,
     error: nativeCursorSessionsError,
   } = useCursorNativeSessionIds({
@@ -529,7 +529,7 @@ export function App(): ReactNode {
                     isOpen={isSessionsPopupOpen}
                     onClose={() => setIsSessionsPopupOpen(false)}
                     onSelectSession={handleSelectSession}
-                    externalSessionIds={nativeCursorSessionIds}
+                    externalSessions={nativeCursorSessions}
                     externalSessionLoading={nativeCursorSessionsLoading}
                     externalSessionError={nativeCursorSessionsError}
                   />

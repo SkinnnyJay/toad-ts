@@ -31,12 +31,24 @@ const toUniqueSessionIdsFromList = (sessionIds: string[]): SessionId[] => {
   return Array.from(new Set(parsedIds));
 };
 
+const toUniqueSessions = (sessions: AgentManagementSession[]): AgentManagementSession[] => {
+  const uniqueById = new Map<AgentManagementSession["id"], AgentManagementSession>();
+  for (const session of sessions) {
+    if (session.id.length === 0 || uniqueById.has(session.id)) {
+      continue;
+    }
+    uniqueById.set(session.id, session);
+  }
+  return Array.from(uniqueById.values());
+};
+
 export interface UseCursorNativeSessionIdsOptions {
   enabled?: boolean;
   client?: CursorNativeSessionClient | null;
 }
 
 export interface UseCursorNativeSessionIdsResult {
+  sessions: AgentManagementSession[];
   sessionIds: SessionId[];
   loading: boolean;
   error: string | null;
@@ -54,11 +66,11 @@ export function useCursorNativeSessionIds(
   options: UseCursorNativeSessionIdsOptions = {}
 ): UseCursorNativeSessionIdsResult {
   const { enabled = false, client } = options;
-  const [sessionIds, setSessionIds] = useState<SessionId[]>([]);
+  const [sessions, setSessions] = useState<AgentManagementSession[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const resetState = useCallback(() => {
-    setSessionIds((current) => (current.length === 0 ? current : []));
+    setSessions((current) => (current.length === 0 ? current : []));
     setLoading((current) => (current ? false : current));
     setError((current) => (current === null ? current : null));
   }, []);
@@ -72,9 +84,11 @@ export function useCursorNativeSessionIds(
     setError(null);
     try {
       if (client.listAgentSessions) {
-        const sessions = await client.listAgentSessions();
-        const parsed = toUniqueSessionIdsFromList(sessions.map((session) => session.id));
-        setSessionIds(parsed);
+        const listedSessions = await client.listAgentSessions();
+        const deduped = toUniqueSessions(
+          listedSessions.filter((session) => SessionIdSchema.safeParse(session.id).success)
+        );
+        setSessions(deduped);
         return;
       }
       if (!client.runAgentCommand) {
@@ -87,9 +101,9 @@ export function useCursorNativeSessionIds(
         throw new Error(output.length > 0 ? output : "Cursor session listing command failed.");
       }
       const parsed = toUniqueSessionIds(`${result.stdout}\n${result.stderr}`);
-      setSessionIds(parsed);
+      setSessions(parsed.map((sessionId) => ({ id: sessionId })));
     } catch (error) {
-      setSessionIds([]);
+      setSessions([]);
       setError(toErrorMessage(error));
     } finally {
       setLoading(false);
@@ -101,7 +115,8 @@ export function useCursorNativeSessionIds(
   }, [refresh]);
 
   return {
-    sessionIds,
+    sessions,
+    sessionIds: toUniqueSessionIdsFromList(sessions.map((session) => session.id)),
     loading,
     error,
     refresh,

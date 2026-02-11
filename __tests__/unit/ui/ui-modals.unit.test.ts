@@ -15,7 +15,7 @@ afterEach(() => {
 describe("UI Modals", () => {
   describe("SettingsModal", () => {
     it("should render when open", () => {
-      const { lastFrame } = renderInk(
+      const { lastFrame, stdin } = renderInk(
         React.createElement(
           TruncationProvider,
           {},
@@ -31,7 +31,7 @@ describe("UI Modals", () => {
     });
 
     it("should not render when closed", () => {
-      const { lastFrame } = renderInk(
+      const { lastFrame, stdin } = renderInk(
         React.createElement(
           TruncationProvider,
           {},
@@ -84,7 +84,7 @@ describe("UI Modals", () => {
       const sessionId = setupSession({ mode: "auto" });
       const store = useAppStore.getState();
 
-      const { lastFrame } = renderInk(
+      const { lastFrame, stdin } = renderInk(
         React.createElement(
           TruncationProvider,
           {},
@@ -149,7 +149,7 @@ describe("UI Modals", () => {
     });
 
     it("should show empty state when no sessions", () => {
-      const { lastFrame } = renderInk(
+      const { lastFrame, stdin } = renderInk(
         React.createElement(
           TruncationProvider,
           {},
@@ -167,7 +167,7 @@ describe("UI Modals", () => {
     it("shows external cursor sessions in the popup list", () => {
       const nativeSessionId = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174000");
 
-      const { lastFrame } = renderInk(
+      const { lastFrame, stdin } = renderInk(
         React.createElement(
           TruncationProvider,
           {},
@@ -175,11 +175,14 @@ describe("UI Modals", () => {
             isOpen: true,
             onClose: () => {},
             onSelectSession: () => {},
-            externalSessionIds: [nativeSessionId],
+            externalSessions: [{ id: nativeSessionId, title: "Native title", model: "gpt-5" }],
           })
         )
       );
 
+      expect(lastFrame()).toContain("Native: 123e4567");
+      stdin.write("gpt-5");
+      expect(lastFrame()).toContain("Filter: gpt-5");
       expect(lastFrame()).toContain("Native: 123e4567");
     });
   });
