@@ -1,3 +1,4 @@
+import { basename } from "node:path";
 import { LIMIT } from "@/config/limits";
 import { COLOR } from "@/constants/colors";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
@@ -39,6 +40,31 @@ const truncateMiddle = (value: string, max: number): string => {
   return `${value.slice(0, half)}...${value.slice(-half)}`;
 };
 
+const toWorkspaceLabel = (workspacePath?: string): string | undefined => {
+  if (!workspacePath || workspacePath.trim().length === 0) {
+    return undefined;
+  }
+
+  const workspaceBaseName = basename(workspacePath);
+  if (workspaceBaseName.length > 0) {
+    return workspaceBaseName;
+  }
+
+  return workspacePath;
+};
+
+const toPullRequestLabel = (url: string): string => {
+  const slashSegments = url.split("/");
+  const lastSegment = slashSegments[slashSegments.length - 1];
+  if (!lastSegment || lastSegment.length === 0) {
+    return "PR";
+  }
+
+  const hashSegments = lastSegment.split("#");
+  const prSegment = hashSegments[0];
+  return prSegment && prSegment.length > 0 ? `PR #${prSegment}` : "PR";
+};
+
 export function StatusFooter({
   taskProgress,
   planProgress,
@@ -51,6 +77,8 @@ export function StatusFooter({
   agentName,
   modelName,
   cloudAgentCount,
+  workspacePath,
+  prStatus,
 }: StatusFooterProps): ReactNode {
   const planText =
     planProgress && planProgress.total > 0
@@ -73,6 +101,13 @@ export function StatusFooter({
   const trimmedSession = sessionId
     ? truncateMiddle(sessionId, 2 * LIMIT.ID_TRUNCATE_LENGTH)
     : undefined;
+  const workspaceLabel = toWorkspaceLabel(workspacePath);
+  const trimmedWorkspace = workspaceLabel
+    ? truncateMiddle(workspaceLabel, LIMIT.STRING_TRUNCATE_LONG)
+    : undefined;
+  const pullRequestText = prStatus
+    ? `${toPullRequestLabel(prStatus.url)} (${prStatus.reviewDecision})`
+    : undefined;
 
   const statusParts = [
     connectionStatus ? `Link: ${connectionStatus}` : undefined,
@@ -81,6 +116,8 @@ export function StatusFooter({
     sessionMode ? `Mode: ${sessionMode}` : undefined,
     trimmedSession ? `Session: ${trimmedSession}` : undefined,
     cloudAgentCount !== undefined ? `Cloud: ${cloudAgentCount}` : undefined,
+    trimmedWorkspace ? `Workspace: ${trimmedWorkspace}` : undefined,
+    pullRequestText ? `Review: ${pullRequestText}` : undefined,
   ].filter((value): value is string => Boolean(value));
 
   const footerTextAttrs = TextAttributes.DIM;

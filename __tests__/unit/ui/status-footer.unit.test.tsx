@@ -37,4 +37,21 @@ describe("StatusFooter", () => {
 
     expect(lastFrame()).not.toContain("Cloud:");
   });
+
+  it("renders workspace and pull request review status when provided", () => {
+    const { lastFrame } = renderInk(
+      React.createElement(StatusFooter, {
+        focusTarget: FOCUS_TARGET.CHAT,
+        workspacePath: "/workspace/my-repo",
+        prStatus: {
+          url: "https://github.com/example/repo/pull/123",
+          reviewDecision: "approved",
+        },
+      })
+    );
+
+    const frame = lastFrame();
+    expect(frame).toContain("Workspace: my-repo");
+    expect(frame).toContain("Review: PR #123 (approved)");
+  });
 });
