@@ -1,67 +1,24 @@
 # Scratchpad Progress
 
 ## Current Focus
-- Phase 4A: App smoke test
-- Phase 4E: Manual smoke tests
-- Phase 9: Config + keybind system
+- ALL milestones and backlog items COMPLETE
+- Quality gates: typecheck ✅, lint ✅, build ✅, test ✅ (113 files)
 
-## Status
-- [X] Install Bun
-- [X] Update package.json scripts to Bun
-- [X] Allow npm build via npx tsup fallback
-- [X] bun install + bun.lockb
-- [X] Install OpenTUI deps
-- [X] Remove Ink/shiki/marked deps
-- [X] Update tsconfig for OpenTUI JSX runtime
-- [X] Update cli entrypoint for OpenTUI
-- [X] Bun build/test/typecheck verification
-- [ ] App smoke test (blank screen)
-- [X] Tool registry + built-in tools
-- [X] ACP tool host + permission handler wiring
-- [X] Shell background tasks + task output UX
-- [X] Shell auto-detect + tab completion
-- [X] Interactive shell apps + shell mode UX
-- [X] Per-harness tool permission overrides
-- [X] Agent manager + build/plan agents
-- [X] Markdown agent config loader
-- [X] Tab key agent switching
-- [X] Per-agent model/temperature config
-- [X] Hidden agents (compaction/title/summary)
-- [X] Subagent runner for @mention invocation
-- [X] @agent mention syntax in input
-- [X] Child session navigation
-- [X] Execution engine wiring + subagent task orchestration
-- [X] Slash commands: /connect, /sessions, /new, /rename, /models
-- [X] Slash commands: /details + /thinking toggles
-- [X] Slash command: /editor
-- [X] Slash command: /themes selector
-- [X] /models listing from agent capabilities
-- [X] Slash commands: /doctor, /debug, /context, /stats, /cost
-- [X] Slash command: /memory editing
-- [X] Slash command: /copy clipboard
-- [X] Slash commands: /undo, /redo, /rewind
-- [X] Slash commands: /share + /unshare
-- [X] /compact triggers compaction subagent
-- [X] Checkpoint manager + persistent storage
-- [X] Checkpoint tracking for file changes (write/edit + ACP host)
-- [X] /rewind list/delete with checkpoint restore
-- [X] Rewind modal (Esc+Esc) and status footer indicator
-- [X] Git-backed patch apply for checkpoint undo/redo
-- [X] Config loader + JSONC parsing + variable substitution
-- [X] Leader keybind defaults + runtime wiring
-- [X] Keybind editor UI in settings modal
-- [X] Permission mode cycling (Shift+Tab)
-- [X] Vim input mode (normal/insert + motions/operators)
-- [X] Hooks system (config + hook runner + /hooks panel)
-- [X] Compaction summary storage
-- [X] Context budget indicator
-- [X] Context attachments modal
-- [X] Provider expansion (gemini/codex harnesses + health checks)
-- [X] Rules loader + permission rules integration
-- [X] Headless server mode (HTTP + WebSocket)
-- [X] Routing policy + progress modal
-- [X] Distribution & polish (install, update check, benchmarks, discovery UI)
-- [X] Session export/import + history filter
+## Milestones
+- [X] M0: Foundation Fix (bun, deps, sqlite, test harness)
+- [X] M1: Test Verification (85+ tests pass)
+- [X] M2: Slash Commands (40+ commands, SVG export, Claude Code parity)
+- [X] M3: Checkpointing (cleanup, retention, git stash/apply)
+- [X] M4: Configuration (12-section schema, permissions, themes, formatters)
+- [X] M5: Context Management (token counting, auto-compaction, pruning)
+- [X] M6: Session Management (forking, diff tracking, retention policy, workspace)
+- [X] M7: Provider Expansion (Anthropic, OpenAI, Ollama, 8+ OpenAI-compatible)
+- [X] M8: Cross-Tool Compatibility (skills, commands, agents, hooks, .mdc rules, custom tools, instructions)
+- [X] M9: Server Mode & CLI (REST API, SSE, TUI control, headless mode, subcommands)
+- [X] M10: Advanced Features (formatters, model cycling, PR status, LSP, plugins, suggestions, images)
+- [X] M11: Distribution (CI, npm publish, README, CONTRIBUTING, themes, accessibility)
 
-## Test Failures
-- [ ] bun run test: sqlite persistence integration test timed out (5s)
+## Test Coverage
+- 113 test files (85 original + 28 new)
+- 0 failures
+- New tests: context manager, permission modes, session forking, provider registry, auto-title, retention policy, theme loader, SVG export

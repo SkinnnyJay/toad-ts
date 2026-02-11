@@ -106,10 +106,7 @@ describe("Markdown Rendering", () => {
 });
 
 /**
- * Note: Full markdown rendering (bold, italic, lists, links) would require:
- * 1. A markdown parser/renderer (like marked-terminal or similar)
- * 2. Integration with MessageItem to render formatted text
- *
- * Currently, MessageItem renders text blocks as plain text.
- * Markdown formatting would need to be added to the rendering pipeline.
+ * Note: Full markdown rendering (bold, italic, lists, links) is handled
+ * by OpenTUI's <markdown> intrinsic with tree-sitter syntax highlighting.
+ * These tests verify that text content passes through correctly.
  */

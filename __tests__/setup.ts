@@ -90,7 +90,4 @@ afterAll(() => {
     process.stdin.pause();
   }
   unrefStdio();
-  if (process.env.TOADSTOOL_TEST_FORCE_EXIT === "1") {
-    setTimeout(() => process.exit(0), 0);
-  }
 });

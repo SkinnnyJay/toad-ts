@@ -1,8 +1,7 @@
 import { LIMIT } from "@/config/limits";
+import { computeContextStats } from "@/core/context-manager";
 import { useAppStore } from "@/store/app-store";
 import type { SessionId } from "@/types/domain";
-import { extractBlockText } from "@/ui/components/chat/slash-command-helpers";
-import { createDefaultTokenizerAdapter } from "@/utils/token-optimizer/tokenizer";
 import { useMemo } from "react";
 
 export interface ContextStats {
@@ -14,7 +13,6 @@ export interface ContextStats {
 
 export const useContextStats = (sessionId?: SessionId): ContextStats | null => {
   const getMessagesForSession = useAppStore((state) => state.getMessagesForSession);
-  const tokenizer = useMemo(() => createDefaultTokenizerAdapter(), []);
 
   return useMemo(() => {
     if (!sessionId) {
@@ -29,15 +27,12 @@ export const useContextStats = (sessionId?: SessionId): ContextStats | null => {
         limit: LIMIT.CONTEXT_TOKEN_BUDGET,
       };
     }
-    const combined = messages
-      .map((message) => message.content.map(extractBlockText).join("\n"))
-      .join("\n");
-    const estimate = tokenizer.estimate(combined);
+    const stats = computeContextStats(messages);
     return {
-      tokens: estimate.tokenCount,
-      chars: estimate.charCount,
-      bytes: estimate.byteSize,
+      tokens: stats.tokens,
+      chars: stats.chars,
+      bytes: stats.bytes,
       limit: LIMIT.CONTEXT_TOKEN_BUDGET,
     };
-  }, [getMessagesForSession, sessionId, tokenizer]);
+  }, [getMessagesForSession, sessionId]);
 };

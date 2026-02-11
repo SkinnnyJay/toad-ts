@@ -57,6 +57,7 @@ import {
   useSessionHydration,
   useTerminalDimensions,
 } from "@/ui/hooks";
+import { useAutoTitle } from "@/ui/hooks/useAutoTitle";
 import { ThemeProvider } from "@/ui/theme/theme-context";
 import { applyThemeColors } from "@/ui/theme/theme-definitions";
 import { Env, EnvManager } from "@/utils/env/env.utils";
@@ -219,12 +220,14 @@ export function App(): ReactNode {
     );
     startupMeasured.current = true;
   }, [stage]);
+  const autoTitle = useAutoTitle();
   const handlePromptComplete = useCallback(
     (id: SessionId) => {
       sessionStream.finalizeSession(id);
       void checkpointManager.finalizeCheckpoint(id);
+      autoTitle(id);
     },
-    [checkpointManager, sessionStream]
+    [autoTitle, checkpointManager, sessionStream]
   );
   const {
     handleSelectSession,

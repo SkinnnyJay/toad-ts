@@ -1,15 +1,8 @@
 import { DiffRenderer } from "@/ui/components/DiffRenderer";
 import { TruncationProvider } from "@/ui/components/TruncationProvider";
 import React from "react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { renderInk } from "../../utils/ink-test-helpers";
-
-// Mock shiki to avoid async loading issues in tests
-vi.mock("shiki", () => ({
-  getHighlighter: vi.fn().mockResolvedValue({
-    codeToTokens: vi.fn().mockReturnValue([]),
-  }),
-}));
 
 describe("DiffRenderer", () => {
   const renderWithProvider = (element: React.ReactElement) => {

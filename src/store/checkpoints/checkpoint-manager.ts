@@ -15,7 +15,6 @@ import {
   type CheckpointSnapshot,
   CheckpointSnapshotSchema,
   type FileChange,
-  type FilePatch,
   type Message,
   MessageSchema,
   type Plan,
@@ -24,10 +23,9 @@ import {
   SessionSchema,
 } from "@/types/domain";
 import { createClassLogger } from "@/utils/logging/logger.utils";
-import { createTwoFilesPatch } from "diff";
-import { execa } from "execa";
 import { nanoid } from "nanoid";
 import type { StoreApi } from "zustand";
+import { applyGitPatches, buildPatches, getGitRoot } from "./checkpoint-git";
 
 export interface CheckpointSummary {
   id: Checkpoint["id"];
@@ -117,7 +115,8 @@ export class CheckpointManager {
       return null;
     }
     const after = this.buildSnapshot(sessionId);
-    const patches = await this.buildPatches(Array.from(draft.fileChanges.values()));
+    const gitRoot = await this.resolveGitRoot();
+    const patches = await buildPatches(Array.from(draft.fileChanges.values()), gitRoot);
     const checkpoint = CheckpointSchema.parse({
       id: draft.id,
       sessionId: draft.sessionId,
@@ -229,6 +228,49 @@ export class CheckpointManager {
       return { ...result, direction: "rewind" };
     }
     return null;
+  }
+
+  async cleanupOldCheckpoints(): Promise<number> {
+    const baseDir = path.join(homedir(), FILE_PATH.TOADSTOOL_DIR, FILE_PATH.CHECKPOINTS_DIR);
+    let sessionDirs: string[];
+    try {
+      sessionDirs = await readdir(baseDir);
+    } catch {
+      return 0;
+    }
+    let removed = 0;
+    const now = Date.now();
+    for (const sessionDir of sessionDirs) {
+      const dir = path.join(baseDir, sessionDir);
+      let entries: string[];
+      try {
+        entries = await readdir(dir);
+      } catch {
+        continue;
+      }
+      for (const entry of entries) {
+        if (!entry.endsWith(CHECKPOINT.FILE_EXTENSION)) continue;
+        const filePath = path.join(dir, entry);
+        try {
+          const raw = await readFile(filePath, ENCODING.UTF8);
+          const parsed = JSON.parse(raw) as { createdAt?: number };
+          if (parsed.createdAt && now - parsed.createdAt > retentionMs) {
+            await rm(filePath);
+            removed += 1;
+          }
+        } catch {
+          // Corrupt checkpoint files get cleaned up
+          try {
+            await rm(filePath);
+            removed += 1;
+          } catch {
+            // ignore
+          }
+        }
+      }
+    }
+    this.logger.info("Cleaned up old checkpoints", { removed });
+    return removed;
   }
 
   async deleteCheckpoint(sessionId: SessionId, checkpointId: Checkpoint["id"]): Promise<boolean> {
@@ -382,7 +424,12 @@ export class CheckpointManager {
     const snapshot = snapshotTarget === "after" ? checkpoint.after : checkpoint.before;
 
     if (restoreCode) {
-      const applied = await this.applyGitPatches(checkpoint.patches, snapshotTarget === "before");
+      const gitRoot = await this.resolveGitRoot();
+      const applied = await applyGitPatches(
+        checkpoint.patches,
+        snapshotTarget === "before",
+        gitRoot
+      );
       if (!applied) {
         const changes = checkpoint.fileChanges;
         await Promise.all(
@@ -407,86 +454,9 @@ export class CheckpointManager {
     }
   }
 
-  private async getGitRoot(): Promise<string | null> {
-    if (this.gitRoot !== undefined) {
-      return this.gitRoot;
-    }
-    try {
-      const { stdout } = await execa("git", ["rev-parse", "--show-toplevel"]);
-      const root = stdout.trim();
-      this.gitRoot = root.length > 0 ? root : null;
-      return this.gitRoot;
-    } catch {
-      this.gitRoot = null;
-      return null;
-    }
-  }
-
-  private async isGitClean(root: string): Promise<boolean> {
-    try {
-      const { stdout } = await execa("git", ["status", "--porcelain"], { cwd: root });
-      return stdout.trim().length === 0;
-    } catch {
-      return false;
-    }
-  }
-
-  private async buildPatches(changes: FileChange[]): Promise<FilePatch[]> {
-    const gitRoot = await this.getGitRoot();
-    if (!gitRoot || changes.length === 0) {
-      return [];
-    }
-    const patches: FilePatch[] = [];
-    for (const change of changes) {
-      const relative = path.relative(gitRoot, change.path);
-      if (!relative || relative.startsWith("..")) {
-        continue;
-      }
-      const normalizedPath = relative.split(path.sep).join("/");
-      const oldName = change.before === null ? "/dev/null" : `a/${normalizedPath}`;
-      const newName = change.after === null ? "/dev/null" : `b/${normalizedPath}`;
-      const patch = createTwoFilesPatch(
-        oldName,
-        newName,
-        change.before ?? "",
-        change.after ?? "",
-        "",
-        "",
-        { context: LIMIT.DIFF_CONTEXT_LINES }
-      );
-      if (patch.trim().length > 0) {
-        patches.push({ path: normalizedPath, patch });
-      }
-    }
-    return patches;
-  }
-
-  private async applyGitPatches(patches: FilePatch[], reverse: boolean): Promise<boolean> {
-    if (patches.length === 0) {
-      return false;
-    }
-    const gitRoot = await this.getGitRoot();
-    if (!gitRoot) {
-      return false;
-    }
-    const clean = await this.isGitClean(gitRoot);
-    if (!clean) {
-      this.logger.warn("Skipping git apply due to uncommitted changes");
-      return false;
-    }
-    const patchContent = patches.map((entry) => entry.patch).join("\n");
-    try {
-      const args = ["apply"];
-      if (reverse) {
-        args.push("--reverse");
-      }
-      await execa("git", args, { cwd: gitRoot, input: patchContent });
-      return true;
-    } catch (error) {
-      this.logger.warn("Failed to apply git patches", {
-        error: error instanceof Error ? error.message : String(error),
-      });
-      return false;
-    }
+  private async resolveGitRoot(): Promise<string | null> {
+    if (this.gitRoot !== undefined) return this.gitRoot;
+    this.gitRoot = await getGitRoot(undefined);
+    return this.gitRoot;
   }
 }

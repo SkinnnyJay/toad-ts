@@ -4,6 +4,7 @@ import { COLOR } from "@/constants/colors";
 import { COMMAND_DEFINITIONS, type CommandDefinition } from "@/constants/command-definitions";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
 import { createIgnoreFilter } from "@/ui/components/input-helpers";
+import { CommandSuggestions, FileSuggestions } from "@/ui/components/input-suggestions";
 import { useVimInput } from "@/ui/hooks/useVimInput";
 import type {
   InputRenderable,
@@ -424,75 +425,16 @@ export function InputWithAutocomplete({
         </text>
       ) : null}
       {showAutocomplete && commandSuggestions.length > 0 && (
-        <box
-          flexDirection="column"
-          border={true}
-          borderStyle="single"
-          borderColor={COLOR.CYAN}
-          marginBottom={1}
-          paddingLeft={1}
-          paddingRight={1}
-        >
-          <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
-            Commands:
-          </text>
-          {commandSuggestions.map((cmd, index) => (
-            <box key={cmd.name} paddingLeft={1}>
-              <text
-                fg={index === selectedIndex ? COLOR.YELLOW : COLOR.WHITE}
-                attributes={index === selectedIndex ? TextAttributes.BOLD : 0}
-              >
-                {index === selectedIndex ? "▶ " : "  "}
-                {cmd.name}
-              </text>
-              {cmd.args ? <text fg={COLOR.GRAY}> {cmd.args}</text> : null}
-              <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>{` - ${cmd.description}`}</text>
-            </box>
-          ))}
-          <box marginTop={1}>
-            <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
-              ↑↓ Navigate · Tab/Enter Select · Esc Cancel
-            </text>
-          </box>
-        </box>
+        <CommandSuggestions commands={commandSuggestions} selectedIndex={selectedIndex} />
       )}
 
       {enableMentions && hasMentionSuggestions && (
-        <box
-          flexDirection="column"
-          border={true}
-          borderStyle="single"
-          borderColor={COLOR.GREEN}
-          marginBottom={1}
-          paddingLeft={1}
-          paddingRight={1}
-        >
-          <text fg={COLOR.GREEN} attributes={TextAttributes.BOLD}>
-            Files:
-          </text>
-          {mentionSuggestions.map((file, index) => (
-            <box key={file} paddingLeft={1}>
-              <text
-                fg={index === selectedIndex ? COLOR.YELLOW : COLOR.WHITE}
-                attributes={index === selectedIndex ? TextAttributes.BOLD : 0}
-              >
-                {index === selectedIndex ? "▶ " : "  "}@{file}
-              </text>
-            </box>
-          ))}
-          {isLoadingFiles ? (
-            <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
-              Loading files…
-            </text>
-          ) : fileError ? (
-            <text fg={COLOR.RED}>{fileError}</text>
-          ) : null}
-          <box marginTop={1}>
-            <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
-              ↑↓ Navigate · Tab/Enter Insert · Esc Cancel
-            </text>
-          </box>
-        </box>
+        <FileSuggestions
+          files={mentionSuggestions}
+          selectedIndex={selectedIndex}
+          isLoading={isLoadingFiles}
+          error={fileError}
+        />
       )}
 
       <box

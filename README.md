@@ -1,531 +1,192 @@
----
-title: TOADSTOOL - Terminal Orchestration for AI Development
-date: 2025-01-27
-author: Jonathan Boice
-status: approved
-lastUpdated: 2025-01-27
-description: A unified terminal interface for AI coding agents
----
-
 # 🍄 TOADSTOOL
 
-**Terminal Orchestration for AI Development**
+**Terminal Orchestration for AI Development** — A unified terminal interface for AI coding agents.
 
-A unified terminal interface for AI coding agents, built with TypeScript, Ink, and React.
+TOADSTOOL combines the best of [TOAD](https://github.com/batrachianai/toad) (UX polish), [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (power user features), and [OpenCode](https://opencode.ai) (open ecosystem) into a single TypeScript TUI.
 
-[![npm version](https://img.shields.io/npm/v/toadstool-cli.svg)](https://www.npmjs.com/package/toadstool-cli)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue.svg)](https://www.typescriptlang.org/)
+## Features
 
----
+### Core
+- 🤖 **Multi-provider support** — Anthropic, OpenAI, Ollama, Groq, Mistral, OpenRouter, and more
+- 🔌 **ACP Protocol** — Connect to any ACP-compatible agent (Claude CLI, Gemini CLI, Codex CLI)
+- 💬 **Streaming responses** — Real-time token-by-token rendering with markdown
+- 📝 **40+ slash commands** — `/help`, `/review`, `/compact`, `/rewind`, `/status`, and more
+- 🔧 **13 built-in tools** — bash, read, write, edit, grep, glob, list, todowrite, todoread, webfetch, question, skill, task-output
 
-## ✨ Features
+### Power User
+- ⏪ **Checkpointing & undo/redo** — Per-prompt snapshots with `/rewind`, `/undo`, `/redo`
+- 🪝 **Hooks system** — Pre/PostToolUse, SessionStart, PermissionRequest lifecycle hooks
+- ⌨️ **Vim mode** — Full vim keybindings in input (h/j/k/l, w/e/b, d/c/y, text objects)
+- 🔑 **Leader key keybinds** — Configurable `Ctrl+X` leader with 80+ actions
+- 🔒 **Permission modes** — Auto-Accept, Plan, Normal with per-tool glob rules
 
-- **🔄 ACP-Compatible Agents** — Switch between Claude CLI, Gemini CLI, Codex CLI
-- **⚡ Streaming Responses** — Real-time token-by-token display
-- **💾 Persistent Sessions** — Resume conversations across restarts
-- **🎨 Rich Markdown** — Syntax highlighting and formatted output
-- **⌨️ Keyboard-First** — Efficient navigation for power users
-- **🔧 Zero Config** — Use your existing CLI auth and go
+### Ecosystem
+- 🌍 **Cross-tool compatibility** — Zero-migration from Claude Code, Cursor, OpenCode, Gemini
+- 📦 **Plugin system** — Loadable bundles with hooks + tools
+- 🎨 **6 built-in themes** — Dark, Light, Dracula, Monokai, Solarized, Nord + custom themes
+- 📋 **Custom agents** — Define agents with YAML frontmatter + Markdown body
+- 🛠️ **Custom tools** — TypeScript tool files with Zod schema validation
 
----
+### Professional
+- 🖥️ **Server mode** — HTTP API + WebSocket for IDE integration
+- 🤖 **Headless mode** — `toadstool -p "prompt"` for CI/CD pipelines
+- 💰 **Budget limits** — `--max-budget-usd`, `--max-turns` for cost control
+- 📊 **Context management** — Token counting, auto-compaction, tool output pruning
+- 🔀 **Session management** — Forking, sharing, export (Markdown/JSON/SVG)
 
-## 📦 Installation
+## Installation
 
 ```bash
-# Install globally
-bun add -g toadstool-cli
+# npm
+npm i -g toadstool-ts
 
-# Or use npx
-bunx toadstool-cli
+# bun
+bun i -g toadstool-ts
 
-# Install via script (from source checkout)
-./scripts/install.sh
-
-# (script installs the `toadstool-ts` package name)
-
-# Homebrew (HEAD build)
-brew install --HEAD ./homebrew/toadstool.rb
+# From source
+git clone https://github.com/your-org/toadstool-ts.git
+cd toadstool-ts
+bun install
+bun run build
 ```
 
-### Requirements
-
-- Node.js 20+
-- At least one ACP-compatible agent installed (for example, Claude CLI)
-
----
-
-## 🚀 Quick Start
-
-### 1. Set your API keys
+## Quick Start
 
 ```bash
-# Example for Claude CLI (set in your shell profile)
-export ANTHROPIC_API_KEY="sk-ant-api03-..."
-
-# Or create a .env file in your project
-echo "ANTHROPIC_API_KEY=sk-ant-..." >> .env
-```
-
-### 2. Launch TOADSTOOL
-
-```bash
-# Start with provider selection
+# Launch TUI
 toadstool
 
-# Start directly with Claude
-toadstool -p claude
+# Headless mode
+toadstool -p "Explain this codebase"
 
-# Start directly with another ACP agent
-toadstool -p gemini
+# Non-interactive
+toadstool run "Fix the bug in auth.ts"
 
-# Start in a specific directory
-toadstool ~/projects/myapp
+# Start server
+toadstool serve --port 3000
 
-# Start in headless server mode
-toadstool --server --port 4141
+# List models
+toadstool models
 ```
 
-### Claude CLI setup
+## Configuration
 
-- Install the binary: `bun add -g claude-code-acp` (or ensure it is in `node_modules/.bin`).
-- Set `ANTHROPIC_API_KEY` (in your shell or `.env`); the adapter will refuse to start without it.
-- Credential storage: keychain (keytar) by default; disk is **not** used unless you set `TOADSTOOL_CREDENTIAL_STORE=disk`. For tests/CI, prefer `TOADSTOOL_CREDENTIAL_STORE=memory`.
-- Sandbox: file/terminal access is scoped to the launch cwd; set `TOADSTOOL_ALLOW_ESCAPE=1` only if you intentionally want to allow paths outside the project root.
-- Override command/args if needed: `TOADSTOOL_CLAUDE_COMMAND`, `TOADSTOOL_CLAUDE_ARGS`.
-- If the binary is in `node_modules/.bin`, the adapter prepends that to `PATH` automatically.
-- Opt-in real harness test: `RUN_CLAUDE_CLI_E2E=1 bun run test -- __tests__/integration/core/claude-session-flow.integration.test.ts`.
+TOADSTOOL loads configuration from multiple sources (in precedence order):
 
-### 3. Start chatting!
+1. Environment: `TOADSTOOL_CONFIG_CONTENT` or `TOADSTOOL_CONFIG_PATH`
+2. Project: `toadstool.json` / `toadstool.jsonc` in project root
+3. Global: `~/.config/toadstool/config.json`
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  🍄 TOADSTOOL                 Ctrl+P: Switch  Ctrl+C: Quit│
-├─────────────────────────────────────────────────────────┤
-│                                                          │
-│  You (10:30 AM)                                          │
-│  Create a TypeScript function to reverse a string        │
-│                                                          │
-│  ─────────────────────────────────────────────────────── │
-│                                                          │
-│  Claude (10:30 AM)                                       │
-│  Here's a TypeScript function:                           │
-│                                                          │
-│  ```typescript                                           │
-│  function reverseString(s: string): string {             │
-│    return s.split('').reverse().join('');                │
-│  }                                                       │
-│  ```                                                     │
-│                                                          │
-├─────────────────────────────────────────────────────────┤
-│  > Type your message...                                  │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## 🛰️ Headless Server Mode
-
-Run TOADSTOOL without the TUI and control it over HTTP/WebSocket:
-
-```bash
-toadstool --server --host 127.0.0.1 --port 4141
+```json
+{
+  "defaults": {
+    "agent": "build",
+    "model": "claude-sonnet-4-20250514"
+  },
+  "keybinds": {
+    "leader": "ctrl+x"
+  },
+  "compaction": {
+    "auto": true,
+    "threshold": 0.8
+  },
+  "permissions": {
+    "mode": "normal",
+    "rules": {
+      "read": "allow",
+      "write": "ask",
+      "bash*": "ask"
+    }
+  },
+  "compatibility": {
+    "claude": true,
+    "cursor": true,
+    "opencode": true,
+    "gemini": true
+  }
+}
 ```
 
-HTTP endpoints:
+## Cross-Tool Compatibility
 
-- `GET /health`
-- `POST /sessions` (`{ "harnessId": "mock" }`)
-- `POST /sessions/:id/prompt` (`{ "prompt": "Hello" }`)
-- `GET /sessions/:id/messages`
+TOADSTOOL automatically loads configurations from:
 
-WebSocket connections receive session events for created sessions and streaming updates.
+| Tool | Project Folder | Rules File |
+|------|---------------|------------|
+| TOADSTOOL | `.toadstool/` | `TOADSTOOL.md` |
+| Claude Code | `.claude/` | `CLAUDE.md` |
+| Cursor | `.cursor/` | `.cursorrules` |
+| OpenCode | `.opencode/` | `AGENTS.md` |
+| Gemini | `.gemini/` | `GEMINI.md` |
 
----
+Skills, commands, agents, hooks, and rules from all tools are merged automatically.
 
-## 🖥️ Terminal Setup
-
-Generate a terminal setup script that configures recommended settings:
-
-```bash
-toadstool --setup
-```
-
-Source the generated script (path is printed after running the command). You can also force ASCII
-glyphs for compatibility:
-
-```bash
-export TOADSTOOL_ASCII=true
-```
-
-Disable update checks:
-
-```bash
-export TOADSTOOL_DISABLE_UPDATE_CHECK=true
-```
-
-See `docs/COMPATIBILITY.md` for terminal compatibility tips.
-
----
-
-## 📈 Performance Benchmarks
-
-Run the benchmark script to capture baseline timings:
-
-```bash
-bun run benchmark
-```
-
-See `docs/PERFORMANCE.md` for details.
-
----
-
-## 🤝 Contributing
-
-See `CONTRIBUTING.md` for development workflows and quality gates.
-
----
-
-## ⌨️ Keyboard Shortcuts
+## Keyboard Shortcuts
 
 | Key | Action |
 |-----|--------|
 | `Enter` | Send message |
 | `Shift+Enter` | New line |
-| `↑` / `↓` | Navigate input history |
-| `Ctrl+P` | Switch provider |
-| `Ctrl+N` | New session |
-| `Ctrl+L` | Clear screen |
-| `Escape` | Cancel current request |
-| `Ctrl+C` | Exit |
+| `Tab` | Switch agent |
+| `Shift+Tab` | Cycle permission mode |
+| `Ctrl+X` then `H` | Help |
+| `Ctrl+X` then `N` | New session |
+| `Ctrl+X` then `L` | List sessions |
+| `Ctrl+X` then `T` | Themes |
+| `Ctrl+X` then `U` | Undo |
+| `Ctrl+X` then `R` | Redo |
+| `Ctrl+B` | Background tasks |
+| `Ctrl+P` | Command palette |
+| `Escape` | Cancel / close |
 
----
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `ANTHROPIC_API_KEY` | Anthropic API key (Claude CLI) | _none_ | Yes (if using Claude CLI) |
-| `TOADSTOOL_DEFAULT_AGENT` | Default ACP agent id | `claude` | No |
-| `TOADSTOOL_CREDENTIAL_STORE` | `keytar` \| `disk` \| `memory` | keytar→memory fallback | No (disk is opt-in) |
-| `TOADSTOOL_ALLOW_ESCAPE` | Allow file/terminal access outside cwd | off | No (sandboxed by default) |
-| `TOADSTOOL_PERSISTENCE_PROVIDER` | Persistence backend | `json` | No |
-| `TOADSTOOL_PERSISTENCE_JSON_PATH` | Path to JSON session store | `~/.toadstool/sessions.json` | No |
-| `TOADSTOOL_PERSISTENCE_SQLITE_PATH` | Path to SQLite DB file | `~/.toadstool/toadstool.db` | No |
-| `TOADSTOOL_PERSISTENCE_SQLITE_WRITE_MODE` | SQLite write mode (`per_message` / `per_token` / `on_session_change`) | `per_message` | No |
-| `TOADSTOOL_PERSISTENCE_SQLITE_BATCH_DELAY` | Batch delay (ms) for SQLite writes | `300` | No |
-| `TOADSTOOL_SESSION_MODE` | Default session mode (`read-only` / `auto` / `full-access`) | `auto` | No |
-| `DATABASE_URL` | SQLite database URL (for example, `sqlite:///~/.toadstool/toadstool.db`) | `sqlite:///~/.toadstool/toadstool.db` | No |
-| `REDIS_URL` | Redis connection string (optional cache layer) | _none_ | No |
-
-### Config File
-
-Create `~/.config/toadstool/config.json` for advanced configuration:
-
-```json
-{
-  "agents": {
-    "claude": {
-      "command": "claude --experimental-acp",
-      "model": "claude-sonnet-4-20250514",
-      "maxTokens": 4096
-    }
-  },
-  "defaults": {
-    "agent": "claude"
-  },
-  "ui": {
-    "timestamps": true,
-    "syntaxHighlighting": true
-  }
-}
-```
-
----
-
-## 🏗️ Architecture
+## Slash Commands
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      TOADSTOOL TUI                            │
-├─────────────────────────────────────────────────────────────┤
-│  UI Layer (Ink + React)                                      │
-│  ┌───────────┬────────────┬───────────┬──────────┐          │
-│  │  Provider │  Message   │   Input   │  Status  │          │
-│  │  Selector │  List      │   Area    │  Bar     │          │
-│  └───────────┴────────────┴───────────┴──────────┘          │
-├─────────────────────────────────────────────────────────────┤
-│  State Layer (Zustand)                                       │
-│  Sessions • Messages • Connection • UI State                 │
-├─────────────────────────────────────────────────────────────┤
-│  ACP Adapter + Agents                                       │
-│  ┌──────────────────────────────────────────┐              │
-│  │ ACP JSON-RPC over stdio                  │              │
-│  │ Claude CLI / Gemini CLI / Codex CLI      │              │
-│  └──────────────────────────────────────────┘              │
-└─────────────────────────────────────────────────────────────┘
+/add-dir   /agents    /clear     /compact   /config
+/connect   /context   /copy      /cost      /debug
+/details   /doctor    /editor    /export    /help
+/hooks     /import    /init      /login     /memory
+/mode      /models    /new       /permissions /plan
+/progress  /rename    /review    /rewind    /security-review
+/sessions  /settings  /share     /stats     /status
+/themes    /thinking  /undo      /unshare   /redo
+/vim
 ```
 
----
-
-## 🔍 Upstream Patterns
-
-- TOAD (Python/Textual) spawns ACP-compatible CLIs and speaks JSON-RPC over stdio (for example,
-  `claude-code-acp`, `codex-acp`, `gemini --experimental-acp`).
-- OpenCode routes models through its provider layer and also exposes `opencode acp` so editors can
-  connect via ACP; Codex is handled via its provider/plugin pipeline.
-
----
-
-## 🔎 Search & Indexing
-
-- Text search uses `@vscode/ripgrep` with `rg --json` for fast, parseable results.
-- File discovery uses `fdir` for crawling, with `fast-glob` or `tinyglobby` for glob semantics.
-- Structured search uses `@ast-grep/napi`; fuzzy matching uses `fuzzysort`.
-- Two-stage approach: build an in-memory index once, then scope `rg` to narrowed folders/globs.
-
----
-
-## 🛠️ Development
-
-### Setup
+## Development
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/toadstool-ts.git
-cd toadstool-ts
-
-# Install dependencies
-bun install
-
-# Set up environment
-cp .env.sample .env
-# Edit .env with your API keys
+bun run dev          # Development mode
+bun run build        # Build
+bun run test         # Run tests
+bun run typecheck    # Type checking
+bun run lint         # Lint
 ```
 
-### Commands
-
-```bash
-# Development mode (watch)
-bun run dev
-
-# Build for production
-bun run build
-
-# Run tests
-bun run test
-
-# Run tests with coverage
-bun run test:coverage
-
-# Run E2E scenarios
-bun run test:scenarios
-
-# Type check
-bun run typecheck
-
-# Lint
-bun run lint
-
-# Format code
-bun run format
-
-# Check for magic literals
-bun run check:literals
-```
-
-### Code Style & Constants
-
-TOADSTOOL follows strict TypeScript best practices with a focus on type safety and maintainability:
-
-- **No Magic Literals**: All string literals used in control flow (switch/case, if/else) must use constants from `src/constants/`
-- **No Magic Numbers**: All non-trivial numbers must be in `src/config/limits.ts` or `src/config/timeouts.ts`
-- **Constant Pattern**: Constants follow the pattern:
-  ```typescript
-  export const EXAMPLE_STATUS = {
-    PENDING: "pending",
-    RUNNING: "running",
-  } as const;
-  
-  export type ExampleStatus = typeof EXAMPLE_STATUS[keyof typeof EXAMPLE_STATUS];
-  ```
-
-See `.cursorrules` for detailed guidelines on literal extraction and constant patterns.
-
-### Pre-commit Hooks
-
-To enable magic literal detection on commit:
-
-```bash
-# Make the pre-commit hook executable
-chmod +x .git/hooks/pre-commit
-
-# Or create it manually:
-cp scripts/pre-commit.template .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
-```
-
-The hook will prevent commits if magic literals are detected (use `--no-verify` to bypass if needed).
-
-### Project Structure
+## Architecture
 
 ```
-toadstool-ts/
-├── src/
-│   ├── cli.ts                 # Entry point
-│   ├── index.ts               # Library exports
-│   │
-│   ├── core/                  # ACP + orchestration core
-│   │   ├── acp-connection.ts  # ACP JSON-RPC stdio client
-│   │   ├── message-handler.ts # Stream + tool handling
-│   │   └── orchestrator.ts    # Agent orchestration
-│   │
-│   ├── store/                 # State management
-│   │   └── app-store.ts       # Zustand store
-│   │
-│   ├── ui/                    # Ink components
-│   │   ├── App.tsx
-│   │   ├── Chat.tsx
-│   │   ├── MessageList.tsx
-│   │   ├── Input.tsx
-│   │   └── StatusBar.tsx
-│   │
-│   ├── types/                 # TypeScript types
-│   │   └── domain.ts          # Zod schemas + types
-│   │
-│   └── testing/               # Test utilities
-│       └── validators/
-│           ├── heuristics.ts  # Fast structural checks
-│           └── llm-validator.ts # AI-powered validation
-│
-├── test/
-│   ├── unit/                  # Unit tests
-│   └── scenarios/             # E2E scenario tests
-│
-├── docs/                      # Documentation
-├── package.json
-├── tsconfig.json
-└── vitest.config.ts
+src/
+├── agents/      # Agent manager, routing, built-in agents
+├── cli.ts       # CLI entry (Commander + OpenTUI)
+├── config/      # Runtime configuration with Zod schemas
+├── constants/   # 73+ typed constant files
+├── core/        # ACP client, providers, context, session management
+├── harness/     # Multi-provider harness registry
+├── hooks/       # Lifecycle hooks system
+├── rules/       # Rules loader + permissions
+├── server/      # HTTP/WebSocket server + API routes
+├── store/       # Zustand state + SQLite/JSON persistence
+├── tools/       # Tool registry + 13 built-in tools
+├── types/       # TypeScript type definitions with Zod
+├── ui/          # OpenTUI React components + hooks
+└── utils/       # Env, logging, credentials, diff, SVG export
 ```
 
----
+## License
 
-## 🧪 Testing Strategy
+MIT
 
-TOADSTOOL uses a three-layer validation approach:
+## Contributing
 
-| Layer | Purpose | Speed |
-|-------|---------|-------|
-| **Unit Tests** | Function/component logic | ⚡ Fast |
-| **Heuristic Checks** | Structural validation | ⚡ Fast |
-| **LLM Validation** | Semantic quality | 🐢 Slower |
-
-```bash
-# Run all tests
-bun run test
-
-# Run with UI
-bunx vitest --ui
-
-# Run specific test file
-bun run test -- src/store/app-store.test.ts
-```
-
----
-
-## 📊 Tech Stack
-
-| Category | Technology | Why |
-|----------|------------|-----|
-| **Language** | TypeScript 5.5 | Type safety, modern features |
-| **TUI Framework** | Ink 5.x | React paradigm in terminal |
-| **UI Components** | @inkjs/ui | Battle-tested inputs/selects |
-| **State** | Zustand | Minimal, TypeScript-first |
-| **Validation** | Zod | Runtime type safety |
-| **ACP SDK** | @agentclientprotocol/sdk | ACP JSON-RPC client |
-| **Agent CLIs** | Claude CLI, Gemini CLI | ACP-compatible agents |
-| **Testing** | Vitest | Fast, TypeScript-native |
-| **Build** | tsup | ESM-native bundler |
-
----
-
-## 🗺️ Roadmap
-
-**Current Status**: Phase 3 Complete (~50% of planned features)
-
-### ✅ MVP (Current - Phases 1-3)
-- [x] ACP-first providers (CLI agents)
-- [x] Streaming responses
-- [x] Session persistence
-- [x] Markdown rendering
-- [x] Type-safe state management
-- [x] Multi-agent orchestration types
-- [x] React-based terminal UI
-
-### 🔜 Phase 2 (Tooling & Permissions)
-- [ ] Tool call system with approval flow (allow/ask/deny)
-- [ ] File system operations + shell command execution
-- [ ] Session modes (read-only/auto/full-access)
-- [ ] Content blocks for code + resources
-
-### 🔜 Phase 3 (ACP Compatibility)
-- [ ] ACP JSON-RPC over stdio + protocol/capability negotiation
-- [ ] Slash command discovery + routing
-- [ ] MCP server integration
-- [ ] Agent plan announcements + approval
-
-### 🔜 Phase 4 (Search & Indexing)
-- [ ] Ripgrep JSON search via `@vscode/ripgrep`
-- [ ] File index with `fdir` + glob/fuzzy queries
-- [ ] Optional AST search via `@ast-grep/napi`
-
-### 🔮 Future (Differentiators)
-- [ ] Subagent system + delegation
-- [ ] AGENTS.md auto-loading
-- [ ] Rich content types (images, audio)
-- [ ] Plugin system
-- [ ] Web interface mode
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing`)
-3. Run tests (`bun run test`)
-4. Commit your changes (`git commit -m 'Add amazing feature'`)
-5. Push to the branch (`git push origin feature/amazing`)
-6. Open a Pull Request
-
----
-
-## 📄 License
-
-MIT © [Your Name]
-
----
-
-## 📚 Additional Documentation
-
-- **[FEATURES.md](docs/FEATURES.md)** - Detailed feature documentation
-- **[COMPARISON.md](docs/COMPARISON.md)** - Competitive analysis vs toad, open-code, claude-cli, zed
-- **[Multi-Agent Orchestration](docs/multi-agent-orchestration.md)** - Subagent architecture design
-
----
-
-## 🙏 Acknowledgments
-
-- [Original Toad](https://github.com/batrachianai/toad) — Inspiration and concept
-- [Ink](https://github.com/vadimdemedes/ink) — React for CLIs
-- [Anthropic](https://anthropic.com) — Claude AI
-- [OpenAI](https://openai.com) — GPT models
-
----
-
-<p align="center">
-  <sub>Built with 🐸 by developers who live in the terminal</sub>
-</p>
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.

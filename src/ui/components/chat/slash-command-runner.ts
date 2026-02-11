@@ -1,14 +1,9 @@
 import { LIMIT } from "@/config/limits";
-import { ENV_KEY } from "@/constants/env-keys";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { REWIND_MODE } from "@/constants/rewind-modes";
 import {
   SLASH_COMMAND_MESSAGE,
   formatCompactionCompleteMessage,
-  formatContextMessage,
-  formatCostMessage,
-  formatDebugMessage,
-  formatDoctorMessage,
   formatModeUpdatedMessage,
   formatModelCurrentMessage,
   formatModelListMessage,
@@ -19,7 +14,6 @@ import {
   formatSessionCreatedMessage,
   formatSessionListMessage,
   formatSessionRenamedMessage,
-  formatStatsMessage,
   formatThinkingMessage,
   formatToolDetailsMessage,
   formatUnknownCommandMessage,
@@ -27,12 +21,10 @@ import {
 } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { TASK_STATUS } from "@/constants/task-status";
-import { checkHarnessHealth } from "@/harness/harness-health";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
 import { PlanIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
-import { EnvManager } from "@/utils/env/env.utils";
 import { nanoid } from "nanoid";
 import {
   runCopyCommand,
@@ -45,8 +37,24 @@ import {
   handleRewindCommand,
   handleUndoCommand,
 } from "./slash-command-checkpoints";
+import {
+  handleContextCommand,
+  handleCostCommand,
+  handleDebugCommand,
+  handleDoctorCommand,
+  handleStatsCommand,
+} from "./slash-command-diagnostics";
 import { handleExportSlashCommand, handleImportSlashCommand } from "./slash-command-export-import";
-import { buildContextStats } from "./slash-command-helpers";
+import {
+  handleAddDirCommand,
+  handleConfigCommand,
+  handleInitCommand,
+  handleLoginCommand,
+  handlePermissionsCommand,
+  handleReviewCommand,
+  handleSecurityReviewCommand,
+  handleStatusCommand,
+} from "./slash-command-extended";
 export interface SlashCommandDeps {
   sessionId?: SessionId;
   appendSystemMessage: (text: string) => void;
@@ -68,6 +76,7 @@ export interface SlashCommandDeps {
   toggleToolDetails?: () => boolean;
   toggleThinking?: () => boolean;
   openEditor?: (initialValue: string) => Promise<void>;
+  openSettings?: () => void;
   openThemes?: () => void;
   openContext?: () => void;
   openHooks?: () => void;
@@ -90,19 +99,24 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
   const allowsWithoutSession =
     command === SLASH_COMMAND.HELP ||
     command === SLASH_COMMAND.SETTINGS ||
+    command === SLASH_COMMAND.CONFIG ||
     command === SLASH_COMMAND.CONNECT ||
     command === SLASH_COMMAND.SESSIONS ||
     command === SLASH_COMMAND.NEW ||
     command === SLASH_COMMAND.DOCTOR ||
     command === SLASH_COMMAND.DEBUG ||
     command === SLASH_COMMAND.STATS ||
+    command === SLASH_COMMAND.STATUS ||
     command === SLASH_COMMAND.MEMORY ||
     command === SLASH_COMMAND.THEMES ||
     command === SLASH_COMMAND.HOOKS ||
     command === SLASH_COMMAND.PROGRESS ||
     command === SLASH_COMMAND.AGENTS ||
     command === SLASH_COMMAND.VIM ||
-    command === SLASH_COMMAND.IMPORT;
+    command === SLASH_COMMAND.IMPORT ||
+    command === SLASH_COMMAND.INIT ||
+    command === SLASH_COMMAND.LOGIN ||
+    command === SLASH_COMMAND.PERMISSIONS;
   if (!deps.sessionId && !allowsWithoutSession) {
     deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
     return true;
@@ -114,43 +128,15 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       return true;
     }
     case SLASH_COMMAND.DOCTOR: {
-      const env = EnvManager.getInstance().getSnapshot();
-      const checks = [
-        `Connection: ${deps.connectionStatus ?? "unknown"}`,
-        `Anthropic API key: ${env[ENV_KEY.ANTHROPIC_API_KEY] ? "set" : "missing"}`,
-        `OpenAI API key: ${env[ENV_KEY.OPENAI_API_KEY] ? "set" : "missing"}`,
-        `Editor: ${env[ENV_KEY.VISUAL] ?? env[ENV_KEY.EDITOR] ?? "default"}`,
-      ];
-      if (deps.harnesses) {
-        const health = checkHarnessHealth(deps.harnesses, env);
-        for (const entry of health) {
-          const status = entry.available ? "available" : "missing";
-          checks.push(`Provider ${entry.name}: ${status} (${entry.command})`);
-        }
-      }
-      deps.appendSystemMessage(formatDoctorMessage(checks));
+      handleDoctorCommand(deps);
       return true;
     }
     case SLASH_COMMAND.DEBUG: {
-      const session = deps.sessionId ? deps.getSession(deps.sessionId) : undefined;
-      const messages = deps.sessionId ? deps.getMessagesForSession(deps.sessionId) : [];
-      const plan = deps.sessionId ? deps.getPlanBySession(deps.sessionId) : undefined;
-      const lines = [
-        `Session: ${deps.sessionId ?? "none"}`,
-        `Agent: ${session?.agentId ?? "unknown"}`,
-        `Mode: ${session?.mode ?? "unknown"}`,
-        `Messages: ${messages.length}`,
-        `Plan: ${plan ? plan.status : "none"}`,
-      ];
-      deps.appendSystemMessage(formatDebugMessage(lines));
+      handleDebugCommand(deps);
       return true;
     }
     case SLASH_COMMAND.STATS: {
-      const sessions = deps.listSessions();
-      const sessionCount = sessions.length;
-      const messageCount = deps.sessionId ? deps.getMessagesForSession(deps.sessionId).length : 0;
-      const lines = [`Sessions: ${sessionCount}`, `Current session messages: ${messageCount}`];
-      deps.appendSystemMessage(formatStatsMessage(lines));
+      handleStatsCommand(deps);
       return true;
     }
     case SLASH_COMMAND.EDITOR: {
@@ -200,25 +186,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       return true;
     }
     case SLASH_COMMAND.CONTEXT: {
-      if (!deps.sessionId) {
-        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
-        return true;
-      }
-      if (deps.openContext) {
-        deps.openContext();
-        return true;
-      }
-      const messages = deps.getMessagesForSession(deps.sessionId);
-      const stats = buildContextStats(messages);
-      const blockCount = messages.reduce((sum, message) => sum + message.content.length, 0);
-      const lines = [
-        `Messages: ${messages.length}`,
-        `Blocks: ${blockCount}`,
-        `Tokens (est): ${stats.tokens}`,
-        `Chars: ${stats.chars}`,
-        `Bytes: ${stats.bytes}`,
-      ];
-      deps.appendSystemMessage(formatContextMessage(lines));
+      handleContextCommand(deps);
       return true;
     }
     case SLASH_COMMAND.MODE: {
@@ -271,14 +239,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       return true;
     }
     case SLASH_COMMAND.COST: {
-      if (!deps.sessionId) {
-        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
-        return true;
-      }
-      const messages = deps.getMessagesForSession(deps.sessionId);
-      const stats = buildContextStats(messages);
-      const lines = ["Cost tracking not configured.", `Tokens (est): ${stats.tokens}`];
-      deps.appendSystemMessage(formatCostMessage(lines));
+      handleCostCommand(deps);
       return true;
     }
     case SLASH_COMMAND.CLEAR: {
@@ -490,6 +451,38 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         return true;
       }
       deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.AGENTS_NOT_AVAILABLE);
+      return true;
+    }
+    case SLASH_COMMAND.ADD_DIR: {
+      handleAddDirCommand(parts, deps);
+      return true;
+    }
+    case SLASH_COMMAND.PERMISSIONS: {
+      handlePermissionsCommand(deps);
+      return true;
+    }
+    case SLASH_COMMAND.STATUS: {
+      handleStatusCommand(deps);
+      return true;
+    }
+    case SLASH_COMMAND.LOGIN: {
+      handleLoginCommand(deps);
+      return true;
+    }
+    case SLASH_COMMAND.CONFIG: {
+      handleConfigCommand(deps);
+      return true;
+    }
+    case SLASH_COMMAND.INIT: {
+      handleInitCommand(deps);
+      return true;
+    }
+    case SLASH_COMMAND.REVIEW: {
+      handleReviewCommand(deps);
+      return true;
+    }
+    case SLASH_COMMAND.SECURITY_REVIEW: {
+      handleSecurityReviewCommand(deps);
       return true;
     }
     default: {

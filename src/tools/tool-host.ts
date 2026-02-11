@@ -1,6 +1,8 @@
+import { DEFAULT_APP_CONFIG } from "@/config/app-config";
 import { LIMIT } from "@/config/limits";
 import { HOOK_EVENT } from "@/constants/hook-events";
 import { TOOL_NAME } from "@/constants/tool-names";
+import { formatFile } from "@/core/code-formatter";
 import { getHookManager } from "@/hooks/hook-service";
 import { getCheckpointManager } from "@/store/checkpoints/checkpoint-service";
 import type { ClientCapabilities } from "@agentclientprotocol/sdk";
@@ -90,6 +92,10 @@ export class ToolHost {
         path: absolutePath,
         before,
         after: params.content,
+      });
+      // Auto-format written files using configured formatters
+      void formatFile(absolutePath, DEFAULT_APP_CONFIG.formatters).catch(() => {
+        // Formatter failures are non-blocking
       });
       return {};
     });

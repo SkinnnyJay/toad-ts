@@ -1,3 +1,4 @@
+import type { ScrollAcceleration } from "@opentui/core";
 import type { ReactNode } from "react";
 import { memo } from "react";
 
@@ -11,6 +12,7 @@ interface ScrollAreaProps {
   focused?: boolean;
   scrollX?: boolean;
   scrollY?: boolean;
+  scrollAcceleration?: ScrollAcceleration;
 }
 
 export const ScrollArea = memo(function ScrollArea({
@@ -23,6 +25,7 @@ export const ScrollArea = memo(function ScrollArea({
   focused = true,
   scrollX = false,
   scrollY = true,
+  scrollAcceleration,
 }: ScrollAreaProps): ReactNode {
   return (
     <scrollbox
@@ -34,6 +37,7 @@ export const ScrollArea = memo(function ScrollArea({
       focused={focused}
       scrollX={scrollX}
       scrollY={scrollY}
+      scrollAcceleration={scrollAcceleration}
       style={{ width: "100%" }}
     >
       {children}

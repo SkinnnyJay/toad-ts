@@ -49,3 +49,82 @@
 - 2026-02-10 17:45 - Clarified storage contract with SQLite/JSON adapters in PLAN.md.
 - 2026-02-10 18:10 - Converted all PLAN.md bullets to checkbox tasks.
 - 2026-02-10 18:50 - Switched npm build to use npx tsup when bunx is unavailable.
+
+## 2026-02-10 (Cursor Session — Full Backlog Execution)
+### Milestone 0: Foundation Fix
+- Installed bun 1.3.9, ran bun install (604 packages)
+- Fixed SqliteStore: mkdir parent dirs, use executeRawUnsafe for DDL
+- Fixed test harness: removed process.exit, added timeout wrapper script
+- Generated Prisma client; all quality gates pass
+
+### Milestone 2: Slash Commands
+- Added 8 new commands: /add-dir, /permissions, /status, /login, /config, /init, /review, /security-review
+- Extracted diagnostics to slash-command-diagnostics.ts, extended to slash-command-extended.ts
+- Added categories to all 40+ command definitions
+
+### Milestone 3: Checkpointing
+- Added cleanupOldCheckpoints() for batch retention cleanup
+- Extracted git operations to checkpoint-git.ts
+
+### Milestone 4: Configuration
+- Expanded config schema to 12 sections (compaction, permissions, themes, providers, compatibility, formatters, instructions)
+- Extracted Zod schemas to app-config-schema.ts
+
+### Milestone 5: Context Management
+- Added ContextManager with token counting, budget levels, auto-compaction trigger
+- Added pruneToolOutputs for reducing context
+
+### Milestone 6: Session Management
+- Added session forking, diff tracking, findByNameOrId
+- Added RetentionPolicy with max sessions/TTL/max bytes
+
+### Milestone 7: Provider Expansion
+- Added AnthropicProvider, OpenAIProvider, OllamaProvider with SSE streaming
+- Added ProviderRegistry with model refresh and health checks
+- Added OpenAI-compatible adapter for Azure, Groq, OpenRouter, Together, Fireworks, Mistral, Perplexity, xAI
+- Added small-model resolution
+
+### Milestone 8: Cross-Tool Compatibility
+- Added discovery paths for 5 tool folders
+- Added universal loaders: skills, commands, agents, hooks, custom tools, instructions
+- Added Cursor .mdc parser, init-generator for TOADSTOOL.md
+
+### Milestone 9: Server Mode & CLI
+- Added CLI subcommands: run, serve, models, auth, version
+- Added headless mode (-p) with --output-format, --max-turns, --max-budget-usd
+- Added REST API routes (11 endpoints) wired into headless server
+
+### Milestone 10: Advanced Features
+- Added code formatter, model variant cycling, PR status via gh CLI
+- Added LSP client stub with language server detection
+- Added plugin system with manifest discovery
+- Added prompt suggestions (heuristic + LLM prompt)
+- Added image support (@image.png extraction, base64 encoding)
+
+### Milestone 11: Distribution
+- Updated CI workflow for Bun + Prisma
+- Added npm publish workflow
+- Added README.md and CONTRIBUTING.md
+- Added 6 built-in themes in theme-loader.ts
+
+### Integration & Wiring
+- Wired API routes into headless server
+- Wired ContextManager into useContextStats hook
+- Wired code formatter into tool-host writeTextFile
+- Wired auto-title into session completion (useAutoTitle hook)
+- Added usePromptSuggestions hook
+- Exported 30+ new modules in index.ts
+- Extracted input suggestions and checkpoint-git for 500-line compliance
+
+### Testing
+- Added 76 new tests across 13 new test files
+- Integration tests for cross-tool loading pipeline (7 tests)
+- Integration tests for context compaction flow (3 tests)
+- Unit tests for all new modules: context, permissions, forking, providers, auto-title, retention, themes, SVG, images, suggestions, model variants, workspace, API routes
+- All 121+ test files pass, 0 failures
+
+### Code Quality
+- 0 files over 500 lines (max: App.tsx at 500)
+- 0 TODO/FIXME comments
+- 0 type errors, 0 lint errors
+- 479 files linted cleanly
