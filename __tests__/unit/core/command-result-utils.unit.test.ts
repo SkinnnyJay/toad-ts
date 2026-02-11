@@ -1,5 +1,6 @@
 import {
   assertCommandSucceeded,
+  parseStdoutWithCombinedFallback,
   toCombinedCommandOutput,
   toCommandFailureMessage,
 } from "@/core/agent-management/command-result-utils";
@@ -67,5 +68,34 @@ describe("command-result-utils", () => {
         "fallback failure"
       )
     ).not.toThrow();
+  });
+
+  it("falls back to combined output when stdout parse is unaccepted", () => {
+    const parsed = parseStdoutWithCombinedFallback({
+      result: {
+        stdout: "warning: output in stderr",
+        stderr: "value=42",
+        exitCode: 0,
+      },
+      parse: (output) => output.includes("value=42"),
+      shouldAcceptParsed: (accepted) => accepted,
+    });
+
+    expect(parsed).toBe(true);
+  });
+
+  it("skips combined fallback when predicate disallows it", () => {
+    const parsed = parseStdoutWithCombinedFallback({
+      result: {
+        stdout: "no sessions found",
+        stderr: "session-id ignored",
+        exitCode: 0,
+      },
+      parse: (output) => output.includes("session-id ignored"),
+      shouldAcceptParsed: (accepted) => accepted,
+      shouldFallbackWhenStdoutPresent: (stdout) => !stdout.includes("no sessions"),
+    });
+
+    expect(parsed).toBe(false);
   });
 });
