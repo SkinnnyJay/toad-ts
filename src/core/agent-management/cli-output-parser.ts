@@ -204,16 +204,15 @@ export const extractFirstUuid = (stdout: string): string | null => {
 
 export const parseKeyValueLines = (stdout: string): Record<string, string> => {
   const result: Record<string, string> = {};
+  const KEY_VALUE_SEPARATOR_PATTERN = /\s*[:=]\s*/;
   for (const line of getNonEmptyLines(stdout)) {
-    const separatorIndex = line.indexOf(":");
-    if (separatorIndex < 0) {
+    const split = line.split(KEY_VALUE_SEPARATOR_PATTERN, 2);
+    const key = split[0]?.trim();
+    const value = split[1]?.trim();
+    if (!key || value === undefined) {
       continue;
     }
-    const key = line.slice(0, separatorIndex).trim();
-    const value = line.slice(separatorIndex + 1).trim();
-    if (key.length > 0) {
-      result[key] = value;
-    }
+    result[key] = value;
   }
   return result;
 };

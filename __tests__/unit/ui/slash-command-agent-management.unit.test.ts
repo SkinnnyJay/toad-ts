@@ -233,6 +233,28 @@ describe("slash command agent management", () => {
     );
   });
 
+  it("parses native status key-value output with equals separator", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "Model = Auto\nOS=linux",
+      stderr: "",
+      exitCode: 0,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      activeAgentName: "Cursor CLI",
+      connectionStatus: "connected",
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.STATUS, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runAgentCommand).toHaveBeenCalledWith(["status"]);
+    expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("Model: Auto"));
+    expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("OS: linux"));
+  });
+
   it("runs codex status via login status command", async () => {
     const runAgentCommand = vi.fn(async () => ({
       stdout: "logged in as codex@example.com",

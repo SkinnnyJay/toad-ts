@@ -120,4 +120,12 @@ describe("cli-output-parser", () => {
       OS: "linux",
     });
   });
+
+  it("parses key-value output with equals separator", () => {
+    const parsed = parseKeyValueLines("Model = Claude 4.6\nOS=linux");
+    expect(parsed).toEqual({
+      Model: "Claude 4.6",
+      OS: "linux",
+    });
+  });
 });
