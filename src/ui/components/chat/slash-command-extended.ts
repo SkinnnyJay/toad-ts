@@ -13,10 +13,8 @@ import {
   formatSecurityReviewMessage,
   formatStatusMessage,
 } from "@/constants/slash-command-messages";
-import {
-  parseAuthStatusOutput,
-  parseKeyValueLines,
-} from "@/core/agent-management/cli-output-parser";
+import { parseAuthStatusCommandResult } from "@/core/agent-management/auth-status-command-result";
+import { parseKeyValueLines } from "@/core/agent-management/cli-output-parser";
 import { EnvManager } from "@/utils/env/env.utils";
 import type { SlashCommandDeps } from "./slash-command-runner";
 
@@ -174,7 +172,7 @@ export const handleStatusCommand = (deps: SlashCommandDeps): void => {
         return;
       }
 
-      const auth = parseAuthStatusOutput(combinedOutput);
+      const auth = parseAuthStatusCommandResult(result);
       deps.appendSystemMessage(
         `Agent status (${deps.activeAgentName ?? deps.activeHarnessId ?? "active"}):\n` +
           `Authenticated: ${auth.authenticated ? "yes" : "no"}`

@@ -252,6 +252,30 @@ describe("slash command agent management", () => {
     expect(runAgentCommand).toHaveBeenCalledWith(["login", "status"]);
   });
 
+  it("parses codex status auth from stderr when stdout is empty", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "logged in as codex-stderr@example.com",
+      exitCode: 0,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: "codex-cli",
+      activeAgentName: "Codex CLI",
+      connectionStatus: "connected",
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.STATUS, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runAgentCommand).toHaveBeenCalledWith(["login", "status"]);
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("Agent status (Codex CLI):")
+    );
+    expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("Authenticated: yes"));
+  });
+
   it("fetches native cursor sessions for /sessions", async () => {
     const duplicated = "9b7418b2-5b71-4a12-97b4-64f2131e5241";
     const runAgentCommand = vi.fn(async () => ({

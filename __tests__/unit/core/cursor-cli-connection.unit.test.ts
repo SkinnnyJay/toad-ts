@@ -187,4 +187,23 @@ describe("CursorCliConnection", () => {
 
     await expect(connection.listModels()).rejects.toThrow("models endpoint unavailable");
   });
+
+  it("parses auth status from stderr when stdout is empty", async () => {
+    const connection = new CursorCliConnection({
+      commandRunner: async (_command, args) => {
+        if (args[0] === AGENT_MANAGEMENT_COMMAND.STATUS) {
+          return {
+            stdout: "",
+            stderr: "✓ Logged in as stderr-user@example.com",
+            exitCode: 0,
+          };
+        }
+        return { stdout: "", stderr: "", exitCode: 0 };
+      },
+    });
+
+    const auth = await connection.verifyAuth();
+    expect(auth.authenticated).toBe(true);
+    expect(auth.email).toBe("stderr-user@example.com");
+  });
 });
