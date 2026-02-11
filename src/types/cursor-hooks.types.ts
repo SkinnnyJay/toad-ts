@@ -45,10 +45,7 @@ export const CursorHookCommonFieldsSchema = z
 
 export type CursorHookCommonFields = z.infer<typeof CursorHookCommonFieldsSchema>;
 
-const createHookEventSchema = <T extends z.ZodRawShape>(
-  eventName: CursorHookEvent,
-  shape: T
-): z.ZodObject<{ hook_event_name: z.ZodLiteral<CursorHookEvent> } & T> =>
+const createHookEventSchema = <T extends z.ZodRawShape>(eventName: CursorHookEvent, shape: T) =>
   CursorHookCommonFieldsSchema.extend({
     hook_event_name: z.literal(eventName),
     ...shape,

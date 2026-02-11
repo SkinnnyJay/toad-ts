@@ -1,0 +1,34 @@
+export const CURSOR_HOOK_IPC_TRANSPORT = {
+  AUTO: "auto",
+  HTTP: "http",
+  UNIX: "unix",
+} as const;
+
+export type CursorHookIpcTransport =
+  (typeof CURSOR_HOOK_IPC_TRANSPORT)[keyof typeof CURSOR_HOOK_IPC_TRANSPORT];
+
+export const CURSOR_HOOK_RESPONSE_FIELD = {
+  DECISION: "decision",
+  PERMISSION: "permission",
+} as const;
+
+export type CursorHookResponseField =
+  (typeof CURSOR_HOOK_RESPONSE_FIELD)[keyof typeof CURSOR_HOOK_RESPONSE_FIELD];
+
+export const CURSOR_HOOK_IPC = {
+  DEFAULT_HOST: "127.0.0.1",
+  DEFAULT_PORT: 0,
+  DEFAULT_HTTP_PATH: "/hook",
+  BODY_MAX_BYTES: 1_000_000,
+} as const;
+
+export const {
+  AUTO: CURSOR_HOOK_TRANSPORT_AUTO,
+  HTTP: CURSOR_HOOK_TRANSPORT_HTTP,
+  UNIX: CURSOR_HOOK_TRANSPORT_UNIX,
+} = CURSOR_HOOK_IPC_TRANSPORT;
+
+export const {
+  DECISION: CURSOR_HOOK_RESPONSE_DECISION,
+  PERMISSION: CURSOR_HOOK_RESPONSE_PERMISSION,
+} = CURSOR_HOOK_RESPONSE_FIELD;
