@@ -1,10 +1,10 @@
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { ALLOW_ONCE, REJECT_ONCE } from "@/constants/permission-option-kinds";
-import { TOOL_KIND, type ToolKind } from "@/constants/tool-kinds";
 import { CliAgentBase } from "@/core/cli-agent/cli-agent.base";
 import { CliAgentBridge } from "@/core/cli-agent/cli-agent.bridge";
 import type { CliAgentPort } from "@/core/cli-agent/cli-agent.port";
+import { inferToolKindFromName } from "@/core/cli-agent/tool-kind-mapper";
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type {
   AuthenticateRequest,
@@ -44,7 +44,7 @@ export class CliHarnessAdapter extends CliAgentBase {
         sessionId: request.sessionId ?? "session-unknown",
         toolCall: {
           toolCallId: request.requestId,
-          kind: this.toToolKind(request.toolName),
+          kind: inferToolKindFromName(request.toolName),
         },
         options: [
           { optionId: ALLOW_ONCE, kind: ALLOW_ONCE, name: "Allow once" },
@@ -156,22 +156,6 @@ export class CliHarnessAdapter extends CliAgentBase {
       throw new Error("CLI agent does not support management commands.");
     }
     return this.cliAgent.runManagementCommand(args);
-  }
-
-  private toToolKind(toolName: string): ToolKind {
-    if (toolName.includes("read")) return TOOL_KIND.READ;
-    if (toolName.includes("edit") || toolName.includes("write")) return TOOL_KIND.EDIT;
-    if (toolName.includes("delete")) return TOOL_KIND.DELETE;
-    if (toolName.includes("move") || toolName.includes("rename")) return TOOL_KIND.MOVE;
-    if (toolName.includes("search") || toolName.includes("grep") || toolName.includes("glob")) {
-      return TOOL_KIND.SEARCH;
-    }
-    if (toolName.includes("shell") || toolName.includes("bash") || toolName.includes("exec")) {
-      return TOOL_KIND.EXECUTE;
-    }
-    if (toolName.includes("fetch") || toolName.includes("http")) return TOOL_KIND.FETCH;
-    if (toolName.includes("think")) return TOOL_KIND.THINK;
-    return TOOL_KIND.OTHER;
   }
 }
 
