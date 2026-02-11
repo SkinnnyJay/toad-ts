@@ -238,6 +238,46 @@ describe("createCliHarnessAdapter", () => {
     ]);
   });
 
+  it("orders listed sessions by newest createdAt after dedupe", async () => {
+    const cliAgent = new FakeCliAgentPort();
+    cliAgent.listSessions = async () => [
+      {
+        id: "session-old",
+        title: "Older",
+        createdAt: "2026-02-10T18:30:00.000Z",
+      },
+      {
+        id: "session-new",
+        title: "Newer",
+        createdAt: "2026-02-11T18:30:00.000Z",
+      },
+      {
+        id: "session-new",
+        title: "Newer title recovered",
+        createdAt: "2026-02-11T18:30:00.000Z",
+        messageCount: 7,
+      },
+    ];
+    const harness = createCliHarnessAdapter({ cliAgent });
+    await harness.connect();
+
+    const sessions = await harness.listAgentSessions();
+
+    expect(sessions).toEqual([
+      {
+        id: "session-new",
+        title: "Newer title recovered",
+        createdAt: "2026-02-11T18:30:00.000Z",
+        messageCount: 7,
+      },
+      {
+        id: "session-old",
+        title: "Older",
+        createdAt: "2026-02-10T18:30:00.000Z",
+      },
+    ]);
+  });
+
   it("falls back to management command session listing", async () => {
     const cliAgent = new FakeCliAgentPort();
     cliAgent.listSessions = undefined;

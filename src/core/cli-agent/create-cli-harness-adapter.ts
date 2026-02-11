@@ -4,6 +4,7 @@ import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { ALLOW_ONCE, REJECT_ONCE } from "@/constants/permission-option-kinds";
 import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
 import {
+  sortAgentManagementSessionsByRecency,
   toAgentManagementSessions,
   toUniqueAgentManagementSessions,
 } from "@/core/agent-management/session-summary-mapper";
@@ -37,6 +38,12 @@ export interface CreateCliHarnessAdapterOptions {
   bridge?: CliAgentBridge;
   unauthenticatedErrorMessage?: string;
 }
+
+const toNormalizedAgentManagementSessions = (
+  sessions: AgentManagementSession[]
+): AgentManagementSession[] => {
+  return sortAgentManagementSessionsByRecency(toUniqueAgentManagementSessions(sessions));
+};
 
 export class CliHarnessAdapter extends CliAgentBase {
   private readonly cliAgent: CliAgentPort;
@@ -178,12 +185,12 @@ export class CliHarnessAdapter extends CliAgentBase {
   async listAgentSessions(): Promise<AgentManagementSession[]> {
     if (this.cliAgent.listSessions) {
       const sessions = await this.cliAgent.listSessions();
-      return toUniqueAgentManagementSessions(toAgentManagementSessions(sessions));
+      return toNormalizedAgentManagementSessions(toAgentManagementSessions(sessions));
     }
 
     if (this.cliAgent.runManagementCommand) {
       const result = await this.cliAgent.runManagementCommand([AGENT_MANAGEMENT_COMMAND.LIST]);
-      return toUniqueAgentManagementSessions(
+      return toNormalizedAgentManagementSessions(
         toAgentManagementSessions(parseSessionListCommandResult(result))
       );
     }
