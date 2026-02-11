@@ -17,6 +17,26 @@ describe("command-result-utils", () => {
     expect(combined).toBe("first line\nsecond line");
   });
 
+  it("returns stderr when stdout is empty", () => {
+    const combined = toCombinedCommandOutput({
+      stdout: "",
+      stderr: "only stderr",
+      exitCode: 0,
+    });
+
+    expect(combined).toBe("only stderr");
+  });
+
+  it("returns stdout when stderr is empty", () => {
+    const combined = toCombinedCommandOutput({
+      stdout: "only stdout",
+      stderr: "",
+      exitCode: 0,
+    });
+
+    expect(combined).toBe("only stdout");
+  });
+
   it("prefers command output content for failure messages", () => {
     const message = toCommandFailureMessage(
       {

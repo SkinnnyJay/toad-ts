@@ -1,7 +1,15 @@
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 
 export const toCombinedCommandOutput = (result: AgentManagementCommandResult): string => {
-  return `${result.stdout}\n${result.stderr}`;
+  const stdout = result.stdout.trimEnd();
+  const stderr = result.stderr.trimEnd();
+  if (stdout.length === 0) {
+    return stderr;
+  }
+  if (stderr.length === 0) {
+    return stdout;
+  }
+  return `${stdout}\n${stderr}`;
 };
 
 export const toCommandFailureMessage = (
