@@ -3,6 +3,7 @@ import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { ALLOW_ONCE, REJECT_ONCE } from "@/constants/permission-option-kinds";
 import { parseSessionSummariesOutput } from "@/core/agent-management/cli-output-parser";
+import { toAgentManagementSessions } from "@/core/agent-management/session-summary-mapper";
 import { CliAgentBase } from "@/core/cli-agent/cli-agent.base";
 import { CliAgentBridge } from "@/core/cli-agent/cli-agent.bridge";
 import type { CliAgentPort } from "@/core/cli-agent/cli-agent.port";
@@ -174,13 +175,7 @@ export class CliHarnessAdapter extends CliAgentBase {
   async listAgentSessions(): Promise<AgentManagementSession[]> {
     if (this.cliAgent.listSessions) {
       const sessions = await this.cliAgent.listSessions();
-      return sessions.map((session) => ({
-        id: session.id,
-        title: session.title,
-        createdAt: session.createdAt,
-        model: session.model,
-        messageCount: session.messageCount,
-      }));
+      return toAgentManagementSessions(sessions);
     }
 
     if (this.cliAgent.runManagementCommand) {
@@ -189,13 +184,9 @@ export class CliHarnessAdapter extends CliAgentBase {
         const output = `${result.stderr}\n${result.stdout}`.trim();
         throw new Error(output.length > 0 ? output : "CLI session listing command failed.");
       }
-      return parseSessionSummariesOutput(`${result.stdout}\n${result.stderr}`).map((session) => ({
-        id: session.id,
-        title: session.title,
-        createdAt: session.createdAt,
-        model: session.model,
-        messageCount: session.messageCount,
-      }));
+      return toAgentManagementSessions(
+        parseSessionSummariesOutput(`${result.stdout}\n${result.stderr}`)
+      );
     }
 
     throw new Error("CLI agent does not support session listing.");

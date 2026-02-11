@@ -94,14 +94,7 @@ export class CursorCliAgentPort implements CliAgentPort {
   }
 
   async listSessions() {
-    const sessions = await this.connection.listSessions();
-    return sessions.map((session) => ({
-      id: session.id,
-      title: session.title,
-      createdAt: session.createdAt,
-      model: session.model,
-      messageCount: session.messageCount,
-    }));
+    return this.connection.listSessions();
   }
 
   async prompt(input: {
