@@ -380,12 +380,7 @@ export const useSlashCommandHandler = ({
         activeHarnessId: agent?.harnessId,
         activeAgentName: agent?.name,
         runAgentCommand,
-        listAgentSessions: listAgentSessions
-          ? async () => {
-              const sessions = await listAgentSessions();
-              return sessions.map((session) => ({ id: session.id }));
-            }
-          : undefined,
+        listAgentSessions: listAgentSessions ?? undefined,
         listCloudAgents:
           agent?.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID
             ? async () => {

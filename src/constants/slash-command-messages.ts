@@ -1,4 +1,5 @@
 import { LIMIT } from "@/config/limits";
+import type { AgentManagementSession } from "@/types/agent-management.types";
 import type { Session, SessionMode } from "@/types/domain";
 
 export const SLASH_COMMAND_MESSAGE = {
@@ -108,15 +109,31 @@ export const formatSessionListMessage = (sessions: Session[]): string => {
   return `Sessions:\n${lines.join("\n")}${suffix}`;
 };
 
-export const formatAgentSessionListMessage = (sessionIds: string[]): string => {
-  if (sessionIds.length === 0) {
+const formatAgentSessionDetails = (session: AgentManagementSession): string => {
+  const details: string[] = [];
+  if (session.title) {
+    details.push(session.title);
+  }
+  if (session.model) {
+    details.push(`model: ${session.model}`);
+  }
+  if (session.messageCount !== undefined) {
+    details.push(`messages: ${session.messageCount}`);
+  }
+  return details.length > 0 ? ` (${details.join(" · ")})` : "";
+};
+
+export const formatAgentSessionListMessage = (sessions: AgentManagementSession[]): string => {
+  if (sessions.length === 0) {
     return "No native agent sessions available.";
   }
-  const preview = sessionIds.slice(0, LIMIT.SESSION_LIST_PREVIEW);
-  const lines = preview.map((sessionId, index) => `${index + 1}. ${sessionId}`);
+  const preview = sessions.slice(0, LIMIT.SESSION_LIST_PREVIEW);
+  const lines = preview.map(
+    (session, index) => `${index + 1}. ${session.id}${formatAgentSessionDetails(session)}`
+  );
   const suffix =
-    sessionIds.length > preview.length
-      ? `\n… ${sessionIds.length - preview.length} more agent sessions`
+    sessions.length > preview.length
+      ? `\n… ${sessions.length - preview.length} more agent sessions`
       : "";
   return `Agent sessions:\n${lines.join("\n")}${suffix}`;
 };

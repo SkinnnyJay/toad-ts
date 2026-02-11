@@ -1,5 +1,6 @@
 import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
 import { parseUuidLines } from "@/core/agent-management/cli-output-parser";
+import type { AgentManagementSession } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
 import { useCallback, useEffect, useState } from "react";
 
@@ -43,7 +44,7 @@ export interface UseCursorNativeSessionIdsResult {
 }
 
 export interface CursorNativeSessionClient {
-  listAgentSessions?: () => Promise<Array<{ id: string }>>;
+  listAgentSessions?: () => Promise<AgentManagementSession[]>;
   runAgentCommand?: (
     args: string[]
   ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;

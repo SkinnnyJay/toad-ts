@@ -28,6 +28,7 @@ import { TASK_STATUS } from "@/constants/task-status";
 import { parseModelsOutput, parseUuidLines } from "@/core/agent-management/cli-output-parser";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
+import type { AgentManagementSession } from "@/types/agent-management.types";
 import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
 import { PlanIdSchema, SessionIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
 import { nanoid } from "nanoid";
@@ -104,7 +105,7 @@ export interface SlashCommandDeps {
   runAgentCommand?: (
     args: string[]
   ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
-  listAgentSessions?: () => Promise<Array<{ id: string }>>;
+  listAgentSessions?: () => Promise<AgentManagementSession[]>;
   listCloudAgents?: () => Promise<number>;
   toggleVimMode?: () => boolean;
   connectionStatus?: string;
@@ -206,9 +207,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         void deps
           .listAgentSessions()
           .then((sessions) => {
-            deps.appendSystemMessage(
-              formatAgentSessionListMessage(sessions.map((session) => session.id))
-            );
+            deps.appendSystemMessage(formatAgentSessionListMessage(sessions));
           })
           .catch((error) => {
             deps.appendSystemMessage(
@@ -228,7 +227,9 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
               return;
             }
             const sessionIds = parseUuidLines(`${result.stdout}\n${result.stderr}`);
-            deps.appendSystemMessage(formatAgentSessionListMessage(sessionIds));
+            deps.appendSystemMessage(
+              formatAgentSessionListMessage(sessionIds.map((sessionId) => ({ id: sessionId })))
+            );
           })
           .catch((error) => {
             deps.appendSystemMessage(
