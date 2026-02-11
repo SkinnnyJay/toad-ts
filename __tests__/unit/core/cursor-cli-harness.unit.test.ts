@@ -241,4 +241,61 @@ describe("CursorCliHarnessAdapter", () => {
 
     await expect(authHarness.connect()).rejects.toThrow("cursor-agent login");
   });
+
+  it("rejects concurrent prompts while one prompt is in flight", async () => {
+    const connection = new FakeCursorConnection();
+    let releasePrompt: (() => void) | null = null;
+    connection.spawnPrompt = async (request: CursorPromptRequest): Promise<CursorPromptResult> => {
+      connection.promptRequests.push(request);
+      await new Promise<void>((resolve) => {
+        releasePrompt = resolve;
+      });
+      return {
+        sessionId,
+        resultText: "done",
+        events: [],
+        stderr: "",
+        exitCode: 0,
+        signal: null,
+      };
+    };
+
+    const harness = new CursorCliHarnessAdapter({
+      connection,
+      hookServer: new FakeHookServer(),
+      installHooksFn: async () => ({
+        paths: {
+          hooksFilePath: "/tmp/hooks.json",
+          toadstoolHooksDir: "/tmp/.toadstool/hooks",
+          nodeShimPath: "/tmp/.toadstool/hooks/toadstool-hook.mjs",
+          bashShimPath: "/tmp/.toadstool/hooks/toadstool-hook.sh",
+        },
+        previousHooksRaw: null,
+        generatedCommand: "/tmp/.toadstool/hooks/toadstool-hook.mjs",
+        generatedConfig: {
+          version: 1,
+          hooks: {},
+        },
+      }),
+      cleanupHooksFn: async () => {},
+      env: {},
+    });
+
+    await harness.connect();
+    const firstPrompt = harness.prompt({
+      sessionId,
+      prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "first" }],
+    });
+
+    await expect(
+      harness.prompt({
+        sessionId,
+        prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "second" }],
+      })
+    ).rejects.toThrow("already in progress");
+
+    releasePrompt?.();
+    await expect(firstPrompt).resolves.toEqual({ stopReason: "end_turn" });
+    await harness.disconnect();
+  });
 });

@@ -5,6 +5,7 @@ import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { SIGNAL } from "@/constants/signals";
+import { CliAgentBase } from "@/core/cli-agent/cli-agent.base";
 import {
   CursorCliConnection,
   type CursorPromptRequest,
@@ -27,7 +28,6 @@ import type {
 import { type HarnessConfig, harnessConfigSchema } from "@/harness/harnessConfig";
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type { CursorHookInput } from "@/types/cursor-hooks.types";
-import type { ConnectionStatus } from "@/types/domain";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import type {
@@ -46,7 +46,7 @@ import type {
   SetSessionModelResponse,
 } from "@agentclientprotocol/sdk";
 import { PROTOCOL_VERSION } from "@agentclientprotocol/sdk";
-import { EventEmitter } from "eventemitter3";
+import type { EventEmitter } from "eventemitter3";
 
 interface CursorCliConnectionLike
   extends EventEmitter<{
@@ -94,10 +94,7 @@ export interface CursorCliHarnessAdapterOptions {
   env?: NodeJS.ProcessEnv;
 }
 
-export class CursorCliHarnessAdapter
-  extends EventEmitter<CursorCliHarnessAdapterEvents>
-  implements HarnessRuntime
-{
+export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRuntime {
   private readonly logger = createClassLogger("CursorCliHarnessAdapter");
   private readonly connection: CursorCliConnectionLike;
   private readonly translator: CursorToAcpTranslator;
@@ -106,12 +103,9 @@ export class CursorCliHarnessAdapter
   private readonly cleanupHooksFn: CleanupHooksFn;
   private readonly cwd: string;
   private readonly env: NodeJS.ProcessEnv;
-  private status: ConnectionStatus = CONNECTION_STATUS.DISCONNECTED;
   private hookAddress: CursorHookIpcAddress | null = null;
   private hookInstallation: CursorHookInstallation | null = null;
   private signalHandlersInstalled = false;
-  private readonly sessionModeById = new Map<string, string>();
-  private readonly sessionModelById = new Map<string, string>();
   private readonly hookToolCallByKey = new Map<string, string>();
 
   constructor(options: CursorCliHarnessAdapterOptions = {}) {
@@ -158,18 +152,14 @@ export class CursorCliHarnessAdapter
     this.hookServer.on("hookEvent", (event) => this.handleHookEvent(event));
   }
 
-  get connectionStatus(): ConnectionStatus {
-    return this.status;
-  }
-
   async connect(): Promise<void> {
     if (
-      this.status === CONNECTION_STATUS.CONNECTED ||
-      this.status === CONNECTION_STATUS.CONNECTING
+      this.connectionStatus === CONNECTION_STATUS.CONNECTED ||
+      this.connectionStatus === CONNECTION_STATUS.CONNECTING
     ) {
       return;
     }
-    this.setStatus(CONNECTION_STATUS.CONNECTING);
+    this.setConnectionStatus(CONNECTION_STATUS.CONNECTING);
 
     const installInfo = await this.connection.verifyInstallation();
     if (!installInfo.installed) {
@@ -177,6 +167,7 @@ export class CursorCliHarnessAdapter
     }
 
     const authStatus = await this.connection.verifyAuth();
+    this.cacheAuthStatus(authStatus.authenticated);
     if (!authStatus.authenticated && !this.env[ENV_KEY.CURSOR_API_KEY]) {
       throw new Error(
         "Cursor CLI is not authenticated. Run `cursor-agent login` or set CURSOR_API_KEY."
@@ -196,7 +187,7 @@ export class CursorCliHarnessAdapter
     });
 
     this.installSignalHandlers();
-    this.setStatus(CONNECTION_STATUS.CONNECTED);
+    this.setConnectionStatus(CONNECTION_STATUS.CONNECTED);
   }
 
   async disconnect(): Promise<void> {
@@ -212,7 +203,7 @@ export class CursorCliHarnessAdapter
         }
         this.hookAddress = null;
         this.removeSignalHandlers();
-        this.setStatus(CONNECTION_STATUS.DISCONNECTED);
+        this.setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
       }
     }
   }
@@ -229,7 +220,12 @@ export class CursorCliHarnessAdapter
   }
 
   async authenticate(_params: AuthenticateRequest): Promise<AuthenticateResponse> {
+    const cachedAuth = this.getCachedAuthStatus();
+    if (cachedAuth === true || this.env[ENV_KEY.CURSOR_API_KEY]) {
+      return {};
+    }
     const authStatus = await this.connection.verifyAuth();
+    this.cacheAuthStatus(authStatus.authenticated);
     if (!authStatus.authenticated && !this.env[ENV_KEY.CURSOR_API_KEY]) {
       throw new Error("Cursor CLI authentication is required.");
     }
@@ -237,24 +233,26 @@ export class CursorCliHarnessAdapter
   }
 
   async prompt(params: PromptRequest): Promise<PromptResponse> {
-    const hookSocketTarget = this.hookAddress?.url ?? this.hookAddress?.socketPath;
-    const request: CursorPromptRequest = {
-      prompt: this.buildPromptText(params),
-      sessionId: params.sessionId,
-      mode: this.resolveSessionMode(params.sessionId),
-      model: this.resolveSessionModel(params.sessionId),
-      streamPartialOutput: true,
-      envOverrides: hookSocketTarget ? injectHookSocketEnv({}, hookSocketTarget) : undefined,
-    };
+    return this.runPromptGuarded(async () => {
+      const hookSocketTarget = this.hookAddress?.url ?? this.hookAddress?.socketPath;
+      const request: CursorPromptRequest = {
+        prompt: this.buildPromptText(params),
+        sessionId: params.sessionId,
+        mode: this.getSessionPromptMode(params.sessionId),
+        model: this.getSessionModelValue(params.sessionId),
+        streamPartialOutput: true,
+        envOverrides: hookSocketTarget ? injectHookSocketEnv({}, hookSocketTarget) : undefined,
+      };
 
-    const result = await this.connection.spawnPrompt(request);
-    if (result.exitCode !== null && result.exitCode !== 0 && result.resultText === null) {
-      throw new Error(`Cursor prompt failed${result.signal ? ` (${result.signal})` : ""}`);
-    }
+      const result = await this.connection.spawnPrompt(request);
+      if (result.exitCode !== null && result.exitCode !== 0 && result.resultText === null) {
+        throw new Error(`Cursor prompt failed${result.signal ? ` (${result.signal})` : ""}`);
+      }
 
-    return {
-      stopReason: "end_turn",
-    };
+      return {
+        stopReason: "end_turn",
+      };
+    });
   }
 
   async sessionUpdate(_params: SessionNotification): Promise<void> {
@@ -278,12 +276,12 @@ export class CursorCliHarnessAdapter
   }
 
   async setSessionMode(params: SetSessionModeRequest): Promise<SetSessionModeResponse> {
-    this.sessionModeById.set(params.sessionId, params.modeId);
+    this.setSessionModeValue(params);
     return {};
   }
 
   async setSessionModel(params: SetSessionModelRequest): Promise<SetSessionModelResponse> {
-    this.sessionModelById.set(params.sessionId, params.modelId);
+    this.setSessionModelValue(params);
     return {};
   }
 
@@ -292,18 +290,6 @@ export class CursorCliHarnessAdapter
       .filter((entry) => entry.type === CONTENT_BLOCK_TYPE.TEXT)
       .map((entry) => entry.text)
       .join("\n");
-  }
-
-  private resolveSessionMode(sessionId: string): CursorPromptRequest["mode"] {
-    const mode = this.sessionModeById.get(sessionId);
-    if (mode === "agent" || mode === "plan" || mode === "ask") {
-      return mode;
-    }
-    return undefined;
-  }
-
-  private resolveSessionModel(sessionId: string): string | undefined {
-    return this.sessionModelById.get(sessionId);
   }
 
   private installSignalHandlers(): void {
@@ -329,11 +315,6 @@ export class CursorCliHarnessAdapter
       this.emit("error", error instanceof Error ? error : new Error(String(error)));
     });
   };
-
-  private setStatus(status: ConnectionStatus): void {
-    this.status = status;
-    this.emit("state", status);
-  }
 
   private handleHookEvent(event: CursorHookInput): void {
     const sessionId = event.conversation_id;
