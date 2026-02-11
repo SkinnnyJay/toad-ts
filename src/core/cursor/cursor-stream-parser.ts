@@ -1,9 +1,9 @@
 import { CURSOR_STREAM_TYPE } from "@/constants/cursor-event-types";
 import {
-  NdjsonEventParser,
-  type NdjsonParseResult,
-  type NdjsonParserIssue,
-} from "@/core/agent-management/ndjson-event-parser";
+  type StreamLineParseResult,
+  StreamLineParser,
+  type StreamLineParserIssue,
+} from "@/core/cli-agent/stream-line-parser";
 import { type CursorStreamEvent, CursorStreamEventSchema } from "@/types/cursor-cli.types";
 
 export const CURSOR_STREAM_PARSER_DEFAULT = {
@@ -11,7 +11,7 @@ export const CURSOR_STREAM_PARSER_DEFAULT = {
   BACKPRESSURE_HIGH_WATERMARK: 128,
 } as const;
 
-export type CursorStreamParserIssue = NdjsonParserIssue;
+export type CursorStreamParserIssue = StreamLineParserIssue;
 
 export interface CursorStreamParserOptions {
   maxAccumulatedTextBytes?: number;
@@ -21,7 +21,7 @@ export interface CursorStreamParserOptions {
   onTruncation?: (sessionId: string, originalBytes: number, limitBytes: number) => void;
 }
 
-export type CursorParseResult = NdjsonParseResult;
+export type CursorParseResult = StreamLineParseResult;
 
 export interface CursorAccumulatedText {
   text: string;
@@ -29,7 +29,7 @@ export interface CursorAccumulatedText {
 }
 
 export class CursorStreamParser {
-  private readonly parser: NdjsonEventParser<CursorStreamEvent>;
+  private readonly parser: StreamLineParser<CursorStreamEvent>;
   private readonly accumulatedTextBySession = new Map<string, CursorAccumulatedText>();
   private readonly maxAccumulatedTextBytes: number;
   private readonly onTruncation?: (
@@ -42,7 +42,7 @@ export class CursorStreamParser {
     this.maxAccumulatedTextBytes =
       options.maxAccumulatedTextBytes ?? CURSOR_STREAM_PARSER_DEFAULT.MAX_ACCUMULATED_TEXT_BYTES;
     this.onTruncation = options.onTruncation;
-    this.parser = new NdjsonEventParser<CursorStreamEvent>({
+    this.parser = new StreamLineParser<CursorStreamEvent>({
       schema: CursorStreamEventSchema,
       backpressureHighWatermark:
         options.backpressureHighWatermark ??
