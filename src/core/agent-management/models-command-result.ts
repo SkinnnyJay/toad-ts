@@ -13,8 +13,13 @@ export const parseModelsCommandResult = (
 ): CliAgentModelsResponse => {
   assertCommandSucceeded(result, MODELS_COMMAND_FAILURE_MESSAGE);
   const parsedFromStdout = parseModelsOutput(result.stdout);
-  if (parsedFromStdout.models.length > 0 || result.stdout.trim().length > 0) {
+  if (parsedFromStdout.models.length > 0) {
     return parsedFromStdout;
   }
-  return parseModelsOutput(toCombinedCommandOutput(result));
+  if (result.stdout.trim().length === 0) {
+    return parseModelsOutput(toCombinedCommandOutput(result));
+  }
+
+  const parsedFromCombinedOutput = parseModelsOutput(toCombinedCommandOutput(result));
+  return parsedFromCombinedOutput.models.length > 0 ? parsedFromCombinedOutput : parsedFromStdout;
 };

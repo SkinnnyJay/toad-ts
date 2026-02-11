@@ -59,4 +59,23 @@ describe("models-command-result", () => {
       },
     ]);
   });
+
+  it("falls back to combined output when stdout has warning noise", () => {
+    const parsed = parseModelsCommandResult({
+      stdout: "warning: models command switched output stream",
+      stderr: "auto - Auto\nopus-4.6-thinking - Claude 4.6 Opus (Thinking) (default)",
+      exitCode: 0,
+    });
+
+    expect(parsed.defaultModel).toBe("opus-4.6-thinking");
+    expect(parsed.models).toEqual([
+      { id: "auto", name: "Auto", isDefault: false, supportsThinking: false },
+      {
+        id: "opus-4.6-thinking",
+        name: "Claude 4.6 Opus (Thinking) (default)",
+        isDefault: true,
+        supportsThinking: true,
+      },
+    ]);
+  });
 });
