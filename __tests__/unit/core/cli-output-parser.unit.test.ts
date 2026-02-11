@@ -255,6 +255,8 @@ describe("cli-output-parser", () => {
     const output = [
       "session_id: session-primary-id Primary title",
       "- session-fallback-id Backup title",
+      "• session-dot-bullet-id Dot bullet title",
+      "[2] session-bracket-index-id Bracket index title",
     ].join("\n");
 
     expect(parseSessionSummariesOutput(output)).toEqual([
@@ -265,6 +267,14 @@ describe("cli-output-parser", () => {
       {
         id: "session-fallback-id",
         title: "Backup title",
+      },
+      {
+        id: "session-dot-bullet-id",
+        title: "Dot bullet title",
+      },
+      {
+        id: "session-bracket-index-id",
+        title: "Bracket index title",
       },
     ]);
   });

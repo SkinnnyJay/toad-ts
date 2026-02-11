@@ -17,7 +17,7 @@ const UUID_PATTERN_SOURCE =
 const SESSION_ID_PATTERN_SOURCE = "[a-z0-9][a-z0-9._:-]*[-_][a-z0-9._:-]+";
 const UUID_PATTERN = new RegExp(`\\b${UUID_PATTERN_SOURCE}\\b`, "i");
 const LEADING_SESSION_ID_PATTERN = new RegExp(
-  `^(?:[-*]\\s+|\\d+[.)]\\s+)?(?:session(?:_?id)?\\s*[:=]\\s*)?(${UUID_PATTERN_SOURCE}|${SESSION_ID_PATTERN_SOURCE})\\b`,
+  `^(?:[-*•]\\s+|\\[\\d+\\]\\s+|\\d+[.)]\\s+)?(?:session(?:_?id)?\\s*[:=]\\s*)?(${UUID_PATTERN_SOURCE}|${SESSION_ID_PATTERN_SOURCE})\\b`,
   "i"
 );
 const ISO_DATE_TOKEN_PATTERN =
