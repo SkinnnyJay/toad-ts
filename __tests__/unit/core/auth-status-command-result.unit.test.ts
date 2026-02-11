@@ -72,6 +72,20 @@ describe("auth-status-command-result", () => {
     });
   });
 
+  it("parses status-token auth output from stderr fallback", () => {
+    const parsed = parseAuthStatusCommandResult({
+      stdout: "warning: using fallback auth probe",
+      stderr: "status=logged-in\nemail=stderr-status-user@example.com",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual({
+      authenticated: true,
+      method: "browser_login",
+      email: "stderr-status-user@example.com",
+    });
+  });
+
   it("throws stderr message when status command fails", () => {
     expect(() =>
       parseAuthStatusCommandResult({

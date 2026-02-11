@@ -33,6 +33,7 @@ describe("cli-output-parser", () => {
       "status: logged-in\nemail: status-user@example.com"
     );
     const unauthenticatedParsed = parseAuthStatusOutput("authentication status=unauthenticated");
+    const loggedOutParsed = parseAuthStatusOutput("status=logged_out");
 
     expect(authenticatedParsed).toEqual({
       authenticated: true,
@@ -40,6 +41,10 @@ describe("cli-output-parser", () => {
       email: "status-user@example.com",
     });
     expect(unauthenticatedParsed).toEqual({
+      authenticated: false,
+      method: "none",
+    });
+    expect(loggedOutParsed).toEqual({
       authenticated: false,
       method: "none",
     });
