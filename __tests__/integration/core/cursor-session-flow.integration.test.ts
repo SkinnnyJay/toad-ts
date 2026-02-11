@@ -99,6 +99,8 @@ class IntegrationFakeHookServer extends EventEmitter<{
 }
 
 describe("Cursor session flow integration", () => {
+  const PROMPT_OVERHEAD_MAX_MS = 500;
+
   it("creates a session and streams assistant updates into the store", async () => {
     const store = useAppStore.getState();
     store.reset();
@@ -141,14 +143,19 @@ describe("Cursor session flow integration", () => {
         model: "opus-4.6-thinking",
       });
 
+      const firstPromptStart = performance.now();
       await harness.prompt({
         sessionId: session.id,
         prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "hello from integration" }],
       });
+      const firstPromptDurationMs = performance.now() - firstPromptStart;
+
+      const secondPromptStart = performance.now();
       await harness.prompt({
         sessionId: session.id,
         prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "follow-up prompt" }],
       });
+      const secondPromptDurationMs = performance.now() - secondPromptStart;
       hookServer.emit("hookEvent", {
         conversation_id: session.id,
         hook_event_name: CURSOR_HOOK_EVENT.AFTER_AGENT_THOUGHT,
@@ -177,6 +184,8 @@ describe("Cursor session flow integration", () => {
       expect(connection.promptRequests.every((request) => request.sessionId === session.id)).toBe(
         true
       );
+      expect(firstPromptDurationMs).toBeLessThanOrEqual(PROMPT_OVERHEAD_MAX_MS);
+      expect(secondPromptDurationMs).toBeLessThanOrEqual(PROMPT_OVERHEAD_MAX_MS);
       expect(connection.promptRequests[0]?.model).toBe("opus-4.6-thinking");
       expect(hookSessionUpdates).toContain(SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK);
       expect(hookSessionUpdates).toContain(SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE);

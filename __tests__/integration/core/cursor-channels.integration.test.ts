@@ -57,7 +57,11 @@ const invokeNodeShim = async (
 };
 
 describe("Cursor channel integrations", () => {
-  const HOOK_ROUNDTRIP_MAX_MS = 500;
+  const CURSOR_CHANNEL_PERF = {
+    HOOK_SHIM_ROUNDTRIP_MAX_MS: 500,
+    HOOK_DIRECT_P95_MAX_MS: 50,
+    HOOK_DIRECT_SAMPLE_COUNT: 10,
+  } as const;
 
   it("parses NDJSON fixture and emits translated session updates", async () => {
     const fixture = await readFixture("tool-use-response.ndjson");
@@ -115,9 +119,55 @@ describe("Cursor channel integrations", () => {
       const parsed = JSON.parse(output) as Record<string, unknown>;
       expect(parsed.continue).toBe(true);
       expect(parsed.additional_context).toBe("Injected context from TOADSTOOL");
-      expect(roundtripMs).toBeLessThanOrEqual(HOOK_ROUNDTRIP_MAX_MS);
+      expect(roundtripMs).toBeLessThanOrEqual(CURSOR_CHANNEL_PERF.HOOK_SHIM_ROUNDTRIP_MAX_MS);
     } finally {
       await cleanupCursorHooks(installation);
+      await hookServer.stop();
+    }
+  });
+
+  it("measures direct hook IPC p95 under target threshold", async () => {
+    const cwd = await mkdtemp(path.join(tmpdir(), "cursor-hook-perf-integration-"));
+    const hookServer = new CursorHookIpcServer({
+      transport: "http",
+      additionalContextProvider: () => "Injected context from TOADSTOOL",
+    });
+
+    const address = await hookServer.start();
+    const socketTarget = address.url;
+    if (!socketTarget) {
+      throw new Error("Expected HTTP hook server URL.");
+    }
+
+    try {
+      const durationsMs: number[] = [];
+
+      for (let index = 0; index < CURSOR_CHANNEL_PERF.HOOK_DIRECT_SAMPLE_COUNT; index += 1) {
+        const roundtripStart = performance.now();
+        const response = await fetch(socketTarget, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            conversation_id: `conv-${index}`,
+            generation_id: `gen-${index}`,
+            hook_event_name: CURSOR_HOOK_EVENT.SESSION_START,
+            model: "opus-4.6-thinking",
+            workspace_roots: [cwd],
+          }),
+        });
+        const roundtripMs = performance.now() - roundtripStart;
+        durationsMs.push(roundtripMs);
+
+        expect(response.status).toBe(200);
+        const parsed = (await response.json()) as Record<string, unknown>;
+        expect(parsed.continue).toBe(true);
+      }
+
+      const sorted = durationsMs.slice().sort((a, b) => a - b);
+      const p95Index = Math.max(0, Math.ceil(sorted.length * 0.95) - 1);
+      const p95 = sorted[p95Index] ?? Number.POSITIVE_INFINITY;
+      expect(p95).toBeLessThanOrEqual(CURSOR_CHANNEL_PERF.HOOK_DIRECT_P95_MAX_MS);
+    } finally {
       await hookServer.stop();
     }
   });
