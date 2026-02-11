@@ -29,6 +29,7 @@ class FakeCursorConnection extends EventEmitter<{
 }> {
   public promptRequests: CursorPromptRequest[] = [];
   public managementRequests: string[][] = [];
+  public disconnectCalls = 0;
 
   async verifyInstallation(): Promise<{ installed: boolean; version?: string }> {
     return { installed: true, version: "1.0.0" };
@@ -77,7 +78,7 @@ class FakeCursorConnection extends EventEmitter<{
   }
 
   async disconnect(): Promise<void> {
-    // no-op
+    this.disconnectCalls += 1;
   }
 
   async runManagementCommand(
@@ -99,6 +100,7 @@ class FakeHookServer extends EventEmitter<{
 }> {
   public started = false;
   public stopped = false;
+  public stopCalls = 0;
 
   async start(): Promise<{ transport: "http"; url: string }> {
     this.started = true;
@@ -110,6 +112,7 @@ class FakeHookServer extends EventEmitter<{
 
   async stop(): Promise<void> {
     this.stopped = true;
+    this.stopCalls += 1;
   }
 }
 
@@ -356,5 +359,24 @@ describe("CursorCliHarnessAdapter", () => {
     releasePrompt?.();
     await expect(firstPrompt).resolves.toEqual({ stopReason: "end_turn" });
     await harness.disconnect();
+  });
+
+  it("disconnects core harness when hook installation fails", async () => {
+    const connection = new FakeCursorConnection();
+    const hookServer = new FakeHookServer();
+    const harness = new CursorCliHarnessAdapter({
+      connection,
+      hookServer,
+      installHooksFn: async () => {
+        throw new Error("hook install failed");
+      },
+      cleanupHooksFn: async () => {},
+      env: {},
+    });
+
+    await expect(harness.connect()).rejects.toThrow("hook install failed");
+    expect(harness.connectionStatus).toBe(CONNECTION_STATUS.DISCONNECTED);
+    expect(connection.disconnectCalls).toBe(1);
+    expect(hookServer.stopCalls).toBe(1);
   });
 });
