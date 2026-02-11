@@ -103,4 +103,21 @@ describe("session-list-command-result", () => {
       },
     ]);
   });
+
+  it("ignores warning-line id noise when parsing combined fallback output", () => {
+    const parsed = parseSessionListCommandResult({
+      stdout: "warning: cached session session-noise-id",
+      stderr: "session-resume-id Native title model: gpt-5 messages: 14",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual([
+      {
+        id: "session-resume-id",
+        title: "Native title",
+        model: "gpt-5",
+        messageCount: 14,
+      },
+    ]);
+  });
 });

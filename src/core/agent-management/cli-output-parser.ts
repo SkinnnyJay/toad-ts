@@ -12,8 +12,14 @@ import {
   CliAgentSessionSchema,
 } from "@/types/cli-agent.types";
 
-const UUID_PATTERN = /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i;
-const SESSION_ID_PATTERN = /\b[a-z0-9][a-z0-9._:-]*[-_][a-z0-9._:-]+\b/i;
+const UUID_PATTERN_SOURCE =
+  "[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}";
+const SESSION_ID_PATTERN_SOURCE = "[a-z0-9][a-z0-9._:-]*[-_][a-z0-9._:-]+";
+const UUID_PATTERN = new RegExp(`\\b${UUID_PATTERN_SOURCE}\\b`, "i");
+const LEADING_SESSION_ID_PATTERN = new RegExp(
+  `^(?:[-*]\\s+|\\d+[.)]\\s+)?(?:session(?:_?id)?\\s*[:=]\\s*)?(${UUID_PATTERN_SOURCE}|${SESSION_ID_PATTERN_SOURCE})\\b`,
+  "i"
+);
 const SESSION_MODEL_PATTERN = /\bmodel(?:\s*[:=]\s*|\s+)([^\s|,()]+)\b/i;
 const SESSION_MESSAGE_COUNT_PATTERN = /\bmessages?\s*[:=]\s*(\d+)\b/i;
 const SESSION_TRAILING_MESSAGE_COUNT_PATTERN = /(?:^|[\s|,;()])(\d+)\s+messages?\b/i;
@@ -104,7 +110,11 @@ export const parseUuidLines = (stdout: string): string[] =>
     .filter((entry): entry is string => entry !== null);
 
 const extractSessionIdFromLine = (line: string): string | null => {
-  return UUID_PATTERN.exec(line)?.[0] ?? SESSION_ID_PATTERN.exec(line)?.[0] ?? null;
+  const leadingMatch = LEADING_SESSION_ID_PATTERN.exec(line)?.[1];
+  if (leadingMatch) {
+    return leadingMatch;
+  }
+  return UUID_PATTERN.exec(line)?.[0] ?? null;
 };
 
 const extractSessionTitleFromLine = (line: string, sessionId: string): string | undefined => {

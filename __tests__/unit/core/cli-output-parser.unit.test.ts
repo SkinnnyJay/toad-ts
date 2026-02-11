@@ -172,6 +172,38 @@ describe("cli-output-parser", () => {
     ]);
   });
 
+  it("ignores warning lines with non-leading session-like ids", () => {
+    const output = [
+      "warning: cached metadata for session session-noise-id",
+      "session-real-id Real resume session",
+    ].join("\n");
+
+    expect(parseSessionSummariesOutput(output)).toEqual([
+      {
+        id: "session-real-id",
+        title: "Real resume session",
+      },
+    ]);
+  });
+
+  it("parses leading labeled and bulleted session lines", () => {
+    const output = [
+      "session_id: session-primary-id Primary title",
+      "- session-fallback-id Backup title",
+    ].join("\n");
+
+    expect(parseSessionSummariesOutput(output)).toEqual([
+      {
+        id: "session-primary-id",
+        title: "Primary title",
+      },
+      {
+        id: "session-fallback-id",
+        title: "Backup title",
+      },
+    ]);
+  });
+
   it("returns empty session list when CLI requires a tty", () => {
     expect(
       parseSessionListOutput("Requires TTY; use session_id from NDJSON system.init instead.")
