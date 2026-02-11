@@ -56,4 +56,24 @@ describe("slash command message formatters", () => {
     expect(newestIndex).toBeLessThan(middleIndex);
     expect(middleIndex).toBeLessThan(oldestIndex);
   });
+
+  it("deduplicates duplicate native session ids before rendering", () => {
+    const sessionId = "session-duplicate";
+    const message = formatAgentSessionListMessage([
+      { id: sessionId, title: "Old", messageCount: 1 },
+      {
+        id: sessionId,
+        title: "Recovered title",
+        model: "gpt-5",
+        messageCount: 14,
+        createdAt: "2026-02-11T18:30:00.000Z",
+      },
+    ]);
+
+    expect(message.indexOf(sessionId)).toBeGreaterThanOrEqual(0);
+    expect(message.lastIndexOf(sessionId)).toBe(message.indexOf(sessionId));
+    expect(message).toContain("Recovered title");
+    expect(message).toContain("model: gpt-5");
+    expect(message).toContain("messages: 14");
+  });
 });

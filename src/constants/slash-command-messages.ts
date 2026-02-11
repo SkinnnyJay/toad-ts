@@ -1,5 +1,8 @@
 import { LIMIT } from "@/config/limits";
-import { sortAgentManagementSessionsByRecency } from "@/core/agent-management/session-summary-mapper";
+import {
+  sortAgentManagementSessionsByRecency,
+  toUniqueAgentManagementSessions,
+} from "@/core/agent-management/session-summary-mapper";
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import type { Session, SessionMode } from "@/types/domain";
 
@@ -128,10 +131,11 @@ const formatAgentSessionDetails = (session: AgentManagementSession): string => {
 };
 
 export const formatAgentSessionListMessage = (sessions: AgentManagementSession[]): string => {
-  if (sessions.length === 0) {
+  const normalizedSessions = toUniqueAgentManagementSessions(sessions);
+  if (normalizedSessions.length === 0) {
     return "No native agent sessions available.";
   }
-  const preview = sortAgentManagementSessionsByRecency(sessions).slice(
+  const preview = sortAgentManagementSessionsByRecency(normalizedSessions).slice(
     0,
     LIMIT.SESSION_LIST_PREVIEW
   );
@@ -139,8 +143,8 @@ export const formatAgentSessionListMessage = (sessions: AgentManagementSession[]
     (session, index) => `${index + 1}. ${session.id}${formatAgentSessionDetails(session)}`
   );
   const suffix =
-    sessions.length > preview.length
-      ? `\n… ${sessions.length - preview.length} more agent sessions`
+    normalizedSessions.length > preview.length
+      ? `\n… ${normalizedSessions.length - preview.length} more agent sessions`
       : "";
   return `Agent sessions:\n${lines.join("\n")}${suffix}`;
 };
