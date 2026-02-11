@@ -1,5 +1,21 @@
 # Scratchpad Journal
 
+## 2026-02-10 (Phase 0: PLAN2 Cursor CLI prerequisites)
+- Branch: `feature/cursor-cli-harness`.
+- Fixture paths: `__tests__/fixtures/cursor/ndjson/` (hello-response.ndjson, hello-stderr.txt, tool-use-response.ndjson, tool-use-stderr.txt), `__tests__/fixtures/cursor/status-output.txt`, `__tests__/fixtures/cursor/models-output.txt`, `__tests__/fixtures/cursor/ls-output.txt`. Directories `hooks/` and `cloud-api/` created with `.gitkeep`.
+- `agent ls`: requires TTY (Ink raw-mode error when piped); `ls-output.txt` contains note: "Requires TTY; use session_id from NDJSON system.init instead."
+- Quality gate: lint and typecheck and build passed; tests have 4 pre-existing failures (see scratchpad/progress.md "Phase 0 baseline quality gate"). No PLAN2.md updates required.
+
+## 2026-02-10 (Repository Breadcrumb UI)
+- Implemented PLAN2 Addendum B: repository breadcrumb bar (owner > repo > branch > status).
+- Added constants: repo-workflow-status, repo-workflow-actions, breadcrumb-placement.
+- Extended app config with ui.breadcrumb (placement: top/bottom/left/right/hidden, pollIntervalMs, showAction).
+- Implemented getRepoWorkflowInfo in src/core/repo-workflow.ts (git root, branch, dirty/ahead/behind, remote owner/repo, PR status with isDraft, merge conflicts, gh pr checks, status derivation).
+- Added useRepoWorkflow hook (polling, refresh); BreadcrumbBar component with status colors and action label.
+- Wired BreadcrumbBar into App with configurable placement; keybind Leader+b runs current breadcrumb action (queues skill name; Chat consumes and submits skill content as prompt).
+- Chat header hides repo path when breadcrumb is visible; DISCOVERY_SUBPATH import added in App for Skills/Commands modals.
+- Updated PLAN2 Addendum B milestone checklists; scratchpad plan and progress.
+
 ## 2026-02-09
 - Initialized scratchpad files to comply with repo workflow rules.
 - Starting Phase 4A: runtime + build migration to Bun and OpenTUI.
@@ -128,3 +144,4 @@
 - 0 TODO/FIXME comments
 - 0 type errors, 0 lint errors
 - 479 files linted cleanly
+- 2026-02-10 19:05 - Switched typecheck script to use npx for npm support.
