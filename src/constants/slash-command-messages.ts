@@ -1,8 +1,5 @@
 import { LIMIT } from "@/config/limits";
-import {
-  sortAgentManagementSessionsByRecency,
-  toUniqueAgentManagementSessions,
-} from "@/core/agent-management/session-summary-mapper";
+import { toNormalizedAgentManagementSessions } from "@/core/agent-management/session-summary-mapper";
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import type { Session, SessionMode } from "@/types/domain";
 
@@ -131,14 +128,11 @@ const formatAgentSessionDetails = (session: AgentManagementSession): string => {
 };
 
 export const formatAgentSessionListMessage = (sessions: AgentManagementSession[]): string => {
-  const normalizedSessions = toUniqueAgentManagementSessions(sessions);
+  const normalizedSessions = toNormalizedAgentManagementSessions(sessions);
   if (normalizedSessions.length === 0) {
     return "No native agent sessions available.";
   }
-  const preview = sortAgentManagementSessionsByRecency(normalizedSessions).slice(
-    0,
-    LIMIT.SESSION_LIST_PREVIEW
-  );
+  const preview = normalizedSessions.slice(0, LIMIT.SESSION_LIST_PREVIEW);
   const lines = preview.map(
     (session, index) => `${index + 1}. ${session.id}${formatAgentSessionDetails(session)}`
   );

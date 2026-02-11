@@ -1,9 +1,8 @@
 import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
 import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
 import {
-  sortAgentManagementSessionsByRecency,
   toAgentManagementSessions,
-  toUniqueAgentManagementSessions,
+  toNormalizedAgentManagementSessions,
 } from "@/core/agent-management/session-summary-mapper";
 import type {
   AgentManagementCommandResult,
@@ -46,12 +45,10 @@ const toValidatedSession = (
 const toSortedUniqueValidatedSessions = (
   sessions: AgentManagementSession[]
 ): AgentManagementSession[] => {
-  return sortAgentManagementSessionsByRecency(
-    toUniqueAgentManagementSessions(
-      sessions
-        .map((session) => toValidatedSession(session))
-        .filter((session): session is AgentManagementSession => session !== undefined)
-    )
+  return toNormalizedAgentManagementSessions(
+    sessions
+      .map((session) => toValidatedSession(session))
+      .filter((session): session is AgentManagementSession => session !== undefined)
   );
 };
 

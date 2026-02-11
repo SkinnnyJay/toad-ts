@@ -2,6 +2,7 @@ import {
   sortAgentManagementSessionsByRecency,
   toAgentManagementSession,
   toAgentManagementSessions,
+  toNormalizedAgentManagementSessions,
   toUniqueAgentManagementSessions,
 } from "@/core/agent-management/session-summary-mapper";
 import { describe, expect, it } from "vitest";
@@ -130,6 +131,30 @@ describe("session-summary-mapper", () => {
       "session-valid",
       "session-invalid",
       "session-missing",
+    ]);
+  });
+
+  it("normalizes sessions with dedupe and newest-first ordering", () => {
+    const normalizedSessions = toNormalizedAgentManagementSessions([
+      { id: " session-old ", title: "Old", createdAt: "2026-02-10T18:30:00.000Z" },
+      { id: "session-new", title: "New", createdAt: "2026-02-11T18:30:00.000Z" },
+      { id: "session-new", messageCount: 12, model: "gpt-5" },
+      { id: "   " },
+    ]);
+
+    expect(normalizedSessions).toEqual([
+      {
+        id: "session-new",
+        title: "New",
+        createdAt: "2026-02-11T18:30:00.000Z",
+        model: "gpt-5",
+        messageCount: 12,
+      },
+      {
+        id: "session-old",
+        title: "Old",
+        createdAt: "2026-02-10T18:30:00.000Z",
+      },
     ]);
   });
 });

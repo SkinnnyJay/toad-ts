@@ -3,10 +3,7 @@ import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { KEY_NAME } from "@/constants/key-names";
 import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
-import {
-  sortAgentManagementSessionsByRecency,
-  toUniqueAgentManagementSessions,
-} from "@/core/agent-management/session-summary-mapper";
+import { toNormalizedAgentManagementSessions } from "@/core/agent-management/session-summary-mapper";
 import { useAppStore } from "@/store/app-store";
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
@@ -53,7 +50,7 @@ export function SessionsPopup({
   }, [sessions]);
 
   const uniqueExternalSessions = useMemo(() => {
-    return toUniqueAgentManagementSessions(externalSessions);
+    return toNormalizedAgentManagementSessions(externalSessions);
   }, [externalSessions]);
 
   const sessionEntries = useMemo<SessionEntry[]>(() => {
@@ -71,7 +68,7 @@ export function SessionsPopup({
     });
     const localIds = new Set(localEntries.map((entry) => entry.id));
     const externalEntries: SessionEntry[] = [];
-    for (const session of sortAgentManagementSessionsByRecency(uniqueExternalSessions)) {
+    for (const session of uniqueExternalSessions) {
       const parsedId = SessionIdSchema.safeParse(session.id);
       if (!parsedId.success) {
         continue;

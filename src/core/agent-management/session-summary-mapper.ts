@@ -86,3 +86,9 @@ export const sortAgentManagementSessionsByRecency = (
     })
     .map((entry) => entry.session);
 };
+
+export const toNormalizedAgentManagementSessions = (
+  sessions: AgentManagementSession[]
+): AgentManagementSession[] => {
+  return sortAgentManagementSessionsByRecency(toUniqueAgentManagementSessions(sessions));
+};

@@ -4,9 +4,8 @@ import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { ALLOW_ONCE, REJECT_ONCE } from "@/constants/permission-option-kinds";
 import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
 import {
-  sortAgentManagementSessionsByRecency,
   toAgentManagementSessions,
-  toUniqueAgentManagementSessions,
+  toNormalizedAgentManagementSessions,
 } from "@/core/agent-management/session-summary-mapper";
 import { CliAgentBase } from "@/core/cli-agent/cli-agent.base";
 import { CliAgentBridge } from "@/core/cli-agent/cli-agent.bridge";
@@ -38,12 +37,6 @@ export interface CreateCliHarnessAdapterOptions {
   bridge?: CliAgentBridge;
   unauthenticatedErrorMessage?: string;
 }
-
-const toNormalizedAgentManagementSessions = (
-  sessions: AgentManagementSession[]
-): AgentManagementSession[] => {
-  return sortAgentManagementSessionsByRecency(toUniqueAgentManagementSessions(sessions));
-};
 
 export class CliHarnessAdapter extends CliAgentBase {
   private readonly cliAgent: CliAgentPort;
