@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 
 import { ENV_KEY } from "@/constants/env-keys";
+import { PLATFORM } from "@/constants/platform";
 import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
 import type { CliRenderer } from "@opentui/core";
@@ -18,7 +19,7 @@ export interface InteractiveShellResult {
 }
 
 const resolveShellCommand = (command: string): { command: string; args: string[] } => {
-  if (process.platform === "win32") {
+  if (process.platform === PLATFORM.WIN32) {
     return { command: "cmd.exe", args: ["/D", "/Q", "/C", command] };
   }
 

@@ -1,5 +1,6 @@
 import type { KeybindConfig } from "@/config/app-config";
 import { COLOR } from "@/constants/colors";
+import { KEY_NAME } from "@/constants/key-names";
 import { KEYBIND_ACTION } from "@/constants/keybind-actions";
 import type { KeybindAction } from "@/constants/keybind-actions";
 import { NONE } from "@/constants/keybinds";
@@ -20,6 +21,7 @@ const KEYBIND_LABEL = {
   [KEYBIND_ACTION.FOCUS_CONTEXT]: "Focus context",
   [KEYBIND_ACTION.FOCUS_SESSIONS]: "Focus sessions",
   [KEYBIND_ACTION.FOCUS_AGENT]: "Focus agents",
+  [KEYBIND_ACTION.FOCUS_TODOS]: "Focus todos",
   [KEYBIND_ACTION.OPEN_HELP]: "Open help",
   [KEYBIND_ACTION.TOGGLE_SESSIONS]: "Toggle sessions",
   [KEYBIND_ACTION.TOGGLE_BACKGROUND_TASKS]: "Toggle background tasks",
@@ -30,6 +32,7 @@ const KEYBIND_LABEL = {
   [KEYBIND_ACTION.PERMISSION_MODE_CYCLE]: "Cycle permission mode",
   [KEYBIND_ACTION.SESSION_CHILD_CYCLE]: "Cycle child sessions",
   [KEYBIND_ACTION.SESSION_CHILD_CYCLE_REVERSE]: "Cycle child sessions (reverse)",
+  [KEYBIND_ACTION.RUN_BREADCRUMB_ACTION]: "Run breadcrumb action",
 } as const;
 
 const KEYBIND_ACTION_ORDER: KeybindAction[] = [
@@ -39,6 +42,7 @@ const KEYBIND_ACTION_ORDER: KeybindAction[] = [
   KEYBIND_ACTION.FOCUS_CONTEXT,
   KEYBIND_ACTION.FOCUS_SESSIONS,
   KEYBIND_ACTION.FOCUS_AGENT,
+  KEYBIND_ACTION.FOCUS_TODOS,
   KEYBIND_ACTION.OPEN_HELP,
   KEYBIND_ACTION.TOGGLE_SESSIONS,
   KEYBIND_ACTION.TOGGLE_BACKGROUND_TASKS,
@@ -49,6 +53,7 @@ const KEYBIND_ACTION_ORDER: KeybindAction[] = [
   KEYBIND_ACTION.PERMISSION_MODE_CYCLE,
   KEYBIND_ACTION.SESSION_CHILD_CYCLE,
   KEYBIND_ACTION.SESSION_CHILD_CYCLE_REVERSE,
+  KEYBIND_ACTION.RUN_BREADCRUMB_ACTION,
 ];
 
 interface KeybindsTabProps {
@@ -87,13 +92,13 @@ export function KeybindsTab({
       key.preventDefault();
       key.stopPropagation();
 
-      if (key.name === "escape") {
+      if (key.name === KEY_NAME.ESCAPE) {
         setIsEditing(false);
         onEditingChange?.(false);
         return;
       }
 
-      if (key.name === "backspace" || key.name === "delete") {
+      if (key.name === KEY_NAME.BACKSPACE || key.name === KEY_NAME.DELETE) {
         updateBinding(NONE);
         return;
       }
@@ -106,21 +111,21 @@ export function KeybindsTab({
       return;
     }
 
-    if (key.name === "up") {
+    if (key.name === KEY_NAME.UP) {
       key.preventDefault();
       key.stopPropagation();
       setIndex((prev) => (prev - 1 + rows.length) % rows.length);
       return;
     }
 
-    if (key.name === "down") {
+    if (key.name === KEY_NAME.DOWN) {
       key.preventDefault();
       key.stopPropagation();
       setIndex((prev) => (prev + 1) % rows.length);
       return;
     }
 
-    if (key.name === "return" || key.name === "linefeed") {
+    if (key.name === KEY_NAME.RETURN || key.name === KEY_NAME.LINEFEED) {
       key.preventDefault();
       key.stopPropagation();
       setIsEditing(true);

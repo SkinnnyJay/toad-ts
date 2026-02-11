@@ -1,4 +1,5 @@
 import { LIMIT } from "@/config/limits";
+import { FULL_WIDTH_STYLE } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { DIFF_VIEW_MODE } from "@/constants/diff-types";
 import { diffColors } from "@/ui/theme";
@@ -104,7 +105,7 @@ export const DiffRenderer = memo(function DiffRenderer({
     return () => {
       active = false;
     };
-  }, [contextLines, filename, newContent, oldContent, preview.diff, preview.truncated]);
+  }, [contextLines, filename, newContent, oldContent, preview]);
 
   const view = viewMode === DIFF_VIEW_MODE.SIDE_BY_SIDE ? "split" : "unified";
 
@@ -136,7 +137,7 @@ export const DiffRenderer = memo(function DiffRenderer({
         addedBg={diffColors.addedBg}
         removedBg={diffColors.removedBg}
         contextBg={diffColors.contextBg}
-        style={{ width: "100%" }}
+        style={FULL_WIDTH_STYLE}
       />
     </box>
   );

@@ -6,6 +6,8 @@ export interface CommandDefinition {
   description: string;
   args?: string;
   category?: string;
+  /** When set, slash command is shown only for these providers (agent id, name, or harnessId). */
+  agents?: string[];
 }
 
 export const COMMAND_DEFINITIONS: CommandDefinition[] = [
@@ -123,6 +125,12 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   },
   { name: SLASH_COMMAND.SESSIONS, description: "Browse sessions", category: "session" },
   { name: SLASH_COMMAND.SETTINGS, description: "Open settings", category: "settings" },
+  { name: SLASH_COMMAND.SKILLS, description: "Browse discovered skills", category: "discovery" },
+  {
+    name: SLASH_COMMAND.COMMANDS,
+    description: "Browse discovered commands",
+    category: "discovery",
+  },
   { name: SLASH_COMMAND.SHARE, description: "Share current session to file", category: "session" },
   { name: SLASH_COMMAND.STATS, description: "Show usage stats", category: "diagnostics" },
   {
@@ -139,3 +147,26 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   { name: "/approve", description: "Approve pending tool call", category: "tools" },
   { name: "/deny", description: "Deny pending tool call", category: "tools" },
 ];
+
+/** Context used to filter slash commands by selected provider. */
+export interface SlashCommandAgentContext {
+  id: string;
+  name: string;
+  harnessId: string;
+}
+
+/**
+ * Return slash commands that apply to the given agent. Commands without agents apply to all.
+ */
+export function filterSlashCommandsForAgent(
+  commands: CommandDefinition[],
+  agent: SlashCommandAgentContext | null
+): CommandDefinition[] {
+  if (agent === null) return commands;
+  const norm = (s: string) => s.trim().toLowerCase();
+  const agentValues = [norm(agent.id), norm(agent.name), norm(agent.harnessId)];
+  return commands.filter((cmd) => {
+    if (!cmd.agents || cmd.agents.length === 0) return true;
+    return cmd.agents.some((a) => agentValues.includes(norm(a)));
+  });
+}

@@ -1,12 +1,15 @@
 import { LIMIT } from "@/config/limits";
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
+import { KEY_NAME } from "@/constants/key-names";
+import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { useAppStore } from "@/store/app-store";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
 import type { SelectOption } from "@opentui/core";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 
 interface SessionsPopupProps {
   isOpen: boolean;
@@ -15,7 +18,7 @@ interface SessionsPopupProps {
 }
 
 export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopupProps): ReactNode {
-  const sessions = useAppStore((state) => Object.values(state.sessions));
+  const sessions = useAppStore(useShallow((state) => Object.values(state.sessions)));
   const currentSessionId = useAppStore((state) => state.currentSessionId);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [query, setQuery] = useState("");
@@ -73,19 +76,19 @@ export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopu
 
   useKeyboard((key) => {
     if (!isOpen) return;
-    if (key.name === "escape" || (key.ctrl && key.name === "s")) {
+    if (key.name === KEY_NAME.ESCAPE || (key.ctrl && key.name === KEYBOARD_INPUT.SKIP_LOWER)) {
       key.preventDefault();
       key.stopPropagation();
       onClose();
       return;
     }
-    if (key.name === "backspace") {
+    if (key.name === KEY_NAME.BACKSPACE) {
       key.preventDefault();
       key.stopPropagation();
       setQuery((current) => current.slice(0, -1));
       return;
     }
-    const typedKey = key.sequence ?? (key.name === "space" ? " " : key.name);
+    const typedKey = key.sequence ?? (key.name === KEY_NAME.SPACE ? " " : key.name);
     if (!key.ctrl && !key.meta && typedKey && typedKey.length === 1) {
       setQuery((current) => current + typedKey);
     }
@@ -130,7 +133,7 @@ export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopu
             onSelectSession(parsed.data);
             onClose();
           }}
-          style={{ width: "100%" }}
+          style={UI.FULL_WIDTH_STYLE}
         />
       )}
       <box marginTop={1} paddingTop={1} borderStyle="single" border={["top"]}>

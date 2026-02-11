@@ -3,7 +3,8 @@ import { homedir } from "node:os";
 import path from "node:path";
 
 import { LIMIT } from "@/config/limits";
-import { CHECKPOINT } from "@/constants/checkpoints";
+import { CHECKPOINT_DIRECTION, type CheckpointDirection } from "@/constants/checkpoint-direction";
+import { CHECKPOINT, SNAPSHOT_TARGET, type SnapshotTarget } from "@/constants/checkpoints";
 import { ENCODING } from "@/constants/encodings";
 import { FILE_PATH } from "@/constants/file-paths";
 import { REWIND_MODE, type RewindMode } from "@/constants/rewind-modes";
@@ -37,7 +38,7 @@ export interface CheckpointSummary {
 export interface RewindResult {
   checkpoint: Checkpoint;
   mode: RewindMode;
-  direction: "undo" | "redo" | "rewind";
+  direction: CheckpointDirection;
 }
 
 export interface CheckpointStatus {
@@ -188,10 +189,10 @@ export class CheckpointManager {
     if (!checkpoint) {
       return null;
     }
-    await this.applyCheckpoint(checkpoint, mode, "before");
+    await this.applyCheckpoint(checkpoint, mode, SNAPSHOT_TARGET.BEFORE);
     this.cursor.set(sessionId, nextCursor);
     this.emit(sessionId);
-    return { checkpoint, mode, direction: "undo" };
+    return { checkpoint, mode, direction: CHECKPOINT_DIRECTION.UNDO };
   }
 
   async redo(sessionId: SessionId, mode: RewindMode): Promise<RewindResult | null> {
@@ -204,10 +205,10 @@ export class CheckpointManager {
     if (!checkpoint) {
       return null;
     }
-    await this.applyCheckpoint(checkpoint, mode, "after");
+    await this.applyCheckpoint(checkpoint, mode, SNAPSHOT_TARGET.AFTER);
     this.cursor.set(sessionId, currentCursor + 1);
     this.emit(sessionId);
-    return { checkpoint, mode, direction: "redo" };
+    return { checkpoint, mode, direction: CHECKPOINT_DIRECTION.REDO };
   }
 
   async rewind(
@@ -225,7 +226,7 @@ export class CheckpointManager {
     }
     if (result) {
       this.emit(sessionId);
-      return { ...result, direction: "rewind" };
+      return { ...result, direction: CHECKPOINT_DIRECTION.REWIND };
     }
     return null;
   }
@@ -418,23 +419,24 @@ export class CheckpointManager {
   private async applyCheckpoint(
     checkpoint: Checkpoint,
     mode: RewindMode,
-    snapshotTarget: "before" | "after"
+    snapshotTarget: SnapshotTarget
   ): Promise<void> {
     const { restoreConversation, restoreCode } = resolveMode(mode);
-    const snapshot = snapshotTarget === "after" ? checkpoint.after : checkpoint.before;
+    const snapshot =
+      snapshotTarget === SNAPSHOT_TARGET.AFTER ? checkpoint.after : checkpoint.before;
 
     if (restoreCode) {
       const gitRoot = await this.resolveGitRoot();
       const applied = await applyGitPatches(
         checkpoint.patches,
-        snapshotTarget === "before",
+        snapshotTarget === SNAPSHOT_TARGET.BEFORE,
         gitRoot
       );
       if (!applied) {
         const changes = checkpoint.fileChanges;
         await Promise.all(
           changes.map(async (change) => {
-            const content = snapshotTarget === "after" ? change.after : change.before;
+            const content = snapshotTarget === SNAPSHOT_TARGET.AFTER ? change.after : change.before;
             if (content === null) {
               await rm(change.path, { force: true });
             } else {

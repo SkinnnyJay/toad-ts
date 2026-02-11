@@ -5,6 +5,7 @@ import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { ENCODING } from "@/constants/encodings";
 import { IGNORE_PATTERN } from "@/constants/ignore-patterns";
+import { KEY_NAME } from "@/constants/key-names";
 import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
@@ -24,6 +25,10 @@ interface FileTreeProps {
   isFocused?: boolean;
   height?: number;
   textSize?: "small" | "normal" | number;
+  /** When a file (not directory) is selected via Enter or click. */
+  onSelectFile?: (path: string, name: string) => void;
+  /** Called when user interacts with the tree (e.g. click) so the parent can set focus to Files. */
+  onRequestFocus?: () => void;
 }
 
 const sortNodes = (nodes: FileTreeNode[]): FileTreeNode[] => {
@@ -107,6 +112,8 @@ export function FileTree({
   isFocused = true,
   height,
   textSize = "normal",
+  onSelectFile,
+  onRequestFocus,
 }: FileTreeProps): ReactNode {
   const terminal = useTerminalDimensions();
   const [nodes, setNodes] = useState<FileTreeNode[]>([]);
@@ -204,19 +211,15 @@ export function FileTree({
   // Determine if text should be dimmed based on textSize prop
   const isSmallText = textSize === "small" || (typeof textSize === "number" && textSize < 1);
 
-  // Calculate available width for filenames
-  // Sidebar is 15% of terminal width by default, with horizontal padding of 1 (2 chars)
-  // FileTree is inside a Box with padding={1} (2 more chars on each side = 4 total)
-  // So we need: sidebar width - sidebar padding - filetree container padding
+  // Calculate available width for filenames (sidebar minus padding and scrollbar)
   const terminalWidth = terminal.columns ?? UI.TERMINAL_DEFAULT_COLUMNS;
   const sidebarWidthPercent = UI.SIDEBAR_WIDTH_RATIO;
   const sidebarWidth = Math.floor(terminalWidth * sidebarWidthPercent);
   const sidebarPadding = UI.SIDEBAR_PADDING;
-  const fileTreeContainerPadding = UI.SIDEBAR_PADDING;
   const scrollbarWidth = UI.SCROLLBAR_WIDTH;
   const availableWidth = Math.max(
     LIMIT.FILE_TREE_PADDING,
-    sidebarWidth - sidebarPadding - fileTreeContainerPadding - scrollbarWidth
+    sidebarWidth - sidebarPadding * 2 - scrollbarWidth
   );
 
   // Render visible items (wrapped in ScrollArea) - memoize to prevent recreation
@@ -272,7 +275,29 @@ export function FileTree({
       const truncatedName = truncateFileName(node.name, maxFileNameLength);
 
       return (
-        <box key={node.path} width="100%" overflow="hidden" minWidth={0}>
+        <box
+          key={node.path}
+          width="100%"
+          overflow="hidden"
+          minWidth={0}
+          onMouseDown={() => {
+            onRequestFocus?.();
+            setSelectedIndex(actualIndex);
+            if (node.isDir) {
+              setExpanded((prev) => {
+                const next = new Set(prev);
+                if (next.has(node.path)) {
+                  next.delete(node.path);
+                } else {
+                  next.add(node.path);
+                }
+                return next;
+              });
+            } else if (onSelectFile) {
+              onSelectFile(node.path, node.name);
+            }
+          }}
+        >
           <text
             fg={isSelected ? COLOR.CYAN : undefined}
             attributes={isSmallText && !isSelected ? TextAttributes.DIM : 0}
@@ -284,25 +309,40 @@ export function FileTree({
         </box>
       );
     });
-  }, [availableWidth, expanded, isSmallText, scrollOffset, selectedIndex, visible, visibleItems]);
+  }, [
+    availableWidth,
+    expanded,
+    isSmallText,
+    onRequestFocus,
+    onSelectFile,
+    scrollOffset,
+    selectedIndex,
+    visible,
+    visibleItems,
+  ]);
 
   useKeyboard((key) => {
     if (!isFocused || isLoading || error) return;
-    if (key.name === "up") {
+    if (key.name === KEY_NAME.UP) {
       key.preventDefault();
       key.stopPropagation();
       setSelectedIndex((prev) => Math.max(0, prev - 1));
     }
-    if (key.name === "down") {
+    if (key.name === KEY_NAME.DOWN) {
       key.preventDefault();
       key.stopPropagation();
       setSelectedIndex((prev) => Math.min(visible.length - 1, prev + 1));
     }
-    if (key.name === "return" || key.name === "linefeed" || key.name === "space") {
+    if (
+      key.name === KEY_NAME.RETURN ||
+      key.name === KEY_NAME.LINEFEED ||
+      key.name === KEY_NAME.SPACE
+    ) {
       key.preventDefault();
       key.stopPropagation();
       const entry = visible[selectedIndex];
-      if (entry?.node.isDir) {
+      if (!entry) return;
+      if (entry.node.isDir) {
         setExpanded((prev) => {
           const next = new Set(prev);
           if (next.has(entry.node.path)) {
@@ -312,6 +352,8 @@ export function FileTree({
           }
           return next;
         });
+      } else if (onSelectFile) {
+        onSelectFile(entry.node.path, entry.node.name);
       }
     }
   });
@@ -369,6 +411,7 @@ export function FileTree({
       minWidth={0}
       minHeight={0}
       height={height}
+      maxHeight={height}
     >
       <ScrollArea height={scrollAreaHeight} viewportCulling={true} focused={isFocused}>
         {fileTreeItems}

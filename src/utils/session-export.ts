@@ -3,6 +3,9 @@ import path from "node:path";
 import { ENCODING } from "@/constants/encodings";
 import { FILE_PATH } from "@/constants/file-paths";
 import {
+  FORMAT_JSON,
+  FORMAT_MARKDOWN,
+  FORMAT_ZIP,
   SESSION_EXPORT_DEFAULT_EXTENSION,
   SESSION_EXPORT_JSON_EXTENSION,
   SESSION_EXPORT_MARKDOWN_EXTENSION,
@@ -65,9 +68,9 @@ export const resolveExportPath = (fileName: string, cwd: string): string => {
 
 export const resolveExportFormat = (filePath: string): SessionExportFormat => {
   const ext = path.extname(filePath).toLowerCase();
-  if (ext === SESSION_EXPORT_JSON_EXTENSION) return "json";
-  if (ext === SESSION_EXPORT_ZIP_EXTENSION) return "zip";
-  return "markdown";
+  if (ext === SESSION_EXPORT_JSON_EXTENSION) return FORMAT_JSON;
+  if (ext === SESSION_EXPORT_ZIP_EXTENSION) return FORMAT_ZIP;
+  return FORMAT_MARKDOWN;
 };
 
 export const buildSessionExportPayload = ({
@@ -91,12 +94,12 @@ export const exportSessionToFile = async (options: SessionExportOptions): Promis
   const normalized = normalizeExtension(options.filePath, SESSION_EXPORT_DEFAULT_EXTENSION);
   const format = resolveExportFormat(normalized);
 
-  if (format === "json") {
+  if (format === FORMAT_JSON) {
     await writeFile(normalized, JSON.stringify(payload, null, 2), ENCODING.UTF8);
     return normalized;
   }
 
-  if (format === "markdown") {
+  if (format === FORMAT_MARKDOWN) {
     const markdown = formatSessionMarkdown(payload.session, payload.messages);
     await writeFile(normalized, markdown, ENCODING.UTF8);
     return normalized;

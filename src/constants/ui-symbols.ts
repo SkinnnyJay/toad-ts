@@ -15,6 +15,8 @@ export const UI_SYMBOLS = {
   DOT_FILLED: "●",
   DOT_EMPTY: "○",
   ARROW: "→",
+  MESSAGE_EXPANDED: "▾",
+  MESSAGE_COLLAPSED: "▶",
 } as const;
 
 export const UI_SYMBOLS_ASCII = {
@@ -31,6 +33,8 @@ export const UI_SYMBOLS_ASCII = {
   DOT_FILLED: "*",
   DOT_EMPTY: "o",
   ARROW: "->",
+  MESSAGE_EXPANDED: "v",
+  MESSAGE_COLLAPSED: ">",
 } as const;
 
 export type UiSymbols = Record<keyof typeof UI_SYMBOLS, string>;

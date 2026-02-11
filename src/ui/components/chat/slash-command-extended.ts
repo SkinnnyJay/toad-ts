@@ -2,6 +2,7 @@ import { existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { ENV_KEY } from "@/constants/env-keys";
+import { SESSION_MODE } from "@/constants/session-modes";
 import {
   SLASH_COMMAND_MESSAGE,
   formatAddDirMessage,
@@ -41,12 +42,12 @@ export const handlePermissionsCommand = (deps: SlashCommandDeps): void => {
     return;
   }
   const session = deps.getSession(deps.sessionId);
-  const mode = session?.mode ?? "auto";
+  const mode = session?.mode ?? SESSION_MODE.AUTO;
   const lines = [
     `Session mode: ${mode}`,
     "Read tools: always allowed",
-    `Write/Edit tools: ${mode === "full-access" ? "auto-approved" : "requires approval"}`,
-    `Execute tools: ${mode === "full-access" ? "auto-approved" : "requires approval"}`,
+    `Write/Edit tools: ${mode === SESSION_MODE.FULL_ACCESS ? "auto-approved" : "requires approval"}`,
+    `Execute tools: ${mode === SESSION_MODE.FULL_ACCESS ? "auto-approved" : "requires approval"}`,
     "Delete tools: denied",
   ];
   deps.appendSystemMessage(formatPermissionsMessage(lines));

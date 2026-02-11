@@ -1,5 +1,6 @@
 import { readFile, readdir, stat } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
+import { DISCOVERY_SUBPATH } from "@/constants/discovery-subpaths";
 import { ENCODING } from "@/constants/encodings";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { getDiscoveryLocations, getOpenCodeCommandPath } from "./discovery-paths";
@@ -12,28 +13,32 @@ export interface LoadedSkill {
   name: string;
   description: string;
   content: string;
+  /** Optional agent id, name, or harness id; when set, skill is shown only for matching provider. */
+  agent?: string;
   source: string;
   filePath: string;
 }
 
 const parseSkillFrontmatter = (
   raw: string
-): { name?: string; description?: string; body: string } => {
+): { name?: string; description?: string; agent?: string; body: string } => {
   const match = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!match) return { body: raw };
   const frontmatter = match[1] ?? "";
   const body = match[2] ?? "";
   const nameMatch = frontmatter.match(/^name:\s*(.+)$/m);
   const descMatch = frontmatter.match(/^description:\s*(.+)$/m);
+  const agentMatch = frontmatter.match(/^agent:\s*(.+)$/m);
   return {
     name: nameMatch?.[1]?.trim(),
     description: descMatch?.[1]?.trim(),
+    agent: agentMatch?.[1]?.trim(),
     body,
   };
 };
 
 export const loadSkills = async (cwd: string): Promise<LoadedSkill[]> => {
-  const locations = getDiscoveryLocations(cwd, "skills");
+  const locations = getDiscoveryLocations(cwd, DISCOVERY_SUBPATH.SKILLS);
   const skills = new Map<string, LoadedSkill>();
 
   for (const location of locations) {
@@ -53,6 +58,7 @@ export const loadSkills = async (cwd: string): Promise<LoadedSkill[]> => {
               name,
               description: parsed.description ?? "",
               content: parsed.body,
+              agent: parsed.agent,
               source: location.source,
               filePath: skillFile,
             });
@@ -101,7 +107,7 @@ const parseCommandFrontmatter = (
 };
 
 export const loadCommands = async (cwd: string): Promise<LoadedCommand[]> => {
-  const locations = getDiscoveryLocations(cwd, "commands");
+  const locations = getDiscoveryLocations(cwd, DISCOVERY_SUBPATH.COMMANDS);
   // OpenCode uses singular "command" dir
   locations.push({
     source: "OPENCODE",
@@ -191,7 +197,7 @@ const parseAgentFrontmatter = (
 };
 
 export const loadAgentDefinitions = async (cwd: string): Promise<LoadedAgentDefinition[]> => {
-  const locations = getDiscoveryLocations(cwd, "agents");
+  const locations = getDiscoveryLocations(cwd, DISCOVERY_SUBPATH.AGENTS);
   const agents = new Map<string, LoadedAgentDefinition>();
 
   for (const location of locations) {
@@ -235,6 +241,8 @@ export interface LoadedRule {
   description: string;
   globs: string[];
   alwaysApply: boolean;
+  /** Optional agent id, name, or harness id; when set, rule applies only for matching provider. */
+  agent?: string;
   content: string;
   type: "always" | "auto_attached" | "agent_requested";
   source: string;
@@ -243,7 +251,13 @@ export interface LoadedRule {
 
 const parseMdcFrontmatter = (
   raw: string
-): { description?: string; globs?: string[]; alwaysApply?: boolean; body: string } => {
+): {
+  description?: string;
+  globs?: string[];
+  alwaysApply?: boolean;
+  agent?: string;
+  body: string;
+} => {
   const match = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!match) return { body: raw };
   const frontmatter = match[1] ?? "";
@@ -251,6 +265,7 @@ const parseMdcFrontmatter = (
   const descMatch = frontmatter.match(/^description:\s*(.+)$/m);
   const globsMatch = frontmatter.match(/^globs:\s*\[([^\]]*)\]/m);
   const alwaysMatch = frontmatter.match(/^alwaysApply:\s*(true|false)/m);
+  const agentMatch = frontmatter.match(/^agent:\s*(.+)$/m);
   const globs = globsMatch?.[1]
     ?.split(",")
     .map((g) => g.trim().replace(/['"]/g, ""))
@@ -259,6 +274,7 @@ const parseMdcFrontmatter = (
     description: descMatch?.[1]?.trim(),
     globs,
     alwaysApply: alwaysMatch?.[1] === "true",
+    agent: agentMatch?.[1]?.trim(),
     body,
   };
 };
@@ -285,6 +301,7 @@ export const loadCursorRules = async (cwd: string): Promise<LoadedRule[]> => {
           description: parsed.description ?? basename(entry, extname(entry)),
           globs: parsed.globs ?? [],
           alwaysApply: parsed.alwaysApply ?? false,
+          agent: parsed.agent,
           content: parsed.body,
           type,
           source: "CURSOR",

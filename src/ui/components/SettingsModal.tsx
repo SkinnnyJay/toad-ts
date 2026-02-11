@@ -1,6 +1,8 @@
 import type { KeybindConfig } from "@/config/app-config";
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
+import { KEY_NAME } from "@/constants/key-names";
+import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { SETTINGS_TAB, SETTINGS_TAB_VALUES, type SettingsTab } from "@/constants/settings-tabs";
 import type { AgentOption } from "@/ui/components/AgentSelect";
 import { DefaultProviderTab } from "@/ui/components/DefaultProviderTab";
@@ -30,13 +32,13 @@ export function SettingsModal({
   useKeyboard((key) => {
     if (!isOpen) return;
 
-    if ((key.name === "left" || key.name === "right") && !isEditingKeybind) {
+    if ((key.name === KEY_NAME.LEFT || key.name === KEY_NAME.RIGHT) && !isEditingKeybind) {
       key.preventDefault();
       key.stopPropagation();
       const currentIndex = SETTINGS_TAB_VALUES.indexOf(activeTab);
       if (currentIndex >= 0) {
         const nextIndex =
-          key.name === "right"
+          key.name === KEY_NAME.RIGHT
             ? (currentIndex + 1) % SETTINGS_TAB_VALUES.length
             : (currentIndex - 1 + SETTINGS_TAB_VALUES.length) % SETTINGS_TAB_VALUES.length;
         const nextTab = SETTINGS_TAB_VALUES[nextIndex];
@@ -48,7 +50,7 @@ export function SettingsModal({
       return;
     }
 
-    if (key.name === "escape" || (key.ctrl && key.name === "s")) {
+    if (key.name === KEY_NAME.ESCAPE || (key.ctrl && key.name === KEYBOARD_INPUT.SKIP_LOWER)) {
       key.preventDefault();
       key.stopPropagation();
       onClose();

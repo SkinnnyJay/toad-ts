@@ -2,6 +2,7 @@ import { LIMIT } from "@/config/limits";
 import { UI } from "@/config/ui";
 import { BACKGROUND_TASK_STATUS } from "@/constants/background-task-status";
 import { COLOR } from "@/constants/colors";
+import { KEY_NAME } from "@/constants/key-names";
 import type { BackgroundTask } from "@/types/domain";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
@@ -38,7 +39,7 @@ export function BackgroundTasksModal({
 }: BackgroundTasksModalProps): ReactNode {
   useKeyboard((key) => {
     if (!isOpen) return;
-    if (key.name === "escape" || (key.ctrl && key.name === "b")) {
+    if (key.name === KEY_NAME.ESCAPE || (key.ctrl && key.name === KEY_NAME.B)) {
       key.preventDefault();
       key.stopPropagation();
       onClose();

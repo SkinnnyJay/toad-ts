@@ -1,3 +1,4 @@
+import { FULL_WIDTH_STYLE } from "@/config/ui";
 import { SyntaxStyle } from "@opentui/core";
 import { type ReactNode, memo, useMemo } from "react";
 
@@ -18,7 +19,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
       streaming={streaming}
       syntaxStyle={syntaxStyle}
       conceal={true}
-      style={{ width: "100%" }}
+      style={FULL_WIDTH_STYLE}
     />
   );
 });

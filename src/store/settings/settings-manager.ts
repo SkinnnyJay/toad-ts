@@ -81,3 +81,17 @@ export const setDefaultProvider = async (
   };
   await saveSettings(updated);
 };
+
+export const getRecentCommandNames = async (): Promise<string[]> => {
+  const settings = await loadSettings();
+  return settings.recentCommandNames ?? [];
+};
+
+export const setRecentCommandNames = async (names: string[]): Promise<void> => {
+  const settings = await loadSettings();
+  const updated: Settings = {
+    ...settings,
+    recentCommandNames: names,
+  };
+  await saveSettings(updated);
+};

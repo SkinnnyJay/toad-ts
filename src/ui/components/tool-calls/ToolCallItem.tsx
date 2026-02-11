@@ -1,24 +1,16 @@
-import { LIMIT } from "@/config/limits";
 import { COLOR } from "@/constants/colors";
+import { TOOL_CALL_VARIANT, type ToolCallVariant } from "@/constants/tool-call-variant";
 import { TextAttributes } from "@opentui/core";
 import { type ReactNode, memo } from "react";
 import { ToolCallResult } from "./ToolCallResult";
 import { getToolCallStatusConfig } from "./ToolCallStatus";
+import { formatDuration } from "./formatToolCallDuration";
 import type { ToolCall } from "./toolCall.types";
 
 export interface ToolCallItemProps {
   tool: ToolCall;
-  variant: "active" | "recent";
+  variant: ToolCallVariant;
 }
-
-const formatDuration = (start: Date, end: Date): string => {
-  const ms = end.getTime() - start.getTime();
-  if (ms < LIMIT.DURATION_FORMAT_MS_THRESHOLD) return `${ms}ms`;
-  if (ms < LIMIT.DURATION_FORMAT_MIN_THRESHOLD) return `${Math.floor(ms / 1000)}s`;
-  return `${Math.floor(ms / LIMIT.DURATION_FORMAT_MIN_THRESHOLD)}m ${Math.floor(
-    (ms % LIMIT.DURATION_FORMAT_MIN_THRESHOLD) / 1000
-  )}s`;
-};
 
 export const ToolCallItem = memo(function ToolCallItem({
   tool,
@@ -26,7 +18,7 @@ export const ToolCallItem = memo(function ToolCallItem({
 }: ToolCallItemProps): ReactNode {
   const { icon, color, label } = getToolCallStatusConfig(tool.status);
 
-  if (variant === "active") {
+  if (variant === TOOL_CALL_VARIANT.ACTIVE) {
     return (
       <box paddingLeft={1}>
         <text fg={color} attributes={TextAttributes.DIM}>

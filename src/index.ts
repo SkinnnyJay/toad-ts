@@ -55,6 +55,7 @@ export * from "@/core/auto-title";
 export * from "@/core/code-formatter";
 export * from "@/core/model-variant";
 export * from "@/core/pr-status";
+export * from "@/core/repo-workflow";
 export * from "@/core/permission-modes";
 export * from "@/core/prompt-suggestions";
 export * from "@/core/image-support";
@@ -69,7 +70,14 @@ export * from "@/core/providers/ollama-provider";
 export * from "@/core/providers/openai-compatible-provider";
 export * from "@/core/providers/small-model";
 export * from "@/core/cross-tool/discovery-paths";
-export * from "@/core/cross-tool/universal-loader";
+export {
+  loadSkills,
+  loadCommands,
+  loadAgentDefinitions,
+  loadCursorRules,
+  type LoadedAgentDefinition,
+  type LoadedRule,
+} from "@/core/cross-tool/universal-loader";
 export * from "@/core/cross-tool/hooks-loader";
 export * from "@/core/cross-tool/custom-tools-loader";
 export * from "@/core/cross-tool/init-generator";

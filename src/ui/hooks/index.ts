@@ -126,3 +126,15 @@ export type {
 } from "./useSlashCommands";
 
 export { useUiSymbols } from "./useUiSymbols";
+
+export { useRepoWorkflow } from "./useRepoWorkflow";
+export type {
+  UseRepoWorkflowOptions,
+  UseRepoWorkflowResult,
+} from "./useRepoWorkflow";
+
+export { useRandomFact, useRotatingFact } from "./useRandomFact";
+export type {
+  UseRandomFactResult,
+  UseRotatingFactResult,
+} from "./useRandomFact";

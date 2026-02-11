@@ -2,7 +2,9 @@ import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { resolve } from "node:path";
 
 import { LIMIT } from "@/config/limits";
+import { TRUTHY_STRINGS } from "@/constants/boolean-strings";
 import { ENV_KEY } from "@/constants/env-keys";
+import { PLATFORM } from "@/constants/platform";
 import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
 import { nanoid } from "nanoid";
@@ -54,7 +56,7 @@ const shouldAllowEscape = (env?: NodeJS.ProcessEnv, override?: boolean): boolean
   const raw = source[ENV_KEY.TOADSTOOL_ALLOW_ESCAPE];
   if (!raw) return false;
   const normalized = raw.trim().toLowerCase();
-  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
+  return TRUTHY_STRINGS.has(normalized);
 };
 
 const resolveCwd = (candidate: string, base: string, allowEscape: boolean): string => {
@@ -73,7 +75,7 @@ const resolveShellCommand = (): {
   usesShell: boolean;
   isWindows: boolean;
 } => {
-  if (process.platform === "win32") {
+  if (process.platform === PLATFORM.WIN32) {
     return {
       command: SHELL_CONTROL.DEFAULT_WINDOWS_COMMAND,
       args: ["/D", "/Q", "/K"],
@@ -304,7 +306,7 @@ export class ShellSessionManager {
 
   async complete(prefix: string): Promise<string[]> {
     if (!prefix) return [];
-    if (process.platform === "win32") return [];
+    if (process.platform === PLATFORM.WIN32) return [];
 
     const escaped = prefix.replace(/(["\\$`])/g, "\\$1");
     const completionCommand = `compgen -cdf -- "${escaped}"`;

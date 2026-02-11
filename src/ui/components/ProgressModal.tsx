@@ -1,5 +1,7 @@
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
+import { KEY_NAME } from "@/constants/key-names";
+import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { useAppStore } from "@/store/app-store";
 import type { SessionId } from "@/types/domain";
 import { useUiSymbols } from "@/ui/hooks/useUiSymbols";
@@ -7,6 +9,7 @@ import { taskStatusColor } from "@/ui/status-colors";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import type { ReactNode } from "react";
+import { useShallow } from "zustand/react/shallow";
 
 interface ProgressModalProps {
   isOpen: boolean;
@@ -17,13 +20,13 @@ interface ProgressModalProps {
 export function ProgressModal({ isOpen, sessionId, onClose }: ProgressModalProps): ReactNode {
   const symbols = useUiSymbols();
   const plan = useAppStore((state) => (sessionId ? state.getPlanBySession(sessionId) : undefined));
-  const subAgents = useAppStore((state) =>
-    Object.values(state.subAgents).filter((agent) => agent !== undefined)
+  const subAgents = useAppStore(
+    useShallow((state) => Object.values(state.subAgents).filter((agent) => agent !== undefined))
   );
 
   useKeyboard((key) => {
     if (!isOpen) return;
-    if (key.name === "escape" || (key.ctrl && key.name === "s")) {
+    if (key.name === KEY_NAME.ESCAPE || (key.ctrl && key.name === KEYBOARD_INPUT.SKIP_LOWER)) {
       key.preventDefault();
       key.stopPropagation();
       onClose();

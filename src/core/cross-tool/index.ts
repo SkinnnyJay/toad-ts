@@ -1,3 +1,9 @@
+export {
+  filterCommandsForAgent,
+  filterRulesForAgent,
+  filterSkillsForAgent,
+  type AgentFilterContext,
+} from "./discovery-filter";
 export { discoverCustomTools, type DiscoveredCustomTool } from "./custom-tools-loader";
 export {
   TOOL_DIRS,

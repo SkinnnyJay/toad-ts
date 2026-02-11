@@ -1,13 +1,15 @@
 import type { AgentInfo } from "@/agents/agent-manager";
 import type { SubAgentRunner } from "@/agents/subagent-runner";
+import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { COLOR } from "@/constants/colors";
-import type { CommandDefinition } from "@/constants/command-definitions";
-import { COMMAND_DEFINITIONS } from "@/constants/command-definitions";
+import { COMMAND_DEFINITIONS, type CommandDefinition } from "@/constants/command-definitions";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { ENV_KEY } from "@/constants/env-keys";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
+import { FORMAT_MODE } from "@/constants/format-modes";
+import { KEY_NAME } from "@/constants/key-names";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { PERMISSION_PATTERN } from "@/constants/permission-patterns";
 import { PERMISSION } from "@/constants/permissions";
@@ -30,12 +32,14 @@ import { PlanApprovalPanel } from "@/ui/components/PlanApprovalPanel";
 import { PlanPanel } from "@/ui/components/PlanPanel";
 import { ToolCallManager } from "@/ui/components/ToolCallManager";
 import { TruncationProvider } from "@/ui/components/TruncationProvider";
+import { useRotatingFact } from "@/ui/hooks/useRandomFact";
 import { roleColor } from "@/ui/theme";
 import { openExternalEditor } from "@/utils/editor/externalEditor";
 import { Env, EnvManager } from "@/utils/env/env.utils";
 import { getRepoInfo } from "@/utils/git/git-info.utils";
+import { TextAttributes } from "@opentui/core";
 import { useKeyboard, useRenderer } from "@opentui/react";
-import { type ReactNode, memo, useCallback, useMemo, useState } from "react";
+import { type ReactNode, memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useMessageSender } from "./MessageSender";
 import { useSlashCommandHandler } from "./SlashCommandHandler";
 
@@ -44,6 +48,8 @@ export interface ChatProps {
   agent?: AgentInfo;
   agents?: AgentInfo[];
   client?: HarnessRuntime | null;
+  /** Slash commands for palette and autocomplete; when omitted, uses all COMMAND_DEFINITIONS. */
+  slashCommands?: CommandDefinition[];
   onPromptComplete?: (sessionId: SessionId) => void;
   onOpenSettings?: () => void;
   onOpenHelp?: () => void;
@@ -54,12 +60,17 @@ export interface ChatProps {
   onOpenHooks?: () => void;
   onOpenProgress?: () => void;
   onOpenAgents?: () => void;
+  onOpenSkills?: () => void;
+  onOpenCommands?: () => void;
   onToggleVimMode?: () => boolean;
   vimEnabled?: boolean;
   harnesses?: Record<string, HarnessConfig>;
   checkpointManager?: CheckpointManager;
   subAgentRunner?: SubAgentRunner;
   focusTarget?: FocusTarget;
+  queuedBreadcrumbSkill?: string | null;
+  onConsumeQueuedBreadcrumbSkill?: () => void;
+  hideRepoInHeader?: boolean;
 }
 
 export const Chat = memo(
@@ -68,6 +79,7 @@ export const Chat = memo(
     agent,
     agents = [],
     client,
+    slashCommands = COMMAND_DEFINITIONS,
     onPromptComplete,
     onOpenSettings,
     onOpenHelp,
@@ -78,14 +90,21 @@ export const Chat = memo(
     onOpenHooks,
     onOpenProgress,
     onOpenAgents,
+    onOpenSkills,
+    onOpenCommands,
     onToggleVimMode,
     vimEnabled,
     harnesses,
     checkpointManager,
     subAgentRunner,
     focusTarget = FOCUS_TARGET.CHAT,
+    queuedBreadcrumbSkill = null,
+    onConsumeQueuedBreadcrumbSkill,
+    hideRepoInHeader = false,
   }: ChatProps): ReactNode => {
     const appendMessage = useAppStore((state) => state.appendMessage);
+    const setTodosForSession = useAppStore((state) => state.setTodosForSession);
+    const loadedSkills = useAppStore((state) => state.loadedSkills);
     const messages = useAppStore((state) =>
       sessionId ? state.getMessagesForSession(sessionId) : []
     );
@@ -95,9 +114,18 @@ export const Chat = memo(
     const connectionStatus = useAppStore((state) => state.connectionStatus);
     const upsertPlan = useAppStore((state) => state.upsertPlan);
     const getPlanBySession = useAppStore((state) => state.getPlanBySession);
+    const pendingFileRefForInput = useAppStore((state) => state.uiState.pendingFileRefForInput);
+    const setPendingFileRefForInput = useAppStore((state) => state.setPendingFileRefForInput);
 
     const [inputValue, setInputValue] = useState("");
     const [isPaletteOpen, setPaletteOpen] = useState(false);
+    const { fact: randomFact } = useRotatingFact(messages.length === 0);
+    const factDisplayLine = useMemo(() => {
+      if (!randomFact) return "";
+      const line = `Fact: ${randomFact}`;
+      const max = LIMIT.FACT_DISPLAY_MAX_LENGTH;
+      return line.length > max ? `${line.slice(0, max - 1)}…` : line;
+    }, [randomFact]);
 
     const effectiveSessionId = useMemo(() => {
       if (sessionId) return sessionId;
@@ -110,9 +138,29 @@ export const Chat = memo(
         createToolRuntime({
           baseDir: process.cwd(),
           env: EnvManager.getInstance().getSnapshot(),
+          sessionId: sessionId ?? undefined,
+          onTodosUpdated: (sid, items) =>
+            useAppStore.getState().setTodosForSession(SessionIdSchema.parse(sid), items),
         }),
-      []
+      [sessionId]
     );
+
+    useEffect(() => {
+      if (!sessionId) return;
+      void toolRuntime.context.todoStore
+        .list()
+        .then((items) => setTodosForSession(sessionId, items));
+    }, [sessionId, setTodosForSession, toolRuntime.context.todoStore]);
+
+    useEffect(() => {
+      if (pendingFileRefForInput == null) return;
+      setInputValue((prev) => {
+        const sep = prev.length > 0 && !prev.endsWith(" ") ? " " : "";
+        return prev + sep + pendingFileRefForInput;
+      });
+      setPendingFileRefForInput(null);
+    }, [pendingFileRefForInput, setPendingFileRefForInput]);
+
     const shellCommandConfig = useMemo(() => getShellCommandConfig(env), [env]);
     const renderer = useRenderer();
     const runInteractiveShell = useCallback(
@@ -122,7 +170,7 @@ export const Chat = memo(
     const repoInfo = useMemo(() => {
       // Read format from environment variable, default to "full"
       const formatEnv = env.getString(ENV_KEY.TOADSTOOL_UI_PROJECT_FOLDER_PATH_RENDER);
-      const format = formatEnv === "short" ? "short" : "full";
+      const format = formatEnv === FORMAT_MODE.SHORT ? FORMAT_MODE.SHORT : FORMAT_MODE.FULL;
       const info = getRepoInfo(process.cwd(), format);
       const colonIndex = info.lastIndexOf(":");
       if (colonIndex === -1) {
@@ -135,12 +183,12 @@ export const Chat = memo(
     }, [env]);
 
     useKeyboard((key) => {
-      if (key.ctrl && key.name === "p") {
+      if (key.ctrl && key.name === KEY_NAME.P) {
         key.preventDefault();
         key.stopPropagation();
         setPaletteOpen((prev) => !prev);
       }
-      if (isPaletteOpen && key.name === "escape") {
+      if (isPaletteOpen && key.name === KEY_NAME.ESCAPE) {
         key.preventDefault();
         key.stopPropagation();
         setPaletteOpen(false);
@@ -200,6 +248,8 @@ export const Chat = memo(
       onOpenHooks,
       onOpenProgress,
       onOpenAgents,
+      onOpenSkills,
+      onOpenCommands,
       onToggleVimMode,
       harnesses,
       client,
@@ -261,20 +311,42 @@ export const Chat = memo(
       [handleSlashCommand]
     );
 
+    useEffect(() => {
+      if (!queuedBreadcrumbSkill || !onConsumeQueuedBreadcrumbSkill) return;
+      onConsumeQueuedBreadcrumbSkill();
+      const skill = loadedSkills.find((s) => s.name === queuedBreadcrumbSkill);
+      if (skill?.content?.trim()) {
+        handleSubmit(skill.content.trim());
+      } else {
+        appendSystemMessage(`Skill not found: ${queuedBreadcrumbSkill}`);
+      }
+    }, [
+      queuedBreadcrumbSkill,
+      onConsumeQueuedBreadcrumbSkill,
+      loadedSkills,
+      handleSubmit,
+      appendSystemMessage,
+    ]);
+
     return (
       <TruncationProvider>
-        <box flexDirection="column" height="100%">
+        <box flexDirection="column" flexGrow={1} minHeight={0} width="100%" height="100%">
           {/* Fixed header section */}
           <box flexDirection="column" flexShrink={0}>
             <box flexDirection="row" alignItems="center" gap={1}>
-              {/* <AppIcon size="small" /> */}
+              {hideRepoInHeader ? null : (
+                <>
+                  <text>
+                    {repoInfo.path}
+                    {repoInfo.branch ? (
+                      <>
+                        :<span fg={COLOR.CYAN}>{repoInfo.branch}</span>
+                      </>
+                    ) : null}{" "}
+                  </text>
+                </>
+              )}
               <text>
-                {repoInfo.path}
-                {repoInfo.branch ? (
-                  <>
-                    :<span fg={COLOR.CYAN}>{repoInfo.branch}</span>
-                  </>
-                ) : null}{" "}
                 · Session: {effectiveSessionId} {agent ? `· Agent: ${agent.name}` : ""} · Mode:{" "}
                 {sessionMode} · Status:{" "}
                 <span
@@ -347,30 +419,69 @@ export const Chat = memo(
               }}
             />
           </box>
-          {/* Message area - fixed height container */}
-          <box flexGrow={1} minHeight={0} overflow="hidden" height="100%">
-            <MessageList messages={messages} isFocused={focusTarget === FOCUS_TARGET.CHAT} />
-          </box>
-          {/* Fixed footer section - input pinned to bottom */}
-          <box flexDirection="column" flexShrink={0}>
-            <CommandPalette
-              commands={COMMAND_DEFINITIONS}
-              isOpen={isPaletteOpen}
-              onClose={() => setPaletteOpen(false)}
-              onSelect={handleCommandSelect}
-            />
-            <InputWithAutocomplete
-              value={inputValue}
-              onSubmit={handleSubmit}
-              onChange={setInputValue}
-              multiline
-              focusTarget={focusTarget}
-              slashCommands={COMMAND_DEFINITIONS}
-              placeholder="Type a message or / for commands…"
-              shellCompletion={shellCompletion}
-              onAgentSwitch={onOpenAgentSelect}
-              vimEnabled={vimEnabled}
-            />
+          {/* Chat body: response area (relative) + input footer. Palette floats inside response area. */}
+          <box flexDirection="column" flexGrow={1} minHeight={0} width="100%" height="100%">
+            {/* Response area: when palette is open, replace messages with palette */}
+            {isPaletteOpen ? (
+              <box
+                flexDirection="column"
+                flexGrow={1}
+                minHeight={0}
+                width="100%"
+                alignItems="center"
+                justifyContent="flex-start"
+                overflow="hidden"
+              >
+                <CommandPalette
+                  commands={slashCommands}
+                  isOpen={true}
+                  onClose={() => setPaletteOpen(false)}
+                  onSelect={handleCommandSelect}
+                />
+              </box>
+            ) : (
+              <box flexDirection="column" flexGrow={1} minHeight={0} width="100%" overflow="hidden">
+                {/* Message area */}
+                <box flexShrink={0} minWidth={0}>
+                  <MessageList messages={messages} isFocused={focusTarget === FOCUS_TARGET.CHAT} />
+                </box>
+                {/* Spacer: fills space so footer stays at bottom; when no messages, show fact right above input */}
+                {messages.length === 0 && factDisplayLine ? (
+                  <box
+                    flexGrow={1}
+                    minHeight={0}
+                    flexShrink={1}
+                    flexDirection="column"
+                    justifyContent="flex-end"
+                  >
+                    <box flexGrow={1} minHeight={0} />
+                    <box width="100%" overflow="hidden" minWidth={0}>
+                      <text fg={COLOR.DIM} attributes={TextAttributes.DIM} truncate={true}>
+                        {factDisplayLine}
+                      </text>
+                    </box>
+                  </box>
+                ) : (
+                  <box flexGrow={1} minHeight={0} flexShrink={1} />
+                )}
+              </box>
+            )}
+
+            {/* Footer - input always at bottom */}
+            <box flexDirection="column" flexShrink={0}>
+              <InputWithAutocomplete
+                value={inputValue}
+                onSubmit={handleSubmit}
+                onChange={setInputValue}
+                multiline
+                focusTarget={focusTarget}
+                slashCommands={slashCommands}
+                placeholder="Type a message or / for commands…"
+                shellCompletion={shellCompletion}
+                onAgentSwitch={onOpenAgentSelect}
+                vimEnabled={vimEnabled}
+              />
+            </box>
           </box>
         </box>
       </TruncationProvider>

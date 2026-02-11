@@ -2,6 +2,7 @@ import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { APPROVAL_DECISION, type ApprovalDecision } from "@/constants/approval-decisions";
 import { COLOR } from "@/constants/colors";
+import { KEY_NAME } from "@/constants/key-names";
 import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { PERMISSION, type Permission } from "@/constants/permissions";
 import type { UiSymbols } from "@/constants/ui-symbols";
@@ -106,11 +107,15 @@ export function ToolCallApproval({
   useKeyboard((key) => {
     if (permission !== PERMISSION.ASK || decision) return;
 
-    if (key.name === KEYBOARD_INPUT.YES_LOWER || key.name === "return" || key.name === "linefeed") {
+    if (
+      key.name === KEYBOARD_INPUT.YES_LOWER ||
+      key.name === KEY_NAME.RETURN ||
+      key.name === KEY_NAME.LINEFEED
+    ) {
       key.preventDefault();
       key.stopPropagation();
       handleApprove();
-    } else if (key.name === KEYBOARD_INPUT.NO_LOWER || key.name === "escape") {
+    } else if (key.name === KEYBOARD_INPUT.NO_LOWER || key.name === KEY_NAME.ESCAPE) {
       key.preventDefault();
       key.stopPropagation();
       handleDeny();

@@ -4,8 +4,12 @@ import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
 import { BACKGROUND_TASK_STATUS } from "@/constants/background-task-status";
+import { BREADCRUMB_PLACEMENT } from "@/constants/breadcrumb-placement";
 import { COLOR } from "@/constants/colors";
+import { COMMAND_DEFINITIONS, filterSlashCommandsForAgent } from "@/constants/command-definitions";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { DISCOVERY_SUBPATH } from "@/constants/discovery-subpaths";
+import { FOCUS_TARGET } from "@/constants/focus-target";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-marks";
 import { PERSISTENCE_WRITE_MODE } from "@/constants/persistence-write-modes";
@@ -16,6 +20,12 @@ import { formatModeUpdatedMessage } from "@/constants/slash-command-messages";
 import { VIEW, type View } from "@/constants/views";
 import { claudeCliHarnessAdapter } from "@/core/claude-cli-harness";
 import { codexCliHarnessAdapter } from "@/core/codex-cli-harness";
+import {
+  filterCommandsForAgent,
+  filterSkillsForAgent,
+  loadCommands,
+  loadSkills,
+} from "@/core/cross-tool";
 import { geminiCliHarnessAdapter } from "@/core/gemini-cli-harness";
 import { mockHarnessAdapter } from "@/core/mock-harness";
 import { SessionStream } from "@/core/session-stream";
@@ -32,6 +42,7 @@ import { AgentDiscoveryModal } from "@/ui/components/AgentDiscoveryModal";
 import { AgentSelect } from "@/ui/components/AgentSelect";
 import { AsciiBanner } from "@/ui/components/AsciiBanner";
 import { BackgroundTasksModal } from "@/ui/components/BackgroundTasksModal";
+import { BreadcrumbBar } from "@/ui/components/BreadcrumbBar";
 import { Chat } from "@/ui/components/Chat";
 import { ContextModal } from "@/ui/components/ContextModal";
 import { HelpModal } from "@/ui/components/HelpModal";
@@ -42,6 +53,7 @@ import { RewindModal } from "@/ui/components/RewindModal";
 import { SessionsPopup } from "@/ui/components/SessionsPopup";
 import { SettingsModal } from "@/ui/components/SettingsModal";
 import { Sidebar } from "@/ui/components/Sidebar";
+import { SkillsCommandsModal } from "@/ui/components/SkillsCommandsModal";
 import { StatusFooter } from "@/ui/components/StatusFooter";
 import { ThemesModal } from "@/ui/components/ThemesModal";
 import {
@@ -58,13 +70,17 @@ import {
   useTerminalDimensions,
 } from "@/ui/hooks";
 import { useAutoTitle } from "@/ui/hooks/useAutoTitle";
+import { useRepoWorkflow } from "@/ui/hooks/useRepoWorkflow";
 import { ThemeProvider } from "@/ui/theme/theme-context";
 import { applyThemeColors } from "@/ui/theme/theme-definitions";
 import { Env, EnvManager } from "@/utils/env/env.utils";
+import { playCompletionSound } from "@/utils/sound/completion-sound.utils";
 import { TextAttributes } from "@opentui/core";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 export function App(): ReactNode {
   const [view, setView] = useState<View>(VIEW.AGENT_SELECT);
+  const [queuedBreadcrumbSkill, setQueuedBreadcrumbSkill] = useState<string | null>(null);
   const [isContextOpen, setIsContextOpen] = useState(false);
   const [isHooksOpen, setIsHooksOpen] = useState(false);
   const [isProgressOpen, setIsProgressOpen] = useState(false);
@@ -74,11 +90,15 @@ export function App(): ReactNode {
   const theme = useAppStore((state) => state.uiState.theme);
   const getPlanBySession = useAppStore((state) => state.getPlanBySession);
   const setCurrentSession = useAppStore((state) => state.setCurrentSession);
-  const sessionsById = useAppStore((state) => state.sessions);
+  const sessionsById = useAppStore(useShallow((state) => state.sessions));
   const appendMessage = useAppStore((state) => state.appendMessage);
   const upsertSession = useAppStore((state) => state.upsertSession);
   const getSession = useAppStore((state) => state.getSession);
   const getMessagesForSession = useAppStore((state) => state.getMessagesForSession);
+  const setLoadedSkills = useAppStore((state) => state.setLoadedSkills);
+  const setLoadedCommands = useAppStore((state) => state.setLoadedCommands);
+  const loadedSkills = useAppStore(useShallow((state) => state.loadedSkills));
+  const loadedCommands = useAppStore(useShallow((state) => state.loadedCommands));
   const terminalDimensions = useTerminalDimensions();
   const env = useMemo(() => new Env(EnvManager.getInstance()), []);
   const persistenceConfig = useMemo(() => createPersistenceConfig(env), [env]);
@@ -174,6 +194,25 @@ export function App(): ReactNode {
     }
   }, [currentSessionId]);
   const activeSessionId = sessionId ?? currentSessionId;
+  const agentContext = useMemo(
+    () =>
+      selectedAgent
+        ? { id: selectedAgent.id, name: selectedAgent.name, harnessId: selectedAgent.harnessId }
+        : null,
+    [selectedAgent]
+  );
+  const filteredSkills = useMemo(
+    () => filterSkillsForAgent(loadedSkills, agentContext),
+    [loadedSkills, agentContext]
+  );
+  const filteredCommands = useMemo(
+    () => filterCommandsForAgent(loadedCommands, agentContext),
+    [loadedCommands, agentContext]
+  );
+  const filteredSlashCommands = useMemo(
+    () => filterSlashCommandsForAgent(COMMAND_DEFINITIONS, agentContext),
+    [agentContext]
+  );
   const contextStats = useContextStats(activeSessionId);
   const backgroundTasks = useBackgroundTaskStore((state) => state.tasks);
   const taskProgress = useMemo(() => {
@@ -206,6 +245,11 @@ export function App(): ReactNode {
     };
   }, [checkpointManager]);
   useEffect(() => {
+    const cwd = process.cwd();
+    void loadSkills(cwd).then((skills) => setLoadedSkills(skills));
+    void loadCommands(cwd).then((commands) => setLoadedCommands(commands));
+  }, [setLoadedSkills, setLoadedCommands]);
+  useEffect(() => {
     applyThemeColors(theme);
   }, [theme]);
   useEffect(() => {
@@ -226,6 +270,7 @@ export function App(): ReactNode {
       sessionStream.finalizeSession(id);
       void checkpointManager.finalizeCheckpoint(id);
       autoTitle(id);
+      playCompletionSound();
     },
     [autoTitle, checkpointManager, sessionStream]
   );
@@ -290,6 +335,19 @@ export function App(): ReactNode {
     void updateConfig({ vim: { enabled: nextEnabled } });
     return nextEnabled;
   }, [appConfig.vim.enabled, updateConfig]);
+
+  const breadcrumbPlacement = appConfig.ui.breadcrumb.placement;
+  const breadcrumbVisible = breadcrumbPlacement !== BREADCRUMB_PLACEMENT.HIDDEN;
+  const { info: repoWorkflowInfo, loading: repoWorkflowLoading } = useRepoWorkflow({
+    pollIntervalMs: appConfig.ui.breadcrumb.pollIntervalMs,
+    enabled: breadcrumbVisible,
+  });
+  const handleRunBreadcrumbAction = useCallback(() => {
+    if (repoWorkflowInfo?.action?.skill) {
+      setQueuedBreadcrumbSkill(repoWorkflowInfo.action.skill);
+    }
+  }, [repoWorkflowInfo]);
+
   useHookManager({
     hooks: appConfig.hooks,
     agentInfoMap,
@@ -297,6 +355,7 @@ export function App(): ReactNode {
   });
   const {
     focusTarget,
+    setFocusTarget,
     isSessionsPopupOpen,
     setIsSessionsPopupOpen,
     isSettingsOpen,
@@ -309,11 +368,17 @@ export function App(): ReactNode {
     setIsThemesOpen,
     isRewindOpen,
     setIsRewindOpen,
+    isSkillsOpen,
+    setIsSkillsOpen,
+    isCommandsOpen,
+    setIsCommandsOpen,
   } = useAppKeyboardShortcuts({
     view,
     onNavigateChildSession: navigateChildSession,
     keybinds: appConfig.keybinds,
     onCyclePermissionMode: handleCyclePermissionMode,
+    onRunBreadcrumbAction: handleRunBreadcrumbAction,
+    hasOtherModalOpen: isContextOpen || isHooksOpen || isProgressOpen || isAgentDiscoveryOpen,
   });
   const { checkpointStatus, handleRewindSelect } = useCheckpointUI({
     checkpointManager,
@@ -343,7 +408,9 @@ export function App(): ReactNode {
   ) {
     return (
       <ThemeProvider theme={theme}>
-        <LoadingScreen progress={progress} status={statusMessage} />
+        <box height={terminalDimensions.rows} width={terminalDimensions.columns}>
+          <LoadingScreen progress={progress} status={statusMessage} />
+        </box>
       </ThemeProvider>
     );
   }
@@ -352,7 +419,6 @@ export function App(): ReactNode {
   return (
     <ThemeProvider theme={theme}>
       <box key={`theme-${theme}`} flexDirection="column" height={terminalDimensions.rows}>
-        {view === VIEW.AGENT_SELECT && <AsciiBanner />}
         {loadError ? (
           <box flexDirection="column" gap={1}>
             <text fg={COLOR.RED}>Error: {loadError}</text>
@@ -362,32 +428,80 @@ export function App(): ReactNode {
           </box>
         ) : null}
         {view === VIEW.AGENT_SELECT ? (
-          <AgentSelect
-            agents={agentOptions}
-            onSelect={handleAgentSelect}
-            selectedId={selectedAgent?.id}
-            onCancel={selectedAgent ? handleAgentSelectCancel : undefined}
-          />
+          <box flexDirection="column" flexGrow={1} height="100%" width="100%">
+            <AsciiBanner />
+            <AgentSelect
+              agents={agentOptions}
+              onSelect={handleAgentSelect}
+              selectedId={selectedAgent?.id}
+              onCancel={selectedAgent ? handleAgentSelectCancel : undefined}
+            />
+            <box flexGrow={1} />
+          </box>
         ) : (
           <box flexDirection="column" height="100%" flexGrow={1} minHeight={0}>
+            {breadcrumbPlacement === BREADCRUMB_PLACEMENT.TOP ? (
+              <box flexShrink={0} border={true} borderStyle="single" borderColor={COLOR.GRAY}>
+                <BreadcrumbBar
+                  info={repoWorkflowInfo}
+                  loading={repoWorkflowLoading}
+                  showAction={appConfig.ui.breadcrumb.showAction}
+                  onActionPress={setQueuedBreadcrumbSkill}
+                />
+              </box>
+            ) : null}
             <box flexDirection="row" flexGrow={1} minHeight={0} marginBottom={1}>
-              <Sidebar
-                width={sidebarWidth}
-                currentAgentName={selectedAgent?.name}
-                focusTarget={focusTarget}
-              />
+              {breadcrumbPlacement === BREADCRUMB_PLACEMENT.LEFT ? (
+                <box flexDirection="column" width={sidebarWidth} flexShrink={0}>
+                  <box flexShrink={0} border={true} borderStyle="single" borderColor={COLOR.GRAY}>
+                    <BreadcrumbBar
+                      info={repoWorkflowInfo}
+                      loading={repoWorkflowLoading}
+                      showAction={appConfig.ui.breadcrumb.showAction}
+                      onActionPress={setQueuedBreadcrumbSkill}
+                    />
+                  </box>
+                  <Sidebar
+                    width={sidebarWidth}
+                    currentAgentName={selectedAgent?.name}
+                    currentSessionId={activeSessionId}
+                    onSelectSession={handleSelectSession}
+                    focusTarget={focusTarget}
+                    onFocusTab={setFocusTarget}
+                  />
+                </box>
+              ) : (
+                <Sidebar
+                  width={sidebarWidth}
+                  currentAgentName={selectedAgent?.name}
+                  currentSessionId={activeSessionId}
+                  onSelectSession={handleSelectSession}
+                  focusTarget={focusTarget}
+                  onFocusTab={setFocusTarget}
+                />
+              )}
               <box
                 flexDirection="column"
                 width={mainWidth}
                 flexGrow={1}
                 border={true}
-                borderStyle="single"
-                borderColor={COLOR.GRAY}
+                borderStyle={focusTarget === FOCUS_TARGET.CHAT ? "double" : "single"}
+                borderColor={focusTarget === FOCUS_TARGET.CHAT ? COLOR.CYAN : COLOR.GRAY}
                 paddingLeft={1}
                 paddingRight={1}
                 paddingTop={1}
                 paddingBottom={1}
               >
+                {breadcrumbPlacement === BREADCRUMB_PLACEMENT.RIGHT ? (
+                  <box flexShrink={0} marginBottom={1}>
+                    <BreadcrumbBar
+                      info={repoWorkflowInfo}
+                      loading={repoWorkflowLoading}
+                      showAction={appConfig.ui.breadcrumb.showAction}
+                      onActionPress={setQueuedBreadcrumbSkill}
+                    />
+                  </box>
+                ) : null}
                 {isSessionsPopupOpen ? (
                   <SessionsPopup
                     isOpen={isSessionsPopupOpen}
@@ -408,6 +522,10 @@ export function App(): ReactNode {
                       setIsRewindOpen(false);
                     }}
                     onSelect={handleRewindSelect}
+                    onGoToSelectionOptions={() => {
+                      setIsRewindOpen(false);
+                      handleAgentSwitchRequest();
+                    }}
                   />
                 ) : isContextOpen ? (
                   <ContextModal
@@ -448,10 +566,25 @@ export function App(): ReactNode {
                   />
                 ) : isThemesOpen ? (
                   <ThemesModal isOpen={isThemesOpen} onClose={() => setIsThemesOpen(false)} />
+                ) : isSkillsOpen ? (
+                  <SkillsCommandsModal
+                    isOpen={isSkillsOpen}
+                    mode={DISCOVERY_SUBPATH.SKILLS}
+                    skills={filteredSkills}
+                    onClose={() => setIsSkillsOpen(false)}
+                  />
+                ) : isCommandsOpen ? (
+                  <SkillsCommandsModal
+                    isOpen={isCommandsOpen}
+                    mode={DISCOVERY_SUBPATH.COMMANDS}
+                    commands={filteredCommands}
+                    onClose={() => setIsCommandsOpen(false)}
+                  />
                 ) : isHelpOpen ? (
                   <HelpModal
                     key="help-modal"
                     isOpen={isHelpOpen}
+                    commands={filteredSlashCommands}
                     onClose={() => {
                       setIsHelpOpen(false);
                     }}
@@ -463,6 +596,7 @@ export function App(): ReactNode {
                     agent={selectedAgent ?? undefined}
                     agents={Array.from(agentInfoMap.values())}
                     client={client}
+                    slashCommands={filteredSlashCommands}
                     onPromptComplete={handlePromptComplete}
                     onOpenSettings={() => setIsSettingsOpen(true)}
                     onOpenHelp={() => setIsHelpOpen(true)}
@@ -472,6 +606,8 @@ export function App(): ReactNode {
                     onOpenHooks={() => setIsHooksOpen(true)}
                     onOpenProgress={() => setIsProgressOpen(true)}
                     onOpenAgents={() => setIsAgentDiscoveryOpen(true)}
+                    onOpenSkills={() => setIsSkillsOpen(true)}
+                    onOpenCommands={() => setIsCommandsOpen(true)}
                     onOpenAgentSelect={handleAgentSwitchRequest}
                     onToggleVimMode={handleToggleVimMode}
                     vimEnabled={appConfig.vim.enabled}
@@ -479,10 +615,23 @@ export function App(): ReactNode {
                     checkpointManager={checkpointManager}
                     subAgentRunner={subAgentRunner}
                     focusTarget={focusTarget}
+                    queuedBreadcrumbSkill={queuedBreadcrumbSkill}
+                    onConsumeQueuedBreadcrumbSkill={() => setQueuedBreadcrumbSkill(null)}
+                    hideRepoInHeader={breadcrumbVisible}
                   />
                 )}
               </box>
             </box>
+            {breadcrumbPlacement === BREADCRUMB_PLACEMENT.BOTTOM ? (
+              <box flexShrink={0} border={true} borderStyle="single" borderColor={COLOR.GRAY}>
+                <BreadcrumbBar
+                  info={repoWorkflowInfo}
+                  loading={repoWorkflowLoading}
+                  showAction={appConfig.ui.breadcrumb.showAction}
+                  onActionPress={setQueuedBreadcrumbSkill}
+                />
+              </box>
+            ) : null}
             <box flexShrink={0}>
               <StatusFooter
                 taskProgress={taskProgress}

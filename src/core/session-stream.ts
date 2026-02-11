@@ -286,6 +286,7 @@ export class SessionStream {
     if (markDone) {
       this.handleDone({ sessionId, messageId });
     }
+    this.markStreamEnd(messageId);
     this.activeStreams.delete(key);
     this.messageSessions.delete(messageId);
     this.messageRoles.delete(messageId);

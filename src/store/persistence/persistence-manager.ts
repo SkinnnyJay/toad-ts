@@ -68,7 +68,7 @@ export class PersistenceManager {
       if (!this.shouldPersist(snapshot)) {
         return;
       }
-      this.scheduleSave(snapshot);
+      this.scheduleSave();
     });
   }
 
@@ -112,12 +112,13 @@ export class PersistenceManager {
     }
   }
 
-  private scheduleSave(snapshot: SessionSnapshot): void {
+  private scheduleSave(): void {
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
     }
 
     this.debounceTimer = setTimeout(() => {
+      const snapshot = buildSnapshot(this.store.getState());
       void this.persistSnapshot(snapshot);
     }, this.options.batchDelay);
   }

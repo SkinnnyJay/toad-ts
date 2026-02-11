@@ -74,13 +74,11 @@ export function StatusFooter({
     trimmedSession ? `Session: ${trimmedSession}` : undefined,
   ].filter((value): value is string => Boolean(value));
 
+  const footerTextAttrs = TextAttributes.DIM;
   return (
     <box
       width="100%"
       flexDirection="row"
-      border={true}
-      borderStyle="single"
-      borderColor={COLOR.GRAY}
       paddingLeft={1}
       paddingRight={1}
       paddingTop={0}
@@ -91,7 +89,7 @@ export function StatusFooter({
     >
       <box flexDirection="row" gap={2}>
         {globalShortcuts.map((sc) => (
-          <text key={sc.key}>
+          <text key={sc.key} attributes={footerTextAttrs}>
             <span fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
               {sc.key}
             </span>{" "}
@@ -100,20 +98,32 @@ export function StatusFooter({
         ))}
       </box>
       <box flexDirection="row" gap={2}>
-        <text>
+        <text attributes={footerTextAttrs}>
           <span fg={COLOR.YELLOW} attributes={TextAttributes.BOLD}>
             Focus:
           </span>{" "}
           {focusTarget}
         </text>
         {statusParts.map((part) => (
-          <text key={part} fg={COLOR.GRAY}>
+          <text key={part} fg={COLOR.GRAY} attributes={footerTextAttrs}>
             {part}
           </text>
         ))}
-        {planText ? <text fg={COLOR.GRAY}>{planText}</text> : null}
-        {taskText ? <text fg={COLOR.GRAY}>{taskText}</text> : null}
-        {checkpointText ? <text fg={COLOR.GRAY}>{checkpointText}</text> : null}
+        {planText ? (
+          <text fg={COLOR.GRAY} attributes={footerTextAttrs}>
+            {planText}
+          </text>
+        ) : null}
+        {taskText ? (
+          <text fg={COLOR.GRAY} attributes={footerTextAttrs}>
+            {taskText}
+          </text>
+        ) : null}
+        {checkpointText ? (
+          <text fg={COLOR.GRAY} attributes={footerTextAttrs}>
+            {checkpointText}
+          </text>
+        ) : null}
         {contextStats ? (
           <ContextProgress tokens={contextStats.tokens} limit={contextStats.limit} />
         ) : null}

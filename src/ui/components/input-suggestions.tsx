@@ -1,5 +1,7 @@
 import { COLOR } from "@/constants/colors";
 import type { CommandDefinition } from "@/constants/command-definitions";
+import { FILE_SUGGESTION_KIND, type FileSuggestionKind } from "@/constants/file-suggestion-kind";
+import { SEMANTIC_COLOR, getCategoryColor } from "@/constants/semantic-colors";
 import { TextAttributes } from "@opentui/core";
 import type { ReactNode } from "react";
 
@@ -19,29 +21,42 @@ export function CommandSuggestions({
       flexDirection="column"
       border={true}
       borderStyle="single"
-      borderColor={COLOR.CYAN}
+      borderColor={SEMANTIC_COLOR.COMMAND}
       marginBottom={1}
       paddingLeft={1}
       paddingRight={1}
     >
-      <text fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
+      <text fg={SEMANTIC_COLOR.SECTION_HEADER} attributes={TextAttributes.BOLD}>
         Commands:
       </text>
       {commands.map((cmd, index) => (
-        <box key={cmd.name} paddingLeft={1}>
+        <box key={cmd.name} flexDirection="row" paddingLeft={1}>
           <text
-            fg={index === selectedIndex ? COLOR.YELLOW : COLOR.WHITE}
+            fg={index === selectedIndex ? SEMANTIC_COLOR.SELECTED : undefined}
             attributes={index === selectedIndex ? TextAttributes.BOLD : 0}
           >
             {index === selectedIndex ? "▶ " : "  "}
+          </text>
+          <text
+            fg={index === selectedIndex ? SEMANTIC_COLOR.SELECTED : SEMANTIC_COLOR.COMMAND}
+            attributes={index === selectedIndex ? TextAttributes.BOLD : 0}
+          >
             {cmd.name}
           </text>
-          {cmd.args ? <text fg={COLOR.GRAY}> {cmd.args}</text> : null}
-          <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>{` - ${cmd.description}`}</text>
+          {cmd.args ? <text fg={SEMANTIC_COLOR.ARGS}> {cmd.args}</text> : null}
+          <text fg={SEMANTIC_COLOR.DESCRIPTION} attributes={TextAttributes.DIM}>
+            {` - ${cmd.description}`}
+          </text>
+          {cmd.category ? (
+            <text fg={getCategoryColor(cmd.category)} attributes={TextAttributes.DIM}>
+              {" "}
+              [{cmd.category}]
+            </text>
+          ) : null}
         </box>
       ))}
       <box marginTop={1}>
-        <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
+        <text fg={SEMANTIC_COLOR.HINT} attributes={TextAttributes.DIM}>
           ↑↓ Navigate · Tab/Enter Select · Esc Cancel
         </text>
       </box>
@@ -50,52 +65,77 @@ export function CommandSuggestions({
 }
 
 export interface FileSuggestionsProps {
-  files: string[];
+  suggestions: FileMentionSuggestion[];
   selectedIndex: number;
   isLoading: boolean;
   error: string | null;
 }
 
+export interface FileMentionSuggestion {
+  kind: FileSuggestionKind;
+  /** What to show after '@' in the suggestions list. */
+  displayText: string;
+  /** What to insert after '@' when selected. */
+  insertText: string;
+}
+
+const suggestionColor = (kind: FileSuggestionKind): string => {
+  switch (kind) {
+    case FILE_SUGGESTION_KIND.FILE:
+      return SEMANTIC_COLOR.FILE;
+    case FILE_SUGGESTION_KIND.FOLDER:
+      return SEMANTIC_COLOR.FOLDER;
+  }
+};
+
 export function FileSuggestions({
-  files,
+  suggestions,
   selectedIndex,
   isLoading,
   error,
 }: FileSuggestionsProps): ReactNode {
-  if (files.length === 0 && !isLoading && !error) return null;
+  if (suggestions.length === 0 && !isLoading && !error) return null;
 
   return (
     <box
       flexDirection="column"
       border={true}
       borderStyle="single"
-      borderColor={COLOR.GREEN}
+      borderColor={SEMANTIC_COLOR.FILE}
       marginBottom={1}
       paddingLeft={1}
       paddingRight={1}
     >
-      <text fg={COLOR.GREEN} attributes={TextAttributes.BOLD}>
-        Files:
+      <text fg={SEMANTIC_COLOR.FILE} attributes={TextAttributes.BOLD}>
+        Paths:
       </text>
-      {files.map((file, index) => (
-        <box key={file} paddingLeft={1}>
+      {suggestions.map((suggestion, index) => (
+        <box key={`${suggestion.kind}:${suggestion.displayText}`} paddingLeft={1}>
           <text
-            fg={index === selectedIndex ? COLOR.YELLOW : COLOR.WHITE}
+            fg={index === selectedIndex ? SEMANTIC_COLOR.SELECTED : undefined}
             attributes={index === selectedIndex ? TextAttributes.BOLD : 0}
           >
-            {index === selectedIndex ? "▶ " : "  "}@{file}
+            {index === selectedIndex ? "▶ " : "  "}
+          </text>
+          <text
+            fg={
+              index === selectedIndex ? SEMANTIC_COLOR.SELECTED : suggestionColor(suggestion.kind)
+            }
+            attributes={index === selectedIndex ? TextAttributes.BOLD : 0}
+          >
+            @{suggestion.displayText}
           </text>
         </box>
       ))}
       {isLoading ? (
-        <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
-          Loading files…
+        <text fg={SEMANTIC_COLOR.HINT} attributes={TextAttributes.DIM}>
+          Loading paths…
         </text>
       ) : error ? (
         <text fg={COLOR.RED}>{error}</text>
       ) : null}
       <box marginTop={1}>
-        <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
+        <text fg={SEMANTIC_COLOR.HINT} attributes={TextAttributes.DIM}>
           ↑↓ Navigate · Tab/Enter Insert · Esc Cancel
         </text>
       </box>

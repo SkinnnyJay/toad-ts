@@ -4,6 +4,7 @@ import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { ENV_KEY } from "@/constants/env-keys";
+import { ERROR_CODE } from "@/constants/error-codes";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { RENDER_STAGE, type RenderStage } from "@/constants/render-stage";
 import { VIEW } from "@/constants/views";
@@ -18,11 +19,8 @@ import type { SessionId } from "@/types/domain";
 import { AgentIdSchema } from "@/types/domain";
 import { withTimeout } from "@/utils/async/withTimeout";
 import { EnvManager } from "@/utils/env/env.utils";
+import { clearScreen } from "@/utils/terminal/clearScreen.utils";
 import { useEffect, useState } from "react";
-
-const clearScreen = (): void => {
-  process.stdout.write("\x1b[3J\x1b[H\x1b[2J");
-};
 
 const isErrnoException = (error: unknown): error is NodeJS.ErrnoException => {
   return typeof error === "object" && error !== null && "code" in error;
@@ -37,11 +35,11 @@ export const formatHarnessError = (
 ): string => {
   const message = error instanceof Error ? error.message : String(error);
   if (isErrnoException(error)) {
-    if (error.code === "ENOENT") {
-      const cmd = context.command ?? "claude-code";
+    if (error.code === ERROR_CODE.ENOENT) {
+      const cmd = context.command ?? "claude-code-acp";
       return `Command '${cmd}' not found for ${context.agentName ?? "agent"}. Install it or update TOADSTOOL_CLAUDE_COMMAND.`;
     }
-    if (error.code === "EACCES") {
+    if (error.code === ERROR_CODE.EACCES) {
       const cmd = context.command ?? "agent command";
       return `Permission denied starting ${context.agentName ?? "agent"} (${cmd}). Check executable permissions.`;
     }

@@ -72,9 +72,6 @@ export function logTable(
   rows: readonly unknown[]
 ): void {
   logger[level](label, { table: rows });
-  if (typeof console !== "undefined" && typeof console.table === "function") {
-    console.table(rows);
-  }
 }
 
 export function logExecutorEvent(logger: Logger, message: string, metadata?: LogMetadata): void {

@@ -92,7 +92,7 @@ export const useModalAnimation = (isOpen: boolean): ModalAnimationState => {
   }, [isOpen, visible, animating, open, close]);
 
   // Cleanup on unmount
-  useEffect(() => clearTimer, [clearTimer]);
+  useEffect(() => () => clearTimer(), [clearTimer]);
 
   return { visible, opacity, scale, open, close, animating };
 };

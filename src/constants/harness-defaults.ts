@@ -11,6 +11,10 @@ export const HARNESS_DEFAULT = {
   CODEX_CLI_NAME: "Codex CLI",
   CODEX_COMMAND: "codex",
   CODEX_ARGS: ["--experimental-acp"],
+  CURSOR_CLI_ID: "cursor-cli",
+  CURSOR_CLI_NAME: "Cursor CLI",
+  CURSOR_COMMAND: "cursor-agent",
+  CURSOR_ARGS: [] as string[],
   MOCK_ID: "mock",
   MOCK_NAME: "Mock Agent",
 } as const;
@@ -31,6 +35,10 @@ export const {
   CODEX_CLI_NAME,
   CODEX_COMMAND,
   CODEX_ARGS,
+  CURSOR_CLI_ID,
+  CURSOR_CLI_NAME,
+  CURSOR_COMMAND,
+  CURSOR_ARGS,
   MOCK_ID,
   MOCK_NAME,
 } = HARNESS_DEFAULT;

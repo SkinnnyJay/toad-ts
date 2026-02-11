@@ -11,6 +11,7 @@ export interface PullRequestStatus {
   url: string;
   state: "open" | "closed" | "merged";
   reviewDecision: PrReviewStatus;
+  isDraft?: boolean;
 }
 
 /**
@@ -21,7 +22,7 @@ export const getPRStatus = async (cwd?: string): Promise<PullRequestStatus | nul
   try {
     const { stdout } = await execa(
       "gh",
-      ["pr", "view", "--json", "number,title,url,state,reviewDecision"],
+      ["pr", "view", "--json", "number,title,url,state,reviewDecision,isDraft"],
       { cwd: cwd ?? process.cwd(), timeout: 10_000 }
     );
 
@@ -31,6 +32,7 @@ export const getPRStatus = async (cwd?: string): Promise<PullRequestStatus | nul
       url?: string;
       state?: string;
       reviewDecision?: string;
+      isDraft?: boolean;
     };
 
     if (!data.number || !data.url) return null;
@@ -42,6 +44,7 @@ export const getPRStatus = async (cwd?: string): Promise<PullRequestStatus | nul
       state: (data.state?.toLowerCase() as PullRequestStatus["state"]) ?? "open",
       reviewDecision:
         (data.reviewDecision?.toLowerCase() as PrReviewStatus) ?? PR_REVIEW_STATUS.UNKNOWN,
+      isDraft: data.isDraft === true,
     };
   } catch {
     // gh CLI not installed or not in a git repo with a PR

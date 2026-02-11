@@ -1,19 +1,29 @@
 import { DEFAULT_APP_CONFIG, type KeybindConfig } from "@/config/app-config";
 import { TIMEOUT } from "@/config/timeouts";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
+import { KEY_NAME } from "@/constants/key-names";
 import { KEYBIND_ACTION } from "@/constants/keybind-actions";
+import { NAVIGATION_DIRECTION, type NavigationDirection } from "@/constants/navigation-direction";
 import { VIEW, type View } from "@/constants/views";
 import { useAppStore } from "@/store/app-store";
-import { createKeybindRuntime, isActionTriggered, isLeaderKey } from "@/ui/keybinds/keybinds";
+import {
+  createKeybindRuntime,
+  isActionTriggered,
+  isLeaderKey,
+  normalizeKeyName,
+} from "@/ui/keybinds/keybinds";
 import type { KeyEvent } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export interface UseAppKeyboardShortcutsOptions {
   view: View;
-  onNavigateChildSession?: (direction: "prev" | "next") => void;
+  onNavigateChildSession?: (direction: NavigationDirection) => void;
   keybinds?: KeybindConfig;
   onCyclePermissionMode?: () => void;
+  onRunBreadcrumbAction?: () => void;
+  /** When true, Escape is not consumed so App-owned modals (Context, Hooks, etc.) can close. */
+  hasOtherModalOpen?: boolean;
 }
 
 export interface UseAppKeyboardShortcutsResult {
@@ -31,6 +41,10 @@ export interface UseAppKeyboardShortcutsResult {
   setIsThemesOpen: (open: boolean) => void;
   isRewindOpen: boolean;
   setIsRewindOpen: (open: boolean) => void;
+  isSkillsOpen: boolean;
+  setIsSkillsOpen: (open: boolean) => void;
+  isCommandsOpen: boolean;
+  setIsCommandsOpen: (open: boolean) => void;
 }
 
 /**
@@ -43,6 +57,7 @@ export const FOCUS_NUMBER_MAP: Record<string, FocusTarget> = {
   "3": FOCUS_TARGET.CONTEXT,
   "4": FOCUS_TARGET.SESSIONS,
   "5": FOCUS_TARGET.AGENT,
+  "6": FOCUS_TARGET.TODOS,
 };
 
 /**
@@ -50,7 +65,7 @@ export const FOCUS_NUMBER_MAP: Record<string, FocusTarget> = {
  * On macOS, Option+` produces an escape sequence starting with 0x1b.
  */
 export const isOptionBacktick = (key: Pick<KeyEvent, "option" | "name">): boolean => {
-  return key.option && key.name === "`";
+  return key.option && key.name === KEY_NAME.BACKTICK;
 };
 
 /**
@@ -62,6 +77,8 @@ export function useAppKeyboardShortcuts({
   onNavigateChildSession,
   keybinds,
   onCyclePermissionMode,
+  onRunBreadcrumbAction,
+  hasOtherModalOpen = false,
 }: UseAppKeyboardShortcutsOptions): UseAppKeyboardShortcutsResult {
   const [focusTarget, setFocusTarget] = useState<FocusTarget>(FOCUS_TARGET.CHAT);
   const [isSessionsPopupOpen, setIsSessionsPopupOpen] = useState(false);
@@ -70,6 +87,8 @@ export function useAppKeyboardShortcuts({
   const [isBackgroundTasksOpen, setIsBackgroundTasksOpen] = useState(false);
   const [isThemesOpen, setIsThemesOpen] = useState(false);
   const [isRewindOpen, setIsRewindOpen] = useState(false);
+  const [isSkillsOpen, setIsSkillsOpen] = useState(false);
+  const [isCommandsOpen, setIsCommandsOpen] = useState(false);
   const leaderActive = useRef(false);
   const leaderTimeout = useRef<NodeJS.Timeout | null>(null);
   const lastEscapeAt = useRef<number | null>(null);
@@ -105,6 +124,7 @@ export function useAppKeyboardShortcuts({
     // Only handle shortcuts in chat view
     if (view !== VIEW.CHAT) return;
 
+    const keyName = normalizeKeyName(key.name);
     const isLeaderPressed = isLeaderKey(key, keybindRuntime);
     if (isLeaderPressed) {
       key.preventDefault();
@@ -130,10 +150,10 @@ export function useAppKeyboardShortcuts({
       return;
     }
 
-    if ((key.meta || key.ctrl) && /^[1-5]$/.test(key.name)) {
+    if ((key.meta || key.ctrl) && /^[1-6]$/.test(keyName)) {
       key.preventDefault();
       key.stopPropagation();
-      setFocusTarget(FOCUS_NUMBER_MAP[key.name] ?? FOCUS_TARGET.CHAT);
+      setFocusTarget(FOCUS_NUMBER_MAP[keyName] ?? FOCUS_TARGET.CHAT);
       return;
     }
 
@@ -173,6 +193,13 @@ export function useAppKeyboardShortcuts({
       key.preventDefault();
       key.stopPropagation();
       setFocusTarget(FOCUS_TARGET.AGENT);
+      return;
+    }
+
+    if (isActionTriggered(key, keybindRuntime, KEYBIND_ACTION.FOCUS_TODOS, leaderActive.current)) {
+      key.preventDefault();
+      key.stopPropagation();
+      setFocusTarget(FOCUS_TARGET.TODOS);
       return;
     }
 
@@ -273,7 +300,7 @@ export function useAppKeyboardShortcuts({
     ) {
       key.preventDefault();
       key.stopPropagation();
-      onNavigateChildSession?.("next");
+      onNavigateChildSession?.(NAVIGATION_DIRECTION.NEXT);
       resetLeader();
       return;
     }
@@ -288,19 +315,85 @@ export function useAppKeyboardShortcuts({
     ) {
       key.preventDefault();
       key.stopPropagation();
-      onNavigateChildSession?.("prev");
+      onNavigateChildSession?.(NAVIGATION_DIRECTION.PREV);
       resetLeader();
       return;
     }
 
-    // Escape returns focus to chat
-    if (key.name === "escape") {
+    if (
+      isActionTriggered(
+        key,
+        keybindRuntime,
+        KEYBIND_ACTION.RUN_BREADCRUMB_ACTION,
+        leaderActive.current
+      )
+    ) {
       key.preventDefault();
       key.stopPropagation();
+      onRunBreadcrumbAction?.();
+      resetLeader();
+      return;
+    }
+
+    // Escape: close modal if one is open, otherwise double-escape for Rewind or return focus to chat
+    if (keyName === KEY_NAME.ESCAPE) {
+      if (hasOtherModalOpen) {
+        return;
+      }
+      if (isRewindOpen) {
+        key.preventDefault();
+        key.stopPropagation();
+        setIsRewindOpen(false);
+        return;
+      }
+      if (isSkillsOpen) {
+        key.preventDefault();
+        key.stopPropagation();
+        setIsSkillsOpen(false);
+        return;
+      }
+      if (isCommandsOpen) {
+        key.preventDefault();
+        key.stopPropagation();
+        setIsCommandsOpen(false);
+        return;
+      }
+      if (isSessionsPopupOpen) {
+        key.preventDefault();
+        key.stopPropagation();
+        setIsSessionsPopupOpen(false);
+        return;
+      }
+      if (isSettingsOpen) {
+        key.preventDefault();
+        key.stopPropagation();
+        setIsSettingsOpen(false);
+        return;
+      }
+      if (isHelpOpen) {
+        key.preventDefault();
+        key.stopPropagation();
+        setIsHelpOpen(false);
+        return;
+      }
+      if (isBackgroundTasksOpen) {
+        key.preventDefault();
+        key.stopPropagation();
+        setIsBackgroundTasksOpen(false);
+        return;
+      }
+      if (isThemesOpen) {
+        key.preventDefault();
+        key.stopPropagation();
+        setIsThemesOpen(false);
+        return;
+      }
       const now = Date.now();
       const last = lastEscapeAt.current;
       lastEscapeAt.current = now;
       if (last && now - last <= TIMEOUT.DOUBLE_ESCAPE_MS) {
+        key.preventDefault();
+        key.stopPropagation();
         setIsRewindOpen(true);
         lastEscapeAt.current = null;
         return;
@@ -330,5 +423,9 @@ export function useAppKeyboardShortcuts({
     setIsThemesOpen,
     isRewindOpen,
     setIsRewindOpen,
+    isSkillsOpen,
+    setIsSkillsOpen,
+    isCommandsOpen,
+    setIsCommandsOpen,
   };
 }

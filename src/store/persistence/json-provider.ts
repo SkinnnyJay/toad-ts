@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { LIMIT } from "@/config/limits";
 import { ENCODING } from "@/constants/encodings";
+import { ERROR_CODE } from "@/constants/error-codes";
 
 import { SessionSnapshotSchema } from "@/store/session-persistence";
 import type { SessionSnapshot } from "@/store/session-persistence";
@@ -26,7 +27,7 @@ export const createJsonPersistenceProvider = (
       const parsed: unknown = JSON.parse(content);
       return SessionSnapshotSchema.parse(parsed);
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      if ((error as NodeJS.ErrnoException).code === ERROR_CODE.ENOENT) {
         return SessionSnapshotSchema.parse({
           currentSessionId: undefined,
           sessions: {},

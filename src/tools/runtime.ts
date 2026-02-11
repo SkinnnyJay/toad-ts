@@ -7,7 +7,7 @@ import { ToolRegistry } from "@/tools/registry";
 import { ShellSessionManager } from "@/tools/shell-session";
 import { TerminalManager } from "@/tools/terminal-manager";
 import { TodoStore } from "@/tools/todo-store";
-import type { Fetcher, ToolContext } from "@/tools/types";
+import type { Fetcher, OnTodosUpdated, ToolContext } from "@/tools/types";
 import { EnvManager } from "@/utils/env/env.utils";
 
 export interface ToolRuntimeOptions {
@@ -16,6 +16,7 @@ export interface ToolRuntimeOptions {
   env?: NodeJS.ProcessEnv;
   now?: () => number;
   fetcher?: Fetcher;
+  onTodosUpdated?: OnTodosUpdated;
 }
 
 export interface ToolRuntime {
@@ -33,7 +34,7 @@ export const createToolRuntime = (options: ToolRuntimeOptions = {}): ToolRuntime
   const shell = new ShellSessionManager({ baseDir, env });
   const terminalManager = new TerminalManager({ baseDir, env });
   const backgroundTasks = new BackgroundTaskManager(terminalManager, { now });
-  const todoStore = new TodoStore(fs, baseDir);
+  const todoStore = new TodoStore(fs, baseDir, options.sessionId);
   const fetcher: Fetcher =
     options.fetcher ?? ((input: RequestInfo | URL, init?: RequestInit) => fetch(input, init));
 
@@ -51,6 +52,7 @@ export const createToolRuntime = (options: ToolRuntimeOptions = {}): ToolRuntime
     baseDir,
     sessionId: options.sessionId,
     now,
+    onTodosUpdated: options.onTodosUpdated,
   };
 
   return { registry, context };

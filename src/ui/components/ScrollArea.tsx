@@ -38,7 +38,6 @@ export const ScrollArea = memo(function ScrollArea({
       scrollX={scrollX}
       scrollY={scrollY}
       scrollAcceleration={scrollAcceleration}
-      style={{ width: "100%" }}
     >
       {children}
     </scrollbox>

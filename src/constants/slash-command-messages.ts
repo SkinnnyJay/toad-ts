@@ -25,6 +25,8 @@ export const SLASH_COMMAND_MESSAGE = {
   HOOKS_NOT_AVAILABLE: "Hooks panel is not available.",
   PROGRESS_NOT_AVAILABLE: "Progress panel is not available.",
   AGENTS_NOT_AVAILABLE: "Agent discovery panel is not available.",
+  SKILLS_NOT_AVAILABLE: "Skills panel is not available.",
+  COMMANDS_NOT_AVAILABLE: "Commands panel is not available.",
   VIM_NOT_AVAILABLE: "Vim mode is not available.",
   SHARE_FAILED: "Failed to share session.",
   UNSHARE_FAILED: "Failed to unshare session.",

@@ -4,11 +4,8 @@ import { RENDER_STAGE, type RenderStage } from "@/constants/render-stage";
 import { VIEW, type View } from "@/constants/views";
 import { getDefaultProvider } from "@/store/settings/settings-manager";
 import type { AgentId } from "@/types/domain";
+import { clearScreen } from "@/utils/terminal/clearScreen.utils";
 import { useEffect, useState } from "react";
-
-const clearScreen = (): void => {
-  process.stdout.write("\x1b[3J\x1b[H\x1b[2J");
-};
 
 export interface UseDefaultAgentSelectionOptions {
   isHydrated: boolean;

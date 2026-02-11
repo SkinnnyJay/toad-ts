@@ -11,7 +11,7 @@ export const withTimeout = async <T>(
     timeoutId = setTimeout(() => {
       reject(
         new Error(
-          `${label} timed out after ${timeoutMs}ms. Ensure the Claude CLI is running with ACP support.`
+          `${label} timed out after ${timeoutMs}ms. Ensure the agent CLI is running and (for ACP agents) started with ACP support.`
         )
       );
     }, timeoutMs);

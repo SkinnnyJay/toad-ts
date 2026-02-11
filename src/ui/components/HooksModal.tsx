@@ -3,6 +3,8 @@ import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { HOOK_EVENT_VALUES } from "@/constants/hook-events";
 import { HOOK_TYPE } from "@/constants/hook-types";
+import { KEY_NAME } from "@/constants/key-names";
+import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import type { ReactNode } from "react";
@@ -42,7 +44,7 @@ const buildGroupKey = (event: string, group: HookGroup): string => {
 export function HooksModal({ isOpen, hooks, onClose }: HooksModalProps): ReactNode {
   useKeyboard((key) => {
     if (!isOpen) return;
-    if (key.name === "escape" || (key.ctrl && key.name === "s")) {
+    if (key.name === KEY_NAME.ESCAPE || (key.ctrl && key.name === KEYBOARD_INPUT.SKIP_LOWER)) {
       key.preventDefault();
       key.stopPropagation();
       onClose();

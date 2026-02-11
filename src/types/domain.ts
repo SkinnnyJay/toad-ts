@@ -12,6 +12,8 @@ import { SESSION_MODE } from "@/constants/session-modes";
 import { SIDEBAR_TAB, SIDEBAR_TAB_VALUES } from "@/constants/sidebar-tabs";
 import { TASK_STATUS } from "@/constants/task-status";
 import { THEME } from "@/constants/themes";
+import { TODO_PRIORITY } from "@/constants/todo-priority";
+import { TODO_STATUS } from "@/constants/todo-status";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 
 export const SessionIdSchema = z.string().min(1).brand<"SessionId">();
@@ -25,6 +27,22 @@ export type MessageId = z.infer<typeof MessageIdSchema>;
 
 export const ToolCallIdSchema = z.string().min(1).brand<"ToolCallId">();
 export type ToolCallId = z.infer<typeof ToolCallIdSchema>;
+
+export const TodoItemSchema = z.object({
+  id: z.string().min(1),
+  content: z.string().min(1),
+  status: z.enum([
+    TODO_STATUS.PENDING,
+    TODO_STATUS.IN_PROGRESS,
+    TODO_STATUS.COMPLETED,
+    TODO_STATUS.CANCELLED,
+  ]),
+  priority: z
+    .enum([TODO_PRIORITY.HIGH, TODO_PRIORITY.MEDIUM, TODO_PRIORITY.LOW])
+    .optional()
+    .default(TODO_PRIORITY.MEDIUM),
+});
+export type TodoItem = z.infer<typeof TodoItemSchema>;
 
 export const ConnectionStatusSchema = z.enum([
   CONNECTION_STATUS.DISCONNECTED,
@@ -366,6 +384,27 @@ export const CheckpointSchema = z.object({
 });
 export type Checkpoint = z.infer<typeof CheckpointSchema>;
 
+export const LoadedSkillSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  content: z.string(),
+  agent: z.string().optional(),
+  source: z.string(),
+  filePath: z.string(),
+});
+export type LoadedSkill = z.infer<typeof LoadedSkillSchema>;
+
+export const LoadedCommandSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  content: z.string(),
+  agent: z.string().optional(),
+  model: z.string().optional(),
+  source: z.string(),
+  filePath: z.string(),
+});
+export type LoadedCommand = z.infer<typeof LoadedCommandSchema>;
+
 export const AppStateSchema = z.object({
   connectionStatus: ConnectionStatusSchema,
   currentSessionId: SessionIdSchema.optional(),
@@ -373,7 +412,12 @@ export const AppStateSchema = z.object({
   messages: z.record(MessageIdSchema, MessageSchema).default({}),
   plans: z.record(PlanIdSchema, PlanSchema).default({}),
   subAgents: z.record(SubAgentIdSchema, SubAgentSchema).default({}),
+  todosBySession: z.record(SessionIdSchema, z.array(TodoItemSchema)).default({}),
   contextAttachments: z.record(SessionIdSchema, z.array(z.string()).default([])).default({}),
+  loadedSkills: z.array(LoadedSkillSchema).default([]),
+  loadedCommands: z.array(LoadedCommandSchema).default([]),
+  /** Command/skill names in recency order (most recent last) for palette "Recently used". */
+  recentCommandNames: z.array(z.string().min(1)).default([]),
   uiState: z
     .object({
       sidebarTab: z.enum(SIDEBAR_TAB_VALUES).default(SIDEBAR_TAB.FILES),
@@ -383,6 +427,8 @@ export const AppStateSchema = z.object({
       theme: z
         .enum([THEME.DEFAULT, THEME.MIDNIGHT, THEME.SUNRISE, THEME.HIGH_CONTRAST])
         .default(THEME.DEFAULT),
+      /** When set, chat input should append this file ref (e.g. @foo.ts) and then clear. */
+      pendingFileRefForInput: z.string().nullable().default(null),
     })
     .default({}),
 });

@@ -1,11 +1,11 @@
 import { readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ENCODING } from "@/constants/encodings";
+import { IMPORTANT_PROJECT_FILES, PROJECT_FILE } from "@/constants/project-files";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 
 const logger = createClassLogger("InitGenerator");
 
-const TOADSTOOL_MD = "TOADSTOOL.md";
 const IGNORE_DIRS = new Set([
   "node_modules",
   ".git",
@@ -18,19 +18,6 @@ const IGNORE_DIRS = new Set([
   ".opencode",
   ".gemini",
 ]);
-
-const IMPORTANT_FILES = [
-  "package.json",
-  "tsconfig.json",
-  "Cargo.toml",
-  "go.mod",
-  "pyproject.toml",
-  "requirements.txt",
-  "Makefile",
-  "Dockerfile",
-  "docker-compose.yml",
-  "docker-compose.yaml",
-];
 
 /**
  * Scan project structure and generate a TOADSTOOL.md file with instructions for agents.
@@ -86,7 +73,7 @@ export const generateToadstoolMd = async (cwd: string): Promise<string> => {
   lines.push("");
 
   const content = lines.join("\n");
-  const filePath = join(cwd, TOADSTOOL_MD);
+  const filePath = join(cwd, PROJECT_FILE.TOADSTOOL_MD);
   await writeFile(filePath, content, ENCODING.UTF8);
   logger.info("Generated TOADSTOOL.md", { path: filePath });
   return filePath;
@@ -94,10 +81,10 @@ export const generateToadstoolMd = async (cwd: string): Promise<string> => {
 
 const detectProjectType = async (cwd: string): Promise<string[]> => {
   const info: string[] = [];
-  for (const file of IMPORTANT_FILES) {
+  for (const file of IMPORTANT_PROJECT_FILES) {
     try {
       await stat(join(cwd, file));
-      if (file === "package.json") {
+      if (file === PROJECT_FILE.PACKAGE_JSON) {
         try {
           const raw = await readFile(join(cwd, file), ENCODING.UTF8);
           const pkg = JSON.parse(raw) as { name?: string; description?: string };
@@ -106,11 +93,11 @@ const detectProjectType = async (cwd: string): Promise<string[]> => {
         } catch {
           info.push("Node.js project (package.json found)");
         }
-      } else if (file === "Cargo.toml") {
+      } else if (file === PROJECT_FILE.CARGO_TOML) {
         info.push("Rust project (Cargo.toml found)");
-      } else if (file === "go.mod") {
+      } else if (file === PROJECT_FILE.GO_MOD) {
         info.push("Go project (go.mod found)");
-      } else if (file === "pyproject.toml" || file === "requirements.txt") {
+      } else if (file === PROJECT_FILE.PYPROJECT_TOML || file === PROJECT_FILE.REQUIREMENTS_TXT) {
         info.push("Python project");
       }
     } catch {

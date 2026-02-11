@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadAppConfig } from "@/config/app-config";
+import { HTTP_METHOD } from "@/constants/http-methods";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { useAppStore } from "@/store/app-store";
 import type { Session, SessionId } from "@/types/domain";
@@ -160,28 +161,48 @@ export interface Route {
 }
 
 export const API_ROUTES: Route[] = [
-  { method: "GET", pattern: /^\/api\/sessions$/, handler: listSessions, paramNames: [] },
-  { method: "GET", pattern: /^\/api\/sessions\/([^/]+)$/, handler: getSession, paramNames: ["id"] },
+  { method: HTTP_METHOD.GET, pattern: /^\/api\/sessions$/, handler: listSessions, paramNames: [] },
   {
-    method: "DELETE",
+    method: HTTP_METHOD.GET,
+    pattern: /^\/api\/sessions\/([^/]+)$/,
+    handler: getSession,
+    paramNames: ["id"],
+  },
+  {
+    method: HTTP_METHOD.DELETE,
     pattern: /^\/api\/sessions\/([^/]+)$/,
     handler: deleteSession,
     paramNames: ["id"],
   },
   {
-    method: "GET",
+    method: HTTP_METHOD.GET,
     pattern: /^\/api\/sessions\/([^/]+)\/messages$/,
     handler: listMessages,
     paramNames: ["id"],
   },
-  { method: "GET", pattern: /^\/api\/config$/, handler: getConfig, paramNames: [] },
-  { method: "GET", pattern: /^\/api\/agents$/, handler: listAgents, paramNames: [] },
-  { method: "GET", pattern: /^\/api\/files\/search$/, handler: searchFiles, paramNames: [] },
-  { method: "GET", pattern: /^\/api\/events$/, handler: eventsStream, paramNames: [] },
-  { method: "POST", pattern: /^\/api\/tui\/append-prompt$/, handler: appendPrompt, paramNames: [] },
-  { method: "POST", pattern: /^\/api\/tui\/submit-prompt$/, handler: submitPrompt, paramNames: [] },
+  { method: HTTP_METHOD.GET, pattern: /^\/api\/config$/, handler: getConfig, paramNames: [] },
+  { method: HTTP_METHOD.GET, pattern: /^\/api\/agents$/, handler: listAgents, paramNames: [] },
   {
-    method: "POST",
+    method: HTTP_METHOD.GET,
+    pattern: /^\/api\/files\/search$/,
+    handler: searchFiles,
+    paramNames: [],
+  },
+  { method: HTTP_METHOD.GET, pattern: /^\/api\/events$/, handler: eventsStream, paramNames: [] },
+  {
+    method: HTTP_METHOD.POST,
+    pattern: /^\/api\/tui\/append-prompt$/,
+    handler: appendPrompt,
+    paramNames: [],
+  },
+  {
+    method: HTTP_METHOD.POST,
+    pattern: /^\/api\/tui\/submit-prompt$/,
+    handler: submitPrompt,
+    paramNames: [],
+  },
+  {
+    method: HTTP_METHOD.POST,
     pattern: /^\/api\/tui\/execute-command$/,
     handler: executeCommand,
     paramNames: [],

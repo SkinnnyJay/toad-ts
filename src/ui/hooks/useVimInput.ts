@@ -1,3 +1,4 @@
+import { KEY_NAME } from "@/constants/key-names";
 import { VIM_MODE } from "@/constants/vim-modes";
 import type { VimMode } from "@/constants/vim-modes";
 import { VIM_OPERATOR, type VimOperator } from "@/constants/vim-operators";
@@ -219,23 +220,23 @@ export const useVimInput = ({
 
   const resolveMotionRange = useCallback(
     (keyName: string, offset: number): VimRange | null => {
-      if (keyName === "h") {
+      if (keyName === KEY_NAME.H) {
         const start = Math.max(0, offset - 1);
         return { start, end: offset };
       }
-      if (keyName === "l") {
+      if (keyName === KEY_NAME.L) {
         const end = Math.min(value.length, offset + 1);
         return { start: offset, end };
       }
-      if (keyName === "w") {
+      if (keyName === KEY_NAME.W) {
         const end = moveToNextWordStart(offset);
         return { start: offset, end };
       }
-      if (keyName === "e") {
+      if (keyName === KEY_NAME.E) {
         const end = Math.min(value.length, moveToWordEnd(offset) + 1);
         return { start: offset, end };
       }
-      if (keyName === "b") {
+      if (keyName === KEY_NAME.B) {
         const start = moveToPrevWordStart(offset);
         return { start, end: offset };
       }
@@ -246,7 +247,7 @@ export const useVimInput = ({
 
   const resolveTextObjectRange = useCallback(
     (keyName: string, offset: number): VimRange | null => {
-      if (keyName === "w") {
+      if (keyName === KEY_NAME.W) {
         return findWordBounds(offset);
       }
       if (keyName === '"') {
@@ -277,21 +278,21 @@ export const useVimInput = ({
       const keyName = key.name.toLowerCase();
 
       if (vimMode === VIM_MODE.INSERT) {
-        if (keyName === "escape") {
+        if (keyName === KEY_NAME.ESCAPE) {
           enterNormalMode();
           return true;
         }
         return false;
       }
 
-      if (keyName === "tab" && key.shift) {
+      if (keyName === KEY_NAME.TAB && key.shift) {
         return false;
       }
       if (key.ctrl || key.meta || key.option) {
         return false;
       }
 
-      if (keyName === "escape") {
+      if (keyName === KEY_NAME.ESCAPE) {
         setVimOperator(null);
         setVimPendingTextObject(false);
         return true;
@@ -309,7 +310,7 @@ export const useVimInput = ({
           return true;
         }
 
-        if (keyName === "i") {
+        if (keyName === KEY_NAME.I) {
           setVimPendingTextObject(true);
           return true;
         }
@@ -323,23 +324,23 @@ export const useVimInput = ({
         return true;
       }
 
-      if (keyName === "i") {
+      if (keyName === KEY_NAME.I) {
         enterInsertMode();
         return true;
       }
 
-      if (keyName === "a") {
+      if (keyName === KEY_NAME.A) {
         setCursorOffset(Math.min(value.length, cursorPosition + 1));
         enterInsertMode();
         return true;
       }
 
-      if (keyName === "h" || keyName === "left") {
+      if (keyName === KEY_NAME.H || keyName === KEY_NAME.LEFT) {
         setCursorOffset(Math.max(0, cursorPosition - 1));
         return true;
       }
 
-      if (keyName === "l" || keyName === "right") {
+      if (keyName === KEY_NAME.L || keyName === KEY_NAME.RIGHT) {
         if (value.length === 0) {
           return true;
         }
@@ -347,27 +348,27 @@ export const useVimInput = ({
         return true;
       }
 
-      if (keyName === "j" || keyName === "down") {
+      if (keyName === KEY_NAME.J || keyName === KEY_NAME.DOWN) {
         setCursorOffset(moveVertical(cursorPosition, "down"));
         return true;
       }
 
-      if (keyName === "k" || keyName === "up") {
+      if (keyName === KEY_NAME.K || keyName === KEY_NAME.UP) {
         setCursorOffset(moveVertical(cursorPosition, "up"));
         return true;
       }
 
-      if (keyName === "w") {
+      if (keyName === KEY_NAME.W) {
         setCursorOffset(moveToNextWordStart(cursorPosition));
         return true;
       }
 
-      if (keyName === "e") {
+      if (keyName === KEY_NAME.E) {
         setCursorOffset(moveToWordEnd(cursorPosition));
         return true;
       }
 
-      if (keyName === "b") {
+      if (keyName === KEY_NAME.B) {
         setCursorOffset(moveToPrevWordStart(cursorPosition));
         return true;
       }

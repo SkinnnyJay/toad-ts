@@ -1,6 +1,8 @@
 import { LIMIT } from "@/config/limits";
+import { CHANGE_TYPE } from "@/constants/change-types";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
+import { SESSION_FORK_TOOL } from "@/constants/session-fork-tools";
 import type { AppStore } from "@/store/app-store";
 import type { Message, MessageId, Session, SessionId } from "@/types/domain";
 import { MessageIdSchema, SessionIdSchema } from "@/types/domain";
@@ -111,11 +113,16 @@ export const getSessionDiff = (
     for (const block of message.content) {
       if (block.type !== CONTENT_BLOCK_TYPE.TOOL_CALL) continue;
       const name = block.name?.toLowerCase() ?? "";
-      if (name === "write" || name === "edit" || name === "patch") {
+      if (
+        name === SESSION_FORK_TOOL.WRITE ||
+        name === SESSION_FORK_TOOL.EDIT ||
+        name === SESSION_FORK_TOOL.PATCH
+      ) {
         const args = block.arguments;
         const filePath =
           extractArgString(args, "path") ?? extractArgString(args, "file_path") ?? "unknown";
-        const changeType = name === "write" ? "created" : "modified";
+        const changeType =
+          name === SESSION_FORK_TOOL.WRITE ? CHANGE_TYPE.CREATED : CHANGE_TYPE.MODIFIED;
         diffs.push({ messageId: message.id, filePath, changeType });
       }
     }
