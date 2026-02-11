@@ -194,5 +194,19 @@ describe("CursorCliHarnessAdapter", () => {
     });
 
     await expect(harness.connect()).rejects.toThrow("not installed");
+
+    const authConnection = new FakeCursorConnection();
+    authConnection.verifyAuth = async () => ({ authenticated: false });
+    const authHarness = new CursorCliHarnessAdapter({
+      connection: authConnection,
+      hookServer: new FakeHookServer(),
+      installHooksFn: async () => {
+        throw new Error("should not install hooks when auth is missing");
+      },
+      cleanupHooksFn: async () => {},
+      env: {},
+    });
+
+    await expect(authHarness.connect()).rejects.toThrow("cursor-agent login");
   });
 });

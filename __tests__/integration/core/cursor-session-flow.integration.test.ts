@@ -134,10 +134,18 @@ describe("Cursor session flow integration", () => {
         sessionId: session.id,
         prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "hello from integration" }],
       });
+      await harness.prompt({
+        sessionId: session.id,
+        prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "follow-up prompt" }],
+      });
 
       const messages = store.getMessagesForSession(session.id);
       const assistantMessages = messages.filter((message) => message.role === "assistant");
       expect(assistantMessages.length).toBeGreaterThan(0);
+      expect(connection.promptRequests).toHaveLength(2);
+      expect(connection.promptRequests.every((request) => request.sessionId === session.id)).toBe(
+        true
+      );
       expect(connection.promptRequests[0]?.model).toBe("opus-4.6-thinking");
     } finally {
       detach();
