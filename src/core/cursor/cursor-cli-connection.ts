@@ -4,9 +4,14 @@ import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { SIGNAL } from "@/constants/signals";
+import {
+  extractFirstUuid,
+  parseAuthStatusOutput,
+  parseModelsOutput,
+  parseUuidLines,
+} from "@/core/agent-management/cli-output-parser";
 import { CursorStreamParser } from "@/core/cursor/cursor-stream-parser";
 import type { CliAgentAuthStatus, CliAgentModelsResponse } from "@/types/cli-agent.types";
-import { CliAgentAuthStatusSchema, CliAgentModelsResponseSchema } from "@/types/cli-agent.types";
 import type { CursorStreamEvent } from "@/types/cursor-cli.types";
 import { EnvManager } from "@/utils/env/env.utils";
 import { EventEmitter } from "eventemitter3";
@@ -80,10 +85,6 @@ export interface CursorCliConnectionOptions {
   killFn?: KillFn;
 }
 
-const UUID_PATTERN = /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i;
-const MODEL_LINE_PATTERN = /^(\S+)\s+-\s+(.+)$/;
-const LOGGED_IN_PATTERN = /logged in as\s+([^\s]+@[^\s]+)/i;
-
 const DEFAULT_COMMAND_TIMEOUT_MS = 10_000;
 const EXIT_CODE_FAILURE = 1;
 
@@ -147,54 +148,12 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
 
   async verifyAuth(): Promise<CliAgentAuthStatus> {
     const result = await this.runCommand(["status"]);
-    const stdout = `${result.stdout}\n${result.stderr}`;
-    const loggedIn = LOGGED_IN_PATTERN.exec(stdout);
-
-    return CliAgentAuthStatusSchema.parse({
-      authenticated: loggedIn !== null,
-      method: loggedIn ? "browser_login" : "none",
-      email: loggedIn?.[1],
-    });
+    return parseAuthStatusOutput(`${result.stdout}\n${result.stderr}`);
   }
 
   async listModels(): Promise<CliAgentModelsResponse> {
     const result = await this.runCommand(["models"]);
-    const models = result.stdout
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0)
-      .map((line) => {
-        const match = MODEL_LINE_PATTERN.exec(line);
-        if (!match) {
-          return null;
-        }
-        const id = match[1];
-        const name = match[2]
-          ?.replace(/\s+\((current|default)[^)]+\)/gi, "")
-          .replace(/\s+\(current,\s*default\)/gi, "")
-          .trim();
-        if (!id || !name) {
-          return null;
-        }
-        return {
-          id,
-          name,
-          isDefault: /\(current|default\)/i.test(line),
-          supportsThinking: /\bthinking\b/i.test(line),
-        };
-      })
-      .filter(
-        (
-          entry
-        ): entry is { id: string; name: string; isDefault: boolean; supportsThinking: boolean } =>
-          entry !== null
-      );
-
-    const defaultModel = models.find((model) => model.isDefault)?.id;
-    return CliAgentModelsResponseSchema.parse({
-      models,
-      defaultModel,
-    });
+    return parseModelsOutput(result.stdout);
   }
 
   async listSessions(): Promise<string[]> {
@@ -204,22 +163,17 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
       return [];
     }
 
-    return stdout
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0)
-      .map((line) => UUID_PATTERN.exec(line)?.[0] ?? null)
-      .filter((entry): entry is string => entry !== null);
+    return parseUuidLines(stdout);
   }
 
   async createChat(): Promise<string> {
     const result = await this.runCommand(["create-chat"]);
-    const match = UUID_PATTERN.exec(`${result.stdout}\n${result.stderr}`);
-    if (!match) {
+    const sessionId = extractFirstUuid(`${result.stdout}\n${result.stderr}`);
+    if (!sessionId) {
       throw new Error("Unable to parse session id from `agent create-chat` output.");
     }
-    this.sessionId = match[0];
-    return match[0];
+    this.sessionId = sessionId;
+    return sessionId;
   }
 
   async spawnPrompt(request: CursorPromptRequest): Promise<CursorPromptResult> {

@@ -85,6 +85,7 @@ export * from "@/core/providers/ollama-provider";
 export * from "@/core/providers/openai-compatible-provider";
 export * from "@/core/providers/small-model";
 export * from "@/core/cross-tool/discovery-paths";
+export * from "@/core/agent-management/cli-output-parser";
 export {
   loadSkills,
   loadCommands,
