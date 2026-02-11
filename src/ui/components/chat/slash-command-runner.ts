@@ -21,6 +21,7 @@ import {
 } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { TASK_STATUS } from "@/constants/task-status";
+import { parseModelsOutput } from "@/core/agent-management/cli-output-parser";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
@@ -47,9 +48,12 @@ import {
 import { handleExportSlashCommand, handleImportSlashCommand } from "./slash-command-export-import";
 import {
   handleAddDirCommand,
+  handleAgentCommand,
   handleConfigCommand,
   handleInitCommand,
   handleLoginCommand,
+  handleLogoutCommand,
+  handleMcpCommand,
   handlePermissionsCommand,
   handleReviewCommand,
   handleSecurityReviewCommand,
@@ -90,6 +94,11 @@ export interface SlashCommandDeps {
   runSummary?: (prompt: string, sessionId: SessionId) => Promise<SessionId | null>;
   checkpointManager?: CheckpointManager;
   harnesses?: Record<string, HarnessConfig>;
+  activeHarnessId?: string;
+  activeAgentName?: string;
+  runAgentCommand?: (
+    args: string[]
+  ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
   toggleVimMode?: () => boolean;
   connectionStatus?: string;
   now?: () => number;
@@ -120,6 +129,11 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     command === SLASH_COMMAND.IMPORT ||
     command === SLASH_COMMAND.INIT ||
     command === SLASH_COMMAND.LOGIN ||
+    command === SLASH_COMMAND.LOGOUT ||
+    command === SLASH_COMMAND.AGENT ||
+    command === SLASH_COMMAND.MCP ||
+    command === SLASH_COMMAND.MODEL ||
+    command === SLASH_COMMAND.MODELS ||
     command === SLASH_COMMAND.PERMISSIONS;
   if (!deps.sessionId && !allowsWithoutSession) {
     deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
@@ -213,6 +227,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       deps.appendSystemMessage(formatModeUpdatedMessage(parsed.data));
       return true;
     }
+    case SLASH_COMMAND.MODEL:
     case SLASH_COMMAND.MODELS: {
       const modelId = parts.slice(1).join(" ").trim();
       if (!modelId) {
@@ -222,7 +237,38 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         if (availableModels.length > 0) {
           deps.appendSystemMessage(formatModelListMessage(availableModels, currentModel));
         } else if (!currentModel) {
-          deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MODEL_CONFIGURED);
+          if (!deps.runAgentCommand) {
+            deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MODEL_CONFIGURED);
+            return true;
+          }
+          deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.MODELS_FETCHING);
+          void deps
+            .runAgentCommand(["models"])
+            .then((result) => {
+              if (result.exitCode !== 0) {
+                deps.appendSystemMessage(
+                  `${SLASH_COMMAND_MESSAGE.MODELS_NOT_AVAILABLE} ${result.stderr || result.stdout}`
+                );
+                return;
+              }
+              const parsed = parseModelsOutput(result.stdout);
+              if (parsed.models.length === 0) {
+                deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MODELS_AVAILABLE);
+                return;
+              }
+              const modelLines = parsed.models.map(
+                (model) => `- ${model.id} (${model.name})${model.isDefault ? " (default)" : ""}`
+              );
+              deps.appendSystemMessage(`Available models:\n${modelLines.join("\n")}`);
+            })
+            .catch((error) => {
+              deps.appendSystemMessage(
+                `${SLASH_COMMAND_MESSAGE.MODELS_NOT_AVAILABLE} ${
+                  error instanceof Error ? error.message : String(error)
+                }`
+              );
+            });
+          return true;
         } else {
           deps.appendSystemMessage(formatModelCurrentMessage(currentModel));
         }
@@ -487,6 +533,18 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     }
     case SLASH_COMMAND.LOGIN: {
       handleLoginCommand(deps);
+      return true;
+    }
+    case SLASH_COMMAND.LOGOUT: {
+      handleLogoutCommand(deps);
+      return true;
+    }
+    case SLASH_COMMAND.MCP: {
+      handleMcpCommand(parts, deps);
+      return true;
+    }
+    case SLASH_COMMAND.AGENT: {
+      handleAgentCommand(parts, deps);
       return true;
     }
     case SLASH_COMMAND.CONFIG: {

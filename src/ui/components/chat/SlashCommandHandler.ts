@@ -4,6 +4,8 @@ import type { SubAgentRunner } from "@/agents/subagent-runner";
 import { TIMEOUT } from "@/config/timeouts";
 import { COMPACTION, SUMMARY } from "@/constants/agent-ids";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { ENCODING } from "@/constants/encodings";
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
@@ -18,6 +20,7 @@ import { copyToClipboard } from "@/utils/clipboard/clipboard.utils";
 import { openExternalEditorForFile } from "@/utils/editor/externalEditor";
 import { EnvManager } from "@/utils/env/env.utils";
 import { useRenderer } from "@opentui/react";
+import { execa } from "execa";
 import { useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { runSlashCommand } from "./slash-command-runner";
@@ -217,6 +220,43 @@ export const useSlashCommandHandler = ({
     [agent?.harnessId, agents, subAgentRunner]
   );
 
+  const runAgentCommand = useCallback(
+    async (args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> => {
+      if (!agent) {
+        throw new Error(SLASH_COMMAND_MESSAGE.AGENT_COMMAND_NOT_AVAILABLE);
+      }
+      if (!harnesses) {
+        throw new Error(SLASH_COMMAND_MESSAGE.AGENT_COMMAND_NOT_AVAILABLE);
+      }
+      const harness = harnesses[agent.harnessId];
+      if (!harness) {
+        throw new Error(`No harness config for ${agent.harnessId}.`);
+      }
+      const snapshot = EnvManager.getInstance().getSnapshot();
+      const command =
+        agent.harnessId === HARNESS_DEFAULT.CLAUDE_CLI_ID &&
+        harness.command === HARNESS_DEFAULT.CLAUDE_COMMAND
+          ? "claude"
+          : harness.command;
+      const result = await execa(command, args, {
+        cwd: harness.cwd ?? process.cwd(),
+        env: {
+          ...snapshot,
+          ...harness.env,
+        },
+        reject: false,
+        encoding: ENCODING.UTF8,
+        timeout: TIMEOUT.HOOK_PROMPT_MS,
+      });
+      return {
+        stdout: result.stdout,
+        stderr: result.stderr,
+        exitCode: result.exitCode ?? 1,
+      };
+    },
+    [agent, harnesses]
+  );
+
   return useCallback(
     (value: string): boolean => {
       if (!value.startsWith("/")) return false;
@@ -321,6 +361,9 @@ export const useSlashCommandHandler = ({
         runSummary,
         checkpointManager,
         harnesses,
+        activeHarnessId: agent?.harnessId,
+        activeAgentName: agent?.name,
+        runAgentCommand,
         connectionStatus,
         getContextAttachments,
         setContextAttachments,
@@ -360,6 +403,7 @@ export const useSlashCommandHandler = ({
       openMemoryFile,
       runCompaction,
       runSummary,
+      runAgentCommand,
       setShowToolDetails,
       setShowThinking,
       setCurrentSession,

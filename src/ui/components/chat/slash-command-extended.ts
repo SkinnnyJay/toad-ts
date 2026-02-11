@@ -2,6 +2,7 @@ import { existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { ENV_KEY } from "@/constants/env-keys";
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { SESSION_MODE } from "@/constants/session-modes";
 import {
   SLASH_COMMAND_MESSAGE,
@@ -11,8 +12,55 @@ import {
   formatSecurityReviewMessage,
   formatStatusMessage,
 } from "@/constants/slash-command-messages";
+import {
+  parseAuthStatusOutput,
+  parseKeyValueLines,
+} from "@/core/agent-management/cli-output-parser";
 import { EnvManager } from "@/utils/env/env.utils";
 import type { SlashCommandDeps } from "./slash-command-runner";
+
+const MANAGEMENT_COMMAND = {
+  LOGIN: "login",
+  LOGOUT: "logout",
+  STATUS: "status",
+  SETUP_TOKEN: "setup-token",
+  MODELS: "models",
+  MCP: "mcp",
+  LIST: "list",
+} as const;
+
+const PREVIEW_LINE_LIMIT = 8;
+
+const buildOutputPreview = (stdout: string, stderr: string): string => {
+  const combined = `${stdout}\n${stderr}`
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .slice(0, PREVIEW_LINE_LIMIT);
+  return combined.join("\n");
+};
+
+const buildCommandResultMessage = (
+  title: string,
+  result: { stdout: string; stderr: string; exitCode: number }
+): string => {
+  const preview = buildOutputPreview(result.stdout, result.stderr);
+  if (preview.length === 0) {
+    return `${title}\n(exit ${result.exitCode})`;
+  }
+  return `${title}\n${preview}`;
+};
+
+const resolveStatusArgs = (harnessId: string | undefined): string[] | null => {
+  switch (harnessId) {
+    case HARNESS_DEFAULT.CURSOR_CLI_ID:
+      return [MANAGEMENT_COMMAND.STATUS];
+    case HARNESS_DEFAULT.CODEX_CLI_ID:
+      return [MANAGEMENT_COMMAND.LOGIN, MANAGEMENT_COMMAND.STATUS];
+    default:
+      return null;
+  }
+};
 
 export const handleAddDirCommand = (parts: string[], deps: SlashCommandDeps): void => {
   if (!deps.sessionId) {
@@ -70,10 +118,132 @@ export const handleStatusCommand = (deps: SlashCommandDeps): void => {
     `OpenAI key: ${env[ENV_KEY.OPENAI_API_KEY] ? "configured" : "not set"}`,
   ];
   deps.appendSystemMessage(formatStatusMessage(lines));
+
+  if (!deps.runAgentCommand) {
+    return;
+  }
+
+  const statusArgs = resolveStatusArgs(deps.activeHarnessId);
+  if (!statusArgs) {
+    return;
+  }
+
+  void deps
+    .runAgentCommand(statusArgs)
+    .then((result) => {
+      if (result.exitCode !== 0) {
+        deps.appendSystemMessage(
+          `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${buildOutputPreview(
+            result.stdout,
+            result.stderr
+          )}`
+        );
+        return;
+      }
+
+      const combinedOutput = `${result.stdout}\n${result.stderr}`;
+      const keyValues = parseKeyValueLines(combinedOutput);
+      if (Object.keys(keyValues).length > 0) {
+        const mapped = Object.entries(keyValues)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join("\n");
+        deps.appendSystemMessage(
+          `Agent status (${deps.activeAgentName ?? deps.activeHarnessId ?? "active"}):\n${mapped}`
+        );
+        return;
+      }
+
+      const auth = parseAuthStatusOutput(combinedOutput);
+      deps.appendSystemMessage(
+        `Agent status (${deps.activeAgentName ?? deps.activeHarnessId ?? "active"}):\n` +
+          `Authenticated: ${auth.authenticated ? "yes" : "no"}`
+      );
+    })
+    .catch((error) => {
+      deps.appendSystemMessage(
+        `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    });
 };
 
 export const handleLoginCommand = (deps: SlashCommandDeps): void => {
-  deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.LOGIN_NOT_AVAILABLE);
+  if (!deps.runAgentCommand) {
+    deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.LOGIN_NOT_AVAILABLE);
+    return;
+  }
+
+  if (deps.activeHarnessId === HARNESS_DEFAULT.GEMINI_CLI_ID) {
+    deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.GEMINI_LOGIN_HINT);
+    return;
+  }
+
+  const args =
+    deps.activeHarnessId === HARNESS_DEFAULT.CLAUDE_CLI_ID
+      ? [MANAGEMENT_COMMAND.SETUP_TOKEN]
+      : [MANAGEMENT_COMMAND.LOGIN];
+
+  deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.LOGIN_STARTING);
+  void deps
+    .runAgentCommand(args)
+    .then((result) => {
+      if (result.exitCode !== 0) {
+        deps.appendSystemMessage(
+          `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${buildOutputPreview(
+            result.stdout,
+            result.stderr
+          )}`
+        );
+        return;
+      }
+      deps.appendSystemMessage(buildCommandResultMessage("Login command completed.", result));
+    })
+    .catch((error) => {
+      deps.appendSystemMessage(
+        `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    });
+};
+
+export const handleLogoutCommand = (deps: SlashCommandDeps): void => {
+  if (!deps.runAgentCommand) {
+    deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.LOGOUT_NOT_AVAILABLE);
+    return;
+  }
+
+  if (
+    deps.activeHarnessId === HARNESS_DEFAULT.CLAUDE_CLI_ID ||
+    deps.activeHarnessId === HARNESS_DEFAULT.GEMINI_CLI_ID
+  ) {
+    deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.LOGOUT_UNSUPPORTED);
+    return;
+  }
+
+  deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.LOGOUT_STARTING);
+  void deps
+    .runAgentCommand([MANAGEMENT_COMMAND.LOGOUT])
+    .then((result) => {
+      if (result.exitCode !== 0) {
+        deps.appendSystemMessage(
+          `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${buildOutputPreview(
+            result.stdout,
+            result.stderr
+          )}`
+        );
+        return;
+      }
+      deps.appendSystemMessage(buildCommandResultMessage("Logout command completed.", result));
+    })
+    .catch((error) => {
+      deps.appendSystemMessage(
+        `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    });
 };
 
 export const handleConfigCommand = (deps: SlashCommandDeps): void => {
@@ -128,4 +298,82 @@ export const handleSecurityReviewCommand = (deps: SlashCommandDeps): void => {
       if (sid) deps.appendSystemMessage(formatSecurityReviewMessage(sid));
     })
     .catch(() => deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.REVIEW_NOT_AVAILABLE));
+};
+
+export const handleMcpCommand = (parts: string[], deps: SlashCommandDeps): void => {
+  if (!deps.runAgentCommand) {
+    deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.MCP_NOT_AVAILABLE);
+    return;
+  }
+  if (
+    deps.activeHarnessId === HARNESS_DEFAULT.CODEX_CLI_ID ||
+    deps.activeHarnessId === HARNESS_DEFAULT.MOCK_ID
+  ) {
+    deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.MCP_UNSUPPORTED);
+    return;
+  }
+
+  const subcommand = parts.slice(1);
+  const args =
+    subcommand.length > 0
+      ? [MANAGEMENT_COMMAND.MCP, ...subcommand]
+      : deps.activeHarnessId === HARNESS_DEFAULT.GEMINI_CLI_ID
+        ? [MANAGEMENT_COMMAND.MCP]
+        : [MANAGEMENT_COMMAND.MCP, MANAGEMENT_COMMAND.LIST];
+
+  deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.MCP_STARTING);
+  void deps
+    .runAgentCommand(args)
+    .then((result) => {
+      if (result.exitCode !== 0) {
+        deps.appendSystemMessage(
+          `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${buildOutputPreview(
+            result.stdout,
+            result.stderr
+          )}`
+        );
+        return;
+      }
+      deps.appendSystemMessage(buildCommandResultMessage("MCP command result:", result));
+    })
+    .catch((error) => {
+      deps.appendSystemMessage(
+        `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    });
+};
+
+export const handleAgentCommand = (parts: string[], deps: SlashCommandDeps): void => {
+  if (!deps.runAgentCommand) {
+    deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.AGENT_COMMAND_NOT_AVAILABLE);
+    return;
+  }
+  const args = parts.slice(1);
+  if (args.length === 0) {
+    deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.AGENT_COMMAND_USAGE);
+    return;
+  }
+  void deps
+    .runAgentCommand(args)
+    .then((result) => {
+      if (result.exitCode !== 0) {
+        deps.appendSystemMessage(
+          `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${buildOutputPreview(
+            result.stdout,
+            result.stderr
+          )}`
+        );
+        return;
+      }
+      deps.appendSystemMessage(buildCommandResultMessage("Agent command result:", result));
+    })
+    .catch((error) => {
+      deps.appendSystemMessage(
+        `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    });
 };

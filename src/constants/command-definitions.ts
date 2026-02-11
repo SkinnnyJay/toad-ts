@@ -64,12 +64,31 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     description: "Generate TOADSTOOL.md for the project",
     category: "settings",
   },
+  {
+    name: SLASH_COMMAND.AGENT,
+    description: "Run native command for active agent",
+    args: "<subcommand...>",
+    category: "provider",
+  },
   { name: SLASH_COMMAND.LOGIN, description: "Authenticate with a provider", category: "provider" },
+  { name: SLASH_COMMAND.LOGOUT, description: "Log out of active provider", category: "provider" },
   {
     name: SLASH_COMMAND.MEMORY,
     description: "Edit memory files",
     args: "[agents|claude|both]",
     category: "settings",
+  },
+  {
+    name: SLASH_COMMAND.MCP,
+    description: "Run native MCP command for active provider",
+    args: "[list|enable|disable|login] [args...]",
+    category: "provider",
+  },
+  {
+    name: SLASH_COMMAND.MODEL,
+    description: "Alias for /models",
+    args: "<modelId>",
+    category: "provider",
   },
   {
     name: SLASH_COMMAND.MODE,

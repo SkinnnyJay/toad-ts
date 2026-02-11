@@ -84,11 +84,16 @@ describe("useSlashCommands", () => {
       expect(SLASH_COMMAND.DOCTOR).toBe("/doctor");
       expect(SLASH_COMMAND.EDITOR).toBe("/editor");
       expect(SLASH_COMMAND.HELP).toBe("/help");
+      expect(SLASH_COMMAND.LOGIN).toBe("/login");
+      expect(SLASH_COMMAND.LOGOUT).toBe("/logout");
       expect(SLASH_COMMAND.AGENTS).toBe("/agents");
+      expect(SLASH_COMMAND.AGENT).toBe("/agent");
       expect(SLASH_COMMAND.HOOKS).toBe("/hooks");
       expect(SLASH_COMMAND.DETAILS).toBe("/details");
+      expect(SLASH_COMMAND.MCP).toBe("/mcp");
       expect(SLASH_COMMAND.MEMORY).toBe("/memory");
       expect(SLASH_COMMAND.MODE).toBe("/mode");
+      expect(SLASH_COMMAND.MODEL).toBe("/model");
       expect(SLASH_COMMAND.MODELS).toBe("/models");
       expect(SLASH_COMMAND.NEW).toBe("/new");
       expect(SLASH_COMMAND.CLEAR).toBe("/clear");
