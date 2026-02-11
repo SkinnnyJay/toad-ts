@@ -251,6 +251,8 @@ describe("cli-output-parser", () => {
     const output = [
       "session-no-seconds createdAt=2026-02-10T08:00Z",
       "session-space-separator createdAt=2026-02-11 09:10:11+00:00",
+      "session-no-timezone createdAt=2026-02-12T10:20:30",
+      "session-space-no-timezone createdAt=2026-02-13 11:22",
     ].join("\n");
 
     expect(parseSessionSummariesOutput(output)).toEqual([
@@ -261,6 +263,14 @@ describe("cli-output-parser", () => {
       {
         id: "session-space-separator",
         createdAt: "2026-02-11T09:10:11.000Z",
+      },
+      {
+        id: "session-no-timezone",
+        createdAt: "2026-02-12T10:20:30.000Z",
+      },
+      {
+        id: "session-space-no-timezone",
+        createdAt: "2026-02-13T11:22:00.000Z",
       },
     ]);
   });

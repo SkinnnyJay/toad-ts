@@ -27,7 +27,7 @@ const SESSION_MODEL_PATTERN = /\bmodel(?:\s*[:=]\s*|\s+)([^\s|,()]+)\b/i;
 const SESSION_MESSAGE_COUNT_PATTERN = /\bmessages?\s*[:=]\s*(\d+)\b/i;
 const SESSION_TRAILING_MESSAGE_COUNT_PATTERN = /(?:^|[\s|,;()])(\d+)\s+messages?\b/i;
 const SESSION_CREATED_AT_PATTERN =
-  /\b(?:created(?:_?at)?\s*[:=]\s*)?(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))\b/i;
+  /\b(?:created(?:_?at)?\s*[:=]\s*)?(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)\b/i;
 const MODEL_LINE_PATTERN = new RegExp(`^${LEADING_LIST_PREFIX_PATTERN_SOURCE}(\\S+)\\s+-\\s+(.+)$`);
 const MODEL_STATE_SUFFIX_PATTERN =
   /\s+(?:\((?:current|default|,|\s)+\)|\[(?:current|default|,|\s)+\])/gi;
@@ -64,6 +64,12 @@ const normalizeAuthStatusToken = (value: string): string => {
     .trim()
     .toLowerCase()
     .replace(/[\s-]+/g, "_");
+};
+
+const normalizeCreatedAtToken = (value: string): string => {
+  const withIsoSeparator = value.includes("T") ? value : value.replace(" ", "T");
+  const hasTimezone = /(?:Z|[+-]\d{2}:\d{2})$/i.test(withIsoSeparator);
+  return hasTimezone ? withIsoSeparator : `${withIsoSeparator}Z`;
 };
 
 const isAuthenticatedStatusToken = (value: string): boolean => {
@@ -236,7 +242,8 @@ const extractSessionCreatedAtFromLine = (line: string, sessionId: string): strin
   if (!rawValue) {
     return undefined;
   }
-  const parsedDate = new Date(rawValue);
+  const normalizedValue = normalizeCreatedAtToken(rawValue);
+  const parsedDate = new Date(normalizedValue);
   return Number.isNaN(parsedDate.valueOf()) ? undefined : parsedDate.toISOString();
 };
 
