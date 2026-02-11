@@ -20,6 +20,8 @@ const SESSION_TRAILING_MESSAGE_COUNT_PATTERN = /(?:^|[\s|,;()])(\d+)\s+messages?
 const SESSION_CREATED_AT_PATTERN =
   /\b(?:created(?:_?at)?\s*[:=]\s*)?(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))\b/i;
 const MODEL_LINE_PATTERN = /^(\S+)\s+-\s+(.+)$/;
+const MODEL_STATE_SUFFIX_PATTERN = /\s+\((?:current|default|,|\s)+\)/gi;
+const MODEL_STATE_MARKER_PATTERN = /\((?:current|default|,|\s)+\)/i;
 const LOGGED_IN_PATTERN = /logged in as\s+([^\s]+@[^\s]+)/i;
 const AUTHENTICATED_STATUS_PATTERN = /\bauthenticated\b\s*[:=]\s*(true|false|yes|no|1|0)\b/i;
 const AUTH_EMAIL_PATTERN = /\b(?:email|user|account)\b\s*[:=]\s*([^\s]+@[^\s]+)/i;
@@ -71,14 +73,14 @@ export const parseModelsOutput = (stdout: string): CliAgentModelsResponse => {
         return null;
       }
       const id = match[1];
-      const name = match[2]?.replace(/\s+\((?:current|default|,|\s)+\)/gi, "").trim();
+      const name = match[2]?.replace(MODEL_STATE_SUFFIX_PATTERN, "").trim();
       if (!id || !name) {
         return null;
       }
       return {
         id,
         name,
-        isDefault: /\(current|default\)/i.test(line),
+        isDefault: MODEL_STATE_MARKER_PATTERN.test(line),
         supportsThinking: /\bthinking\b/i.test(line),
       };
     })

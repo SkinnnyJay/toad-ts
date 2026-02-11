@@ -68,6 +68,28 @@ describe("cli-output-parser", () => {
     ]);
   });
 
+  it("does not flag non-state parenthetical model text as default", () => {
+    const parsed = parseModelsOutput(
+      ["sherlock - Sherlock (default strategy)", "watson - Watson (current)"].join("\n")
+    );
+
+    expect(parsed.models).toEqual([
+      {
+        id: "sherlock",
+        name: "Sherlock (default strategy)",
+        isDefault: false,
+        supportsThinking: false,
+      },
+      {
+        id: "watson",
+        name: "Watson",
+        isDefault: true,
+        supportsThinking: false,
+      },
+    ]);
+    expect(parsed.defaultModel).toBe("watson");
+  });
+
   it("extracts UUID values from output lines", () => {
     const output = [
       "session: 03db60d8-ec0a-4376-aa2b-d89acc9b4abc",
