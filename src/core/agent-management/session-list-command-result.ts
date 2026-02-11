@@ -13,7 +13,7 @@ import type {
   AgentManagementSession,
 } from "@/types/agent-management.types";
 import type { CliAgentSession } from "@/types/cli-agent.types";
-const NO_SESSIONS_PATTERN = /\b(?:no\s+(?:sessions?|chats?)|0\s+sessions?)\b/i;
+const NO_SESSIONS_PATTERN = /\b(?:no\s+(?:sessions?|chats?|conversations?)|0\s+sessions?)\b/i;
 
 export const parseSessionListCommandResult = (
   result: AgentManagementCommandResult
