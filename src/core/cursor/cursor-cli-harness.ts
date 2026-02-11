@@ -8,6 +8,11 @@ import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { SIGNAL } from "@/constants/signals";
 import { CliAgentBase } from "@/core/cli-agent/cli-agent.base";
 import {
+  type CliHarnessAdapter,
+  createCliHarnessAdapter,
+} from "@/core/cli-agent/create-cli-harness-adapter";
+import { CursorCliAgentPort } from "@/core/cursor/cursor-cli-agent-port";
+import {
   CursorCliConnection,
   type CursorPromptRequest,
   type CursorPromptResult,
@@ -111,6 +116,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
   private readonly hookServer: CursorHookIpcServerLike;
   private readonly installHooksFn: InstallHooksFn;
   private readonly cleanupHooksFn: CleanupHooksFn;
+  private readonly coreHarness: CliHarnessAdapter;
   private readonly cwd: string;
   private readonly env: NodeJS.ProcessEnv;
   private hookAddress: CursorHookIpcAddress | null = null;
@@ -136,6 +142,12 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
       new CursorHookIpcServer({
         permissionTimeoutDecision: "allow",
       });
+    this.coreHarness = createCliHarnessAdapter({
+      cliAgent: new CursorCliAgentPort({
+        connection: this.connection,
+        getPromptEnvOverrides: () => this.getHookSocketEnvOverrides(),
+      }),
+    });
     this.installHooksFn = options.installHooksFn ?? installCursorHooks;
     this.cleanupHooksFn = options.cleanupHooksFn ?? cleanupCursorHooks;
 
@@ -157,6 +169,9 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
 
     this.translator.on("sessionUpdate", (update) => this.emit("sessionUpdate", update));
     this.translator.on("error", (error) => this.emit("error", error));
+
+    this.coreHarness.on("error", (error) => this.emit("error", error));
+    this.coreHarness.on("permissionRequest", (request) => this.emit("permissionRequest", request));
 
     this.hookServer.on("error", (error) => this.emit("error", error));
     this.hookServer.on("hookEvent", (event) => this.handleHookEvent(event));
@@ -226,8 +241,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
   }
 
   async newSession(_params: NewSessionRequest): Promise<NewSessionResponse> {
-    const sessionId = await this.connection.createChat();
-    return { sessionId };
+    return this.coreHarness.newSession(_params);
   }
 
   async authenticate(_params: AuthenticateRequest): Promise<AuthenticateResponse> {
@@ -244,26 +258,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
   }
 
   async prompt(params: PromptRequest): Promise<PromptResponse> {
-    return this.runPromptGuarded(async () => {
-      const hookSocketTarget = this.hookAddress?.url ?? this.hookAddress?.socketPath;
-      const request: CursorPromptRequest = {
-        prompt: this.buildPromptText(params),
-        sessionId: params.sessionId,
-        mode: this.getSessionPromptMode(params.sessionId),
-        model: this.getSessionModelValue(params.sessionId),
-        streamPartialOutput: true,
-        envOverrides: hookSocketTarget ? injectHookSocketEnv({}, hookSocketTarget) : undefined,
-      };
-
-      const result = await this.connection.spawnPrompt(request);
-      if (result.exitCode !== null && result.exitCode !== 0 && result.resultText === null) {
-        throw new Error(`Cursor prompt failed${result.signal ? ` (${result.signal})` : ""}`);
-      }
-
-      return {
-        stopReason: "end_turn",
-      };
-    });
+    return this.coreHarness.prompt(params);
   }
 
   async sessionUpdate(_params: SessionNotification): Promise<void> {
@@ -271,7 +266,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
   }
 
   async runAgentCommand(args: string[]): Promise<AgentManagementCommandResult> {
-    return this.connection.runManagementCommand(args);
+    return this.coreHarness.runAgentCommand(args);
   }
 
   async login(): Promise<AgentManagementCommandResult> {
@@ -287,20 +282,11 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
   }
 
   async setSessionMode(params: SetSessionModeRequest): Promise<SetSessionModeResponse> {
-    this.setSessionModeValue(params);
-    return {};
+    return this.coreHarness.setSessionMode(params);
   }
 
   async setSessionModel(params: SetSessionModelRequest): Promise<SetSessionModelResponse> {
-    this.setSessionModelValue(params);
-    return {};
-  }
-
-  private buildPromptText(params: PromptRequest): string {
-    return params.prompt
-      .filter((entry) => entry.type === CONTENT_BLOCK_TYPE.TEXT)
-      .map((entry) => entry.text)
-      .join("\n");
+    return this.coreHarness.setSessionModel(params);
   }
 
   private installSignalHandlers(): void {
@@ -478,6 +464,14 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
     const created = `hook-${sessionId}-${this.hookToolCallByKey.size + 1}`;
     this.hookToolCallByKey.set(cacheKey, created);
     return created;
+  }
+
+  private getHookSocketEnvOverrides(): NodeJS.ProcessEnv | undefined {
+    const hookSocketTarget = this.hookAddress?.url ?? this.hookAddress?.socketPath;
+    if (!hookSocketTarget) {
+      return undefined;
+    }
+    return injectHookSocketEnv({}, hookSocketTarget);
   }
 }
 

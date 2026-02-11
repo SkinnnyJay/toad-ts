@@ -69,6 +69,7 @@ export * from "@/core/pr-status";
 export * from "@/core/repo-workflow";
 export * from "@/core/cursor/cursor-stream-parser";
 export * from "@/core/cursor/cursor-cli-connection";
+export * from "@/core/cursor/cursor-cli-agent-port";
 export * from "@/core/cursor/cursor-to-acp-translator";
 export * from "@/core/cursor/hook-ipc-server";
 export * from "@/core/cursor/hooks-config-generator";
