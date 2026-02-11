@@ -25,6 +25,7 @@ class FakeCursorConnection extends EventEmitter<{
   exit: (_info: { code: number | null; signal: NodeJS.Signals | null }) => void;
 }> {
   public promptRequests: CursorPromptRequest[] = [];
+  public managementRequests: string[][] = [];
 
   async verifyInstallation(): Promise<{ installed: boolean; version?: string }> {
     return { installed: true, version: "1.0.0" };
@@ -70,6 +71,17 @@ class FakeCursorConnection extends EventEmitter<{
 
   async disconnect(): Promise<void> {
     // no-op
+  }
+
+  async runManagementCommand(
+    args: string[]
+  ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+    this.managementRequests.push(args);
+    return {
+      stdout: "ok",
+      stderr: "",
+      exitCode: 0,
+    };
   }
 }
 
@@ -157,6 +169,9 @@ describe("CursorCliHarnessAdapter", () => {
     expect(connection.promptRequests[0]?.envOverrides?.[ENV_KEY.TOADSTOOL_HOOK_SOCKET]).toBe(
       "http://127.0.0.1:7777/hook"
     );
+    const managementResult = await harness.runAgentCommand(["status"]);
+    expect(managementResult.stdout).toBe("ok");
+    expect(connection.managementRequests[0]).toEqual(["status"]);
     expect(sessionUpdates).toContain(SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK);
 
     await harness.disconnect();

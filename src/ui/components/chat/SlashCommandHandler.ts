@@ -222,6 +222,9 @@ export const useSlashCommandHandler = ({
 
   const runAgentCommand = useCallback(
     async (args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> => {
+      if (client?.runAgentCommand) {
+        return client.runAgentCommand(args);
+      }
       if (!agent) {
         throw new Error(SLASH_COMMAND_MESSAGE.AGENT_COMMAND_NOT_AVAILABLE);
       }
@@ -254,7 +257,7 @@ export const useSlashCommandHandler = ({
         exitCode: result.exitCode ?? 1,
       };
     },
-    [agent, harnesses]
+    [agent, client, harnesses]
   );
 
   return useCallback(

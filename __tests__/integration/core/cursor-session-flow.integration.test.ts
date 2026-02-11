@@ -67,6 +67,16 @@ class IntegrationFakeConnection extends EventEmitter<{
   async disconnect(): Promise<void> {
     // no-op
   }
+
+  async runManagementCommand(
+    _args: string[]
+  ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+    return {
+      stdout: "ok",
+      stderr: "",
+      exitCode: 0,
+    };
+  }
 }
 
 class IntegrationFakeHookServer extends EventEmitter<{ error: (_error: Error) => void }> {

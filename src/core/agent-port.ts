@@ -1,3 +1,4 @@
+import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type { ConnectionStatus } from "@/types/domain";
 import type {
   AuthenticateRequest,
@@ -35,4 +36,8 @@ export type AgentPort = EventEmitter<AgentPortEvents> & {
   prompt(params: PromptRequest): Promise<PromptResponse>;
   authenticate(params: AuthenticateRequest): Promise<AuthenticateResponse>;
   sessionUpdate(params: SessionNotification): Promise<void>;
+  runAgentCommand?(args: string[]): Promise<AgentManagementCommandResult>;
+  login?(): Promise<AgentManagementCommandResult>;
+  logout?(): Promise<AgentManagementCommandResult>;
+  getStatus?(): Promise<AgentManagementCommandResult>;
 };

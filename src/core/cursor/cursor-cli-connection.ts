@@ -176,6 +176,10 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
     return sessionId;
   }
 
+  async runManagementCommand(args: string[]): Promise<CommandResult> {
+    return this.runCommand(args);
+  }
+
   async spawnPrompt(request: CursorPromptRequest): Promise<CursorPromptResult> {
     if (this.activePrompt) {
       throw new Error("A prompt is already active.");

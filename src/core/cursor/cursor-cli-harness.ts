@@ -23,6 +23,7 @@ import type {
   HarnessRuntimeEvents,
 } from "@/harness/harnessAdapter";
 import { type HarnessConfig, harnessConfigSchema } from "@/harness/harnessConfig";
+import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type { ConnectionStatus } from "@/types/domain";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
@@ -56,6 +57,11 @@ interface CursorCliConnectionLike
   listModels(): Promise<{ models: Array<{ id: string; name: string }>; defaultModel?: string }>;
   createChat(): Promise<string>;
   spawnPrompt(request: CursorPromptRequest): Promise<CursorPromptResult>;
+  runManagementCommand(args: string[]): Promise<{
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+  }>;
   disconnect(): Promise<void>;
 }
 
@@ -247,6 +253,22 @@ export class CursorCliHarnessAdapter
 
   async sessionUpdate(_params: SessionNotification): Promise<void> {
     // Cursor runtime is source-of-truth for session updates; incoming updates are ignored.
+  }
+
+  async runAgentCommand(args: string[]): Promise<AgentManagementCommandResult> {
+    return this.connection.runManagementCommand(args);
+  }
+
+  async login(): Promise<AgentManagementCommandResult> {
+    return this.runAgentCommand(["login"]);
+  }
+
+  async logout(): Promise<AgentManagementCommandResult> {
+    return this.runAgentCommand(["logout"]);
+  }
+
+  async getStatus(): Promise<AgentManagementCommandResult> {
+    return this.runAgentCommand(["status"]);
   }
 
   async setSessionMode(params: SetSessionModeRequest): Promise<SetSessionModeResponse> {
