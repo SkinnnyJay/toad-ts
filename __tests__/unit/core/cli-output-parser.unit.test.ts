@@ -150,6 +150,38 @@ describe("cli-output-parser", () => {
     expect(parsed.defaultModel).toBe("gpt-5");
   });
 
+  it("parses bracketed model state markers", () => {
+    const parsed = parseModelsOutput(
+      [
+        "gpt-5 - GPT-5 [default]",
+        "gpt-4o - GPT-4o [current]",
+        "gpt-preview - GPT Preview [preview]",
+      ].join("\n")
+    );
+
+    expect(parsed.models).toEqual([
+      {
+        id: "gpt-5",
+        name: "GPT-5",
+        isDefault: true,
+        supportsThinking: false,
+      },
+      {
+        id: "gpt-4o",
+        name: "GPT-4o",
+        isDefault: true,
+        supportsThinking: false,
+      },
+      {
+        id: "gpt-preview",
+        name: "GPT Preview [preview]",
+        isDefault: false,
+        supportsThinking: false,
+      },
+    ]);
+    expect(parsed.defaultModel).toBe("gpt-5");
+  });
+
   it("extracts UUID values from output lines", () => {
     const output = [
       "session: 03db60d8-ec0a-4376-aa2b-d89acc9b4abc",
