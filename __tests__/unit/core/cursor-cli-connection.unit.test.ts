@@ -1,5 +1,7 @@
 import { spawn } from "node:child_process";
 import { describe, expect, it } from "vitest";
+import { AGENT_MANAGEMENT_COMMAND } from "../../../src/constants/agent-management-commands";
+import { CURSOR_CLI_COMMAND } from "../../../src/constants/cursor-cli-commands";
 import { ENV_KEY } from "../../../src/constants/env-keys";
 import { CursorCliConnection } from "../../../src/core/cursor/cursor-cli-connection";
 
@@ -53,13 +55,13 @@ describe("CursorCliConnection", () => {
   it("parses auth, model, session, and installation command outputs", async () => {
     const connection = new CursorCliConnection({
       commandRunner: async (_command, args) => {
-        if (args[0] === "--version") {
+        if (args[0] === CURSOR_CLI_COMMAND.VERSION) {
           return { stdout: "cursor-agent 1.2.3", stderr: "", exitCode: 0 };
         }
-        if (args[0] === "status") {
+        if (args[0] === AGENT_MANAGEMENT_COMMAND.STATUS) {
           return { stdout: "✓ Logged in as netwearcdz@gmail.com", stderr: "", exitCode: 0 };
         }
-        if (args[0] === "models") {
+        if (args[0] === AGENT_MANAGEMENT_COMMAND.MODELS) {
           return {
             stdout:
               "auto - Auto\nopus-4.6-thinking - Claude 4.6 Opus (Thinking)  (current, default)\n",
@@ -67,14 +69,14 @@ describe("CursorCliConnection", () => {
             exitCode: 0,
           };
         }
-        if (args[0] === "ls") {
+        if (args[0] === AGENT_MANAGEMENT_COMMAND.LIST) {
           return {
             stdout: "Requires TTY; use session_id from NDJSON system.init instead.",
             stderr: "",
             exitCode: 0,
           };
         }
-        if (args[0] === "create-chat") {
+        if (args[0] === CURSOR_CLI_COMMAND.CREATE_CHAT) {
           return { stdout: `Created chat ${TEST_SESSION_ID}`, stderr: "", exitCode: 0 };
         }
         return { stdout: "", stderr: "", exitCode: 1 };
@@ -84,7 +86,9 @@ describe("CursorCliConnection", () => {
     const install = await connection.verifyInstallation();
     const auth = await connection.verifyAuth();
     const models = await connection.listModels();
-    const managementStatus = await connection.runManagementCommand(["status"]);
+    const managementStatus = await connection.runManagementCommand([
+      AGENT_MANAGEMENT_COMMAND.STATUS,
+    ]);
     const sessions = await connection.listSessions();
     const createdSessionId = await connection.createChat();
 
