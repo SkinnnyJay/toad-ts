@@ -3,6 +3,7 @@ import {
   AGENT_MANAGEMENT_COMMAND,
   AgentManagementCommandRequestSchema,
   AgentManagementCommandResultSchema,
+  AgentManagementSessionSchema,
 } from "../../../src/types/agent-management.types";
 
 describe("agent-management types", () => {
@@ -32,5 +33,18 @@ describe("agent-management types", () => {
     });
 
     expect(parsed.exitCode).toBe(0);
+  });
+
+  it("parses agent session summaries", () => {
+    const parsed = AgentManagementSessionSchema.parse({
+      id: "session-1",
+      title: "Session",
+      createdAt: "2026-02-11T00:00:00.000Z",
+      model: "gpt-5",
+      messageCount: 12,
+    });
+
+    expect(parsed.id).toBe("session-1");
+    expect(parsed.messageCount).toBe(12);
   });
 });

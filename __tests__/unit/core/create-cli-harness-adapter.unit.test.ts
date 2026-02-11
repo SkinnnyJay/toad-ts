@@ -213,4 +213,13 @@ describe("createCliHarnessAdapter", () => {
     await expect(harness.connect()).rejects.toThrow("not installed");
     expect(harness.connectionStatus).toBe(CONNECTION_STATUS.DISCONNECTED);
   });
+
+  it("throws when session listing is unsupported", async () => {
+    const cliAgent = new FakeCliAgentPort();
+    cliAgent.listSessions = undefined;
+    const harness = createCliHarnessAdapter({ cliAgent });
+    await harness.connect();
+
+    await expect(harness.listAgentSessions()).rejects.toThrow("does not support session listing");
+  });
 });
