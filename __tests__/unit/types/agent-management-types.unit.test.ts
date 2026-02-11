@@ -17,6 +17,15 @@ describe("agent-management types", () => {
     expect(parsed.args).toEqual(["list"]);
   });
 
+  it("supports list command requests", () => {
+    const parsed = AgentManagementCommandRequestSchema.parse({
+      command: AGENT_MANAGEMENT_COMMAND.LIST,
+    });
+
+    expect(parsed.command).toBe("ls");
+    expect(parsed.args).toEqual([]);
+  });
+
   it("defaults command args when omitted", () => {
     const parsed = AgentManagementCommandRequestSchema.parse({
       command: AGENT_MANAGEMENT_COMMAND.STATUS,

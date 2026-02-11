@@ -1,9 +1,10 @@
 import { parseUuidLines } from "@/core/agent-management/cli-output-parser";
+import { AGENT_MANAGEMENT_COMMAND } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
 import { useCallback, useEffect, useState } from "react";
 
 const CURSOR_NATIVE_SESSION_COMMAND = {
-  LIST: "ls",
+  LIST: AGENT_MANAGEMENT_COMMAND.LIST,
 } as const;
 
 const toErrorMessage = (error: unknown): string => {

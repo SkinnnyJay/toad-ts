@@ -27,6 +27,7 @@ import { TASK_STATUS } from "@/constants/task-status";
 import { parseModelsOutput, parseUuidLines } from "@/core/agent-management/cli-output-parser";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
+import { AGENT_MANAGEMENT_COMMAND } from "@/types/agent-management.types";
 import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
 import { PlanIdSchema, SessionIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
 import { nanoid } from "nanoid";
@@ -218,7 +219,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
           });
       } else if (deps.runAgentCommand) {
         void deps
-          .runAgentCommand(["ls"])
+          .runAgentCommand([AGENT_MANAGEMENT_COMMAND.LIST])
           .then((result) => {
             if (result.exitCode !== 0) {
               deps.appendSystemMessage(

@@ -8,6 +8,7 @@ export const AGENT_MANAGEMENT_COMMAND = {
   MODEL: "model",
   MCP: "mcp",
   AGENT: "agent",
+  LIST: "ls",
 } as const;
 
 export type AgentManagementCommand =
@@ -21,6 +22,7 @@ export const AgentManagementCommandSchema = z.enum([
   AGENT_MANAGEMENT_COMMAND.MODEL,
   AGENT_MANAGEMENT_COMMAND.MCP,
   AGENT_MANAGEMENT_COMMAND.AGENT,
+  AGENT_MANAGEMENT_COMMAND.LIST,
 ]);
 
 export const AgentManagementCommandRequestSchema = z
