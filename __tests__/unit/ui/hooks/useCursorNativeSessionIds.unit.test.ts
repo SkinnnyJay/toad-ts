@@ -213,6 +213,44 @@ describe("useCursorNativeSessionIds", () => {
     unmount();
   });
 
+  it("orders runtime-native sessions by newest created timestamp first", async () => {
+    const oldest = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174010");
+    const newest = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174011");
+    const middle = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174012");
+    const listAgentSessions = vi.fn(async () => [
+      { id: oldest, createdAt: "2026-02-10T18:30:00.000Z" },
+      { id: newest, createdAt: "2026-02-11T18:30:00.000Z" },
+      { id: middle, createdAt: "2026-02-10T22:00:00.000Z" },
+    ]);
+    const client: NativeSessionTestClient = { listAgentSessions };
+
+    function TestComponent() {
+      const result = useCursorNativeSessionIds({
+        enabled: true,
+        client,
+      });
+      return React.createElement(
+        "text",
+        null,
+        `ids:${result.sessions.map((session) => session.id).join(",")}`
+      );
+    }
+
+    const { lastFrame, unmount } = renderInk(React.createElement(TestComponent));
+    await flushMicrotasks();
+
+    const frame = lastFrame();
+    const newestIndex = frame.indexOf(newest);
+    const middleIndex = frame.indexOf(middle);
+    const oldestIndex = frame.indexOf(oldest);
+    expect(newestIndex).toBeGreaterThanOrEqual(0);
+    expect(middleIndex).toBeGreaterThanOrEqual(0);
+    expect(oldestIndex).toBeGreaterThanOrEqual(0);
+    expect(newestIndex).toBeLessThan(middleIndex);
+    expect(middleIndex).toBeLessThan(oldestIndex);
+    unmount();
+  });
+
   it("reports command errors", async () => {
     const runAgentCommand = vi.fn(async () => ({
       stdout: "",
