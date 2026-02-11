@@ -54,7 +54,7 @@ describe("useCursorNativeSessionIds", () => {
     const second = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174001");
     const third = SessionIdSchema.parse("session-resume-id");
     const runAgentCommand = vi.fn(async () => ({
-      stdout: `${first}\n${second}\n${third} Native title model: gpt-5 messages: 14\n${first}`,
+      stdout: `${first}\n${second}\n${third} Native title model: gpt-5 messages: 14 created: 2026-02-11T18:30:00Z\n${first}`,
       stderr: "",
       exitCode: 0,
     }));
@@ -76,6 +76,8 @@ describe("useCursorNativeSessionIds", () => {
           .map((session) =>
             session.messageCount !== undefined ? session.messageCount.toString() : ""
           )
+          .join(",")} createdAt:${result.sessions
+          .map((session) => session.createdAt ?? "")
           .join(",")} loading:${String(result.loading)} error:${result.error ?? "none"}`
       );
     }
@@ -91,6 +93,7 @@ describe("useCursorNativeSessionIds", () => {
     expect(frame).toContain("Native title");
     expect(frame).toContain("gpt-5");
     expect(frame).toContain("14");
+    expect(frame).toContain("2026-02-11T18:30:00.000Z");
     expect(frame).toContain("loading:false");
     expect(frame).toContain("error:none");
     unmount();

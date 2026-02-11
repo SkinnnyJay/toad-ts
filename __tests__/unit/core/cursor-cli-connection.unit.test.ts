@@ -132,7 +132,7 @@ describe("CursorCliConnection", () => {
         if (args[0] === AGENT_MANAGEMENT_COMMAND.LIST) {
           return {
             stdout:
-              "session-resume-id Active session model: gpt-5 messages: 14\nanother-session-id done",
+              "session-resume-id Active session model: gpt-5 messages: 14 created: 2026-02-11T18:30:00Z\nanother-session-id done",
             stderr: "",
             exitCode: 0,
           };
@@ -146,6 +146,7 @@ describe("CursorCliConnection", () => {
       {
         id: "session-resume-id",
         title: "Active session",
+        createdAt: "2026-02-11T18:30:00.000Z",
         model: "gpt-5",
         messageCount: 14,
       },

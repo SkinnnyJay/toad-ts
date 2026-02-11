@@ -114,6 +114,9 @@ const formatAgentSessionDetails = (session: AgentManagementSession): string => {
   if (session.title) {
     details.push(session.title);
   }
+  if (session.createdAt) {
+    details.push(`created: ${session.createdAt}`);
+  }
   if (session.model) {
     details.push(`model: ${session.model}`);
   }

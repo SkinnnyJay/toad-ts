@@ -175,7 +175,15 @@ describe("UI Modals", () => {
             isOpen: true,
             onClose: () => {},
             onSelectSession: () => {},
-            externalSessions: [{ id: nativeSessionId, title: "Native title", model: "gpt-5" }],
+            externalSessions: [
+              {
+                id: nativeSessionId,
+                title: "Native title",
+                createdAt: "2026-02-11T18:30:00.000Z",
+                model: "gpt-5",
+                messageCount: 14,
+              },
+            ],
           })
         )
       );
@@ -183,6 +191,35 @@ describe("UI Modals", () => {
       expect(lastFrame()).toContain("Native: 123e4567");
       stdin.write("gpt-5");
       expect(lastFrame()).toContain("Filter: gpt-5");
+      expect(lastFrame()).toContain("Native: 123e4567");
+    });
+
+    it("filters external cursor sessions by created timestamp metadata", () => {
+      const nativeSessionId = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174000");
+
+      const { lastFrame, stdin } = renderInk(
+        React.createElement(
+          TruncationProvider,
+          {},
+          React.createElement(SessionsPopup, {
+            isOpen: true,
+            onClose: () => {},
+            onSelectSession: () => {},
+            externalSessions: [
+              {
+                id: nativeSessionId,
+                title: "Native title",
+                createdAt: "2026-02-11T18:30:00.000Z",
+                model: "gpt-5",
+                messageCount: 14,
+              },
+            ],
+          })
+        )
+      );
+
+      stdin.write("2026");
+      expect(lastFrame()).toContain("Filter: 2026");
       expect(lastFrame()).toContain("Native: 123e4567");
     });
   });

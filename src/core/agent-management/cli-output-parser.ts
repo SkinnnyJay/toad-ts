@@ -9,9 +9,11 @@ import {
 
 const UUID_PATTERN = /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i;
 const SESSION_ID_PATTERN = /\b[a-z0-9][a-z0-9._:-]*[-_][a-z0-9._:-]+\b/i;
-const SESSION_MODEL_PATTERN = /\bmodel\s*[:=]\s*([^\s|,()]+)\b/i;
+const SESSION_MODEL_PATTERN = /\bmodel(?:\s*[:=]\s*|\s+)([^\s|,()]+)\b/i;
 const SESSION_MESSAGE_COUNT_PATTERN = /\bmessages?\s*[:=]\s*(\d+)\b/i;
-const SESSION_TRAILING_MESSAGE_COUNT_PATTERN = /\b(\d+)\s+messages?\b/i;
+const SESSION_TRAILING_MESSAGE_COUNT_PATTERN = /(?:^|[\s|,;()])(\d+)\s+messages?\b/i;
+const SESSION_CREATED_AT_PATTERN =
+  /\b(?:created(?:_at)?\s*[:=]\s*)?(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))\b/i;
 const MODEL_LINE_PATTERN = /^(\S+)\s+-\s+(.+)$/;
 const LOGGED_IN_PATTERN = /logged in as\s+([^\s]+@[^\s]+)/i;
 const REQUIRES_TTY_PATTERN = /requires tty/i;
@@ -85,10 +87,19 @@ const extractSessionTitleFromLine = (line: string, sessionId: string): string | 
   if (trailing.length === 0) {
     return undefined;
   }
+
+  const modelStripPattern = new RegExp(SESSION_MODEL_PATTERN.source, "gi");
+  const messageCountStripPattern = new RegExp(SESSION_MESSAGE_COUNT_PATTERN.source, "gi");
+  const trailingMessageCountStripPattern = new RegExp(
+    SESSION_TRAILING_MESSAGE_COUNT_PATTERN.source,
+    "gi"
+  );
+  const createdAtStripPattern = new RegExp(SESSION_CREATED_AT_PATTERN.source, "gi");
   const title = trailing
-    .replace(SESSION_MODEL_PATTERN, "")
-    .replace(SESSION_MESSAGE_COUNT_PATTERN, "")
-    .replace(SESSION_TRAILING_MESSAGE_COUNT_PATTERN, "")
+    .replace(modelStripPattern, "")
+    .replace(trailingMessageCountStripPattern, "")
+    .replace(messageCountStripPattern, "")
+    .replace(createdAtStripPattern, "")
     .replace(/\s*[|·,;]\s*/g, " ")
     .replace(/\s+/g, " ")
     .replace(/^[\s:|,;()/-]+|[\s:|,;()/-]+$/g, "")
@@ -106,8 +117,8 @@ const extractSessionMessageCountFromLine = (
   }
   const trailing = line.slice(sessionIdIndex + sessionId.length);
   const matchedValue =
-    SESSION_MESSAGE_COUNT_PATTERN.exec(trailing)?.[1] ??
-    SESSION_TRAILING_MESSAGE_COUNT_PATTERN.exec(trailing)?.[1];
+    SESSION_TRAILING_MESSAGE_COUNT_PATTERN.exec(trailing)?.[1] ??
+    SESSION_MESSAGE_COUNT_PATTERN.exec(trailing)?.[1];
   if (!matchedValue) {
     return undefined;
   }
@@ -122,6 +133,20 @@ const extractSessionModelFromLine = (line: string, sessionId: string): string | 
   }
   const trailing = line.slice(sessionIdIndex + sessionId.length);
   return SESSION_MODEL_PATTERN.exec(trailing)?.[1];
+};
+
+const extractSessionCreatedAtFromLine = (line: string, sessionId: string): string | undefined => {
+  const sessionIdIndex = line.indexOf(sessionId);
+  if (sessionIdIndex < 0) {
+    return undefined;
+  }
+  const trailing = line.slice(sessionIdIndex + sessionId.length);
+  const rawValue = SESSION_CREATED_AT_PATTERN.exec(trailing)?.[1];
+  if (!rawValue) {
+    return undefined;
+  }
+  const parsedDate = new Date(rawValue);
+  return Number.isNaN(parsedDate.valueOf()) ? undefined : parsedDate.toISOString();
 };
 
 const mergeSessionSummaries = (
@@ -152,6 +177,7 @@ export const parseSessionSummariesOutput = (stdout: string): CliAgentSession[] =
     const parsedSession = CliAgentSessionSchema.parse({
       id: sessionId,
       title: extractSessionTitleFromLine(line, sessionId),
+      createdAt: extractSessionCreatedAtFromLine(line, sessionId),
       model: extractSessionModelFromLine(line, sessionId),
       messageCount: extractSessionMessageCountFromLine(line, sessionId),
     });

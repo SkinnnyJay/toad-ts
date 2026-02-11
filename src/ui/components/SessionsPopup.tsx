@@ -77,6 +77,9 @@ export function SessionsPopup({
         if (session.title) {
           details.push(session.title);
         }
+        if (session.createdAt) {
+          details.push(`Created: ${session.createdAt}`);
+        }
         if (session.model) {
           details.push(`Model: ${session.model}`);
         }
@@ -87,9 +90,9 @@ export function SessionsPopup({
         return {
           id: sessionId,
           title: `Native: ${shortId}`,
-          searchText: `${session.id} ${session.title ?? ""} ${session.model ?? ""} ${
-            session.messageCount ?? ""
-          } cursor`,
+          searchText: `${session.id} ${session.title ?? ""} ${session.createdAt ?? ""} ${
+            session.model ?? ""
+          } ${session.messageCount ?? ""} cursor`,
           description: `Native Cursor session (${session.id})${suffix}`,
         };
       })
