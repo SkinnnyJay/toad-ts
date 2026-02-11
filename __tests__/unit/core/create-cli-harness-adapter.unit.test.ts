@@ -231,6 +231,20 @@ describe("createCliHarnessAdapter", () => {
     ]);
   });
 
+  it("surfaces management command errors during fallback session listing", async () => {
+    const cliAgent = new FakeCliAgentPort();
+    cliAgent.listSessions = undefined;
+    cliAgent.runManagementCommand = async () => ({
+      stdout: "",
+      stderr: "requires tty",
+      exitCode: 1,
+    });
+    const harness = createCliHarnessAdapter({ cliAgent });
+    await harness.connect();
+
+    await expect(harness.listAgentSessions()).rejects.toThrow("requires tty");
+  });
+
   it("resets connection status when connect fails", async () => {
     const cliAgent = new FakeCliAgentPort();
     cliAgent.installed = false;
