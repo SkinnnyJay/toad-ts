@@ -1,3 +1,4 @@
+import { SESSION_LIST_COMMAND_FAILED } from "@/constants/agent-management-error-messages";
 import { parseSessionSummariesOutput } from "@/core/agent-management/cli-output-parser";
 import {
   assertCommandSucceeded,
@@ -12,14 +13,12 @@ import type {
   AgentManagementSession,
 } from "@/types/agent-management.types";
 import type { CliAgentSession } from "@/types/cli-agent.types";
-
-const SESSION_LIST_COMMAND_FAILURE_MESSAGE = "CLI session listing command failed.";
 const NO_SESSIONS_PATTERN = /\bno\s+sessions?\b/i;
 
 export const parseSessionListCommandResult = (
   result: AgentManagementCommandResult
 ): CliAgentSession[] => {
-  assertCommandSucceeded(result, SESSION_LIST_COMMAND_FAILURE_MESSAGE);
+  assertCommandSucceeded(result, SESSION_LIST_COMMAND_FAILED);
   return parseStdoutWithCombinedFallback({
     result,
     parse: parseSessionSummariesOutput,

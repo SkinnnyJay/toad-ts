@@ -1,3 +1,4 @@
+import { MODELS_COMMAND_FAILED } from "@/constants/agent-management-error-messages";
 import { parseModelsOutput } from "@/core/agent-management/cli-output-parser";
 import {
   assertCommandSucceeded,
@@ -6,12 +7,10 @@ import {
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type { CliAgentModelsResponse } from "@/types/cli-agent.types";
 
-const MODELS_COMMAND_FAILURE_MESSAGE = "CLI models command failed.";
-
 export const parseModelsCommandResult = (
   result: AgentManagementCommandResult
 ): CliAgentModelsResponse => {
-  assertCommandSucceeded(result, MODELS_COMMAND_FAILURE_MESSAGE);
+  assertCommandSucceeded(result, MODELS_COMMAND_FAILED);
   return parseStdoutWithCombinedFallback({
     result,
     parse: parseModelsOutput,
