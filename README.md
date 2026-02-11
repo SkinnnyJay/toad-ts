@@ -174,6 +174,39 @@ Skills, commands, agents, hooks, and rules from all tools are merged automatical
 /vim
 ```
 
+## Cursor CLI (Beta)
+
+TOADSTOOL includes a Cursor harness (`cursor-cli`) behind a feature flag.
+
+### Prerequisites
+
+- Install Cursor CLI (`cursor-agent` / `agent`) and verify it is on your `PATH`
+- Authenticate with `cursor-agent login` **or** set `CURSOR_API_KEY`
+
+### Enable Cursor Harness
+
+Set the feature flag before launching TOADSTOOL:
+
+```bash
+export TOADSTOOL_CURSOR_CLI_ENABLED=true
+```
+
+Optional overrides:
+
+```bash
+export TOADSTOOL_CURSOR_COMMAND=cursor-agent
+export TOADSTOOL_CURSOR_ARGS="--output-format stream-json --stream-partial-output"
+export CURSOR_API_KEY=...
+```
+
+### Cursor-Specific Runtime Behaviors
+
+- Streams partial NDJSON output into the chat view
+- Installs hook shims for permission/context/thought/file-edit lifecycle events
+- Renders hook-based file edits in the inline diff tool UI
+- Supports management commands through slash commands:
+  - `/status`, `/login`, `/logout`, `/models`, `/model`, `/mcp`, `/agent`
+
 ## Development
 
 ```bash
