@@ -251,6 +251,7 @@ describe("CursorCliHarnessAdapter", () => {
     });
 
     await expect(harness.connect()).rejects.toThrow("not installed");
+    expect(harness.connectionStatus).toBe(CONNECTION_STATUS.DISCONNECTED);
 
     const authConnection = new FakeCursorConnection();
     authConnection.verifyAuth = async () => ({ authenticated: false });
@@ -265,6 +266,7 @@ describe("CursorCliHarnessAdapter", () => {
     });
 
     await expect(authHarness.connect()).rejects.toThrow("cursor-agent login");
+    expect(authHarness.connectionStatus).toBe(CONNECTION_STATUS.DISCONNECTED);
   });
 
   it("rejects concurrent prompts while one prompt is in flight", async () => {

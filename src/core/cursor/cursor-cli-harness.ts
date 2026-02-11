@@ -188,34 +188,47 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
       return;
     }
     this.setConnectionStatus(CONNECTION_STATUS.CONNECTING);
+    try {
+      const installInfo = await this.connection.verifyInstallation();
+      if (!installInfo.installed) {
+        throw new Error("Cursor CLI is not installed. Install cursor-agent before connecting.");
+      }
 
-    const installInfo = await this.connection.verifyInstallation();
-    if (!installInfo.installed) {
-      throw new Error("Cursor CLI is not installed. Install cursor-agent before connecting.");
+      const authStatus = await this.connection.verifyAuth();
+      this.cacheAuthStatus(authStatus.authenticated);
+      if (!authStatus.authenticated && !this.env[ENV_KEY.CURSOR_API_KEY]) {
+        throw new Error(
+          "Cursor CLI is not authenticated. Run `cursor-agent login` or set CURSOR_API_KEY."
+        );
+      }
+
+      this.hookAddress = await this.hookServer.start();
+      const hookSocketTarget = this.hookAddress.url ?? this.hookAddress.socketPath;
+      if (!hookSocketTarget) {
+        throw new Error("Hook IPC server started without a socket target.");
+      }
+      this.hookInstallation = await this.installHooksFn({
+        scope: "project",
+        cwd: this.cwd,
+        socketTarget: hookSocketTarget,
+        useBashShim: this.hookAddress.transport === "http",
+      });
+
+      this.installSignalHandlers();
+      this.setConnectionStatus(CONNECTION_STATUS.CONNECTED);
+    } catch (error) {
+      this.removeSignalHandlers();
+      if (this.hookInstallation) {
+        await this.cleanupHooksFn(this.hookInstallation).catch(() => undefined);
+        this.hookInstallation = null;
+      }
+      if (this.hookAddress) {
+        await this.hookServer.stop().catch(() => undefined);
+        this.hookAddress = null;
+      }
+      this.setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
+      throw error;
     }
-
-    const authStatus = await this.connection.verifyAuth();
-    this.cacheAuthStatus(authStatus.authenticated);
-    if (!authStatus.authenticated && !this.env[ENV_KEY.CURSOR_API_KEY]) {
-      throw new Error(
-        "Cursor CLI is not authenticated. Run `cursor-agent login` or set CURSOR_API_KEY."
-      );
-    }
-
-    this.hookAddress = await this.hookServer.start();
-    const hookSocketTarget = this.hookAddress.url ?? this.hookAddress.socketPath;
-    if (!hookSocketTarget) {
-      throw new Error("Hook IPC server started without a socket target.");
-    }
-    this.hookInstallation = await this.installHooksFn({
-      scope: "project",
-      cwd: this.cwd,
-      socketTarget: hookSocketTarget,
-      useBashShim: this.hookAddress.transport === "http",
-    });
-
-    this.installSignalHandlers();
-    this.setConnectionStatus(CONNECTION_STATUS.CONNECTED);
   }
 
   async disconnect(): Promise<void> {

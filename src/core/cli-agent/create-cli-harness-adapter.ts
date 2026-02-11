@@ -65,20 +65,24 @@ export class CliHarnessAdapter extends CliAgentBase {
       return;
     }
     this.setConnectionStatus(CONNECTION_STATUS.CONNECTING);
+    try {
+      const installInfo = await this.cliAgent.verifyInstallation();
+      if (!installInfo.installed) {
+        const installCommand = installInfo.installCommand ?? "Install the configured CLI binary.";
+        throw new Error(`CLI agent binary is not installed. ${installCommand}`);
+      }
 
-    const installInfo = await this.cliAgent.verifyInstallation();
-    if (!installInfo.installed) {
-      const installCommand = installInfo.installCommand ?? "Install the configured CLI binary.";
-      throw new Error(`CLI agent binary is not installed. ${installCommand}`);
+      const authStatus = await this.cliAgent.verifyAuth();
+      this.cacheAuthStatus(authStatus.authenticated);
+      if (!authStatus.authenticated) {
+        throw new Error("CLI agent is not authenticated.");
+      }
+
+      this.setConnectionStatus(CONNECTION_STATUS.CONNECTED);
+    } catch (error) {
+      this.setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
+      throw error;
     }
-
-    const authStatus = await this.cliAgent.verifyAuth();
-    this.cacheAuthStatus(authStatus.authenticated);
-    if (!authStatus.authenticated) {
-      throw new Error("CLI agent is not authenticated.");
-    }
-
-    this.setConnectionStatus(CONNECTION_STATUS.CONNECTED);
   }
 
   async disconnect(): Promise<void> {

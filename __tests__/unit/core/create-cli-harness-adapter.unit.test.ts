@@ -204,4 +204,13 @@ describe("createCliHarnessAdapter", () => {
     const sessions = await harness.listAgentSessions();
     expect(sessions).toEqual([{ id: "session-fake" }]);
   });
+
+  it("resets connection status when connect fails", async () => {
+    const cliAgent = new FakeCliAgentPort();
+    cliAgent.installed = false;
+    const harness = createCliHarnessAdapter({ cliAgent });
+
+    await expect(harness.connect()).rejects.toThrow("not installed");
+    expect(harness.connectionStatus).toBe(CONNECTION_STATUS.DISCONNECTED);
+  });
 });
