@@ -1,0 +1,43 @@
+export const CURSOR_HOOK_EVENT = {
+  SESSION_START: "sessionStart",
+  SESSION_END: "sessionEnd",
+  PRE_TOOL_USE: "preToolUse",
+  POST_TOOL_USE: "postToolUse",
+  POST_TOOL_USE_FAILURE: "postToolUseFailure",
+  SUBAGENT_START: "subagentStart",
+  SUBAGENT_STOP: "subagentStop",
+  BEFORE_SHELL_EXECUTION: "beforeShellExecution",
+  AFTER_SHELL_EXECUTION: "afterShellExecution",
+  BEFORE_MCP_EXECUTION: "beforeMCPExecution",
+  AFTER_MCP_EXECUTION: "afterMCPExecution",
+  BEFORE_READ_FILE: "beforeReadFile",
+  AFTER_FILE_EDIT: "afterFileEdit",
+  BEFORE_SUBMIT_PROMPT: "beforeSubmitPrompt",
+  PRE_COMPACT: "preCompact",
+  STOP: "stop",
+  AFTER_AGENT_RESPONSE: "afterAgentResponse",
+  AFTER_AGENT_THOUGHT: "afterAgentThought",
+} as const;
+
+export type CursorHookEvent = (typeof CURSOR_HOOK_EVENT)[keyof typeof CURSOR_HOOK_EVENT];
+
+export const {
+  SESSION_START,
+  SESSION_END,
+  PRE_TOOL_USE,
+  POST_TOOL_USE,
+  POST_TOOL_USE_FAILURE,
+  SUBAGENT_START,
+  SUBAGENT_STOP,
+  BEFORE_SHELL_EXECUTION,
+  AFTER_SHELL_EXECUTION,
+  BEFORE_MCP_EXECUTION,
+  AFTER_MCP_EXECUTION,
+  BEFORE_READ_FILE,
+  AFTER_FILE_EDIT,
+  BEFORE_SUBMIT_PROMPT,
+  PRE_COMPACT,
+  STOP,
+  AFTER_AGENT_RESPONSE,
+  AFTER_AGENT_THOUGHT,
+} = CURSOR_HOOK_EVENT;

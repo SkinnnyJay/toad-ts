@@ -1,4 +1,7 @@
 export * from "@/types/domain";
+export * from "@/types/cli-agent.types";
+export * from "@/types/cursor-cli.types";
+export * from "@/types/cursor-hooks.types";
 export * from "@/core/acp-connection";
 export * from "@/core/acp-client";
 export * from "@/core/message-handler";
@@ -34,6 +37,8 @@ export * from "@/store/persistence/search-engine";
 export * from "@/constants/ui-symbols";
 export * from "@/constants/update-check";
 export * from "@/constants/terminal-setup";
+export * from "@/constants/cursor-event-types";
+export * from "@/constants/cursor-hook-events";
 export * from "@/utils/credentials";
 export * from "@/utils/package-info";
 export * from "@/utils/update-check";
