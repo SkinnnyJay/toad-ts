@@ -43,7 +43,7 @@ describe("slash command agent management", () => {
 
   it("shows usage for /agent with no subcommand", () => {
     const { deps, appendSystemMessage } = createDeps({
-      activeHarnessId: "cursor-cli",
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
       runAgentCommand: vi.fn(),
     });
 
@@ -58,7 +58,7 @@ describe("slash command agent management", () => {
       exitCode: 0,
     }));
     const { deps } = createDeps({
-      activeHarnessId: "cursor-cli",
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
       runAgentCommand,
     });
 
@@ -95,7 +95,7 @@ describe("slash command agent management", () => {
       exitCode: 0,
     }));
     const { deps } = createDeps({
-      activeHarnessId: "cursor-cli",
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
       runAgentCommand,
     });
 
@@ -149,7 +149,7 @@ describe("slash command agent management", () => {
       exitCode: 1,
     }));
     const { deps, appendSystemMessage } = createDeps({
-      activeHarnessId: "cursor-cli",
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
       runAgentCommand,
     });
 
@@ -168,11 +168,13 @@ describe("slash command agent management", () => {
       stderr: "",
       exitCode: 0,
     }));
+    const listCloudAgents = vi.fn(async () => 4);
     const { deps, appendSystemMessage } = createDeps({
-      activeHarnessId: "cursor-cli",
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
       activeAgentName: "Cursor CLI",
       connectionStatus: "connected",
       runAgentCommand,
+      listCloudAgents,
     });
 
     expect(runSlashCommand(SLASH_COMMAND.STATUS, deps)).toBe(true);
@@ -180,6 +182,8 @@ describe("slash command agent management", () => {
     await Promise.resolve();
 
     expect(runAgentCommand).toHaveBeenCalledWith(["status"]);
+    expect(listCloudAgents).toHaveBeenCalledTimes(1);
+    expect(appendSystemMessage).toHaveBeenCalledWith("Cloud agents: 4");
     expect(appendSystemMessage).toHaveBeenCalledWith(
       expect.stringContaining("Agent status (Cursor CLI):")
     );
@@ -211,7 +215,7 @@ describe("slash command agent management", () => {
       exitCode: 0,
     }));
     const { deps, appendSystemMessage } = createDeps({
-      activeHarnessId: "cursor-cli",
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
       runAgentCommand,
     });
 
@@ -233,7 +237,7 @@ describe("slash command agent management", () => {
       exitCode: 1,
     }));
     const { deps, appendSystemMessage } = createDeps({
-      activeHarnessId: "cursor-cli",
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
       runAgentCommand,
     });
 

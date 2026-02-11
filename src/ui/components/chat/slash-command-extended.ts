@@ -119,6 +119,19 @@ export const handleStatusCommand = (deps: SlashCommandDeps): void => {
   ];
   deps.appendSystemMessage(formatStatusMessage(lines));
 
+  if (deps.listCloudAgents && deps.activeHarnessId === HARNESS_DEFAULT.CURSOR_CLI_ID) {
+    void deps
+      .listCloudAgents()
+      .then((count) => {
+        deps.appendSystemMessage(`Cloud agents: ${count}`);
+      })
+      .catch((error) => {
+        deps.appendSystemMessage(
+          `Cloud agents unavailable: ${error instanceof Error ? error.message : String(error)}`
+        );
+      });
+  }
+
   if (!deps.runAgentCommand) {
     return;
   }

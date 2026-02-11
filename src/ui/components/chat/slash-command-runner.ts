@@ -103,6 +103,7 @@ export interface SlashCommandDeps {
   runAgentCommand?: (
     args: string[]
   ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
+  listCloudAgents?: () => Promise<number>;
   toggleVimMode?: () => boolean;
   connectionStatus?: string;
   now?: () => number;

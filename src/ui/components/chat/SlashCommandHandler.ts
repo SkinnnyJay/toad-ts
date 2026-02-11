@@ -10,6 +10,7 @@ import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
+import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
 import { loadMcpConfig } from "@/core/mcp-config-loader";
 import { SessionManager } from "@/core/session-manager";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
@@ -393,6 +394,14 @@ export const useSlashCommandHandler = ({
         activeHarnessId: agent?.harnessId,
         activeAgentName: agent?.name,
         runAgentCommand,
+        listCloudAgents:
+          agent?.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID
+            ? async () => {
+                const cloudClient = new CursorCloudAgentClient();
+                const response = await cloudClient.listAgents({ limit: 100 });
+                return Array.isArray(response.agents) ? response.agents.length : 0;
+              }
+            : undefined,
         connectionStatus,
         getContextAttachments,
         setContextAttachments,
