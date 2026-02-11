@@ -24,6 +24,22 @@ const toNormalizedSessionId = (sessionId: string): SessionId | undefined => {
   return parsed.data;
 };
 
+const toValidatedSession = (
+  session: AgentManagementSession
+): AgentManagementSession | undefined => {
+  const sessionId = toNormalizedSessionId(session.id);
+  if (!sessionId) {
+    return undefined;
+  }
+  return {
+    id: sessionId,
+    title: session.title,
+    createdAt: session.createdAt,
+    model: session.model,
+    messageCount: session.messageCount,
+  };
+};
+
 const toUniqueSessionIdsFromList = (sessionIds: string[]): SessionId[] => {
   const parsedIds = sessionIds
     .map((sessionId) => toNormalizedSessionId(sessionId))
@@ -38,19 +54,16 @@ const toUniqueSessionsFromCommandResult = (result: {
 }): AgentManagementSession[] =>
   toUniqueAgentManagementSessions(
     parseSessionListCommandResult(result)
-      .map((session): AgentManagementSession | undefined => {
-        const sessionId = toNormalizedSessionId(session.id);
-        if (!sessionId) {
-          return undefined;
-        }
-        return {
-          id: sessionId,
+      .map(
+        (session): AgentManagementSession => ({
+          id: session.id,
           title: session.title,
           createdAt: session.createdAt,
           model: session.model,
           messageCount: session.messageCount,
-        };
-      })
+        })
+      )
+      .map((session) => toValidatedSession(session))
       .filter((session): session is AgentManagementSession => session !== undefined)
   );
 
@@ -99,19 +112,7 @@ export function useCursorNativeSessionIds(
         const listedSessions = await client.listAgentSessions();
         const deduped = toUniqueAgentManagementSessions(
           listedSessions
-            .map((session): AgentManagementSession | undefined => {
-              const sessionId = toNormalizedSessionId(session.id);
-              if (!sessionId) {
-                return undefined;
-              }
-              return {
-                id: sessionId,
-                title: session.title,
-                createdAt: session.createdAt,
-                model: session.model,
-                messageCount: session.messageCount,
-              };
-            })
+            .map((session) => toValidatedSession(session))
             .filter((session): session is AgentManagementSession => session !== undefined)
         );
         setSessions(deduped);
