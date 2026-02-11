@@ -208,7 +208,7 @@ export CURSOR_API_KEY=...
   - `/status`, `/login`, `/logout`, `/models`, `/model`, `/mcp`, `/agent`
   - `/sessions <id>` to switch/resume a known Cursor session id
   - `Ctrl+S` session picker now includes native Cursor session ids from `cursor-agent ls`
-  - `/sessions` native list output includes session metadata (title/model/message count) when available
+  - `/sessions` native list output includes session metadata (title/created timestamp/model/message count) when available
 - Supports cloud-dispatch prompts with `&` prefix (for Cursor CLI sessions):
   - Example: `&investigate failing CI checks`
 
