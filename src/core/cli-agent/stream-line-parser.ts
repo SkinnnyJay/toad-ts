@@ -89,7 +89,11 @@ export class StreamLineParser<TEvent> {
     let malformedLineCount = 0;
     let invalidEventCount = 0;
 
-    for (const rawLine of lines) {
+    for (const [index, rawLine] of lines.entries()) {
+      if (this.isBackpressured()) {
+        this.rebufferLines(lines.slice(index));
+        break;
+      }
       const line = rawLine.trim();
       if (line.length === 0) {
         continue;
@@ -129,6 +133,17 @@ export class StreamLineParser<TEvent> {
       invalidEventCount,
       shouldPause: this.isBackpressured(),
     };
+  }
+
+  private rebufferLines(lines: string[]): void {
+    if (lines.length === 0) {
+      return;
+    }
+    const remaining = lines.join("\n");
+    if (remaining.length === 0) {
+      return;
+    }
+    this.lineBuffer = this.lineBuffer.length > 0 ? `${remaining}\n${this.lineBuffer}` : remaining;
   }
 
   private emptyResult(): StreamLineParseResult {

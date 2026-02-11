@@ -42,4 +42,24 @@ describe("StreamLineParser", () => {
     expect(malformed).toHaveLength(1);
     expect(invalid).toHaveLength(1);
   });
+
+  it("pauses parsing at backpressure limit and resumes later", () => {
+    const parser = new StreamLineParser({
+      schema: TestEventSchema,
+      backpressureHighWatermark: 1,
+    });
+
+    const firstPass = parser.pushChunk(
+      '{"type":"message","text":"a"}\n{"type":"message","text":"b"}\n'
+    );
+
+    expect(firstPass.parsedCount).toBe(1);
+    expect(firstPass.shouldPause).toBe(true);
+    expect(parser.drainEvents()).toEqual([{ type: "message", text: "a" }]);
+
+    const secondPass = parser.end();
+
+    expect(secondPass.parsedCount).toBe(1);
+    expect(parser.drainEvents()).toEqual([{ type: "message", text: "b" }]);
+  });
 });
