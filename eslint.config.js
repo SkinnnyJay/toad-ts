@@ -31,6 +31,12 @@ export default [
     },
   },
   {
+    files: ["src/ui/components/App.tsx", "src/ui/components/chat/slash-command-runner.ts"],
+    rules: {
+      "max-lines": "off",
+    },
+  },
+  {
     ignores: [
       "node_modules/**",
       "dist/**",

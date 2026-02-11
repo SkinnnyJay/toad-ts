@@ -51,6 +51,7 @@ export default defineConfig({
       "node_modules/**",
       ".opencode/**",
       "ref/**",
+      ...(process.env.TEST_SKIP_SKIPPABLE === "1" ? ["**/skippable*.test.ts"] : []),
     ],
     pool: "forks",
     teardownTimeout: 3000,
