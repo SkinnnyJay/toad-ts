@@ -45,12 +45,15 @@ const isFileEditTool = (name: string): boolean => {
 
 const extractFileEditInfo = (
   toolName: string,
-  args: Record<string, unknown>
+  args: Record<string, unknown>,
+  result: unknown
 ): FileEditInfo | null => {
   if (!isFileEditTool(toolName)) return null;
 
   const extractString = (value: unknown): string | undefined =>
     typeof value === "string" ? value : undefined;
+  const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null && !Array.isArray(value);
 
   const filename =
     extractString(args.path) ??
@@ -78,6 +81,34 @@ const extractFileEditInfo = (
 
   if ("patch" in args || "diff" in args) {
     return null;
+  }
+
+  if (!isRecord(result)) {
+    return null;
+  }
+
+  const resultFilename = extractString(result.path) ?? filename;
+
+  if (Array.isArray(result.edits)) {
+    const firstEdit = result.edits.find(
+      (edit): edit is Record<string, unknown> =>
+        isRecord(edit) && "old_string" in edit && "new_string" in edit
+    );
+    if (firstEdit) {
+      return {
+        oldContent: String(firstEdit.old_string ?? ""),
+        newContent: String(firstEdit.new_string ?? ""),
+        filename: extractString(firstEdit.path) ?? resultFilename,
+      };
+    }
+  }
+
+  if ("old_string" in result && "new_string" in result) {
+    return {
+      oldContent: String(result.old_string ?? ""),
+      newContent: String(result.new_string ?? ""),
+      filename: resultFilename,
+    };
   }
 
   return null;
@@ -152,7 +183,10 @@ export const ToolCallResult = memo(function ToolCallResult({
     return null;
   }
 
-  const fileEditInfo = useMemo(() => extractFileEditInfo(toolName, toolArgs), [toolName, toolArgs]);
+  const fileEditInfo = useMemo(
+    () => extractFileEditInfo(toolName, toolArgs, result),
+    [result, toolName, toolArgs]
+  );
 
   if (fileEditInfo) {
     return (
