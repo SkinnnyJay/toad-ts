@@ -120,4 +120,21 @@ describe("session-list-command-result", () => {
       },
     ]);
   });
+
+  it("ignores timestamp-prefixed warning noise during combined fallback parsing", () => {
+    const parsed = parseSessionListCommandResult({
+      stdout: "2026-02-11T08:00:00Z warning: sessions output redirected to stderr",
+      stderr: "session-resume-id Native title model: gpt-5 messages: 14",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual([
+      {
+        id: "session-resume-id",
+        title: "Native title",
+        model: "gpt-5",
+        messageCount: 14,
+      },
+    ]);
+  });
 });

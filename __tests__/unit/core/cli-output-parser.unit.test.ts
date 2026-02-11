@@ -204,6 +204,20 @@ describe("cli-output-parser", () => {
     ]);
   });
 
+  it("ignores leading ISO timestamp tokens when extracting session ids", () => {
+    const output = [
+      "2026-02-11T08:00:00Z warning: sessions emitted to stderr",
+      "session-real-id Real resume session",
+    ].join("\n");
+
+    expect(parseSessionSummariesOutput(output)).toEqual([
+      {
+        id: "session-real-id",
+        title: "Real resume session",
+      },
+    ]);
+  });
+
   it("returns empty session list when CLI requires a tty", () => {
     expect(
       parseSessionListOutput("Requires TTY; use session_id from NDJSON system.init instead.")

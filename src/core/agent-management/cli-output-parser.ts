@@ -20,6 +20,8 @@ const LEADING_SESSION_ID_PATTERN = new RegExp(
   `^(?:[-*]\\s+|\\d+[.)]\\s+)?(?:session(?:_?id)?\\s*[:=]\\s*)?(${UUID_PATTERN_SOURCE}|${SESSION_ID_PATTERN_SOURCE})\\b`,
   "i"
 );
+const ISO_DATE_TOKEN_PATTERN =
+  /^\d{4}-\d{2}-\d{2}(?:[tT]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)?$/;
 const SESSION_MODEL_PATTERN = /\bmodel(?:\s*[:=]\s*|\s+)([^\s|,()]+)\b/i;
 const SESSION_MESSAGE_COUNT_PATTERN = /\bmessages?\s*[:=]\s*(\d+)\b/i;
 const SESSION_TRAILING_MESSAGE_COUNT_PATTERN = /(?:^|[\s|,;()])(\d+)\s+messages?\b/i;
@@ -112,6 +114,9 @@ export const parseUuidLines = (stdout: string): string[] =>
 const extractSessionIdFromLine = (line: string): string | null => {
   const leadingMatch = LEADING_SESSION_ID_PATTERN.exec(line)?.[1];
   if (leadingMatch) {
+    if (!UUID_PATTERN.test(leadingMatch) && ISO_DATE_TOKEN_PATTERN.test(leadingMatch)) {
+      return null;
+    }
     return leadingMatch;
   }
   return UUID_PATTERN.exec(line)?.[0] ?? null;
