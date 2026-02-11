@@ -16,3 +16,34 @@ export const toAgentManagementSessions = (
 ): AgentManagementSession[] => {
   return sessions.map((session) => toAgentManagementSession(session));
 };
+
+const mergeAgentManagementSessions = (
+  existing: AgentManagementSession,
+  incoming: AgentManagementSession
+): AgentManagementSession => {
+  return {
+    id: existing.id,
+    title: existing.title ?? incoming.title,
+    createdAt: existing.createdAt ?? incoming.createdAt,
+    model: existing.model ?? incoming.model,
+    messageCount: existing.messageCount ?? incoming.messageCount,
+  };
+};
+
+export const toUniqueAgentManagementSessions = (
+  sessions: AgentManagementSession[]
+): AgentManagementSession[] => {
+  const sessionsById = new Map<AgentManagementSession["id"], AgentManagementSession>();
+  for (const session of sessions) {
+    if (session.id.length === 0) {
+      continue;
+    }
+    const existing = sessionsById.get(session.id);
+    if (!existing) {
+      sessionsById.set(session.id, session);
+      continue;
+    }
+    sessionsById.set(session.id, mergeAgentManagementSessions(existing, session));
+  }
+  return Array.from(sessionsById.values());
+};

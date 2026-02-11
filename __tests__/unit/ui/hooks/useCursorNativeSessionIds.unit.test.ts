@@ -165,6 +165,48 @@ describe("useCursorNativeSessionIds", () => {
     unmount();
   });
 
+  it("merges metadata from duplicate runtime-native sessions", async () => {
+    const first = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174000");
+    const listAgentSessions = vi.fn(async () => [
+      { id: first },
+      {
+        id: first,
+        title: "Recovered title",
+        createdAt: "2026-02-11T18:30:00.000Z",
+        model: "gpt-5",
+        messageCount: 14,
+      },
+    ]);
+    const client: NativeSessionTestClient = { listAgentSessions };
+
+    function TestComponent() {
+      const result = useCursorNativeSessionIds({
+        enabled: true,
+        client,
+      });
+      const firstSession = result.sessions[0];
+      return React.createElement(
+        "text",
+        null,
+        `id:${firstSession?.id ?? "none"} title:${firstSession?.title ?? "none"} model:${
+          firstSession?.model ?? "none"
+        } messages:${
+          firstSession?.messageCount !== undefined ? String(firstSession.messageCount) : "none"
+        }`
+      );
+    }
+
+    const { lastFrame, unmount } = renderInk(React.createElement(TestComponent));
+    await flushMicrotasks();
+
+    const frame = lastFrame();
+    expect(frame).toContain(first);
+    expect(frame).toContain("Recovered title");
+    expect(frame).toContain("gpt-5");
+    expect(frame).toContain("14");
+    unmount();
+  });
+
   it("reports command errors", async () => {
     const runAgentCommand = vi.fn(async () => ({
       stdout: "",

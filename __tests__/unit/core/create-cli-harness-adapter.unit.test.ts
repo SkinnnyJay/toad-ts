@@ -205,6 +205,32 @@ describe("createCliHarnessAdapter", () => {
     expect(sessions).toEqual([{ id: "session-fake" }]);
   });
 
+  it("deduplicates and merges runtime session metadata", async () => {
+    const cliAgent = new FakeCliAgentPort();
+    cliAgent.listSessions = async () => [
+      { id: "session-fake" },
+      {
+        id: "session-fake",
+        title: "Recovered title",
+        model: "gpt-5",
+        messageCount: 14,
+      },
+    ];
+    const harness = createCliHarnessAdapter({ cliAgent });
+    await harness.connect();
+
+    const sessions = await harness.listAgentSessions();
+
+    expect(sessions).toEqual([
+      {
+        id: "session-fake",
+        title: "Recovered title",
+        model: "gpt-5",
+        messageCount: 14,
+      },
+    ]);
+  });
+
   it("falls back to management command session listing", async () => {
     const cliAgent = new FakeCliAgentPort();
     cliAgent.listSessions = undefined;

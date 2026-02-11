@@ -1,6 +1,7 @@
 import {
   toAgentManagementSession,
   toAgentManagementSessions,
+  toUniqueAgentManagementSessions,
 } from "@/core/agent-management/session-summary-mapper";
 import { describe, expect, it } from "vitest";
 
@@ -39,6 +40,42 @@ describe("session-summary-mapper", () => {
       {
         id: "session-2",
         title: "Second session",
+      },
+    ]);
+  });
+
+  it("deduplicates and merges agent-management sessions by id", () => {
+    const uniqueSessions = toUniqueAgentManagementSessions([
+      {
+        id: "session-1",
+      },
+      {
+        id: "session-1",
+        title: "Recovered title",
+        model: "gpt-5",
+        messageCount: 14,
+      },
+      {
+        id: "session-2",
+        title: "Second session",
+      },
+      {
+        id: "session-2",
+        createdAt: "2026-02-11T18:30:00.000Z",
+      },
+    ]);
+
+    expect(uniqueSessions).toEqual([
+      {
+        id: "session-1",
+        title: "Recovered title",
+        model: "gpt-5",
+        messageCount: 14,
+      },
+      {
+        id: "session-2",
+        title: "Second session",
+        createdAt: "2026-02-11T18:30:00.000Z",
       },
     ]);
   });

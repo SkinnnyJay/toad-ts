@@ -1,5 +1,6 @@
 import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
 import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
+import { toUniqueAgentManagementSessions } from "@/core/agent-management/session-summary-mapper";
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
 import { useCallback, useEffect, useState } from "react";
@@ -23,23 +24,12 @@ const toUniqueSessionIdsFromList = (sessionIds: string[]): SessionId[] => {
   return Array.from(new Set(parsedIds));
 };
 
-const toUniqueSessions = (sessions: AgentManagementSession[]): AgentManagementSession[] => {
-  const uniqueById = new Map<AgentManagementSession["id"], AgentManagementSession>();
-  for (const session of sessions) {
-    if (session.id.length === 0 || uniqueById.has(session.id)) {
-      continue;
-    }
-    uniqueById.set(session.id, session);
-  }
-  return Array.from(uniqueById.values());
-};
-
 const toUniqueSessionsFromCommandResult = (result: {
   stdout: string;
   stderr: string;
   exitCode: number;
 }): AgentManagementSession[] =>
-  toUniqueSessions(
+  toUniqueAgentManagementSessions(
     parseSessionListCommandResult(result).filter(
       (session): session is AgentManagementSession => SessionIdSchema.safeParse(session.id).success
     )
@@ -88,7 +78,7 @@ export function useCursorNativeSessionIds(
     try {
       if (client.listAgentSessions) {
         const listedSessions = await client.listAgentSessions();
-        const deduped = toUniqueSessions(
+        const deduped = toUniqueAgentManagementSessions(
           listedSessions.filter((session) => SessionIdSchema.safeParse(session.id).success)
         );
         setSessions(deduped);

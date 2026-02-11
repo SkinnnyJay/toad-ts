@@ -3,7 +3,10 @@ import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { ALLOW_ONCE, REJECT_ONCE } from "@/constants/permission-option-kinds";
 import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
-import { toAgentManagementSessions } from "@/core/agent-management/session-summary-mapper";
+import {
+  toAgentManagementSessions,
+  toUniqueAgentManagementSessions,
+} from "@/core/agent-management/session-summary-mapper";
 import { CliAgentBase } from "@/core/cli-agent/cli-agent.base";
 import { CliAgentBridge } from "@/core/cli-agent/cli-agent.bridge";
 import type { CliAgentPort } from "@/core/cli-agent/cli-agent.port";
@@ -175,12 +178,14 @@ export class CliHarnessAdapter extends CliAgentBase {
   async listAgentSessions(): Promise<AgentManagementSession[]> {
     if (this.cliAgent.listSessions) {
       const sessions = await this.cliAgent.listSessions();
-      return toAgentManagementSessions(sessions);
+      return toUniqueAgentManagementSessions(toAgentManagementSessions(sessions));
     }
 
     if (this.cliAgent.runManagementCommand) {
       const result = await this.cliAgent.runManagementCommand([AGENT_MANAGEMENT_COMMAND.LIST]);
-      return toAgentManagementSessions(parseSessionListCommandResult(result));
+      return toUniqueAgentManagementSessions(
+        toAgentManagementSessions(parseSessionListCommandResult(result))
+      );
     }
 
     throw new Error("CLI agent does not support session listing.");
