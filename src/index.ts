@@ -62,6 +62,7 @@ export * from "@/core/model-variant";
 export * from "@/core/pr-status";
 export * from "@/core/repo-workflow";
 export * from "@/core/cursor/cursor-stream-parser";
+export * from "@/core/cursor/cursor-cli-connection";
 export * from "@/core/permission-modes";
 export * from "@/core/prompt-suggestions";
 export * from "@/core/image-support";
