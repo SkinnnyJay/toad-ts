@@ -106,6 +106,30 @@ describe("slash command agent management", () => {
     expect(runAgentCommand).toHaveBeenCalledWith(["models"]);
   });
 
+  it("reports /models command failures from native management command", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "models endpoint unavailable",
+      exitCode: 1,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.MODELS, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runAgentCommand).toHaveBeenCalledWith(["models"]);
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("Model listing is not available for this provider.")
+    );
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("models endpoint unavailable")
+    );
+  });
+
   it("shows gemini login hint instead of running CLI login", () => {
     const runAgentCommand = vi.fn();
     const { deps, appendSystemMessage } = createDeps({

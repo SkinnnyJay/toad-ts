@@ -170,4 +170,21 @@ describe("CursorCliConnection", () => {
 
     await expect(connection.listSessions()).rejects.toThrow("requires tty");
   });
+
+  it("surfaces list model command errors", async () => {
+    const connection = new CursorCliConnection({
+      commandRunner: async (_command, args) => {
+        if (args[0] === AGENT_MANAGEMENT_COMMAND.MODELS) {
+          return {
+            stdout: "",
+            stderr: "models endpoint unavailable",
+            exitCode: 1,
+          };
+        }
+        return { stdout: "", stderr: "", exitCode: 0 };
+      },
+    });
+
+    await expect(connection.listModels()).rejects.toThrow("models endpoint unavailable");
+  });
 });

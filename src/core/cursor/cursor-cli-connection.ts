@@ -5,11 +5,8 @@ import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { SIGNAL } from "@/constants/signals";
-import {
-  extractFirstUuid,
-  parseAuthStatusOutput,
-  parseModelsOutput,
-} from "@/core/agent-management/cli-output-parser";
+import { extractFirstUuid, parseAuthStatusOutput } from "@/core/agent-management/cli-output-parser";
+import { parseModelsCommandResult } from "@/core/agent-management/models-command-result";
 import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
 import { CursorStreamParser } from "@/core/cursor/cursor-stream-parser";
 import type {
@@ -158,7 +155,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
 
   async listModels(): Promise<CliAgentModelsResponse> {
     const result = await this.runCommand([CURSOR_CLI_COMMAND.MODELS]);
-    return parseModelsOutput(result.stdout);
+    return parseModelsCommandResult(result);
   }
 
   async listSessions(): Promise<CliAgentSession[]> {

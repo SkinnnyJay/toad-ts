@@ -25,7 +25,7 @@ import {
 } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { TASK_STATUS } from "@/constants/task-status";
-import { parseModelsOutput } from "@/core/agent-management/cli-output-parser";
+import { parseModelsCommandResult } from "@/core/agent-management/models-command-result";
 import { parseAgentManagementSessionsFromCommandResult } from "@/core/agent-management/session-list-command-result";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
@@ -305,13 +305,21 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
           void deps
             .runAgentCommand([AGENT_MANAGEMENT_COMMAND.MODELS])
             .then((result) => {
-              if (result.exitCode !== 0) {
-                deps.appendSystemMessage(
-                  `${SLASH_COMMAND_MESSAGE.MODELS_NOT_AVAILABLE} ${result.stderr || result.stdout}`
-                );
+              const parsed = (() => {
+                try {
+                  return parseModelsCommandResult(result);
+                } catch (error) {
+                  deps.appendSystemMessage(
+                    `${SLASH_COMMAND_MESSAGE.MODELS_NOT_AVAILABLE} ${
+                      error instanceof Error ? error.message : String(error)
+                    }`
+                  );
+                  return null;
+                }
+              })();
+              if (!parsed) {
                 return;
               }
-              const parsed = parseModelsOutput(result.stdout);
               if (parsed.models.length === 0) {
                 deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MODELS_AVAILABLE);
                 return;
