@@ -210,6 +210,7 @@ export CURSOR_API_KEY=...
   - `Ctrl+S` session picker now includes native Cursor session ids from `cursor-agent ls`
   - `/sessions` native list output includes session metadata (title/created timestamp/model/message count) when available
   - Native session listings are deduplicated by session id and prefer richer/newer metadata when duplicates exist
+  - Native session listings are sorted by newest created timestamp first when timestamp metadata is available
 - Supports cloud-dispatch prompts with `&` prefix (for Cursor CLI sessions):
   - Example: `&investigate failing CI checks`
 
