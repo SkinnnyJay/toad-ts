@@ -43,6 +43,10 @@ class FakeCliAgentPort implements CliAgentPort {
     return "session-fake";
   }
 
+  async listSessions() {
+    return [{ id: "session-fake" }];
+  }
+
   async prompt(input: CliAgentPromptInput): Promise<CliAgentPromptExecution> {
     this.promptInputs.push(input);
     return {
@@ -190,5 +194,14 @@ describe("createCliHarnessAdapter", () => {
         sessionId: "session-fake",
       },
     ]);
+  });
+
+  it("lists agent sessions via cli session list support", async () => {
+    const cliAgent = new FakeCliAgentPort();
+    const harness = createCliHarnessAdapter({ cliAgent });
+    await harness.connect();
+
+    const sessions = await harness.listAgentSessions();
+    expect(sessions).toEqual([{ id: "session-fake" }]);
   });
 });

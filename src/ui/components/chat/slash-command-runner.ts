@@ -103,6 +103,7 @@ export interface SlashCommandDeps {
   runAgentCommand?: (
     args: string[]
   ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
+  listAgentSessions?: () => Promise<Array<{ id: string }>>;
   listCloudAgents?: () => Promise<number>;
   toggleVimMode?: () => boolean;
   connectionStatus?: string;
@@ -192,30 +193,50 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       }
       deps.appendSystemMessage(formatSessionListMessage(deps.listSessions()));
 
-      if (!deps.runAgentCommand || deps.activeHarnessId !== HARNESS_DEFAULT.CURSOR_CLI_ID) {
+      if (
+        deps.activeHarnessId !== HARNESS_DEFAULT.CURSOR_CLI_ID ||
+        (!deps.listAgentSessions && !deps.runAgentCommand)
+      ) {
         return true;
       }
 
       deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.SESSIONS_FETCHING);
-      void deps
-        .runAgentCommand(["ls"])
-        .then((result) => {
-          if (result.exitCode !== 0) {
+      if (deps.listAgentSessions) {
+        void deps
+          .listAgentSessions()
+          .then((sessions) => {
             deps.appendSystemMessage(
-              `${SLASH_COMMAND_MESSAGE.SESSIONS_NOT_AVAILABLE} ${result.stderr || result.stdout}`
+              formatAgentSessionListMessage(sessions.map((session) => session.id))
             );
-            return;
-          }
-          const sessionIds = parseUuidLines(`${result.stdout}\n${result.stderr}`);
-          deps.appendSystemMessage(formatAgentSessionListMessage(sessionIds));
-        })
-        .catch((error) => {
-          deps.appendSystemMessage(
-            `${SLASH_COMMAND_MESSAGE.SESSIONS_NOT_AVAILABLE} ${
-              error instanceof Error ? error.message : String(error)
-            }`
-          );
-        });
+          })
+          .catch((error) => {
+            deps.appendSystemMessage(
+              `${SLASH_COMMAND_MESSAGE.SESSIONS_NOT_AVAILABLE} ${
+                error instanceof Error ? error.message : String(error)
+              }`
+            );
+          });
+      } else if (deps.runAgentCommand) {
+        void deps
+          .runAgentCommand(["ls"])
+          .then((result) => {
+            if (result.exitCode !== 0) {
+              deps.appendSystemMessage(
+                `${SLASH_COMMAND_MESSAGE.SESSIONS_NOT_AVAILABLE} ${result.stderr || result.stdout}`
+              );
+              return;
+            }
+            const sessionIds = parseUuidLines(`${result.stdout}\n${result.stderr}`);
+            deps.appendSystemMessage(formatAgentSessionListMessage(sessionIds));
+          })
+          .catch((error) => {
+            deps.appendSystemMessage(
+              `${SLASH_COMMAND_MESSAGE.SESSIONS_NOT_AVAILABLE} ${
+                error instanceof Error ? error.message : String(error)
+              }`
+            );
+          });
+      }
       return true;
     }
     case SLASH_COMMAND.NEW: {

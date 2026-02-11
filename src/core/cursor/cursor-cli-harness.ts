@@ -41,6 +41,7 @@ import type {
 } from "@/harness/harnessAdapter";
 import { type HarnessConfig, harnessConfigSchema } from "@/harness/harnessConfig";
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
+import type { AgentManagementSession } from "@/types/agent-management.types";
 import type { CursorHookInput } from "@/types/cursor-hooks.types";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
@@ -72,6 +73,7 @@ interface CursorCliConnectionLike
   verifyInstallation(): Promise<{ installed: boolean; version?: string }>;
   verifyAuth(): Promise<{ authenticated: boolean }>;
   listModels(): Promise<{ models: Array<{ id: string; name: string }>; defaultModel?: string }>;
+  listSessions(): Promise<string[]>;
   createChat(): Promise<string>;
   spawnPrompt(request: CursorPromptRequest): Promise<CursorPromptResult>;
   runManagementCommand(args: string[]): Promise<{
@@ -267,6 +269,10 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
 
   async runAgentCommand(args: string[]): Promise<AgentManagementCommandResult> {
     return this.coreHarness.runAgentCommand(args);
+  }
+
+  async listAgentSessions(): Promise<AgentManagementSession[]> {
+    return this.coreHarness.listAgentSessions();
   }
 
   async login(): Promise<AgentManagementCommandResult> {

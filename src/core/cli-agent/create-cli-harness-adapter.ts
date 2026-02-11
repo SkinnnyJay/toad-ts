@@ -5,7 +5,10 @@ import { CliAgentBase } from "@/core/cli-agent/cli-agent.base";
 import { CliAgentBridge } from "@/core/cli-agent/cli-agent.bridge";
 import type { CliAgentPort } from "@/core/cli-agent/cli-agent.port";
 import { inferToolKindFromName } from "@/core/cli-agent/tool-kind-mapper";
-import type { AgentManagementCommandResult } from "@/types/agent-management.types";
+import type {
+  AgentManagementCommandResult,
+  AgentManagementSession,
+} from "@/types/agent-management.types";
 import type {
   AuthenticateRequest,
   AuthenticateResponse,
@@ -156,6 +159,20 @@ export class CliHarnessAdapter extends CliAgentBase {
       throw new Error("CLI agent does not support management commands.");
     }
     return this.cliAgent.runManagementCommand(args);
+  }
+
+  async listAgentSessions(): Promise<AgentManagementSession[]> {
+    if (!this.cliAgent.listSessions) {
+      throw new Error("CLI agent does not support session listing.");
+    }
+    const sessions = await this.cliAgent.listSessions();
+    return sessions.map((session) => ({
+      id: session.id,
+      title: session.title,
+      createdAt: session.createdAt,
+      model: session.model,
+      messageCount: session.messageCount,
+    }));
   }
 }
 

@@ -41,3 +41,15 @@ export const AgentManagementCommandResultSchema = z
   .strict();
 
 export type AgentManagementCommandResult = z.infer<typeof AgentManagementCommandResultSchema>;
+
+export const AgentManagementSessionSchema = z
+  .object({
+    id: z.string().min(1),
+    title: z.string().min(1).optional(),
+    createdAt: z.string().datetime().optional(),
+    model: z.string().min(1).optional(),
+    messageCount: z.number().int().nonnegative().optional(),
+  })
+  .strict();
+
+export type AgentManagementSession = z.infer<typeof AgentManagementSessionSchema>;

@@ -1,6 +1,9 @@
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import type { HarnessRuntime, HarnessRuntimeEvents } from "@/harness/harnessAdapter";
-import type { AgentManagementCommandResult } from "@/types/agent-management.types";
+import type {
+  AgentManagementCommandResult,
+  AgentManagementSession,
+} from "@/types/agent-management.types";
 import type { ConnectionStatus } from "@/types/domain";
 import type {
   AuthenticateRequest,
@@ -116,6 +119,10 @@ export abstract class CliAgentBase
 
   async runAgentCommand(_args: string[]): Promise<AgentManagementCommandResult> {
     throw new Error("Agent command execution is not supported by this harness.");
+  }
+
+  async listAgentSessions(): Promise<AgentManagementSession[]> {
+    throw new Error("Session listing is not supported by this harness.");
   }
 
   async login(): Promise<AgentManagementCommandResult> {

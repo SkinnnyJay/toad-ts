@@ -27,6 +27,10 @@ class FakeCursorConnection {
     return "session-created";
   }
 
+  async listSessions(): Promise<string[]> {
+    return ["session-created"];
+  }
+
   async spawnPrompt(request: CursorPromptRequest): Promise<CursorPromptResult> {
     this.promptRequests.push(request);
     return {

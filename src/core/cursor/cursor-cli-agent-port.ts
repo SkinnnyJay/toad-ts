@@ -11,6 +11,7 @@ interface CursorCliConnectionLike {
   verifyInstallation(): Promise<{ installed: boolean; version?: string }>;
   verifyAuth(): Promise<{ authenticated: boolean }>;
   listModels(): Promise<{ models: Array<{ id: string; name: string }>; defaultModel?: string }>;
+  listSessions(): Promise<string[]>;
   createChat(): Promise<string>;
   spawnPrompt(request: CursorPromptRequest): Promise<CursorPromptResult>;
   disconnect(): Promise<void>;
@@ -85,6 +86,11 @@ export class CursorCliAgentPort implements CliAgentPort {
 
   async createSession(): Promise<string> {
     return this.connection.createChat();
+  }
+
+  async listSessions() {
+    const sessionIds = await this.connection.listSessions();
+    return sessionIds.map((id) => ({ id }));
   }
 
   async prompt(input: {

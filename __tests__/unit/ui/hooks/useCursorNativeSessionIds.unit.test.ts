@@ -11,6 +11,7 @@ const flushMicrotasks = async (): Promise<void> => {
 };
 
 interface NativeSessionTestClient {
+  listAgentSessions?: () => Promise<Array<{ id: string }>>;
   runAgentCommand?: (
     args: string[]
   ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
@@ -73,6 +74,45 @@ describe("useCursorNativeSessionIds", () => {
     await flushMicrotasks();
 
     expect(runAgentCommand).toHaveBeenCalledWith(["ls"]);
+    const frame = lastFrame();
+    expect(frame).toContain(first);
+    expect(frame).toContain(second);
+    expect(frame).toContain("loading:false");
+    expect(frame).toContain("error:none");
+    unmount();
+  });
+
+  it("prefers listAgentSessions when runtime supports it", async () => {
+    const first = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174000");
+    const second = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174001");
+    const listAgentSessions = vi.fn(async () => [{ id: first }, { id: second }, { id: first }]);
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0,
+    }));
+    const client: NativeSessionTestClient = {
+      listAgentSessions,
+      runAgentCommand,
+    };
+
+    function TestComponent() {
+      const result = useCursorNativeSessionIds({
+        enabled: true,
+        client,
+      });
+      return React.createElement(
+        "text",
+        null,
+        `ids:${result.sessionIds.join(",")} loading:${String(result.loading)} error:${result.error ?? "none"}`
+      );
+    }
+
+    const { lastFrame, unmount } = renderInk(React.createElement(TestComponent));
+    await flushMicrotasks();
+
+    expect(listAgentSessions).toHaveBeenCalledTimes(1);
+    expect(runAgentCommand).not.toHaveBeenCalled();
     const frame = lastFrame();
     expect(frame).toContain(first);
     expect(frame).toContain(second);

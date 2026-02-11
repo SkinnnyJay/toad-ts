@@ -230,6 +230,34 @@ describe("slash command agent management", () => {
     );
   });
 
+  it("prefers runtime-native session listing for /sessions when available", async () => {
+    const listAgentSessions = vi.fn(async () => [
+      { id: "9b7418b2-5b71-4a12-97b4-64f2131e5241" },
+      { id: "36bf2c71-c56a-4c0a-a2e6-f7d47c2cd2e7" },
+    ]);
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      listAgentSessions,
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.SESSIONS, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(listAgentSessions).toHaveBeenCalledTimes(1);
+    expect(runAgentCommand).not.toHaveBeenCalled();
+    expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("Agent sessions:"));
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("9b7418b2-5b71-4a12-97b4-64f2131e5241")
+    );
+  });
+
   it("reports native session listing failures for /sessions", async () => {
     const runAgentCommand = vi.fn(async () => ({
       stdout: "",

@@ -34,6 +34,7 @@ export interface UseCursorNativeSessionIdsResult {
 }
 
 export interface CursorNativeSessionClient {
+  listAgentSessions?: () => Promise<Array<{ id: string }>>;
   runAgentCommand?: (
     args: string[]
   ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
@@ -53,13 +54,23 @@ export function useCursorNativeSessionIds(
   }, []);
 
   const refresh = useCallback(async () => {
-    if (!enabled || !client?.runAgentCommand) {
+    if (!enabled || !client) {
       resetState();
       return;
     }
     setLoading(true);
     setError(null);
     try {
+      if (client.listAgentSessions) {
+        const sessions = await client.listAgentSessions();
+        const parsed = toUniqueSessionIds(sessions.map((session) => session.id).join("\n"));
+        setSessionIds(parsed);
+        return;
+      }
+      if (!client.runAgentCommand) {
+        resetState();
+        return;
+      }
       const result = await client.runAgentCommand([CURSOR_NATIVE_SESSION_COMMAND.LIST]);
       if (result.exitCode !== 0) {
         const output = `${result.stderr}\n${result.stdout}`.trim();
