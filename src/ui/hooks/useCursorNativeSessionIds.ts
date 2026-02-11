@@ -1,5 +1,5 @@
+import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
 import { parseUuidLines } from "@/core/agent-management/cli-output-parser";
-import { AGENT_MANAGEMENT_COMMAND } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
 import { useCallback, useEffect, useState } from "react";
 

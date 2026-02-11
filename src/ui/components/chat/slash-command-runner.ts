@@ -1,4 +1,5 @@
 import { LIMIT } from "@/config/limits";
+import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { REWIND_MODE } from "@/constants/rewind-modes";
@@ -27,7 +28,6 @@ import { TASK_STATUS } from "@/constants/task-status";
 import { parseModelsOutput, parseUuidLines } from "@/core/agent-management/cli-output-parser";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
-import { AGENT_MANAGEMENT_COMMAND } from "@/types/agent-management.types";
 import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
 import { PlanIdSchema, SessionIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
 import { nanoid } from "nanoid";

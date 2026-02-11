@@ -1,18 +1,11 @@
+import {
+  AGENT_MANAGEMENT_COMMAND,
+  type AgentManagementCommand,
+} from "@/constants/agent-management-commands";
 import { z } from "zod";
 
-export const AGENT_MANAGEMENT_COMMAND = {
-  LOGIN: "login",
-  LOGOUT: "logout",
-  STATUS: "status",
-  MODELS: "models",
-  MODEL: "model",
-  MCP: "mcp",
-  AGENT: "agent",
-  LIST: "ls",
-} as const;
-
-export type AgentManagementCommand =
-  (typeof AGENT_MANAGEMENT_COMMAND)[keyof typeof AGENT_MANAGEMENT_COMMAND];
+export { AGENT_MANAGEMENT_COMMAND };
+export type { AgentManagementCommand };
 
 export const AgentManagementCommandSchema = z.enum([
   AGENT_MANAGEMENT_COMMAND.LOGIN,
