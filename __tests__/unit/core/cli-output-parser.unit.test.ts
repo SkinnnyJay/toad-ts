@@ -202,6 +202,24 @@ describe("cli-output-parser", () => {
     ]);
   });
 
+  it("parses session createdAt variants without seconds and with space separator", () => {
+    const output = [
+      "session-no-seconds createdAt=2026-02-10T08:00Z",
+      "session-space-separator createdAt=2026-02-11 09:10:11+00:00",
+    ].join("\n");
+
+    expect(parseSessionSummariesOutput(output)).toEqual([
+      {
+        id: "session-no-seconds",
+        createdAt: "2026-02-10T08:00:00.000Z",
+      },
+      {
+        id: "session-space-separator",
+        createdAt: "2026-02-11T09:10:11.000Z",
+      },
+    ]);
+  });
+
   it("merges duplicate session rows with richer metadata", () => {
     const output = [
       "session-resume-id Old title model: gpt-5 messages: 1 createdAt=2026-02-10T08:00:00+00:00",

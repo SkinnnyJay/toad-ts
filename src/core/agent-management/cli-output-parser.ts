@@ -26,7 +26,7 @@ const SESSION_MODEL_PATTERN = /\bmodel(?:\s*[:=]\s*|\s+)([^\s|,()]+)\b/i;
 const SESSION_MESSAGE_COUNT_PATTERN = /\bmessages?\s*[:=]\s*(\d+)\b/i;
 const SESSION_TRAILING_MESSAGE_COUNT_PATTERN = /(?:^|[\s|,;()])(\d+)\s+messages?\b/i;
 const SESSION_CREATED_AT_PATTERN =
-  /\b(?:created(?:_?at)?\s*[:=]\s*)?(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))\b/i;
+  /\b(?:created(?:_?at)?\s*[:=]\s*)?(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))\b/i;
 const MODEL_LINE_PATTERN = /^(?:[-*]\s+)?(\S+)\s+-\s+(.+)$/;
 const MODEL_STATE_SUFFIX_PATTERN = /\s+\((?:current|default|,|\s)+\)/gi;
 const MODEL_STATE_MARKER_PATTERN = /\((?:current|default|,|\s)+\)/i;
