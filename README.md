@@ -207,6 +207,7 @@ export CURSOR_API_KEY=...
 - Supports management commands through slash commands:
   - `/status`, `/login`, `/logout`, `/models`, `/model`, `/mcp`, `/agent`
   - `/sessions <id>` to switch/resume a known Cursor session id
+  - `Ctrl+S` session picker now includes native Cursor session ids from `cursor-agent ls`
 - Supports cloud-dispatch prompts with `&` prefix (for Cursor CLI sessions):
   - Example: `&investigate failing CI checks`
 
