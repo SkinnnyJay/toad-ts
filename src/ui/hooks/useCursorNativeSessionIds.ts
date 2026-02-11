@@ -16,11 +16,18 @@ const toErrorMessage = (error: unknown): string => {
   return "Failed to load native Cursor sessions.";
 };
 
+const toNormalizedSessionId = (sessionId: string): SessionId | undefined => {
+  const parsed = SessionIdSchema.safeParse(sessionId.trim());
+  if (!parsed.success) {
+    return undefined;
+  }
+  return parsed.data;
+};
+
 const toUniqueSessionIdsFromList = (sessionIds: string[]): SessionId[] => {
   const parsedIds = sessionIds
-    .map((sessionId) => SessionIdSchema.safeParse(sessionId))
-    .filter((parsed): parsed is { success: true; data: SessionId } => parsed.success)
-    .map((parsed) => parsed.data);
+    .map((sessionId) => toNormalizedSessionId(sessionId))
+    .filter((sessionId): sessionId is SessionId => sessionId !== undefined);
   return Array.from(new Set(parsedIds));
 };
 
@@ -30,9 +37,21 @@ const toUniqueSessionsFromCommandResult = (result: {
   exitCode: number;
 }): AgentManagementSession[] =>
   toUniqueAgentManagementSessions(
-    parseSessionListCommandResult(result).filter(
-      (session): session is AgentManagementSession => SessionIdSchema.safeParse(session.id).success
-    )
+    parseSessionListCommandResult(result)
+      .map((session): AgentManagementSession | undefined => {
+        const sessionId = toNormalizedSessionId(session.id);
+        if (!sessionId) {
+          return undefined;
+        }
+        return {
+          id: sessionId,
+          title: session.title,
+          createdAt: session.createdAt,
+          model: session.model,
+          messageCount: session.messageCount,
+        };
+      })
+      .filter((session): session is AgentManagementSession => session !== undefined)
   );
 
 export interface UseCursorNativeSessionIdsOptions {
@@ -79,7 +98,21 @@ export function useCursorNativeSessionIds(
       if (client.listAgentSessions) {
         const listedSessions = await client.listAgentSessions();
         const deduped = toUniqueAgentManagementSessions(
-          listedSessions.filter((session) => SessionIdSchema.safeParse(session.id).success)
+          listedSessions
+            .map((session): AgentManagementSession | undefined => {
+              const sessionId = toNormalizedSessionId(session.id);
+              if (!sessionId) {
+                return undefined;
+              }
+              return {
+                id: sessionId,
+                title: session.title,
+                createdAt: session.createdAt,
+                model: session.model,
+                messageCount: session.messageCount,
+              };
+            })
+            .filter((session): session is AgentManagementSession => session !== undefined)
         );
         setSessions(deduped);
         return;

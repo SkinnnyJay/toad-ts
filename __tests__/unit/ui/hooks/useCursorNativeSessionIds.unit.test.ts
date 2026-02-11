@@ -111,7 +111,7 @@ describe("useCursorNativeSessionIds", () => {
         model: "gpt-5",
         messageCount: 14,
       },
-      { id: second },
+      { id: `  ${second}  ` },
       { id: third },
       { id: first },
     ]);
