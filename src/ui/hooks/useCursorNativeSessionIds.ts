@@ -4,13 +4,12 @@ import {
   toAgentManagementSessions,
   toUniqueAgentManagementSessions,
 } from "@/core/agent-management/session-summary-mapper";
-import type { AgentManagementSession } from "@/types/agent-management.types";
+import type {
+  AgentManagementCommandResult,
+  AgentManagementSession,
+} from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
 import { useCallback, useEffect, useState } from "react";
-
-const CURSOR_NATIVE_SESSION_COMMAND = {
-  LIST: AGENT_MANAGEMENT_COMMAND.LIST,
-} as const;
 
 const toErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
@@ -50,11 +49,9 @@ const toUniqueSessionIdsFromList = (sessionIds: string[]): SessionId[] => {
   return Array.from(new Set(parsedIds));
 };
 
-const toUniqueSessionsFromCommandResult = (result: {
-  stdout: string;
-  stderr: string;
-  exitCode: number;
-}): AgentManagementSession[] =>
+const toUniqueSessionsFromCommandResult = (
+  result: AgentManagementCommandResult
+): AgentManagementSession[] =>
   toUniqueAgentManagementSessions(
     toAgentManagementSessions(parseSessionListCommandResult(result))
       .map((session) => toValidatedSession(session))
@@ -116,7 +113,7 @@ export function useCursorNativeSessionIds(
         resetState();
         return;
       }
-      const result = await client.runAgentCommand([CURSOR_NATIVE_SESSION_COMMAND.LIST]);
+      const result = await client.runAgentCommand([AGENT_MANAGEMENT_COMMAND.LIST]);
       const parsed = toUniqueSessionsFromCommandResult(result);
       setSessions(parsed);
     } catch (error) {
