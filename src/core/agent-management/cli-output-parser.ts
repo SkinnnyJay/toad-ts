@@ -33,7 +33,8 @@ const MODEL_STATE_SUFFIX_PATTERN =
   /\s+(?:\((?:current|default|,|\s)+\)|\[(?:current|default|,|\s)+\])/gi;
 const MODEL_STATE_MARKER_PATTERN =
   /(?:\((?:current|default|,|\s)+\)|\[(?:current|default|,|\s)+\])/i;
-const MODEL_NOISE_LINE_PATTERN = /^(?:warning|warn|error|info|debug|note)\b(?:\s*[:=-].*)?$/i;
+const MODEL_NOISE_LINE_PATTERN =
+  /^(?:warning|warn|error|info|debug|note)(?:\s*[:=].*|\s+-.*|\s+.*)$/i;
 const THINKING_MODEL_PATTERN = /\bthinking\b/i;
 const LOGGED_IN_PATTERN = /logged in as\s+([^\s]+@[^\s]+)/i;
 const AUTHENTICATED_AS_PATTERN = /\bauthenticated\s+as\s+([^\s]+@[^\s]+)/i;

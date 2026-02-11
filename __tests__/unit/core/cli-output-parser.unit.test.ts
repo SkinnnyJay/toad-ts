@@ -212,6 +212,19 @@ describe("cli-output-parser", () => {
     expect(parsed.defaultModel).toBe("gpt-5");
   });
 
+  it("does not treat warning-prefixed model ids as noise", () => {
+    const parsed = parseModelsOutput("warning-model - Warning Model");
+
+    expect(parsed.models).toEqual([
+      {
+        id: "warning-model",
+        name: "Warning Model",
+        isDefault: false,
+        supportsThinking: false,
+      },
+    ]);
+  });
+
   it("extracts UUID values from output lines", () => {
     const output = [
       "session: 03db60d8-ec0a-4376-aa2b-d89acc9b4abc",
