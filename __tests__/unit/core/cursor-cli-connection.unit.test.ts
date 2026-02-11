@@ -206,4 +206,31 @@ describe("CursorCliConnection", () => {
     expect(auth.authenticated).toBe(true);
     expect(auth.email).toBe("stderr-user@example.com");
   });
+
+  it("parses model list from stderr when stdout is empty", async () => {
+    const connection = new CursorCliConnection({
+      commandRunner: async (_command, args) => {
+        if (args[0] === AGENT_MANAGEMENT_COMMAND.MODELS) {
+          return {
+            stdout: "",
+            stderr: "auto - Auto\nopus-4.6-thinking - Claude 4.6 Opus (Thinking) (default)",
+            exitCode: 0,
+          };
+        }
+        return { stdout: "", stderr: "", exitCode: 0 };
+      },
+    });
+
+    const models = await connection.listModels();
+    expect(models.defaultModel).toBe("opus-4.6-thinking");
+    expect(models.models).toEqual([
+      { id: "auto", name: "Auto", isDefault: false, supportsThinking: false },
+      {
+        id: "opus-4.6-thinking",
+        name: "Claude 4.6 Opus (Thinking) (default)",
+        isDefault: true,
+        supportsThinking: true,
+      },
+    ]);
+  });
 });

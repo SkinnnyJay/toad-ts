@@ -1,5 +1,8 @@
 import { parseModelsOutput } from "@/core/agent-management/cli-output-parser";
-import { assertCommandSucceeded } from "@/core/agent-management/command-result-utils";
+import {
+  assertCommandSucceeded,
+  toCombinedCommandOutput,
+} from "@/core/agent-management/command-result-utils";
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type { CliAgentModelsResponse } from "@/types/cli-agent.types";
 
@@ -9,5 +12,9 @@ export const parseModelsCommandResult = (
   result: AgentManagementCommandResult
 ): CliAgentModelsResponse => {
   assertCommandSucceeded(result, MODELS_COMMAND_FAILURE_MESSAGE);
-  return parseModelsOutput(result.stdout);
+  const parsedFromStdout = parseModelsOutput(result.stdout);
+  if (parsedFromStdout.models.length > 0 || result.stdout.trim().length > 0) {
+    return parsedFromStdout;
+  }
+  return parseModelsOutput(toCombinedCommandOutput(result));
 };

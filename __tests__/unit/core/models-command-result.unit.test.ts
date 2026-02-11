@@ -40,4 +40,23 @@ describe("models-command-result", () => {
       })
     ).toThrow("CLI models command failed.");
   });
+
+  it("falls back to stderr when stdout is empty", () => {
+    const parsed = parseModelsCommandResult({
+      stdout: "",
+      stderr: "auto - Auto\nopus-4.6-thinking - Claude 4.6 Opus (Thinking) (default)",
+      exitCode: 0,
+    });
+
+    expect(parsed.defaultModel).toBe("opus-4.6-thinking");
+    expect(parsed.models).toEqual([
+      { id: "auto", name: "Auto", isDefault: false, supportsThinking: false },
+      {
+        id: "opus-4.6-thinking",
+        name: "Claude 4.6 Opus (Thinking) (default)",
+        isDefault: true,
+        supportsThinking: true,
+      },
+    ]);
+  });
 });
