@@ -16,6 +16,8 @@ export interface StatusFooterProps {
   sessionMode?: SessionMode;
   sessionId?: SessionId;
   agentName?: string;
+  workspacePath?: string;
+  prStatus?: { url: string; reviewDecision: string };
 }
 
 const globalShortcuts = [

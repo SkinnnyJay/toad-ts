@@ -1,5 +1,12 @@
+import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import type { Message, MessageId } from "@/types/domain";
+import { copyToClipboard } from "@/utils/clipboard/clipboard.utils";
 import { useCallback, useState } from "react";
+
+export interface BlockAction {
+  type: "copy" | "resend" | "export";
+  messageId: MessageId;
+}
 
 export interface BlockNavigationState {
   /** Currently focused message index (-1 = none) */
@@ -18,6 +25,10 @@ export interface BlockNavigationState {
   clearFocus: () => void;
   /** Whether block navigation is active */
   isActive: boolean;
+  /** Copy focused block text to clipboard */
+  copyFocusedBlock: () => Promise<boolean>;
+  /** Get the focused message object */
+  getFocusedMessage: () => Message | null;
 }
 
 /**
@@ -58,6 +69,22 @@ export const useBlockNavigation = (messages: Message[]): BlockNavigationState =>
       ? (messages[focusedIndex]?.id ?? null)
       : null;
 
+  const copyFocusedBlock = useCallback(async (): Promise<boolean> => {
+    if (focusedIndex < 0 || focusedIndex >= messages.length) return false;
+    const message = messages[focusedIndex];
+    if (!message) return false;
+    const text = message.content
+      .filter((b) => b.type === CONTENT_BLOCK_TYPE.TEXT && "text" in b)
+      .map((b) => ("text" in b ? b.text : ""))
+      .join("\n");
+    return copyToClipboard(text);
+  }, [focusedIndex, messages]);
+
+  const getFocusedMessage = useCallback((): Message | null => {
+    if (focusedIndex < 0 || focusedIndex >= messages.length) return null;
+    return messages[focusedIndex] ?? null;
+  }, [focusedIndex, messages]);
+
   return {
     focusedIndex,
     focusedMessageId,
@@ -67,5 +94,7 @@ export const useBlockNavigation = (messages: Message[]): BlockNavigationState =>
     navigateLast,
     clearFocus,
     isActive: focusedIndex >= 0,
+    copyFocusedBlock,
+    getFocusedMessage,
   };
 };
