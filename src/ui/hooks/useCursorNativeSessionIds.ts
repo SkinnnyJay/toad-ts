@@ -21,6 +21,14 @@ const toUniqueSessionIds = (value: string): SessionId[] => {
   return Array.from(new Set(parsedIds));
 };
 
+const toUniqueSessionIdsFromList = (sessionIds: string[]): SessionId[] => {
+  const parsedIds = sessionIds
+    .map((sessionId) => SessionIdSchema.safeParse(sessionId))
+    .filter((parsed): parsed is { success: true; data: SessionId } => parsed.success)
+    .map((parsed) => parsed.data);
+  return Array.from(new Set(parsedIds));
+};
+
 export interface UseCursorNativeSessionIdsOptions {
   enabled?: boolean;
   client?: CursorNativeSessionClient | null;
@@ -63,7 +71,7 @@ export function useCursorNativeSessionIds(
     try {
       if (client.listAgentSessions) {
         const sessions = await client.listAgentSessions();
-        const parsed = toUniqueSessionIds(sessions.map((session) => session.id).join("\n"));
+        const parsed = toUniqueSessionIdsFromList(sessions.map((session) => session.id));
         setSessionIds(parsed);
         return;
       }
