@@ -4,6 +4,7 @@ import { CONTENT_BLOCK_TYPE } from "../../../src/constants/content-block-types";
 import { CURSOR_STREAM_TYPE } from "../../../src/constants/cursor-event-types";
 import { CURSOR_HOOK_EVENT } from "../../../src/constants/cursor-hook-events";
 import { CURSOR_HOOK_IPC_TRANSPORT } from "../../../src/constants/cursor-hook-ipc";
+import { CURSOR_PERFORMANCE } from "../../../src/constants/cursor-performance";
 import { SESSION_UPDATE_TYPE } from "../../../src/constants/session-update-types";
 import type {
   CursorPromptRequest,
@@ -99,8 +100,6 @@ class IntegrationFakeHookServer extends EventEmitter<{
 }
 
 describe("Cursor session flow integration", () => {
-  const PROMPT_OVERHEAD_MAX_MS = 500;
-
   it("creates a session and streams assistant updates into the store", async () => {
     const store = useAppStore.getState();
     store.reset();
@@ -184,8 +183,8 @@ describe("Cursor session flow integration", () => {
       expect(connection.promptRequests.every((request) => request.sessionId === session.id)).toBe(
         true
       );
-      expect(firstPromptDurationMs).toBeLessThanOrEqual(PROMPT_OVERHEAD_MAX_MS);
-      expect(secondPromptDurationMs).toBeLessThanOrEqual(PROMPT_OVERHEAD_MAX_MS);
+      expect(firstPromptDurationMs).toBeLessThanOrEqual(CURSOR_PERFORMANCE.PROMPT_OVERHEAD_MAX_MS);
+      expect(secondPromptDurationMs).toBeLessThanOrEqual(CURSOR_PERFORMANCE.PROMPT_OVERHEAD_MAX_MS);
       expect(connection.promptRequests[0]?.model).toBe("opus-4.6-thinking");
       expect(hookSessionUpdates).toContain(SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK);
       expect(hookSessionUpdates).toContain(SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE);

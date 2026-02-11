@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { CURSOR_HOOK_EVENT } from "../../../src/constants/cursor-hook-events";
+import { CURSOR_PERFORMANCE } from "../../../src/constants/cursor-performance";
 import { SESSION_UPDATE_TYPE } from "../../../src/constants/session-update-types";
 import { CursorCliHarnessAdapter } from "../../../src/core/cursor/cursor-cli-harness";
 import { CursorStreamParser } from "../../../src/core/cursor/cursor-stream-parser";
@@ -57,12 +58,6 @@ const invokeNodeShim = async (
 };
 
 describe("Cursor channel integrations", () => {
-  const CURSOR_CHANNEL_PERF = {
-    HOOK_SHIM_ROUNDTRIP_MAX_MS: 500,
-    HOOK_DIRECT_P95_MAX_MS: 50,
-    HOOK_DIRECT_SAMPLE_COUNT: 10,
-  } as const;
-
   it("parses NDJSON fixture and emits translated session updates", async () => {
     const fixture = await readFixture("tool-use-response.ndjson");
     const parser = new CursorStreamParser();
@@ -119,7 +114,7 @@ describe("Cursor channel integrations", () => {
       const parsed = JSON.parse(output) as Record<string, unknown>;
       expect(parsed.continue).toBe(true);
       expect(parsed.additional_context).toBe("Injected context from TOADSTOOL");
-      expect(roundtripMs).toBeLessThanOrEqual(CURSOR_CHANNEL_PERF.HOOK_SHIM_ROUNDTRIP_MAX_MS);
+      expect(roundtripMs).toBeLessThanOrEqual(CURSOR_PERFORMANCE.HOOK_SHIM_ROUNDTRIP_MAX_MS);
     } finally {
       await cleanupCursorHooks(installation);
       await hookServer.stop();
@@ -142,7 +137,7 @@ describe("Cursor channel integrations", () => {
     try {
       const durationsMs: number[] = [];
 
-      for (let index = 0; index < CURSOR_CHANNEL_PERF.HOOK_DIRECT_SAMPLE_COUNT; index += 1) {
+      for (let index = 0; index < CURSOR_PERFORMANCE.HOOK_DIRECT_SAMPLE_COUNT; index += 1) {
         const roundtripStart = performance.now();
         const response = await fetch(socketTarget, {
           method: "POST",
@@ -166,7 +161,7 @@ describe("Cursor channel integrations", () => {
       const sorted = durationsMs.slice().sort((a, b) => a - b);
       const p95Index = Math.max(0, Math.ceil(sorted.length * 0.95) - 1);
       const p95 = sorted[p95Index] ?? Number.POSITIVE_INFINITY;
-      expect(p95).toBeLessThanOrEqual(CURSOR_CHANNEL_PERF.HOOK_DIRECT_P95_MAX_MS);
+      expect(p95).toBeLessThanOrEqual(CURSOR_PERFORMANCE.HOOK_DIRECT_P95_MAX_MS);
     } finally {
       await hookServer.stop();
     }
