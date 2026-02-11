@@ -37,6 +37,37 @@ describe("cli-output-parser", () => {
     expect(parsed.defaultModel).toBe("opus-4.6-thinking");
   });
 
+  it("normalizes model names with current/default marker variants", () => {
+    const parsed = parseModelsOutput(
+      [
+        "gpt-4o - GPT-4o (current)",
+        "gpt-5 - GPT-5 (default)",
+        "opus-4.6-thinking - Claude 4.6 Opus (Thinking) (current default)",
+      ].join("\n")
+    );
+
+    expect(parsed.models).toEqual([
+      {
+        id: "gpt-4o",
+        name: "GPT-4o",
+        isDefault: true,
+        supportsThinking: false,
+      },
+      {
+        id: "gpt-5",
+        name: "GPT-5",
+        isDefault: true,
+        supportsThinking: false,
+      },
+      {
+        id: "opus-4.6-thinking",
+        name: "Claude 4.6 Opus (Thinking)",
+        isDefault: true,
+        supportsThinking: true,
+      },
+    ]);
+  });
+
   it("extracts UUID values from output lines", () => {
     const output = [
       "session: 03db60d8-ec0a-4376-aa2b-d89acc9b4abc",
