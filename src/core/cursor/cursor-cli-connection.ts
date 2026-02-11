@@ -9,7 +9,7 @@ import {
   extractFirstUuid,
   parseAuthStatusOutput,
   parseModelsOutput,
-  parseUuidLines,
+  parseSessionListOutput,
 } from "@/core/agent-management/cli-output-parser";
 import { CursorStreamParser } from "@/core/cursor/cursor-stream-parser";
 import type { CliAgentAuthStatus, CliAgentModelsResponse } from "@/types/cli-agent.types";
@@ -159,12 +159,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
 
   async listSessions(): Promise<string[]> {
     const result = await this.runCommand([CURSOR_CLI_COMMAND.LIST]);
-    const stdout = `${result.stdout}\n${result.stderr}`;
-    if (/requires tty/i.test(stdout)) {
-      return [];
-    }
-
-    return parseUuidLines(stdout);
+    return parseSessionListOutput(`${result.stdout}\n${result.stderr}`);
   }
 
   async createChat(): Promise<string> {

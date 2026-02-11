@@ -125,4 +125,22 @@ describe("CursorCliConnection", () => {
     expect(killCalls.length).toBeGreaterThanOrEqual(1);
     expect(killCalls.some((call) => call.signal === "SIGTERM")).toBe(true);
   });
+
+  it("parses non-uuid session identifiers from list output", async () => {
+    const connection = new CursorCliConnection({
+      commandRunner: async (_command, args) => {
+        if (args[0] === AGENT_MANAGEMENT_COMMAND.LIST) {
+          return {
+            stdout: "session-resume-id Active session\nanother-session-id done",
+            stderr: "",
+            exitCode: 0,
+          };
+        }
+        return { stdout: "", stderr: "", exitCode: 0 };
+      },
+    });
+
+    const sessions = await connection.listSessions();
+    expect(sessions).toEqual(["session-resume-id", "another-session-id"]);
+  });
 });

@@ -4,6 +4,7 @@ import {
   parseAuthStatusOutput,
   parseKeyValueLines,
   parseModelsOutput,
+  parseSessionListOutput,
   parseUuidLines,
 } from "../../../src/core/agent-management/cli-output-parser";
 
@@ -32,6 +33,25 @@ describe("cli-output-parser", () => {
       "03db60d8-ec0a-4376-aa2b-d89acc9b4abc",
       "8ecde8d5-e5be-4191-b88d-bd9dc1908f8f",
     ]);
+  });
+
+  it("parses session list output with uuid and non-uuid ids", () => {
+    const output = [
+      "03db60d8-ec0a-4376-aa2b-d89acc9b4abc Active session",
+      "session-resume-id Native resume session",
+      "03db60d8-ec0a-4376-aa2b-d89acc9b4abc Active session",
+    ].join("\n");
+
+    expect(parseSessionListOutput(output)).toEqual([
+      "03db60d8-ec0a-4376-aa2b-d89acc9b4abc",
+      "session-resume-id",
+    ]);
+  });
+
+  it("returns empty session list when CLI requires a tty", () => {
+    expect(
+      parseSessionListOutput("Requires TTY; use session_id from NDJSON system.init instead.")
+    ).toEqual([]);
   });
 
   it("parses key-value style output", () => {

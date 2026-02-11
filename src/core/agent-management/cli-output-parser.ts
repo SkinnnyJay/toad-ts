@@ -6,8 +6,10 @@ import {
 } from "@/types/cli-agent.types";
 
 const UUID_PATTERN = /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i;
+const SESSION_ID_PATTERN = /\b[a-z0-9][a-z0-9._:-]*-[a-z0-9._:-]+\b/i;
 const MODEL_LINE_PATTERN = /^(\S+)\s+-\s+(.+)$/;
 const LOGGED_IN_PATTERN = /logged in as\s+([^\s]+@[^\s]+)/i;
+const REQUIRES_TTY_PATTERN = /requires tty/i;
 
 const getNonEmptyLines = (input: string): string[] =>
   input
@@ -64,6 +66,19 @@ export const parseUuidLines = (stdout: string): string[] =>
   getNonEmptyLines(stdout)
     .map((line) => UUID_PATTERN.exec(line)?.[0] ?? null)
     .filter((entry): entry is string => entry !== null);
+
+export const parseSessionListOutput = (stdout: string): string[] => {
+  const lines = getNonEmptyLines(stdout);
+  if (lines.some((line) => REQUIRES_TTY_PATTERN.test(line))) {
+    return [];
+  }
+
+  const sessionIds = lines
+    .map((line) => UUID_PATTERN.exec(line)?.[0] ?? SESSION_ID_PATTERN.exec(line)?.[0] ?? null)
+    .filter((entry): entry is string => entry !== null);
+
+  return Array.from(new Set(sessionIds));
+};
 
 export const extractFirstUuid = (stdout: string): string | null => {
   const match = UUID_PATTERN.exec(stdout);
