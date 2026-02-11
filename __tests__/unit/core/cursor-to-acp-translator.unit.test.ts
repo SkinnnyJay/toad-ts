@@ -127,6 +127,36 @@ describe("CursorToAcpTranslator", () => {
     expect(updates[1]?.status).toBe("completed");
   });
 
+  it("maps tool completion with success=false payload as failed", () => {
+    const translator = new CursorToAcpTranslator();
+    const updates: Array<{ sessionUpdate: string; status?: string }> = [];
+    translator.on("sessionUpdate", (event) => {
+      if ("toolCallId" in event.update) {
+        updates.push({
+          sessionUpdate: event.update.sessionUpdate,
+          status: event.update.status,
+        });
+      }
+    });
+
+    translator.translate({
+      type: CURSOR_STREAM_TYPE.TOOL_CALL,
+      subtype: CURSOR_STREAM_SUBTYPE.COMPLETED,
+      call_id: "call-flag-failed",
+      session_id: sessionId,
+      tool_call: {
+        shellToolCall: {
+          args: { command: "exit 1" },
+          result: { success: false },
+        },
+      },
+    });
+
+    expect(updates).toHaveLength(1);
+    expect(updates[0]?.sessionUpdate).toBe(SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE);
+    expect(updates[0]?.status).toBe("failed");
+  });
+
   it("truncates oversized tool outputs and emits truncation metadata", () => {
     const translator = new CursorToAcpTranslator({ toolResultMaxBytes: 8 });
     const truncations: Array<{ toolCallId: string; originalBytes: number }> = [];

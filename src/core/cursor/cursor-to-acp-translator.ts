@@ -210,10 +210,15 @@ export class CursorToAcpTranslator extends EventEmitter<CursorToAcpTranslatorEve
       return true;
     }
     if ("error" in output) {
-      return false;
+      const errorValue = output.error;
+      return errorValue === undefined || errorValue === null;
     }
     if ("success" in output) {
-      return true;
+      const successValue = output.success;
+      if (typeof successValue === "boolean") {
+        return successValue;
+      }
+      return successValue !== undefined && successValue !== null;
     }
     return true;
   }
