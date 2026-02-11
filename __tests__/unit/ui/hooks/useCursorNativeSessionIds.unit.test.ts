@@ -53,7 +53,7 @@ describe("useCursorNativeSessionIds", () => {
     const second = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174001");
     const third = SessionIdSchema.parse("session-resume-id");
     const runAgentCommand = vi.fn(async () => ({
-      stdout: `${first}\n${second}\n${third}\n${first}`,
+      stdout: `${first}\n${second}\n${third} Native title\n${first}`,
       stderr: "",
       exitCode: 0,
     }));
@@ -67,7 +67,9 @@ describe("useCursorNativeSessionIds", () => {
       return React.createElement(
         "text",
         null,
-        `ids:${result.sessionIds.join(",")} loading:${String(result.loading)} error:${result.error ?? "none"}`
+        `ids:${result.sessionIds.join(",")} titles:${result.sessions
+          .map((session) => session.title ?? "")
+          .join(",")} loading:${String(result.loading)} error:${result.error ?? "none"}`
       );
     }
 
@@ -79,6 +81,7 @@ describe("useCursorNativeSessionIds", () => {
     expect(frame).toContain(first);
     expect(frame).toContain(second);
     expect(frame).toContain(third);
+    expect(frame).toContain("Native title");
     expect(frame).toContain("loading:false");
     expect(frame).toContain("error:none");
     unmount();

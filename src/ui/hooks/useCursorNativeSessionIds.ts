@@ -1,5 +1,5 @@
 import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
-import { parseSessionListOutput } from "@/core/agent-management/cli-output-parser";
+import { parseSessionSummariesOutput } from "@/core/agent-management/cli-output-parser";
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
 import { useCallback, useEffect, useState } from "react";
@@ -13,14 +13,6 @@ const toErrorMessage = (error: unknown): string => {
     return error.message;
   }
   return "Failed to load native Cursor sessions.";
-};
-
-const toUniqueSessionIds = (value: string): SessionId[] => {
-  const parsedIds = parseSessionListOutput(value)
-    .map((sessionId) => SessionIdSchema.safeParse(sessionId))
-    .filter((parsed): parsed is { success: true; data: SessionId } => parsed.success)
-    .map((parsed) => parsed.data);
-  return Array.from(new Set(parsedIds));
 };
 
 const toUniqueSessionIdsFromList = (sessionIds: string[]): SessionId[] => {
@@ -41,6 +33,13 @@ const toUniqueSessions = (sessions: AgentManagementSession[]): AgentManagementSe
   }
   return Array.from(uniqueById.values());
 };
+
+const toUniqueSessionsFromOutput = (value: string): AgentManagementSession[] =>
+  toUniqueSessions(
+    parseSessionSummariesOutput(value).filter(
+      (session): session is AgentManagementSession => SessionIdSchema.safeParse(session.id).success
+    )
+  );
 
 export interface UseCursorNativeSessionIdsOptions {
   enabled?: boolean;
@@ -100,8 +99,8 @@ export function useCursorNativeSessionIds(
         const output = `${result.stderr}\n${result.stdout}`.trim();
         throw new Error(output.length > 0 ? output : "Cursor session listing command failed.");
       }
-      const parsed = toUniqueSessionIds(`${result.stdout}\n${result.stderr}`);
-      setSessions(parsed.map((sessionId) => ({ id: sessionId })));
+      const parsed = toUniqueSessionsFromOutput(`${result.stdout}\n${result.stderr}`);
+      setSessions(parsed);
     } catch (error) {
       setSessions([]);
       setError(toErrorMessage(error));

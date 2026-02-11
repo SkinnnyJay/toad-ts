@@ -27,7 +27,7 @@ import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { TASK_STATUS } from "@/constants/task-status";
 import {
   parseModelsOutput,
-  parseSessionListOutput,
+  parseSessionSummariesOutput,
 } from "@/core/agent-management/cli-output-parser";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
@@ -229,10 +229,8 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
               );
               return;
             }
-            const sessionIds = parseSessionListOutput(`${result.stdout}\n${result.stderr}`);
-            deps.appendSystemMessage(
-              formatAgentSessionListMessage(sessionIds.map((sessionId) => ({ id: sessionId })))
-            );
+            const sessions = parseSessionSummariesOutput(`${result.stdout}\n${result.stderr}`);
+            deps.appendSystemMessage(formatAgentSessionListMessage(sessions));
           })
           .catch((error) => {
             deps.appendSystemMessage(
