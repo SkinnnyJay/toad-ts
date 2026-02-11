@@ -1,4 +1,9 @@
 import { CURSOR_STREAM_TYPE } from "@/constants/cursor-event-types";
+import {
+  NdjsonEventParser,
+  type NdjsonParseResult,
+  type NdjsonParserIssue,
+} from "@/core/agent-management/ndjson-event-parser";
 import { type CursorStreamEvent, CursorStreamEventSchema } from "@/types/cursor-cli.types";
 
 export const CURSOR_STREAM_PARSER_DEFAULT = {
@@ -6,10 +11,7 @@ export const CURSOR_STREAM_PARSER_DEFAULT = {
   BACKPRESSURE_HIGH_WATERMARK: 128,
 } as const;
 
-export interface CursorStreamParserIssue {
-  line: string;
-  error: string;
-}
+export type CursorStreamParserIssue = NdjsonParserIssue;
 
 export interface CursorStreamParserOptions {
   maxAccumulatedTextBytes?: number;
@@ -19,12 +21,7 @@ export interface CursorStreamParserOptions {
   onTruncation?: (sessionId: string, originalBytes: number, limitBytes: number) => void;
 }
 
-export interface CursorParseResult {
-  parsedCount: number;
-  malformedLineCount: number;
-  invalidEventCount: number;
-  shouldPause: boolean;
-}
+export type CursorParseResult = NdjsonParseResult;
 
 export interface CursorAccumulatedText {
   text: string;
@@ -32,13 +29,9 @@ export interface CursorAccumulatedText {
 }
 
 export class CursorStreamParser {
-  private lineBuffer = "";
-  private readonly pendingEvents: CursorStreamEvent[] = [];
+  private readonly parser: NdjsonEventParser<CursorStreamEvent>;
   private readonly accumulatedTextBySession = new Map<string, CursorAccumulatedText>();
   private readonly maxAccumulatedTextBytes: number;
-  private readonly backpressureHighWatermark: number;
-  private readonly onMalformedLine?: (issue: CursorStreamParserIssue) => void;
-  private readonly onInvalidEvent?: (issue: CursorStreamParserIssue) => void;
   private readonly onTruncation?: (
     sessionId: string,
     originalBytes: number,
@@ -48,106 +41,49 @@ export class CursorStreamParser {
   constructor(options: CursorStreamParserOptions = {}) {
     this.maxAccumulatedTextBytes =
       options.maxAccumulatedTextBytes ?? CURSOR_STREAM_PARSER_DEFAULT.MAX_ACCUMULATED_TEXT_BYTES;
-    this.backpressureHighWatermark =
-      options.backpressureHighWatermark ?? CURSOR_STREAM_PARSER_DEFAULT.BACKPRESSURE_HIGH_WATERMARK;
-    this.onMalformedLine = options.onMalformedLine;
-    this.onInvalidEvent = options.onInvalidEvent;
     this.onTruncation = options.onTruncation;
+    this.parser = new NdjsonEventParser<CursorStreamEvent>({
+      schema: CursorStreamEventSchema,
+      backpressureHighWatermark:
+        options.backpressureHighWatermark ??
+        CURSOR_STREAM_PARSER_DEFAULT.BACKPRESSURE_HIGH_WATERMARK,
+      onMalformedLine: options.onMalformedLine,
+      onInvalidEvent: options.onInvalidEvent,
+      onEventParsed: (event) => this.updateAccumulatedText(event),
+    });
   }
 
   pushChunk(chunk: Buffer | string): CursorParseResult {
-    const textChunk = typeof chunk === "string" ? chunk : chunk.toString("utf8");
-    this.lineBuffer += textChunk;
-    const lines = this.lineBuffer.split("\n");
-    this.lineBuffer = lines.pop() ?? "";
-
-    return this.parseLines(lines);
+    return this.parser.pushChunk(chunk);
   }
 
   end(): CursorParseResult {
-    if (this.lineBuffer.trim().length === 0) {
-      this.lineBuffer = "";
-      return this.emptyResult();
-    }
-
-    const trailingLine = this.lineBuffer;
-    this.lineBuffer = "";
-    return this.parseLines([trailingLine]);
+    return this.parser.end();
   }
 
   readEvent(): CursorStreamEvent | null {
-    return this.pendingEvents.shift() ?? null;
+    return this.parser.readEvent();
   }
 
   drainEvents(): CursorStreamEvent[] {
-    const drained = [...this.pendingEvents];
-    this.pendingEvents.length = 0;
-    return drained;
+    return this.parser.drainEvents();
   }
 
   clear(): void {
-    this.lineBuffer = "";
-    this.pendingEvents.length = 0;
+    this.parser.clear();
     this.accumulatedTextBySession.clear();
   }
 
   getPendingEventCount(): number {
-    return this.pendingEvents.length;
+    return this.parser.getPendingEventCount();
   }
 
   isBackpressured(): boolean {
-    return this.pendingEvents.length >= this.backpressureHighWatermark;
+    return this.parser.isBackpressured();
   }
 
   getAccumulatedText(sessionId: string): CursorAccumulatedText {
     return this.accumulatedTextBySession.get(sessionId) ?? { text: "", truncated: false };
-  }
-
-  private parseLines(lines: string[]): CursorParseResult {
-    let parsedCount = 0;
-    let malformedLineCount = 0;
-    let invalidEventCount = 0;
-
-    for (const rawLine of lines) {
-      const line = rawLine.trim();
-      if (line.length === 0) {
-        continue;
-      }
-
-      let parsedJson: unknown;
-      try {
-        parsedJson = JSON.parse(line);
-      } catch (error) {
-        malformedLineCount += 1;
-        this.onMalformedLine?.({
-          line,
-          error: error instanceof Error ? error.message : String(error),
-        });
-        continue;
-      }
-
-      const parsedEvent = CursorStreamEventSchema.safeParse(parsedJson);
-      if (!parsedEvent.success) {
-        invalidEventCount += 1;
-        this.onInvalidEvent?.({
-          line,
-          error: parsedEvent.error.message,
-        });
-        continue;
-      }
-
-      const event = parsedEvent.data;
-      this.pendingEvents.push(event);
-      this.updateAccumulatedText(event);
-      parsedCount += 1;
-    }
-
-    return {
-      parsedCount,
-      malformedLineCount,
-      invalidEventCount,
-      shouldPause: this.isBackpressured(),
-    };
   }
 
   private updateAccumulatedText(event: CursorStreamEvent): void {
@@ -218,14 +154,5 @@ export class CursorStreamParser {
 
   private byteLength(text: string): number {
     return Buffer.byteLength(text, "utf8");
-  }
-
-  private emptyResult(): CursorParseResult {
-    return {
-      parsedCount: 0,
-      malformedLineCount: 0,
-      invalidEventCount: 0,
-      shouldPause: this.isBackpressured(),
-    };
   }
 }
