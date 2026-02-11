@@ -56,9 +56,9 @@ export class StreamLineParser<TEvent> {
       return this.emptyResult();
     }
 
-    const trailingLine = this.lineBuffer;
+    const trailingLines = this.lineBuffer.split("\n");
     this.lineBuffer = "";
-    return this.parseLines([trailingLine]);
+    return this.parseLines(trailingLines, false);
   }
 
   readEvent(): TEvent | null {
@@ -84,13 +84,13 @@ export class StreamLineParser<TEvent> {
     return this.pendingEvents.length >= this.backpressureHighWatermark;
   }
 
-  private parseLines(lines: string[]): StreamLineParseResult {
+  private parseLines(lines: string[], enforceBackpressure = true): StreamLineParseResult {
     let parsedCount = 0;
     let malformedLineCount = 0;
     let invalidEventCount = 0;
 
     for (const [index, rawLine] of lines.entries()) {
-      if (this.isBackpressured()) {
+      if (enforceBackpressure && this.isBackpressured()) {
         this.rebufferLines(lines.slice(index));
         break;
       }
@@ -131,7 +131,7 @@ export class StreamLineParser<TEvent> {
       parsedCount,
       malformedLineCount,
       invalidEventCount,
-      shouldPause: this.isBackpressured(),
+      shouldPause: enforceBackpressure ? this.isBackpressured() : false,
     };
   }
 

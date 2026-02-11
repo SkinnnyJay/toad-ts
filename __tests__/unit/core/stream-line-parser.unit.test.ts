@@ -62,4 +62,31 @@ describe("StreamLineParser", () => {
     expect(secondPass.parsedCount).toBe(1);
     expect(parser.drainEvents()).toEqual([{ type: "message", text: "b" }]);
   });
+
+  it("parses all rebuffered lines when ending after backpressure pause", () => {
+    const parser = new StreamLineParser({
+      schema: TestEventSchema,
+      backpressureHighWatermark: 1,
+    });
+
+    const firstPass = parser.pushChunk(
+      `${[
+        '{"type":"message","text":"a"}',
+        '{"type":"message","text":"b"}',
+        '{"type":"message","text":"c"}',
+      ].join("\n")}\n`
+    );
+
+    expect(firstPass.parsedCount).toBe(1);
+    expect(firstPass.shouldPause).toBe(true);
+    expect(parser.drainEvents()).toEqual([{ type: "message", text: "a" }]);
+
+    const secondPass = parser.end();
+
+    expect(secondPass.parsedCount).toBe(2);
+    expect(parser.drainEvents()).toEqual([
+      { type: "message", text: "b" },
+      { type: "message", text: "c" },
+    ]);
+  });
 });
