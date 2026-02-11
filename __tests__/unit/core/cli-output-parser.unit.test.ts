@@ -65,6 +65,28 @@ describe("cli-output-parser", () => {
     ]);
   });
 
+  it("parses session metadata details when present", () => {
+    const output = [
+      "session-resume-id Native resume session model: gpt-5 messages: 14",
+      "another-session-id model=gpt-4o 2 messages",
+      "session-resume-id Native resume session",
+    ].join("\n");
+
+    expect(parseSessionSummariesOutput(output)).toEqual([
+      {
+        id: "session-resume-id",
+        title: "Native resume session",
+        model: "gpt-5",
+        messageCount: 14,
+      },
+      {
+        id: "another-session-id",
+        model: "gpt-4o",
+        messageCount: 2,
+      },
+    ]);
+  });
+
   it("returns empty session list when CLI requires a tty", () => {
     expect(
       parseSessionListOutput("Requires TTY; use session_id from NDJSON system.init instead.")

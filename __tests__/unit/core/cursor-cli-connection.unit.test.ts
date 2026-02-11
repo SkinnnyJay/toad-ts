@@ -131,7 +131,8 @@ describe("CursorCliConnection", () => {
       commandRunner: async (_command, args) => {
         if (args[0] === AGENT_MANAGEMENT_COMMAND.LIST) {
           return {
-            stdout: "session-resume-id Active session\nanother-session-id done",
+            stdout:
+              "session-resume-id Active session model: gpt-5 messages: 14\nanother-session-id done",
             stderr: "",
             exitCode: 0,
           };
@@ -142,7 +143,12 @@ describe("CursorCliConnection", () => {
 
     const sessions = await connection.listSessions();
     expect(sessions).toEqual([
-      { id: "session-resume-id", title: "Active session" },
+      {
+        id: "session-resume-id",
+        title: "Active session",
+        model: "gpt-5",
+        messageCount: 14,
+      },
       { id: "another-session-id", title: "done" },
     ]);
   });

@@ -1,3 +1,4 @@
+import type { AgentManagementSession } from "@/types/agent-management.types";
 import { SessionIdSchema } from "@/types/domain";
 import { useCursorNativeSessionIds } from "@/ui/hooks/useCursorNativeSessionIds";
 import React from "react";
@@ -11,7 +12,7 @@ const flushMicrotasks = async (): Promise<void> => {
 };
 
 interface NativeSessionTestClient {
-  listAgentSessions?: () => Promise<Array<{ id: string }>>;
+  listAgentSessions?: () => Promise<AgentManagementSession[]>;
   runAgentCommand?: (
     args: string[]
   ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
@@ -53,7 +54,7 @@ describe("useCursorNativeSessionIds", () => {
     const second = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174001");
     const third = SessionIdSchema.parse("session-resume-id");
     const runAgentCommand = vi.fn(async () => ({
-      stdout: `${first}\n${second}\n${third} Native title\n${first}`,
+      stdout: `${first}\n${second}\n${third} Native title model: gpt-5 messages: 14\n${first}`,
       stderr: "",
       exitCode: 0,
     }));
@@ -69,6 +70,12 @@ describe("useCursorNativeSessionIds", () => {
         null,
         `ids:${result.sessionIds.join(",")} titles:${result.sessions
           .map((session) => session.title ?? "")
+          .join(",")} models:${result.sessions
+          .map((session) => session.model ?? "")
+          .join(",")} messageCounts:${result.sessions
+          .map((session) =>
+            session.messageCount !== undefined ? session.messageCount.toString() : ""
+          )
           .join(",")} loading:${String(result.loading)} error:${result.error ?? "none"}`
       );
     }
@@ -82,6 +89,8 @@ describe("useCursorNativeSessionIds", () => {
     expect(frame).toContain(second);
     expect(frame).toContain(third);
     expect(frame).toContain("Native title");
+    expect(frame).toContain("gpt-5");
+    expect(frame).toContain("14");
     expect(frame).toContain("loading:false");
     expect(frame).toContain("error:none");
     unmount();

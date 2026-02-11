@@ -9,6 +9,9 @@ import {
 
 const UUID_PATTERN = /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i;
 const SESSION_ID_PATTERN = /\b[a-z0-9][a-z0-9._:-]*[-_][a-z0-9._:-]+\b/i;
+const SESSION_MODEL_PATTERN = /\bmodel\s*[:=]\s*([^\s|,()]+)\b/i;
+const SESSION_MESSAGE_COUNT_PATTERN = /\bmessages?\s*[:=]\s*(\d+)\b/i;
+const SESSION_TRAILING_MESSAGE_COUNT_PATTERN = /\b(\d+)\s+messages?\b/i;
 const MODEL_LINE_PATTERN = /^(\S+)\s+-\s+(.+)$/;
 const LOGGED_IN_PATTERN = /logged in as\s+([^\s]+@[^\s]+)/i;
 const REQUIRES_TTY_PATTERN = /requires tty/i;
@@ -79,7 +82,59 @@ const extractSessionTitleFromLine = (line: string, sessionId: string): string | 
     return undefined;
   }
   const trailing = line.slice(sessionIdIndex + sessionId.length).trim();
-  return trailing.length > 0 ? trailing : undefined;
+  if (trailing.length === 0) {
+    return undefined;
+  }
+  const title = trailing
+    .replace(SESSION_MODEL_PATTERN, "")
+    .replace(SESSION_MESSAGE_COUNT_PATTERN, "")
+    .replace(SESSION_TRAILING_MESSAGE_COUNT_PATTERN, "")
+    .replace(/\s*[|·,;]\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/^[\s:|,;()/-]+|[\s:|,;()/-]+$/g, "")
+    .trim();
+  return title.length > 0 ? title : undefined;
+};
+
+const extractSessionMessageCountFromLine = (
+  line: string,
+  sessionId: string
+): number | undefined => {
+  const sessionIdIndex = line.indexOf(sessionId);
+  if (sessionIdIndex < 0) {
+    return undefined;
+  }
+  const trailing = line.slice(sessionIdIndex + sessionId.length);
+  const matchedValue =
+    SESSION_MESSAGE_COUNT_PATTERN.exec(trailing)?.[1] ??
+    SESSION_TRAILING_MESSAGE_COUNT_PATTERN.exec(trailing)?.[1];
+  if (!matchedValue) {
+    return undefined;
+  }
+  const parsedCount = Number.parseInt(matchedValue, 10);
+  return Number.isNaN(parsedCount) ? undefined : parsedCount;
+};
+
+const extractSessionModelFromLine = (line: string, sessionId: string): string | undefined => {
+  const sessionIdIndex = line.indexOf(sessionId);
+  if (sessionIdIndex < 0) {
+    return undefined;
+  }
+  const trailing = line.slice(sessionIdIndex + sessionId.length);
+  return SESSION_MODEL_PATTERN.exec(trailing)?.[1];
+};
+
+const mergeSessionSummaries = (
+  existing: CliAgentSession,
+  incoming: CliAgentSession
+): CliAgentSession => {
+  return CliAgentSessionSchema.parse({
+    id: existing.id,
+    title: existing.title ?? incoming.title,
+    createdAt: existing.createdAt ?? incoming.createdAt,
+    model: existing.model ?? incoming.model,
+    messageCount: existing.messageCount ?? incoming.messageCount,
+  });
 };
 
 export const parseSessionSummariesOutput = (stdout: string): CliAgentSession[] => {
@@ -97,11 +152,14 @@ export const parseSessionSummariesOutput = (stdout: string): CliAgentSession[] =
     const parsedSession = CliAgentSessionSchema.parse({
       id: sessionId,
       title: extractSessionTitleFromLine(line, sessionId),
+      model: extractSessionModelFromLine(line, sessionId),
+      messageCount: extractSessionMessageCountFromLine(line, sessionId),
     });
     const existing = sessionById.get(sessionId);
-    if (!existing || (!existing.title && parsedSession.title)) {
-      sessionById.set(sessionId, parsedSession);
-    }
+    sessionById.set(
+      sessionId,
+      existing ? mergeSessionSummaries(existing, parsedSession) : parsedSession
+    );
   }
   return Array.from(sessionById.values());
 };

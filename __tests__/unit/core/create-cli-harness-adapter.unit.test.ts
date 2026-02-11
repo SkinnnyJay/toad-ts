@@ -209,7 +209,8 @@ describe("createCliHarnessAdapter", () => {
     const cliAgent = new FakeCliAgentPort();
     cliAgent.listSessions = undefined;
     cliAgent.runManagementCommand = async () => ({
-      stdout: "9b7418b2-5b71-4a12-97b4-64f2131e5241 Active session\nsession-resume-id Resume title",
+      stdout:
+        "9b7418b2-5b71-4a12-97b4-64f2131e5241 Active session model: gpt-5 messages: 14\nsession-resume-id Resume title",
       stderr: "",
       exitCode: 0,
     });
@@ -222,6 +223,8 @@ describe("createCliHarnessAdapter", () => {
       {
         id: "9b7418b2-5b71-4a12-97b4-64f2131e5241",
         title: "Active session",
+        model: "gpt-5",
+        messageCount: 14,
       },
       { id: "session-resume-id", title: "Resume title" },
     ]);
