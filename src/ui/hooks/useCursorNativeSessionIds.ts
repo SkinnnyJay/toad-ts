@@ -76,9 +76,7 @@ export interface UseCursorNativeSessionIdsResult {
 
 export interface CursorNativeSessionClient {
   listAgentSessions?: () => Promise<AgentManagementSession[]>;
-  runAgentCommand?: (
-    args: string[]
-  ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
+  runAgentCommand?: (args: string[]) => Promise<AgentManagementCommandResult>;
 }
 
 export function useCursorNativeSessionIds(

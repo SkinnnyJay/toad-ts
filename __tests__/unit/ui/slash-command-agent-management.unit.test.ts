@@ -209,9 +209,9 @@ describe("slash command agent management", () => {
   });
 
   it("fetches native cursor sessions for /sessions", async () => {
+    const duplicated = "9b7418b2-5b71-4a12-97b4-64f2131e5241";
     const runAgentCommand = vi.fn(async () => ({
-      stdout:
-        "9b7418b2-5b71-4a12-97b4-64f2131e5241\n36bf2c71-c56a-4c0a-a2e6-f7d47c2cd2e7\nsession-resume-id Native title model: gpt-5 messages: 14 createdAt=2026-02-11T18:30:00Z",
+      stdout: `${duplicated}\n36bf2c71-c56a-4c0a-a2e6-f7d47c2cd2e7\n${duplicated}\nsession-resume-id Native title model: gpt-5 messages: 14 createdAt=2026-02-11T18:30:00Z`,
       stderr: "",
       exitCode: 0,
     }));
@@ -226,9 +226,7 @@ describe("slash command agent management", () => {
 
     expect(runAgentCommand).toHaveBeenCalledWith(["ls"]);
     expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("Agent sessions:"));
-    expect(appendSystemMessage).toHaveBeenCalledWith(
-      expect.stringContaining("9b7418b2-5b71-4a12-97b4-64f2131e5241")
-    );
+    expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining(duplicated));
     expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("session-resume-id"));
     expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("Native title"));
     expect(appendSystemMessage).toHaveBeenCalledWith(
@@ -236,6 +234,12 @@ describe("slash command agent management", () => {
     );
     expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("model: gpt-5"));
     expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("messages: 14"));
+    const lastMessage = appendSystemMessage.mock.calls.at(-1)?.[0];
+    expect(typeof lastMessage).toBe("string");
+    if (typeof lastMessage === "string") {
+      expect(lastMessage.indexOf(duplicated)).toBeGreaterThanOrEqual(0);
+      expect(lastMessage.lastIndexOf(duplicated)).toBe(lastMessage.indexOf(duplicated));
+    }
   });
 
   it("orders fallback /sessions output by newest created timestamp", async () => {

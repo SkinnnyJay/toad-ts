@@ -1,4 +1,7 @@
-import type { AgentManagementSession } from "@/types/agent-management.types";
+import type {
+  AgentManagementCommandResult,
+  AgentManagementSession,
+} from "@/types/agent-management.types";
 import { SessionIdSchema } from "@/types/domain";
 import { useCursorNativeSessionIds } from "@/ui/hooks/useCursorNativeSessionIds";
 import React from "react";
@@ -13,9 +16,7 @@ const flushMicrotasks = async (): Promise<void> => {
 
 interface NativeSessionTestClient {
   listAgentSessions?: () => Promise<AgentManagementSession[]>;
-  runAgentCommand?: (
-    args: string[]
-  ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
+  runAgentCommand?: (args: string[]) => Promise<AgentManagementCommandResult>;
 }
 
 const createIdleClient = (): NativeSessionTestClient => ({
