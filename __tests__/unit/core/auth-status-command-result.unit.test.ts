@@ -112,6 +112,19 @@ describe("auth-status-command-result", () => {
     });
   });
 
+  it("does not fallback when stdout explicitly reports bare unauthenticated token", () => {
+    const parsed = parseAuthStatusCommandResult({
+      stdout: "unauthenticated",
+      stderr: "✓ Logged in as stale-user@example.com",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual({
+      authenticated: false,
+      method: "none",
+    });
+  });
+
   it("throws stderr message when status command fails", () => {
     expect(() =>
       parseAuthStatusCommandResult({

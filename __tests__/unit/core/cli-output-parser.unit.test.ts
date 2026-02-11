@@ -34,6 +34,7 @@ describe("cli-output-parser", () => {
     );
     const unauthenticatedParsed = parseAuthStatusOutput("authentication status=unauthenticated");
     const loggedOutParsed = parseAuthStatusOutput("status=logged_out");
+    const bareUnauthenticatedParsed = parseAuthStatusOutput("unauthenticated");
 
     expect(authenticatedParsed).toEqual({
       authenticated: true,
@@ -45,6 +46,10 @@ describe("cli-output-parser", () => {
       method: "none",
     });
     expect(loggedOutParsed).toEqual({
+      authenticated: false,
+      method: "none",
+    });
+    expect(bareUnauthenticatedParsed).toEqual({
       authenticated: false,
       method: "none",
     });
