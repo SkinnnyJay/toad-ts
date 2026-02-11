@@ -168,7 +168,12 @@ describe("useCursorNativeSessionIds", () => {
   it("merges metadata from duplicate runtime-native sessions", async () => {
     const first = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174000");
     const listAgentSessions = vi.fn(async () => [
-      { id: first },
+      {
+        id: first,
+        title: "Old",
+        createdAt: "2026-02-10T18:30:00.000Z",
+        messageCount: 1,
+      },
       {
         id: first,
         title: "Recovered title",
@@ -204,6 +209,7 @@ describe("useCursorNativeSessionIds", () => {
     expect(frame).toContain("Recovered title");
     expect(frame).toContain("gpt-5");
     expect(frame).toContain("14");
+    expect(frame).not.toContain("title:Old");
     unmount();
   });
 

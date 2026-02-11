@@ -48,10 +48,14 @@ describe("session-summary-mapper", () => {
     const uniqueSessions = toUniqueAgentManagementSessions([
       {
         id: "session-1",
+        title: "Old",
+        createdAt: "2026-02-10T18:30:00.000Z",
+        messageCount: 1,
       },
       {
         id: "session-1",
         title: "Recovered title",
+        createdAt: "2026-02-11T18:30:00.000Z",
         model: "gpt-5",
         messageCount: 14,
       },
@@ -69,6 +73,7 @@ describe("session-summary-mapper", () => {
       {
         id: "session-1",
         title: "Recovered title",
+        createdAt: "2026-02-11T18:30:00.000Z",
         model: "gpt-5",
         messageCount: 14,
       },

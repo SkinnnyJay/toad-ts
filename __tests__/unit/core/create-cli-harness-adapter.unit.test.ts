@@ -208,10 +208,16 @@ describe("createCliHarnessAdapter", () => {
   it("deduplicates and merges runtime session metadata", async () => {
     const cliAgent = new FakeCliAgentPort();
     cliAgent.listSessions = async () => [
-      { id: "session-fake" },
+      {
+        id: "session-fake",
+        title: "Old",
+        createdAt: "2026-02-10T18:30:00.000Z",
+        messageCount: 1,
+      },
       {
         id: "session-fake",
         title: "Recovered title",
+        createdAt: "2026-02-11T18:30:00.000Z",
         model: "gpt-5",
         messageCount: 14,
       },
@@ -225,6 +231,7 @@ describe("createCliHarnessAdapter", () => {
       {
         id: "session-fake",
         title: "Recovered title",
+        createdAt: "2026-02-11T18:30:00.000Z",
         model: "gpt-5",
         messageCount: 14,
       },

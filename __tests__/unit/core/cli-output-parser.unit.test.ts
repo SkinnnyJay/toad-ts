@@ -89,6 +89,23 @@ describe("cli-output-parser", () => {
     ]);
   });
 
+  it("merges duplicate session rows with richer metadata", () => {
+    const output = [
+      "session-resume-id Old title model: gpt-5 messages: 1 createdAt=2026-02-10T08:00:00+00:00",
+      "session-resume-id Newer richer title model: gpt-5 messages: 14 createdAt=2026-02-11T08:00:00+00:00",
+    ].join("\n");
+
+    expect(parseSessionSummariesOutput(output)).toEqual([
+      {
+        id: "session-resume-id",
+        title: "Newer richer title",
+        createdAt: "2026-02-11T08:00:00.000Z",
+        model: "gpt-5",
+        messageCount: 14,
+      },
+    ]);
+  });
+
   it("returns empty session list when CLI requires a tty", () => {
     expect(
       parseSessionListOutput("Requires TTY; use session_id from NDJSON system.init instead.")
