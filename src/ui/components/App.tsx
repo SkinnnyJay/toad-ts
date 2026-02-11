@@ -10,6 +10,7 @@ import { COMMAND_DEFINITIONS, filterSlashCommandsForAgent } from "@/constants/co
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { DISCOVERY_SUBPATH } from "@/constants/discovery-subpaths";
 import { FOCUS_TARGET } from "@/constants/focus-target";
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-marks";
 import { PERSISTENCE_WRITE_MODE } from "@/constants/persistence-write-modes";
@@ -63,6 +64,7 @@ import {
   useAppNavigation,
   useCheckpointUI,
   useContextStats,
+  useCursorCloudAgentCount,
   useDefaultAgentSelection,
   useExecutionEngine,
   useHarnessConnection,
@@ -220,6 +222,9 @@ export function App(): ReactNode {
     () => filterSlashCommandsForAgent(COMMAND_DEFINITIONS, agentContext),
     [agentContext]
   );
+  const { count: cloudAgentCount } = useCursorCloudAgentCount({
+    enabled: selectedAgent?.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID,
+  });
   const contextStats = useContextStats(activeSessionId);
   const backgroundTasks = useBackgroundTaskStore((state) => state.tasks);
   const taskProgress = useMemo(() => {
@@ -651,6 +656,7 @@ export function App(): ReactNode {
                 sessionId={activeSessionId}
                 agentName={selectedAgent?.name}
                 modelName={activeSession?.metadata?.model}
+                cloudAgentCount={cloudAgentCount ?? undefined}
               />
             </box>
           </box>

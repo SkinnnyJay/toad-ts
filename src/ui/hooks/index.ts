@@ -133,6 +133,12 @@ export type {
   UseRepoWorkflowResult,
 } from "./useRepoWorkflow";
 
+export { useCursorCloudAgentCount } from "./useCursorCloudAgentCount";
+export type {
+  UseCursorCloudAgentCountOptions,
+  UseCursorCloudAgentCountResult,
+} from "./useCursorCloudAgentCount";
+
 export { useRandomFact, useRotatingFact } from "./useRandomFact";
 export type {
   UseRandomFactResult,

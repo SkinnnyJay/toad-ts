@@ -17,6 +17,7 @@ export interface StatusFooterProps {
   sessionId?: SessionId;
   agentName?: string;
   modelName?: string;
+  cloudAgentCount?: number;
   workspacePath?: string;
   prStatus?: { url: string; reviewDecision: string };
 }
@@ -49,6 +50,7 @@ export function StatusFooter({
   sessionId,
   agentName,
   modelName,
+  cloudAgentCount,
 }: StatusFooterProps): ReactNode {
   const planText =
     planProgress && planProgress.total > 0
@@ -78,6 +80,7 @@ export function StatusFooter({
     trimmedModel ? `Model: ${trimmedModel}` : undefined,
     sessionMode ? `Mode: ${sessionMode}` : undefined,
     trimmedSession ? `Session: ${trimmedSession}` : undefined,
+    cloudAgentCount !== undefined ? `Cloud: ${cloudAgentCount}` : undefined,
   ].filter((value): value is string => Boolean(value));
 
   const footerTextAttrs = TextAttributes.DIM;
