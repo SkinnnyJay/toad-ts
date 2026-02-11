@@ -15,6 +15,7 @@ import {
 } from "@/constants/slash-command-messages";
 import { parseAuthStatusCommandResult } from "@/core/agent-management/auth-status-command-result";
 import { parseKeyValueLines } from "@/core/agent-management/cli-output-parser";
+import { toCommandFailureMessage } from "@/core/agent-management/command-result-utils";
 import { EnvManager } from "@/utils/env/env.utils";
 import type { SlashCommandDeps } from "./slash-command-runner";
 
@@ -55,11 +56,21 @@ const buildCommandFailureMessage = (result: {
   stderr: string;
   exitCode: number;
 }): string => {
-  const preview = buildOutputPreview(result.stdout, result.stderr);
-  if (preview.length === 0) {
+  const fallbackMessage = `exit ${result.exitCode}`;
+  const failureMessage = toCommandFailureMessage(result, fallbackMessage);
+  if (failureMessage === fallbackMessage) {
     return `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} (exit ${result.exitCode})`;
   }
+  const preview = buildOutputPreview(failureMessage, "");
   return `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${preview}`;
+};
+
+const appendAgentCommandRuntimeError = (deps: SlashCommandDeps, error: unknown): void => {
+  deps.appendSystemMessage(
+    `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${
+      error instanceof Error ? error.message : String(error)
+    }`
+  );
 };
 
 const resolveStatusArgs = (harnessId: string | undefined): string[] | null => {
@@ -178,13 +189,7 @@ export const handleStatusCommand = (deps: SlashCommandDeps): void => {
           `Authenticated: ${auth.authenticated ? "yes" : "no"}`
       );
     })
-    .catch((error) => {
-      deps.appendSystemMessage(
-        `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
-    });
+    .catch((error) => appendAgentCommandRuntimeError(deps, error));
 };
 
 export const handleLoginCommand = (deps: SlashCommandDeps): void => {
@@ -213,13 +218,7 @@ export const handleLoginCommand = (deps: SlashCommandDeps): void => {
       }
       deps.appendSystemMessage(buildCommandResultMessage("Login command completed.", result));
     })
-    .catch((error) => {
-      deps.appendSystemMessage(
-        `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
-    });
+    .catch((error) => appendAgentCommandRuntimeError(deps, error));
 };
 
 export const handleLogoutCommand = (deps: SlashCommandDeps): void => {
@@ -246,13 +245,7 @@ export const handleLogoutCommand = (deps: SlashCommandDeps): void => {
       }
       deps.appendSystemMessage(buildCommandResultMessage("Logout command completed.", result));
     })
-    .catch((error) => {
-      deps.appendSystemMessage(
-        `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
-    });
+    .catch((error) => appendAgentCommandRuntimeError(deps, error));
 };
 
 export const handleConfigCommand = (deps: SlashCommandDeps): void => {
@@ -340,13 +333,7 @@ export const handleMcpCommand = (parts: string[], deps: SlashCommandDeps): void 
       }
       deps.appendSystemMessage(buildCommandResultMessage("MCP command result:", result));
     })
-    .catch((error) => {
-      deps.appendSystemMessage(
-        `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
-    });
+    .catch((error) => appendAgentCommandRuntimeError(deps, error));
 };
 
 export const handleAgentCommand = (parts: string[], deps: SlashCommandDeps): void => {
@@ -368,11 +355,5 @@ export const handleAgentCommand = (parts: string[], deps: SlashCommandDeps): voi
       }
       deps.appendSystemMessage(buildCommandResultMessage("Agent command result:", result));
     })
-    .catch((error) => {
-      deps.appendSystemMessage(
-        `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
-    });
+    .catch((error) => appendAgentCommandRuntimeError(deps, error));
 };
