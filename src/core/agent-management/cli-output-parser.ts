@@ -41,7 +41,7 @@ const AUTHENTICATED_AS_PATTERN = /\bauthenticated\s+as\s+([^\s]+@[^\s]+)/i;
 const AUTHENTICATED_STATUS_PATTERN = /\bauthenticated\b\s*[:=]\s*(true|false|yes|no|1|0)\b/i;
 const AUTH_STATUS_VALUE_PATTERN =
   /\b(?:auth(?:entication)?\s+)?status\b\s*[:=]\s*(authenticated|unauthenticated|logged[\s_-]?in|logged[\s_-]?out)\b/i;
-const NOT_LOGGED_IN_PATTERN = /\b(?:not\s+logged\s+in|logged\s+out)\b/i;
+const NOT_LOGGED_IN_PATTERN = /\b(?:not\s+logged\s+in|logged\s+out|not\s+authenticated)\b/i;
 const AUTH_STATUS_BARE_TOKEN_PATTERN =
   /^(?:authenticated|unauthenticated|logged[\s_-]?in|logged[\s_-]?out)$/i;
 const AUTH_EMAIL_PATTERN = /\b(?:email|user|account)\b\s*[:=]\s*([^\s]+@[^\s]+)/i;

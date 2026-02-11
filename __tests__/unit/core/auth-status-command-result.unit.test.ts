@@ -125,6 +125,19 @@ describe("auth-status-command-result", () => {
     });
   });
 
+  it("does not fallback when stdout explicitly reports not authenticated phrase", () => {
+    const parsed = parseAuthStatusCommandResult({
+      stdout: "Not authenticated",
+      stderr: "✓ Logged in as stale-user@example.com",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual({
+      authenticated: false,
+      method: "none",
+    });
+  });
+
   it("throws stderr message when status command fails", () => {
     expect(() =>
       parseAuthStatusCommandResult({

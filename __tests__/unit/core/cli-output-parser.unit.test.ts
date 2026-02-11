@@ -74,6 +74,15 @@ describe("cli-output-parser", () => {
     });
   });
 
+  it("parses explicit not-authenticated phrase output", () => {
+    const parsed = parseAuthStatusOutput("Not authenticated");
+
+    expect(parsed).toEqual({
+      authenticated: false,
+      method: "none",
+    });
+  });
+
   it("parses model list output and default model flag", () => {
     const parsed = parseModelsOutput(
       "auto - Auto\nopus-4.6-thinking - Claude 4.6 Opus (Thinking) (default)"
