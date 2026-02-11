@@ -86,4 +86,78 @@ describe("slash command agent management", () => {
     expect(runAgentCommand).toHaveBeenCalledWith(["models"]);
     expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("Available models"));
   });
+
+  it("uses /model alias to fetch model list", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "auto - Auto",
+      stderr: "",
+      exitCode: 0,
+    }));
+    const { deps } = createDeps({
+      activeHarnessId: "cursor-cli",
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.MODEL, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runAgentCommand).toHaveBeenCalledWith(["models"]);
+  });
+
+  it("shows gemini login hint instead of running CLI login", () => {
+    const runAgentCommand = vi.fn();
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: "gemini-cli",
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.LOGIN, deps)).toBe(true);
+    expect(runAgentCommand).not.toHaveBeenCalled();
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      "Gemini uses API-key auth. Set GOOGLE_API_KEY or GEMINI_API_KEY in your environment."
+    );
+  });
+
+  it("blocks unsupported logout and mcp commands by harness", () => {
+    const runAgentCommand = vi.fn();
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: "claude-cli",
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.LOGOUT, deps)).toBe(true);
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      "Logout is not supported for the active provider."
+    );
+
+    const codexDeps = createDeps({
+      activeHarnessId: "codex-cli",
+      runAgentCommand,
+    });
+    expect(runSlashCommand(SLASH_COMMAND.MCP, codexDeps.deps)).toBe(true);
+    expect(codexDeps.appendSystemMessage).toHaveBeenCalledWith(
+      "MCP command is not supported for the active provider."
+    );
+  });
+
+  it("reports native command failures for /agent", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "permission denied",
+      exitCode: 1,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: "cursor-cli",
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand("/agent status", deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("Native agent command failed.")
+    );
+  });
 });
