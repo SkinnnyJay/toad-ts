@@ -3,6 +3,7 @@ import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import type { HarnessConfig, HarnessConfigResult } from "@/harness/harnessConfig";
 import { harnessConfigSchema } from "@/harness/harnessConfig";
 import { EnvManager } from "@/utils/env/env.utils";
+import { parseBooleanEnvValue } from "@/utils/env/env.utils";
 
 const parseArgs = (rawValue: string): string[] => {
   return rawValue
@@ -14,6 +15,10 @@ const parseArgs = (rawValue: string): string[] => {
 export const createDefaultHarnessConfig = (
   env: NodeJS.ProcessEnv = EnvManager.getInstance().getSnapshot()
 ): HarnessConfigResult => {
+  const cursorCliEnabled = parseBooleanEnvValue(
+    env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED] ?? "true",
+    true
+  );
   const command = env[ENV_KEY.TOADSTOOL_CLAUDE_COMMAND] ?? HARNESS_DEFAULT.CLAUDE_COMMAND;
   const argsRaw = env[ENV_KEY.TOADSTOOL_CLAUDE_ARGS];
   const args = argsRaw ? parseArgs(argsRaw) : [...HARNESS_DEFAULT.CLAUDE_ARGS];
@@ -57,14 +62,16 @@ export const createDefaultHarnessConfig = (
     cwd: process.cwd(),
   });
 
-  const cursorHarness: HarnessConfig = harnessConfigSchema.parse({
-    id: HARNESS_DEFAULT.CURSOR_CLI_ID,
-    name: HARNESS_DEFAULT.CURSOR_CLI_NAME,
-    command: cursorCommand,
-    args: cursorArgs,
-    env: {},
-    cwd: process.cwd(),
-  });
+  const cursorHarness: HarnessConfig | null = cursorCliEnabled
+    ? harnessConfigSchema.parse({
+        id: HARNESS_DEFAULT.CURSOR_CLI_ID,
+        name: HARNESS_DEFAULT.CURSOR_CLI_NAME,
+        command: cursorCommand,
+        args: cursorArgs,
+        env: {},
+        cwd: process.cwd(),
+      })
+    : null;
 
   const mockHarness: HarnessConfig = harnessConfigSchema.parse({
     id: HARNESS_DEFAULT.MOCK_ID,
@@ -81,7 +88,7 @@ export const createDefaultHarnessConfig = (
       [HARNESS_DEFAULT.CLAUDE_CLI_ID]: claudeHarness,
       [HARNESS_DEFAULT.GEMINI_CLI_ID]: geminiHarness,
       [HARNESS_DEFAULT.CODEX_CLI_ID]: codexHarness,
-      [HARNESS_DEFAULT.CURSOR_CLI_ID]: cursorHarness,
+      ...(cursorHarness ? { [HARNESS_DEFAULT.CURSOR_CLI_ID]: cursorHarness } : {}),
       [HARNESS_DEFAULT.MOCK_ID]: mockHarness,
     },
   };

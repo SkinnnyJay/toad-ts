@@ -61,6 +61,17 @@ describe("HarnessAdapter", () => {
       expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]?.args).toEqual(["-p"]);
     });
 
+    it("should omit cursor harness when TOADSTOOL_CURSOR_CLI_ENABLED is false", () => {
+      const env = {
+        [ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]: "false",
+      };
+
+      const result = createDefaultHarnessConfig(env);
+
+      expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]).toBeUndefined();
+      expect(result.harnesses[HARNESS_DEFAULT.CLAUDE_CLI_ID]).toBeDefined();
+    });
+
     it("should validate config with schema", () => {
       const result = createDefaultHarnessConfig({});
 
