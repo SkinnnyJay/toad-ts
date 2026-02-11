@@ -97,6 +97,8 @@ export * from "@/core/cli-agent/create-cli-harness-adapter";
 export * from "@/core/cli-agent/stream-line-parser";
 export * from "@/core/agent-management/cli-output-parser";
 export * from "@/core/agent-management/ndjson-event-parser";
+export * from "@/core/agent-management/session-list-command-result";
+export * from "@/core/agent-management/session-summary-mapper";
 export {
   loadSkills,
   loadCommands,
