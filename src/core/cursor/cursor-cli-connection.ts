@@ -10,6 +10,7 @@ import { extractFirstUuid } from "@/core/agent-management/cli-output-parser";
 import { parseModelsCommandResult } from "@/core/agent-management/models-command-result";
 import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
 import { CursorStreamParser } from "@/core/cursor/cursor-stream-parser";
+import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type {
   CliAgentAuthStatus,
   CliAgentModelsResponse,
@@ -26,12 +27,6 @@ interface CommandOptions {
   timeoutMs?: number;
 }
 
-interface CommandResult {
-  stdout: string;
-  stderr: string;
-  exitCode: number;
-}
-
 type SpawnFn = (
   command: string,
   args: string[],
@@ -46,7 +41,7 @@ type CommandRunner = (
   command: string,
   args: string[],
   options: CommandOptions
-) => Promise<CommandResult>;
+) => Promise<AgentManagementCommandResult>;
 
 type KillFn = (pid: number, signal: NodeJS.Signals) => void;
 
@@ -174,7 +169,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
     return sessionId;
   }
 
-  async runManagementCommand(args: string[]): Promise<CommandResult> {
+  async runManagementCommand(args: string[]): Promise<AgentManagementCommandResult> {
     return this.runCommand(args);
   }
 
@@ -331,7 +326,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
     return env;
   }
 
-  private async runCommand(args: string[]): Promise<CommandResult> {
+  private async runCommand(args: string[]): Promise<AgentManagementCommandResult> {
     return this.commandRunner(this.command, args, {
       cwd: this.cwd,
       env: this.env,
