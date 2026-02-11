@@ -7,4 +7,10 @@ export const CHAT_MESSAGE = {
   SUBAGENT_COMPLETE: "Subagent response available in session:",
   SUBAGENT_FAILED: "Subagent invocation failed:",
   SUBAGENT_NO_SESSION: "Subagent invocation requires an active session.",
+  CLOUD_DISPATCH_USAGE: "Cloud dispatch requires a prompt after '&'.",
+  CLOUD_DISPATCH_UNSUPPORTED: "Cloud dispatch requires a Cursor CLI agent session.",
+  CLOUD_DISPATCH_STARTING: "Dispatching prompt to Cursor Cloud agent…",
+  CLOUD_DISPATCH_STARTED: "Cursor Cloud agent started:",
+  CLOUD_DISPATCH_FAILED: "Cloud dispatch failed:",
+  CLOUD_DISPATCH_MISSING_API_KEY: "Cloud dispatch requires CURSOR_API_KEY.",
 } as const;

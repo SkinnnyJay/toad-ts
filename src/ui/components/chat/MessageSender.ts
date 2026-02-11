@@ -3,10 +3,14 @@ import { parseAgentMention } from "@/agents/agent-mentions";
 import { LIMIT } from "@/config/limits";
 import { CHAT_MESSAGE } from "@/constants/chat-messages";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { ENV_KEY } from "@/constants/env-keys";
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
+import { INPUT_PREFIX } from "@/constants/input-prefixes";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import { TOOL_NAME } from "@/constants/tool-names";
+import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import type { InteractiveShellResult } from "@/tools/interactive-shell";
 import type { ToolRuntime } from "@/tools/runtime";
@@ -46,6 +50,93 @@ export interface MessageSenderResult {
   modeWarning: string | null;
 }
 
+interface CloudDispatchClientLike {
+  launchAgent: (params: { prompt: string; model?: string }) => Promise<{
+    id: string;
+    status: string;
+  }>;
+}
+
+export interface HandleCloudDispatchInputOptions {
+  input: string;
+  sessionMode: SessionMode;
+  currentAgent?: AgentInfo | null;
+  onResetInput: () => void;
+  appendSystemMessage: (text: string) => void;
+  setModeWarning: (warning: string | null) => void;
+  createCloudClient?: () => CloudDispatchClientLike;
+}
+
+export const isCloudDispatchInput = (input: string): boolean =>
+  input.startsWith(INPUT_PREFIX.CLOUD_DISPATCH);
+
+export const toCloudDispatchPrompt = (input: string): string =>
+  input.slice(INPUT_PREFIX.CLOUD_DISPATCH.length).trim();
+
+export const resolveCloudDispatchErrorMessage = (error: unknown): string => {
+  if (error instanceof Error && error.message.includes(ENV_KEY.CURSOR_API_KEY)) {
+    return CHAT_MESSAGE.CLOUD_DISPATCH_MISSING_API_KEY;
+  }
+
+  return `${CHAT_MESSAGE.CLOUD_DISPATCH_FAILED} ${
+    error instanceof Error ? error.message : String(error)
+  }`;
+};
+
+export const handleCloudDispatchInput = ({
+  input,
+  sessionMode,
+  currentAgent,
+  onResetInput,
+  appendSystemMessage,
+  setModeWarning,
+  createCloudClient = () => new CursorCloudAgentClient(),
+}: HandleCloudDispatchInputOptions): boolean => {
+  if (!isCloudDispatchInput(input)) {
+    return false;
+  }
+
+  if (sessionMode === SESSION_MODE.READ_ONLY) {
+    setModeWarning(CHAT_MESSAGE.READ_ONLY_WARNING);
+    appendSystemMessage(CHAT_MESSAGE.READ_ONLY_WARNING);
+    return true;
+  }
+
+  const cloudPrompt = toCloudDispatchPrompt(input);
+  if (!cloudPrompt) {
+    appendSystemMessage(CHAT_MESSAGE.CLOUD_DISPATCH_USAGE);
+    onResetInput();
+    return true;
+  }
+
+  if (currentAgent?.harnessId !== HARNESS_DEFAULT.CURSOR_CLI_ID) {
+    appendSystemMessage(CHAT_MESSAGE.CLOUD_DISPATCH_UNSUPPORTED);
+    onResetInput();
+    return true;
+  }
+
+  setModeWarning(null);
+  onResetInput();
+  appendSystemMessage(CHAT_MESSAGE.CLOUD_DISPATCH_STARTING);
+
+  void (async () => {
+    try {
+      const cloudClient = createCloudClient();
+      const launchResult = await cloudClient.launchAgent({
+        prompt: cloudPrompt,
+        model: currentAgent.model,
+      });
+      appendSystemMessage(
+        `${CHAT_MESSAGE.CLOUD_DISPATCH_STARTED} ${launchResult.id} (${launchResult.status})`
+      );
+    } catch (error) {
+      appendSystemMessage(resolveCloudDispatchErrorMessage(error));
+    }
+  })();
+
+  return true;
+};
+
 export const useMessageSender = ({
   sessionMode,
   sessionId,
@@ -69,7 +160,22 @@ export const useMessageSender = ({
 
   const handleSubmit = useCallback(
     (value: string): void => {
-      if (!value.trim()) return;
+      const trimmedValue = value.trim();
+      if (!trimmedValue) return;
+
+      if (
+        handleCloudDispatchInput({
+          input: trimmedValue,
+          sessionMode,
+          currentAgent,
+          onResetInput,
+          appendSystemMessage,
+          setModeWarning,
+        })
+      ) {
+        return;
+      }
+
       if (handleSlashCommand(value)) {
         onResetInput();
         return;
