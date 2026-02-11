@@ -1,6 +1,9 @@
 import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
 import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
-import { toUniqueAgentManagementSessions } from "@/core/agent-management/session-summary-mapper";
+import {
+  toAgentManagementSessions,
+  toUniqueAgentManagementSessions,
+} from "@/core/agent-management/session-summary-mapper";
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
 import { useCallback, useEffect, useState } from "react";
@@ -53,16 +56,7 @@ const toUniqueSessionsFromCommandResult = (result: {
   exitCode: number;
 }): AgentManagementSession[] =>
   toUniqueAgentManagementSessions(
-    parseSessionListCommandResult(result)
-      .map(
-        (session): AgentManagementSession => ({
-          id: session.id,
-          title: session.title,
-          createdAt: session.createdAt,
-          model: session.model,
-          messageCount: session.messageCount,
-        })
-      )
+    toAgentManagementSessions(parseSessionListCommandResult(result))
       .map((session) => toValidatedSession(session))
       .filter((session): session is AgentManagementSession => session !== undefined)
   );
