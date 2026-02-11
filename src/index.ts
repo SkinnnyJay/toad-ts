@@ -1,6 +1,7 @@
 export * from "@/types/domain";
 export * from "@/types/agent-management.types";
 export * from "@/types/cli-agent.types";
+export * from "@/types/repo-workflow.types";
 export * from "@/types/cursor-cli.types";
 export * from "@/types/cursor-hooks.types";
 export * from "@/types/cursor-cloud.types";

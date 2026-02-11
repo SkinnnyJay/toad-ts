@@ -3,6 +3,14 @@ import { REPO_WORKFLOW_ACTION, type RepoWorkflowAction } from "@/constants/repo-
 import { REPO_WORKFLOW_STATUS, type RepoWorkflowStatus } from "@/constants/repo-workflow-status";
 import { type PullRequestStatus, getPRStatus } from "@/core/pr-status";
 import { isGitClean } from "@/store/checkpoints/checkpoint-git";
+import {
+  REPO_WORKFLOW_CHECKS_STATUS,
+  type RepoWorkflowCheckSummary,
+  RepoWorkflowChecksResponseSchema,
+  type RepoWorkflowChecksStatus,
+  RepoWorkflowChecksStatusSchema,
+  RepoWorkflowInfoSchema,
+} from "@/types/repo-workflow.types";
 import { execa } from "execa";
 
 async function getGitRoot(cwd: string): Promise<string | null> {
@@ -30,7 +38,7 @@ export interface RepoWorkflowInfo {
   isAhead: boolean;
   isBehind: boolean;
   hasMergeConflicts: boolean;
-  checksStatus: "pass" | "fail" | "pending" | null;
+  checksStatus: RepoWorkflowChecksStatus;
   action: RepoWorkflowAction;
 }
 
@@ -106,33 +114,59 @@ async function getHasMergeConflicts(cwd: string): Promise<boolean> {
   }
 }
 
-async function getPrChecksStatus(cwd: string): Promise<"pass" | "fail" | "pending" | null> {
+const CHECK_FAILURE = "failure"; // GitHub checks conclusion string
+const CHECK_IN_PROGRESS = "in_progress"; // GitHub checks status string
+const CHECK_QUEUED = "queued"; // GitHub checks status string
+const EMPTY_STRING = "";
+
+export const deriveChecksStatus = (
+  checks: RepoWorkflowCheckSummary[]
+): RepoWorkflowChecksStatus => {
+  if (checks.length === 0) return null;
+  const hasFail = checks.some(
+    (check) => (check.conclusion ?? check.status ?? EMPTY_STRING).toLowerCase() === CHECK_FAILURE
+  );
+  const hasPending = checks.some((check) => {
+    const status = (check.status ?? EMPTY_STRING).toLowerCase();
+    const conclusion = (check.conclusion ?? EMPTY_STRING).toLowerCase();
+    return status === CHECK_IN_PROGRESS || status === CHECK_QUEUED || conclusion === EMPTY_STRING;
+  });
+  if (hasFail) return REPO_WORKFLOW_CHECKS_STATUS.FAIL;
+  if (hasPending) return REPO_WORKFLOW_CHECKS_STATUS.PENDING;
+  return REPO_WORKFLOW_CHECKS_STATUS.PASS;
+};
+
+export const deriveChecksStatusFromOutput = (stdout: string): RepoWorkflowChecksStatus => {
+  let payload: unknown;
+  try {
+    payload = JSON.parse(stdout);
+  } catch {
+    return null;
+  }
+  const parsed = RepoWorkflowChecksResponseSchema.safeParse(payload);
+  if (!parsed.success) return null;
+  return RepoWorkflowChecksStatusSchema.parse(deriveChecksStatus(parsed.data));
+};
+
+async function getPrChecksStatus(cwd: string): Promise<RepoWorkflowChecksStatus> {
   try {
     const { stdout } = await execa("gh", ["pr", "checks", "--json", "name,status,conclusion"], {
       cwd,
       encoding: "utf8",
       timeout: 10_000,
     });
-    const data = JSON.parse(stdout) as Array<{ status?: string; conclusion?: string }>;
-    if (!Array.isArray(data) || data.length === 0) return null;
-    const hasFail = data.some((c) => (c.conclusion ?? c.status ?? "").toLowerCase() === "failure");
-    const hasPending = data.some(
-      (c) => (c.status ?? "").toLowerCase() === "in_progress" || (c.conclusion ?? "") === ""
-    );
-    if (hasFail) return "fail";
-    if (hasPending) return "pending";
-    return "pass";
+    return deriveChecksStatusFromOutput(stdout);
   } catch {
     return null;
   }
 }
 
-function deriveStatus(
+export function deriveWorkflowStatus(
   pr: PullRequestStatus | null,
   isDirty: boolean,
   isAhead: boolean,
   hasMergeConflicts: boolean,
-  checksStatus: "pass" | "fail" | "pending" | null
+  checksStatus: RepoWorkflowChecksStatus
 ): RepoWorkflowStatus {
   if (!pr) {
     if (isDirty) return REPO_WORKFLOW_STATUS.LOCAL_DIRTY;
@@ -149,7 +183,7 @@ function deriveStatus(
   if (state !== "open") return REPO_WORKFLOW_STATUS.OPEN;
 
   if (hasMergeConflicts) return REPO_WORKFLOW_STATUS.MERGE_CONFLICTS;
-  if (checksStatus === "fail") return REPO_WORKFLOW_STATUS.CI_FAILING;
+  if (checksStatus === REPO_WORKFLOW_CHECKS_STATUS.FAIL) return REPO_WORKFLOW_STATUS.CI_FAILING;
 
   const decision = (pr.reviewDecision ?? "").toLowerCase();
   if (decision === "approved") return REPO_WORKFLOW_STATUS.APPROVED;
@@ -179,7 +213,7 @@ export async function getRepoWorkflowInfo(cwd?: string): Promise<RepoWorkflowInf
   const isAhead = ahead > 0;
   const isBehind = behind > 0;
 
-  const status = deriveStatus(pr, isDirty, isAhead, hasMergeConflicts, checksStatus);
+  const status = deriveWorkflowStatus(pr, isDirty, isAhead, hasMergeConflicts, checksStatus);
   const action = REPO_WORKFLOW_ACTION[status];
 
   let owner = "unknown";
@@ -192,7 +226,7 @@ export async function getRepoWorkflowInfo(cwd?: string): Promise<RepoWorkflowInf
     }
   }
 
-  return {
+  return RepoWorkflowInfoSchema.parse({
     owner,
     repoName,
     branch,
@@ -206,5 +240,5 @@ export async function getRepoWorkflowInfo(cwd?: string): Promise<RepoWorkflowInf
     hasMergeConflicts,
     checksStatus,
     action,
-  };
+  });
 }
