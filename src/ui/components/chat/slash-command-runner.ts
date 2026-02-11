@@ -1,8 +1,10 @@
 import { LIMIT } from "@/config/limits";
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { REWIND_MODE } from "@/constants/rewind-modes";
 import {
   SLASH_COMMAND_MESSAGE,
+  formatAgentSessionListMessage,
   formatCompactionCompleteMessage,
   formatModeUpdatedMessage,
   formatModelCurrentMessage,
@@ -21,7 +23,7 @@ import {
 } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { TASK_STATUS } from "@/constants/task-status";
-import { parseModelsOutput } from "@/core/agent-management/cli-output-parser";
+import { parseModelsOutput, parseUuidLines } from "@/core/agent-management/cli-output-parser";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
@@ -169,9 +171,33 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     case SLASH_COMMAND.SESSIONS: {
       if (deps.openSessions) {
         deps.openSessions();
-        return true;
       }
       deps.appendSystemMessage(formatSessionListMessage(deps.listSessions()));
+
+      if (!deps.runAgentCommand || deps.activeHarnessId !== HARNESS_DEFAULT.CURSOR_CLI_ID) {
+        return true;
+      }
+
+      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.SESSIONS_FETCHING);
+      void deps
+        .runAgentCommand(["ls"])
+        .then((result) => {
+          if (result.exitCode !== 0) {
+            deps.appendSystemMessage(
+              `${SLASH_COMMAND_MESSAGE.SESSIONS_NOT_AVAILABLE} ${result.stderr || result.stdout}`
+            );
+            return;
+          }
+          const sessionIds = parseUuidLines(`${result.stdout}\n${result.stderr}`);
+          deps.appendSystemMessage(formatAgentSessionListMessage(sessionIds));
+        })
+        .catch((error) => {
+          deps.appendSystemMessage(
+            `${SLASH_COMMAND_MESSAGE.SESSIONS_NOT_AVAILABLE} ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        });
       return true;
     }
     case SLASH_COMMAND.NEW: {

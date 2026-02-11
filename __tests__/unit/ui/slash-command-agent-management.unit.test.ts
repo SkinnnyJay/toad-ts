@@ -1,3 +1,4 @@
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { type SlashCommandDeps, runSlashCommand } from "@/ui/components/chat/slash-command-runner";
 import { describe, expect, it, vi } from "vitest";
@@ -28,7 +29,7 @@ describe("slash command agent management", () => {
       exitCode: 0,
     }));
     const { deps, appendSystemMessage } = createDeps({
-      activeHarnessId: "cursor-cli",
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
       runAgentCommand,
     });
 
@@ -75,7 +76,7 @@ describe("slash command agent management", () => {
       exitCode: 0,
     }));
     const { deps, appendSystemMessage } = createDeps({
-      activeHarnessId: "cursor-cli",
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
       runAgentCommand,
     });
 
@@ -201,5 +202,47 @@ describe("slash command agent management", () => {
     await Promise.resolve();
 
     expect(runAgentCommand).toHaveBeenCalledWith(["login", "status"]);
+  });
+
+  it("fetches native cursor sessions for /sessions", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "9b7418b2-5b71-4a12-97b4-64f2131e5241\n36bf2c71-c56a-4c0a-a2e6-f7d47c2cd2e7",
+      stderr: "",
+      exitCode: 0,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: "cursor-cli",
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.SESSIONS, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runAgentCommand).toHaveBeenCalledWith(["ls"]);
+    expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("Agent sessions:"));
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("9b7418b2-5b71-4a12-97b4-64f2131e5241")
+    );
+  });
+
+  it("reports native session listing failures for /sessions", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "requires tty",
+      exitCode: 1,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: "cursor-cli",
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.SESSIONS, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("Session listing is not available")
+    );
   });
 });

@@ -62,6 +62,8 @@ export const SLASH_COMMAND_MESSAGE = {
   MCP_STARTING: "Running MCP command...",
   MODELS_FETCHING: "Fetching models from active provider...",
   MODELS_NOT_AVAILABLE: "Model listing is not available for this provider.",
+  SESSIONS_FETCHING: "Fetching sessions from active provider...",
+  SESSIONS_NOT_AVAILABLE: "Session listing is not available for this provider.",
   GEMINI_LOGIN_HINT:
     "Gemini uses API-key auth. Set GOOGLE_API_KEY or GEMINI_API_KEY in your environment.",
   CONFIG_NOT_AVAILABLE: "Configuration panel is not available.",
@@ -100,6 +102,19 @@ export const formatSessionListMessage = (sessions: Session[]): string => {
   const suffix =
     sessions.length > preview.length ? `\n… ${sessions.length - preview.length} more sessions` : "";
   return `Sessions:\n${lines.join("\n")}${suffix}`;
+};
+
+export const formatAgentSessionListMessage = (sessionIds: string[]): string => {
+  if (sessionIds.length === 0) {
+    return "No native agent sessions available.";
+  }
+  const preview = sessionIds.slice(0, LIMIT.SESSION_LIST_PREVIEW);
+  const lines = preview.map((sessionId, index) => `${index + 1}. ${sessionId}`);
+  const suffix =
+    sessionIds.length > preview.length
+      ? `\n… ${sessionIds.length - preview.length} more agent sessions`
+      : "";
+  return `Agent sessions:\n${lines.join("\n")}${suffix}`;
 };
 
 export const formatModelCurrentMessage = (model: string): string => `Current model: ${model}.`;
