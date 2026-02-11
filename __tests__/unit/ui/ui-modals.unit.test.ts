@@ -222,5 +222,42 @@ describe("UI Modals", () => {
       expect(lastFrame()).toContain("Filter: 2026");
       expect(lastFrame()).toContain("Native: 123e4567");
     });
+
+    it("orders external cursor sessions by newest created timestamp first", () => {
+      const newestSessionId = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174000");
+      const oldestSessionId = SessionIdSchema.parse("223e4567-e89b-12d3-a456-426614174000");
+
+      const { lastFrame } = renderInk(
+        React.createElement(
+          TruncationProvider,
+          {},
+          React.createElement(SessionsPopup, {
+            isOpen: true,
+            onClose: () => {},
+            onSelectSession: () => {},
+            externalSessions: [
+              {
+                id: oldestSessionId,
+                title: "Old session",
+                createdAt: "2026-02-10T10:00:00.000Z",
+              },
+              {
+                id: newestSessionId,
+                title: "New session",
+                createdAt: "2026-02-11T10:00:00.000Z",
+              },
+            ],
+          })
+        )
+      );
+
+      const frame = lastFrame();
+      const newestIndex = frame.indexOf("Native: 123e4567");
+      const oldestIndex = frame.indexOf("Native: 223e4567");
+
+      expect(newestIndex).toBeGreaterThanOrEqual(0);
+      expect(oldestIndex).toBeGreaterThanOrEqual(0);
+      expect(newestIndex).toBeLessThan(oldestIndex);
+    });
   });
 });

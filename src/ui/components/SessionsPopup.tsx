@@ -26,6 +26,7 @@ interface SessionEntry {
   title: string;
   searchText: string;
   description: string;
+  sortTimestamp?: number;
 }
 
 export function SessionsPopup({
@@ -62,41 +63,47 @@ export function SessionsPopup({
       };
     });
     const localIds = new Set(localEntries.map((entry) => entry.id));
-    const externalEntries = externalSessions
-      .map((session) => {
-        const parsedId = SessionIdSchema.safeParse(session.id);
-        if (!parsedId.success) {
-          return null;
-        }
-        const sessionId = parsedId.data;
-        if (localIds.has(sessionId)) {
-          return null;
-        }
-        const shortId = session.id.slice(0, LIMIT.ID_TRUNCATE_LENGTH);
-        const details: string[] = [];
-        if (session.title) {
-          details.push(session.title);
-        }
-        if (session.createdAt) {
-          details.push(`Created: ${session.createdAt}`);
-        }
-        if (session.model) {
-          details.push(`Model: ${session.model}`);
-        }
-        if (session.messageCount !== undefined) {
-          details.push(`Messages: ${session.messageCount}`);
-        }
-        const suffix = details.length > 0 ? ` · ${details.join(" · ")}` : "";
-        return {
-          id: sessionId,
-          title: `Native: ${shortId}`,
-          searchText: `${session.id} ${session.title ?? ""} ${session.createdAt ?? ""} ${
-            session.model ?? ""
-          } ${session.messageCount ?? ""} cursor`,
-          description: `Native Cursor session (${session.id})${suffix}`,
-        };
-      })
-      .filter((entry): entry is SessionEntry => entry !== null);
+    const externalEntries: SessionEntry[] = [];
+    for (const session of externalSessions) {
+      const parsedId = SessionIdSchema.safeParse(session.id);
+      if (!parsedId.success) {
+        continue;
+      }
+      const sessionId = parsedId.data;
+      if (localIds.has(sessionId)) {
+        continue;
+      }
+      const shortId = session.id.slice(0, LIMIT.ID_TRUNCATE_LENGTH);
+      const details: string[] = [];
+      if (session.title) {
+        details.push(session.title);
+      }
+      if (session.createdAt) {
+        details.push(`Created: ${session.createdAt}`);
+      }
+      if (session.model) {
+        details.push(`Model: ${session.model}`);
+      }
+      if (session.messageCount !== undefined) {
+        details.push(`Messages: ${session.messageCount}`);
+      }
+      const suffix = details.length > 0 ? ` · ${details.join(" · ")}` : "";
+      const createdTimestamp = session.createdAt ? Date.parse(session.createdAt) : Number.NaN;
+      externalEntries.push({
+        id: sessionId,
+        title: `Native: ${shortId}`,
+        searchText: `${session.id} ${session.title ?? ""} ${session.createdAt ?? ""} ${
+          session.model ?? ""
+        } ${session.messageCount ?? ""} cursor`,
+        description: `Native Cursor session (${session.id})${suffix}`,
+        sortTimestamp: Number.isNaN(createdTimestamp) ? undefined : createdTimestamp,
+      });
+    }
+    externalEntries.sort((left, right) => {
+      const leftValue = left.sortTimestamp ?? 0;
+      const rightValue = right.sortTimestamp ?? 0;
+      return rightValue - leftValue;
+    });
     return [...localEntries, ...externalEntries];
   }, [externalSessions, sortedSessions]);
 
