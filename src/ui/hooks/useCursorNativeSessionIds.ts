@@ -1,5 +1,5 @@
 import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
-import { parseUuidLines } from "@/core/agent-management/cli-output-parser";
+import { parseSessionListOutput } from "@/core/agent-management/cli-output-parser";
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
 import { useCallback, useEffect, useState } from "react";
@@ -16,7 +16,7 @@ const toErrorMessage = (error: unknown): string => {
 };
 
 const toUniqueSessionIds = (value: string): SessionId[] => {
-  const parsedIds = parseUuidLines(value)
+  const parsedIds = parseSessionListOutput(value)
     .map((sessionId) => SessionIdSchema.safeParse(sessionId))
     .filter((parsed): parsed is { success: true; data: SessionId } => parsed.success)
     .map((parsed) => parsed.data);

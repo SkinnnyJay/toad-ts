@@ -210,7 +210,8 @@ describe("slash command agent management", () => {
 
   it("fetches native cursor sessions for /sessions", async () => {
     const runAgentCommand = vi.fn(async () => ({
-      stdout: "9b7418b2-5b71-4a12-97b4-64f2131e5241\n36bf2c71-c56a-4c0a-a2e6-f7d47c2cd2e7",
+      stdout:
+        "9b7418b2-5b71-4a12-97b4-64f2131e5241\n36bf2c71-c56a-4c0a-a2e6-f7d47c2cd2e7\nsession-resume-id",
       stderr: "",
       exitCode: 0,
     }));
@@ -228,6 +229,7 @@ describe("slash command agent management", () => {
     expect(appendSystemMessage).toHaveBeenCalledWith(
       expect.stringContaining("9b7418b2-5b71-4a12-97b4-64f2131e5241")
     );
+    expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("session-resume-id"));
   });
 
   it("prefers runtime-native session listing for /sessions when available", async () => {

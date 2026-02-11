@@ -51,8 +51,9 @@ describe("useCursorNativeSessionIds", () => {
   it("loads and deduplicates native session ids", async () => {
     const first = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174000");
     const second = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174001");
+    const third = SessionIdSchema.parse("session-resume-id");
     const runAgentCommand = vi.fn(async () => ({
-      stdout: `${first}\n${second}\n${first}`,
+      stdout: `${first}\n${second}\n${third}\n${first}`,
       stderr: "",
       exitCode: 0,
     }));
@@ -77,6 +78,7 @@ describe("useCursorNativeSessionIds", () => {
     const frame = lastFrame();
     expect(frame).toContain(first);
     expect(frame).toContain(second);
+    expect(frame).toContain(third);
     expect(frame).toContain("loading:false");
     expect(frame).toContain("error:none");
     unmount();
