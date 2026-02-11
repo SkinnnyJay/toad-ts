@@ -16,6 +16,7 @@ import {
   formatSessionCreatedMessage,
   formatSessionListMessage,
   formatSessionRenamedMessage,
+  formatSessionSwitchedMessage,
   formatThinkingMessage,
   formatToolDetailsMessage,
   formatUnknownCommandMessage,
@@ -27,7 +28,7 @@ import { parseModelsOutput, parseUuidLines } from "@/core/agent-management/cli-o
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
-import { PlanIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
+import { PlanIdSchema, SessionIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
 import { nanoid } from "nanoid";
 import {
   runCopyCommand,
@@ -78,6 +79,7 @@ export interface SlashCommandDeps {
   upsertPlan: (plan: Plan) => void;
   openSessions?: () => void;
   createSession?: (title?: string) => Promise<SessionId | null>;
+  switchToSession?: (sessionId: SessionId) => boolean;
   setSessionModel?: (modelId: string) => Promise<void>;
   toggleToolDetails?: () => boolean;
   toggleThinking?: () => boolean;
@@ -169,6 +171,21 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       return true;
     }
     case SLASH_COMMAND.SESSIONS: {
+      const targetSessionId = parts.slice(1).join(" ").trim();
+      if (targetSessionId.length > 0) {
+        if (!deps.switchToSession) {
+          deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.SESSION_SWITCH_NOT_AVAILABLE);
+          return true;
+        }
+        const switched = deps.switchToSession(SessionIdSchema.parse(targetSessionId));
+        if (switched) {
+          deps.appendSystemMessage(formatSessionSwitchedMessage(targetSessionId));
+        } else {
+          deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_SESSION_TO_UPDATE);
+        }
+        return true;
+      }
+
       if (deps.openSessions) {
         deps.openSessions();
       }

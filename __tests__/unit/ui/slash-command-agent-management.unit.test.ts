@@ -245,4 +245,26 @@ describe("slash command agent management", () => {
       expect.stringContaining("Session listing is not available")
     );
   });
+
+  it("switches to provided session id via /sessions <id>", () => {
+    const switchToSession = vi.fn(() => true);
+    const { deps, appendSystemMessage } = createDeps({
+      switchToSession,
+    });
+
+    expect(runSlashCommand("/sessions resumed-session-id", deps)).toBe(true);
+
+    expect(switchToSession).toHaveBeenCalledWith("resumed-session-id");
+    expect(appendSystemMessage).toHaveBeenCalledWith("Switched to session: resumed-session-id");
+  });
+
+  it("reports unsupported session switching when handler is unavailable", () => {
+    const { deps, appendSystemMessage } = createDeps();
+
+    expect(runSlashCommand("/sessions resumed-session-id", deps)).toBe(true);
+
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      "Session switching is not available for this provider."
+    );
+  });
 });

@@ -7,6 +7,7 @@ import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { ENCODING } from "@/constants/encodings";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
+import { SESSION_MODE } from "@/constants/session-modes";
 import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { loadMcpConfig } from "@/core/mcp-config-loader";
@@ -312,6 +313,31 @@ export const useSlashCommandHandler = ({
           });
           setCurrentSession(session.id);
           return session.id;
+        },
+        switchToSession: (targetSessionId) => {
+          const existing = getSession(targetSessionId);
+          if (existing) {
+            setCurrentSession(targetSessionId);
+            return true;
+          }
+
+          const nowValue = now?.() ?? Date.now();
+          const nextSession: Session = {
+            id: targetSessionId,
+            title: `${agent?.name ?? "Session"} (${targetSessionId.slice(0, 8)})`,
+            agentId: agent?.id,
+            messageIds: [],
+            createdAt: nowValue,
+            updatedAt: nowValue,
+            mode: agent?.sessionMode ?? SESSION_MODE.AUTO,
+            metadata: {
+              mcpServers: [],
+              ...(agent?.model ? { model: agent.model } : {}),
+            },
+          };
+          upsertSession({ session: nextSession });
+          setCurrentSession(targetSessionId);
+          return true;
         },
         setSessionModel: async (modelId: string) => {
           if (!client?.setSessionModel || !sessionId) {

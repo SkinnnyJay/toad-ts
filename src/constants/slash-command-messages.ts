@@ -10,6 +10,7 @@ export const SLASH_COMMAND_MESSAGE = {
   NO_SESSION_TO_UPDATE: "No session to update mode.",
   SESSION_CLEARED: "Session messages cleared.",
   SESSION_RENAME_MISSING: "Provide a new session title.",
+  SESSION_SWITCH_NOT_AVAILABLE: "Session switching is not available for this provider.",
   NO_MODEL_CONFIGURED: "No model configured for this session.",
   NO_MODELS_AVAILABLE: "No available models reported by the agent.",
   EDITOR_NOT_CONFIGURED: "No editor configured (set VISUAL or EDITOR).",
@@ -88,6 +89,9 @@ export const formatSessionCreateFailedMessage = (message: string): string =>
 
 export const formatSessionRenamedMessage = (title: string): string =>
   `Session renamed to ${title}.`;
+
+export const formatSessionSwitchedMessage = (sessionId: string): string =>
+  `Switched to session: ${sessionId}`;
 
 export const formatSessionListMessage = (sessions: Session[]): string => {
   if (sessions.length === 0) {
