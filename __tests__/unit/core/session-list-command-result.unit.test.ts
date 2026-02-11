@@ -76,4 +76,14 @@ describe("session-list-command-result", () => {
       },
     ]);
   });
+
+  it("prefers stdout parsing and ignores stderr noise when stdout is present", () => {
+    const parsed = parseSessionListCommandResult({
+      stdout: "No sessions found.",
+      stderr: "warning: reused session id session-noise-id",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual([]);
+  });
 });

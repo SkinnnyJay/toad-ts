@@ -19,6 +19,10 @@ export const parseSessionListCommandResult = (
   result: AgentManagementCommandResult
 ): CliAgentSession[] => {
   assertCommandSucceeded(result, SESSION_LIST_COMMAND_FAILURE_MESSAGE);
+  const parsedFromStdout = parseSessionSummariesOutput(result.stdout);
+  if (parsedFromStdout.length > 0 || result.stdout.trim().length > 0) {
+    return parsedFromStdout;
+  }
   return parseSessionSummariesOutput(toCombinedCommandOutput(result));
 };
 
