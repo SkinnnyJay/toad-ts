@@ -2,7 +2,9 @@ import { EventEmitter } from "eventemitter3";
 import { describe, expect, it } from "vitest";
 import { CONTENT_BLOCK_TYPE } from "../../../src/constants/content-block-types";
 import { CURSOR_STREAM_TYPE } from "../../../src/constants/cursor-event-types";
+import { CURSOR_HOOK_EVENT } from "../../../src/constants/cursor-hook-events";
 import { CURSOR_HOOK_IPC_TRANSPORT } from "../../../src/constants/cursor-hook-ipc";
+import { SESSION_UPDATE_TYPE } from "../../../src/constants/session-update-types";
 import type {
   CursorPromptRequest,
   CursorPromptResult,
@@ -11,6 +13,7 @@ import { CursorCliHarnessAdapter } from "../../../src/core/cursor/cursor-cli-har
 import { SessionManager } from "../../../src/core/session-manager";
 import { SessionStream } from "../../../src/core/session-stream";
 import { useAppStore } from "../../../src/store/app-store";
+import type { CursorHookInput } from "../../../src/types/cursor-hooks.types";
 import { AgentIdSchema } from "../../../src/types/domain";
 
 class IntegrationFakeConnection extends EventEmitter<{
@@ -79,7 +82,10 @@ class IntegrationFakeConnection extends EventEmitter<{
   }
 }
 
-class IntegrationFakeHookServer extends EventEmitter<{ error: (_error: Error) => void }> {
+class IntegrationFakeHookServer extends EventEmitter<{
+  hookEvent: (_event: CursorHookInput) => void;
+  error: (_error: Error) => void;
+}> {
   async start(): Promise<{ transport: "http"; url: string }> {
     return {
       transport: CURSOR_HOOK_IPC_TRANSPORT.HTTP,
@@ -98,9 +104,10 @@ describe("Cursor session flow integration", () => {
     store.reset();
 
     const connection = new IntegrationFakeConnection();
+    const hookServer = new IntegrationFakeHookServer();
     const harness = new CursorCliHarnessAdapter({
       connection,
-      hookServer: new IntegrationFakeHookServer(),
+      hookServer,
       installHooksFn: async () => ({
         paths: {
           hooksFilePath: "/tmp/hooks.json",
@@ -113,6 +120,10 @@ describe("Cursor session flow integration", () => {
         generatedConfig: { version: 1, hooks: {} },
       }),
       cleanupHooksFn: async () => {},
+    });
+    const hookSessionUpdates: string[] = [];
+    harness.on("sessionUpdate", (notification) => {
+      hookSessionUpdates.push(notification.update.sessionUpdate);
     });
 
     const sessionStream = new SessionStream(store);
@@ -138,6 +149,26 @@ describe("Cursor session flow integration", () => {
         sessionId: session.id,
         prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "follow-up prompt" }],
       });
+      hookServer.emit("hookEvent", {
+        conversation_id: session.id,
+        hook_event_name: CURSOR_HOOK_EVENT.AFTER_AGENT_THOUGHT,
+        thought: "Considering file edits before final response.",
+        workspace_roots: ["/workspace"],
+      });
+      hookServer.emit("hookEvent", {
+        conversation_id: session.id,
+        hook_event_name: CURSOR_HOOK_EVENT.AFTER_FILE_EDIT,
+        path: "src/core/example.ts",
+        edits: [
+          {
+            path: "src/core/example.ts",
+            old_string: "const value = 1;",
+            new_string: "const value = 2;",
+          },
+        ],
+        workspace_roots: ["/workspace"],
+      });
+      await new Promise((resolve) => setTimeout(resolve, 40));
 
       const messages = store.getMessagesForSession(session.id);
       const assistantMessages = messages.filter((message) => message.role === "assistant");
@@ -147,6 +178,8 @@ describe("Cursor session flow integration", () => {
         true
       );
       expect(connection.promptRequests[0]?.model).toBe("opus-4.6-thinking");
+      expect(hookSessionUpdates).toContain(SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK);
+      expect(hookSessionUpdates).toContain(SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE);
     } finally {
       detach();
       await harness.disconnect();

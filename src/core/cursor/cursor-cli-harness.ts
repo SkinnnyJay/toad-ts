@@ -1,7 +1,9 @@
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
+import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { SIGNAL } from "@/constants/signals";
 import {
   CursorCliConnection,
@@ -24,6 +26,7 @@ import type {
 } from "@/harness/harnessAdapter";
 import { type HarnessConfig, harnessConfigSchema } from "@/harness/harnessConfig";
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
+import type { CursorHookInput } from "@/types/cursor-hooks.types";
 import type { ConnectionStatus } from "@/types/domain";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
@@ -69,6 +72,7 @@ interface CursorHookIpcServerLike {
   start(): Promise<CursorHookIpcAddress>;
   stop(): Promise<void>;
   on(event: "error", fn: (error: Error) => void): this;
+  on(event: "hookEvent", fn: (event: CursorHookInput) => void): this;
 }
 
 type InstallHooksFn = (
@@ -108,6 +112,7 @@ export class CursorCliHarnessAdapter
   private signalHandlersInstalled = false;
   private readonly sessionModeById = new Map<string, string>();
   private readonly sessionModelById = new Map<string, string>();
+  private readonly hookToolCallByKey = new Map<string, string>();
 
   constructor(options: CursorCliHarnessAdapterOptions = {}) {
     super();
@@ -150,6 +155,7 @@ export class CursorCliHarnessAdapter
     this.translator.on("error", (error) => this.emit("error", error));
 
     this.hookServer.on("error", (error) => this.emit("error", error));
+    this.hookServer.on("hookEvent", (event) => this.handleHookEvent(event));
   }
 
   get connectionStatus(): ConnectionStatus {
@@ -327,6 +333,132 @@ export class CursorCliHarnessAdapter
   private setStatus(status: ConnectionStatus): void {
     this.status = status;
     this.emit("state", status);
+  }
+
+  private handleHookEvent(event: CursorHookInput): void {
+    const sessionId = event.conversation_id;
+    switch (event.hook_event_name) {
+      case CURSOR_HOOK_EVENT.AFTER_AGENT_THOUGHT: {
+        const thought = this.asNonEmptyString(event.thought);
+        if (!thought) {
+          return;
+        }
+        this.emit("sessionUpdate", {
+          sessionId,
+          update: {
+            sessionUpdate: SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK,
+            content: { type: CONTENT_BLOCK_TYPE.TEXT, text: thought },
+          },
+        });
+        return;
+      }
+      case CURSOR_HOOK_EVENT.BEFORE_SHELL_EXECUTION: {
+        const command = this.asNonEmptyString(event.command);
+        if (!command) {
+          return;
+        }
+        const toolCallId = this.getOrCreateHookToolCallId(sessionId, `shell:${command}`);
+        this.emit("sessionUpdate", {
+          sessionId,
+          update: {
+            sessionUpdate: SESSION_UPDATE_TYPE.TOOL_CALL,
+            toolCallId,
+            title: `Shell: ${command}`,
+            rawInput: { command },
+            status: "in_progress",
+          },
+        });
+        return;
+      }
+      case CURSOR_HOOK_EVENT.AFTER_SHELL_EXECUTION: {
+        const command = this.asNonEmptyString(event.command);
+        if (!command) {
+          return;
+        }
+        const toolCallId = this.getOrCreateHookToolCallId(sessionId, `shell:${command}`);
+        const status = event.exit_code === 0 ? "completed" : "failed";
+        this.emit("sessionUpdate", {
+          sessionId,
+          update: {
+            sessionUpdate: SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE,
+            toolCallId,
+            title: `Shell: ${command}`,
+            rawOutput: {
+              exitCode: event.exit_code,
+              stdout: event.stdout,
+              stderr: event.stderr,
+            },
+            status,
+          },
+        });
+        return;
+      }
+      case CURSOR_HOOK_EVENT.AFTER_FILE_EDIT: {
+        const pathLabel = this.asNonEmptyString(event.path) ?? "unknown";
+        const toolCallId = this.getOrCreateHookToolCallId(sessionId, `edit:${pathLabel}`);
+        this.emit("sessionUpdate", {
+          sessionId,
+          update: {
+            sessionUpdate: SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE,
+            toolCallId,
+            title: `File edit: ${pathLabel}`,
+            rawOutput: {
+              path: this.asNonEmptyString(event.path),
+              edits: this.normalizeFileEdits(event.edits, this.asNonEmptyString(event.path)),
+            },
+            status: "completed",
+          },
+        });
+        return;
+      }
+      default:
+        return;
+    }
+  }
+
+  private asNonEmptyString(value: unknown): string | null {
+    if (typeof value !== "string") {
+      return null;
+    }
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  private normalizeFileEdits(
+    edits: unknown,
+    fallbackPath: string | null
+  ): Array<{ path?: string; old_string?: string; new_string?: string }> {
+    if (!Array.isArray(edits)) {
+      return [];
+    }
+    return edits.map((edit) => {
+      if (!edit || typeof edit !== "object") {
+        return {
+          path: fallbackPath ?? undefined,
+        };
+      }
+      const typedEdit = edit as {
+        path?: unknown;
+        old_string?: unknown;
+        new_string?: unknown;
+      };
+      return {
+        path: this.asNonEmptyString(typedEdit.path) ?? fallbackPath ?? undefined,
+        old_string: this.asNonEmptyString(typedEdit.old_string) ?? undefined,
+        new_string: this.asNonEmptyString(typedEdit.new_string) ?? undefined,
+      };
+    });
+  }
+
+  private getOrCreateHookToolCallId(sessionId: string, key: string): string {
+    const cacheKey = `${sessionId}:${key}`;
+    const existing = this.hookToolCallByKey.get(cacheKey);
+    if (existing) {
+      return existing;
+    }
+    const created = `hook-${sessionId}-${this.hookToolCallByKey.size + 1}`;
+    this.hookToolCallByKey.set(cacheKey, created);
+    return created;
   }
 }
 

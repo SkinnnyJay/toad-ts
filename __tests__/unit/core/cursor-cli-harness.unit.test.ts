@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { CONNECTION_STATUS } from "../../../src/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "../../../src/constants/content-block-types";
 import { CURSOR_STREAM_TYPE } from "../../../src/constants/cursor-event-types";
+import { CURSOR_HOOK_EVENT } from "../../../src/constants/cursor-hook-events";
 import { CURSOR_HOOK_IPC_TRANSPORT } from "../../../src/constants/cursor-hook-ipc";
 import { ENV_KEY } from "../../../src/constants/env-keys";
 import { SESSION_UPDATE_TYPE } from "../../../src/constants/session-update-types";
@@ -11,6 +12,7 @@ import type {
   CursorPromptResult,
 } from "../../../src/core/cursor/cursor-cli-connection";
 import { CursorCliHarnessAdapter } from "../../../src/core/cursor/cursor-cli-harness";
+import type { CursorHookInput } from "../../../src/types/cursor-hooks.types";
 
 const sessionId = "14855632-18d5-44a3-ab27-5c93e95a8011";
 
@@ -86,6 +88,7 @@ class FakeCursorConnection extends EventEmitter<{
 }
 
 class FakeHookServer extends EventEmitter<{
+  hookEvent: (_event: CursorHookInput) => void;
   permissionRequest: (_request: unknown) => void;
   error: (_error: Error) => void;
 }> {
@@ -162,6 +165,32 @@ describe("CursorCliHarnessAdapter", () => {
       prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "hello" }],
     });
 
+    hookServer.emit("hookEvent", {
+      conversation_id: sessionId,
+      hook_event_name: CURSOR_HOOK_EVENT.AFTER_AGENT_THOUGHT,
+      thought: "Need to inspect the diff before applying changes.",
+      workspace_roots: ["/workspace"],
+    });
+    hookServer.emit("hookEvent", {
+      conversation_id: sessionId,
+      hook_event_name: CURSOR_HOOK_EVENT.BEFORE_SHELL_EXECUTION,
+      command: "npm run test",
+      workspace_roots: ["/workspace"],
+    });
+    hookServer.emit("hookEvent", {
+      conversation_id: sessionId,
+      hook_event_name: CURSOR_HOOK_EVENT.AFTER_FILE_EDIT,
+      path: "src/index.ts",
+      edits: [
+        {
+          path: "src/index.ts",
+          old_string: "old",
+          new_string: "new",
+        },
+      ],
+      workspace_roots: ["/workspace"],
+    });
+
     expect(promptResult.stopReason).toBe("end_turn");
     expect(connection.promptRequests).toHaveLength(1);
     expect(connection.promptRequests[0]?.mode).toBe("plan");
@@ -173,6 +202,9 @@ describe("CursorCliHarnessAdapter", () => {
     expect(managementResult.stdout).toBe("ok");
     expect(connection.managementRequests[0]).toEqual(["status"]);
     expect(sessionUpdates).toContain(SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK);
+    expect(sessionUpdates).toContain(SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK);
+    expect(sessionUpdates).toContain(SESSION_UPDATE_TYPE.TOOL_CALL);
+    expect(sessionUpdates).toContain(SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE);
 
     await harness.disconnect();
     expect(hookServer.stopped).toBe(true);
