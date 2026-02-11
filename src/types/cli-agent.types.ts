@@ -149,14 +149,16 @@ export const ToolCompleteEventSchema = StreamEventBaseSchema.extend({
   type: z.literal(STREAM_EVENT_TYPE.TOOL_COMPLETE),
   toolCallId: z.string().min(1),
   toolName: z.string().min(1),
+  toolInput: z.record(z.unknown()).optional(),
   success: z.boolean(),
-  result: z.record(z.unknown()).optional(),
+  result: z.unknown().optional(),
 });
 
 export const ToolErrorEventSchema = StreamEventBaseSchema.extend({
   type: z.literal(STREAM_EVENT_TYPE.TOOL_ERROR),
   toolCallId: z.string().min(1),
   toolName: z.string().min(1),
+  toolInput: z.record(z.unknown()).optional(),
   message: z.string().min(1),
 });
 

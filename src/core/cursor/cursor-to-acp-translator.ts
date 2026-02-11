@@ -1,7 +1,9 @@
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { CURSOR_STREAM_SUBTYPE, CURSOR_STREAM_TYPE } from "@/constants/cursor-event-types";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
-import type { CursorStreamEvent } from "@/types/cursor-cli.types";
+import { CliAgentBridge } from "@/core/cli-agent/cli-agent.bridge";
+import { STREAM_EVENT_TYPE, type StreamEvent } from "@/types/cli-agent.types";
+import type { CursorStreamEvent, CursorToolCallCompletedEvent } from "@/types/cursor-cli.types";
 import type { SessionNotification } from "@agentclientprotocol/sdk";
 import { EventEmitter } from "eventemitter3";
 
@@ -60,11 +62,26 @@ export interface CursorToAcpTranslatorEvents {
 
 export class CursorToAcpTranslator extends EventEmitter<CursorToAcpTranslatorEvents> {
   private readonly toolResultMaxBytes: number;
+  private readonly bridge: CliAgentBridge;
 
   constructor(options: CursorToAcpTranslatorOptions = {}) {
     super();
     this.toolResultMaxBytes =
       options.toolResultMaxBytes ?? CURSOR_TRANSLATOR_DEFAULT.TOOL_RESULT_MAX_BYTES;
+    this.bridge = new CliAgentBridge({
+      toolResultMaxBytes: this.toolResultMaxBytes,
+    });
+    this.bridge.on("sessionUpdate", (update) => this.emit("sessionUpdate", update));
+    this.bridge.on("error", (error) => this.emit("error", error));
+    this.bridge.on("toolResultTruncated", (event) => this.emit("toolResultTruncated", event));
+    this.bridge.on("result", (result) => {
+      this.emit("result", {
+        sessionId: result.sessionId,
+        text: result.text,
+        durationMs: result.durationMs ?? 0,
+        isError: !result.success,
+      });
+    });
   }
 
   translate(event: CursorStreamEvent): void {
@@ -90,29 +107,24 @@ export class CursorToAcpTranslator extends EventEmitter<CursorToAcpTranslatorEve
       }
       case CURSOR_STREAM_TYPE.ASSISTANT: {
         const text = this.getMessageText(event.message.content);
-        this.emit("sessionUpdate", {
+        this.bridge.translate({
+          type: STREAM_EVENT_TYPE.TEXT_DELTA,
           sessionId: event.session_id,
-          update: {
-            sessionUpdate: SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK,
-            content: { type: CONTENT_BLOCK_TYPE.TEXT, text },
-          },
+          text,
         });
         return;
       }
       case CURSOR_STREAM_TYPE.TOOL_CALL: {
-        if (event.subtype === CURSOR_STREAM_SUBTYPE.STARTED) {
-          this.emitToolCallStart(event);
-          return;
-        }
-        this.emitToolCallComplete(event);
+        this.bridge.translate(this.mapToolCallEvent(event));
         return;
       }
       case CURSOR_STREAM_TYPE.RESULT: {
-        this.emit("result", {
+        this.bridge.translate({
+          type: STREAM_EVENT_TYPE.RESULT,
           sessionId: event.session_id,
           text: event.result,
           durationMs: event.duration_ms,
-          isError: event.is_error,
+          success: !event.is_error,
         });
         return;
       }
@@ -123,49 +135,29 @@ export class CursorToAcpTranslator extends EventEmitter<CursorToAcpTranslatorEve
     }
   }
 
-  private emitToolCallStart(
-    event: Extract<CursorStreamEvent, { type: "tool_call"; subtype: "started" }>
-  ): void {
+  private mapToolCallEvent(event: Extract<CursorStreamEvent, { type: "tool_call" }>): StreamEvent {
     const extracted = this.extractToolCall(event.tool_call);
-    this.emit("sessionUpdate", {
-      sessionId: event.session_id,
-      update: {
-        sessionUpdate: SESSION_UPDATE_TYPE.TOOL_CALL,
-        toolCallId: event.call_id,
-        title: extracted.toolName,
-        rawInput: extracted.input,
-        status: "in_progress", // ACP SDK tool call status
-      },
-    });
-  }
-
-  private emitToolCallComplete(
-    event: Extract<CursorStreamEvent, { type: "tool_call"; subtype: "completed" }>
-  ): void {
-    const extracted = this.extractToolCall(event.tool_call);
-    const toolStatus = this.isToolResultSuccess(extracted.output) ? "completed" : "failed";
-    const { value, truncated, originalBytes } = this.truncateToolResult(extracted.output);
-
-    if (truncated) {
-      this.emit("toolResultTruncated", {
+    if (event.subtype === CURSOR_STREAM_SUBTYPE.STARTED) {
+      return {
+        type: STREAM_EVENT_TYPE.TOOL_START,
         sessionId: event.session_id,
         toolCallId: event.call_id,
-        originalBytes,
-        limitBytes: this.toolResultMaxBytes,
-      });
+        toolName: extracted.toolName,
+        toolInput: extracted.input,
+      };
     }
 
-    this.emit("sessionUpdate", {
+    const completedEvent = event as CursorToolCallCompletedEvent;
+    const success = this.isToolResultSuccess(completedEvent.tool_call);
+    return {
+      type: STREAM_EVENT_TYPE.TOOL_COMPLETE,
       sessionId: event.session_id,
-      update: {
-        sessionUpdate: SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE,
-        toolCallId: event.call_id,
-        title: extracted.toolName,
-        rawInput: extracted.input,
-        rawOutput: value,
-        status: toolStatus, // ACP SDK tool call status
-      },
-    });
+      toolCallId: event.call_id,
+      toolName: extracted.toolName,
+      toolInput: extracted.input,
+      success,
+      result: extracted.output,
+    };
   }
 
   private extractToolCall(rawToolCall: Record<string, unknown>): CursorToolCallExtracted {
@@ -211,7 +203,9 @@ export class CursorToAcpTranslator extends EventEmitter<CursorToAcpTranslatorEve
       .join("");
   }
 
-  private isToolResultSuccess(output: unknown): boolean {
+  private isToolResultSuccess(rawToolCall: Record<string, unknown>): boolean {
+    const extracted = this.extractToolCall(rawToolCall);
+    const output = extracted.output;
     if (!this.isRecord(output)) {
       return true;
     }
@@ -222,53 +216,6 @@ export class CursorToAcpTranslator extends EventEmitter<CursorToAcpTranslatorEve
       return true;
     }
     return true;
-  }
-
-  private truncateToolResult(output: unknown): {
-    value: unknown;
-    truncated: boolean;
-    originalBytes: number;
-  } {
-    if (output === undefined) {
-      return { value: undefined, truncated: false, originalBytes: 0 };
-    }
-
-    if (typeof output === "string") {
-      const originalBytes = Buffer.byteLength(output, "utf8");
-      if (originalBytes <= this.toolResultMaxBytes) {
-        return { value: output, truncated: false, originalBytes };
-      }
-      const truncated = this.truncateToByteLength(output, this.toolResultMaxBytes);
-      return { value: truncated, truncated: true, originalBytes };
-    }
-
-    const serialized = JSON.stringify(output);
-    if (!serialized) {
-      return { value: output, truncated: false, originalBytes: 0 };
-    }
-    const serializedBytes = Buffer.byteLength(serialized, "utf8");
-    if (serializedBytes <= this.toolResultMaxBytes) {
-      return { value: output, truncated: false, originalBytes: serializedBytes };
-    }
-
-    const truncatedSerialized = this.truncateToByteLength(serialized, this.toolResultMaxBytes);
-    return {
-      value: truncatedSerialized,
-      truncated: true,
-      originalBytes: serializedBytes,
-    };
-  }
-
-  private truncateToByteLength(text: string, limitBytes: number): string {
-    let result = "";
-    for (const character of text) {
-      const candidate = `${result}${character}`;
-      if (Buffer.byteLength(candidate, "utf8") > limitBytes) {
-        break;
-      }
-      result = candidate;
-    }
-    return result;
   }
 
   private isRecord(value: unknown): value is Record<string, unknown> {

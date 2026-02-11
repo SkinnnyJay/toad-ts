@@ -111,6 +111,7 @@ export class CliAgentBridge extends EventEmitter<CliAgentBridgeEvents> {
             sessionUpdate: SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE,
             toolCallId: event.toolCallId,
             title: event.toolName,
+            rawInput: event.toolInput,
             rawOutput: value,
             status: event.success ? "completed" : "failed", // ACP SDK tool call status
           },
@@ -125,6 +126,7 @@ export class CliAgentBridge extends EventEmitter<CliAgentBridgeEvents> {
             sessionUpdate: SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE,
             toolCallId: event.toolCallId,
             title: event.toolName,
+            rawInput: event.toolInput,
             rawOutput: { message: event.message },
             status: "failed", // ACP SDK tool call status
           },
