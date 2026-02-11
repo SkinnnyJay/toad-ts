@@ -84,4 +84,21 @@ describe("session-summary-mapper", () => {
       },
     ]);
   });
+
+  it("normalizes and deduplicates ids with surrounding whitespace", () => {
+    const uniqueSessions = toUniqueAgentManagementSessions([
+      { id: "  session-1  ", title: "Recovered title" },
+      { id: "session-1", model: "gpt-5", messageCount: 14 },
+      { id: "   " },
+    ]);
+
+    expect(uniqueSessions).toEqual([
+      {
+        id: "session-1",
+        title: "Recovered title",
+        model: "gpt-5",
+        messageCount: 14,
+      },
+    ]);
+  });
 });

@@ -40,15 +40,23 @@ export const toUniqueAgentManagementSessions = (
 ): AgentManagementSession[] => {
   const sessionsById = new Map<AgentManagementSession["id"], AgentManagementSession>();
   for (const session of sessions) {
-    if (session.id.length === 0) {
+    const sessionId = session.id.trim();
+    if (sessionId.length === 0) {
       continue;
     }
-    const existing = sessionsById.get(session.id);
+    const normalizedSession: AgentManagementSession = {
+      id: sessionId,
+      title: session.title,
+      createdAt: session.createdAt,
+      model: session.model,
+      messageCount: session.messageCount,
+    };
+    const existing = sessionsById.get(sessionId);
     if (!existing) {
-      sessionsById.set(session.id, session);
+      sessionsById.set(sessionId, normalizedSession);
       continue;
     }
-    sessionsById.set(session.id, mergeAgentManagementSessions(existing, session));
+    sessionsById.set(sessionId, mergeAgentManagementSessions(existing, normalizedSession));
   }
   return Array.from(sessionsById.values());
 };
