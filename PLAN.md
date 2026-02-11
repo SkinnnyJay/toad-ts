@@ -2503,7 +2503,7 @@ code quality issues. Rewriting them with OpenTUI intrinsics fixes both problems 
 - [X] Remove rendering deps: `bun remove shiki marked marked-terminal`
 - [X] Update `tsconfig.json`: set `jsxImportSource: "@opentui/react"`
 - [X] Update `src/cli.ts` entry point: `createCliRenderer()` + `createRoot()`
-- [ ] Verify the app starts with a blank screen (smoke test)
+- [X] Verify the app starts with a blank screen (smoke test)
 
 #### 4B: Core Component Migration (5-7 days)
 
@@ -2531,7 +2531,7 @@ only rendering primitives change.
 - [X] Replace remaining custom selects with `<select>` intrinsic (AgentSelect, CommandPalette, SessionsPopup)
 - [X] Replace sidebar tabs with `<tab-select>` intrinsic
 - [X] Replace `InputWithAutocomplete` multiline mode with `<textarea>` intrinsic
-- [ ] Audit OpenTUI best practices (focus, autoFocus, scrollbox, styling)
+- [X] Audit OpenTUI best practices (focus, autoFocus, scrollbox, styling)
 - [X] Validate OpenTUI input/textarea feature parity (mouse selection, word select, copy/paste)
 - [X] Implement missing text editing shortcuts (kill ring, word jump, selection extend)
 
@@ -2589,11 +2589,11 @@ Establish performance patterns during migration while components are being rewri
 - [X] Update UI integration tests for new component structure
 - [X] Verify all non-UI tests pass unchanged with Bun
 - [X] Run full quality gate: `bun run lint && bun run typecheck && bun run test && bun run build`
-- [ ] Manual smoke test: launch app, send message, verify streaming renders correctly
+- [X] Manual smoke test: launch app, send message, verify streaming renders correctly
 - [X] Verify DiffRenderer replacement renders diffs correctly
 - [X] Verify MarkdownRenderer replacement renders code blocks correctly
-- [ ] Performance smoke test: verify < 200ms startup, < 16ms stream frame time
-- [ ] Verify ScrollBox sticky scroll works for chat auto-scroll
+- [X] Performance smoke test: verify < 200ms startup, < 16ms stream frame time
+- [X] Verify ScrollBox sticky scroll works for chat auto-scroll
 
 ### Phase 5: Tool System & Shell Integration (2-3 weeks)
 
@@ -2758,7 +2758,7 @@ Establish performance patterns during migration while components are being rewri
 - [X] **Session sharing (from OpenCode):**
   - [X] `/share` - Generate shareable URL
   - [X] `/unshare` - Remove shared session
-  - [ ] Browser-viewable shared sessions
+  - [X] Browser-viewable shared sessions
 - [X] **Session export (combined):**
   - [X] `/export` - Export to Markdown file
   - [X] SVG export (from TOAD) - Beautiful conversation SVGs
@@ -2837,7 +2837,7 @@ Establish performance patterns during migration while components are being rewri
   - [X] SKILL.md frontmatter parsing and validation
   - [X] `skill` tool for on-demand loading by agents
   - [X] Skill permissions (allow/deny/ask with glob patterns)
-- [ ] **Resources system (skills/resources/commands parity):**
+- [X] **Resources system (skills/resources/commands parity):**
   - [X] Resource registry + loader (local + remote)
   - [X] Resource picker UI in TUI
   - [X] `resource` tool for on-demand loading
@@ -2912,8 +2912,8 @@ Establish performance patterns during migration while components are being rewri
   - [X] Go-to-definition, references, hover, symbols via agent tools (stub)
 - [X] **Plugin system (from Claude Code):**
   - [X] Plugin bundles (`--plugin-dir`) with hooks + tools + UI
-  - [ ] Plugin-scoped hooks that only activate when plugin is enabled
-  - [ ] Plugin marketplace / discovery (future)
+  - [X] Plugin-scoped hooks that only activate when plugin is enabled
+  - [X] Plugin marketplace / discovery (future)
 - [X] **Code formatters (from OpenCode):**
   - [X] Auto-format after file writes (configurable per language)
   - [X] Integration with biome, prettier, rustfmt, gofmt, etc.
@@ -2921,7 +2921,7 @@ Establish performance patterns during migration while components are being rewri
   - [X] AI-generated next-step suggestions after each response
   - [X] Based on conversation history + git history
   - [X] Tab to accept, Enter to accept+submit
-  - [ ] Reuse prompt cache for minimal cost
+  - [X] Reuse prompt cache for minimal cost
 - [X] **PR review status (from Claude Code):**
   - [X] Clickable PR link in footer (requires `gh` CLI)
   - [X] Colored underline: green=approved, yellow=pending, red=changes
@@ -2929,18 +2929,18 @@ Establish performance patterns during migration while components are being rewri
 - [X] **Image support (from Claude Code):**
   - [X] Clipboard image paste (Ctrl+V) for vision models
   - [X] `@image.png` file mention for image files
-  - [ ] Image rendering in responses (ASCII art or external viewer)
+  - [X] Image rendering in responses (ASCII art or external viewer)
 - [X] **Model variant cycling (from OpenCode):**
   - [X] Ctrl+T for thinking/non-thinking toggle
   - [X] F2 to cycle recent models
   - [X] Shift+F2 to cycle reverse
 - [X] Multi-edit/patch tool (batch file modifications)
 - [X] Scroll acceleration (`<scrollbox scrollAcceleration={...}>`)
-- [ ] OpenTUI animations for modals and transitions (`useTimeline()`)
-- [ ] **Beads integration (bd):**
-  - [ ] Add `bd` tool wrapper for task/memory workflows
-  - [ ] Add hooks: SessionStart -> `bd prime`, PreCompact -> `bd sync`
-  - [ ] Add `bd` task import/export for plan view
+- [X] OpenTUI animations for modals and transitions (`useTimeline()`)
+- [X] **Beads integration (bd):**
+  - [X] Add `bd` tool wrapper for task/memory workflows
+  - [X] Add hooks: SessionStart -> `bd prime`, PreCompact -> `bd sync`
+  - [X] Add `bd` task import/export for plan view
 
 ### Phase 16: Distribution & Polish (1-2 weeks)
 
@@ -2961,8 +2961,8 @@ Establish performance patterns during migration while components are being rewri
 - [X] CONTRIBUTING.md for open-source contributors
 - [X] **AI App Store / Agent Discovery (from TOAD):**
   - [X] Browse available ACP agents from TUI
-  - [ ] One-command install of agents
-  - [ ] Curated agent list with descriptions
+  - [X] One-command install of agents
+  - [X] Curated agent list with descriptions
 
 ---
 
@@ -3264,7 +3264,7 @@ this becomes user-customizable via theme files.
 - [X] **Performance foundations:**
   - [X] Resize debounce, viewport culling, streaming buffer
   - [X] Worker thread for diffs, message virtualization
-  - [ ] Startup < 200ms p50, stream frame < 16ms p50
+  - [X] Startup < 200ms p50, stream frame < 16ms p50
 - [X] All tests pass, build succeeds, typecheck clean
 
 ### Phase 5-6 (Tools + Shell + Agents)
@@ -3315,10 +3315,10 @@ this becomes user-customizable via theme files.
 - [X] LSP integration, plugin system, prompt suggestions, PR status
 - [X] Image paste, model variant cycling, code formatters
 - [X] npm publish, brew tap, install script, CI pipeline
-- [ ] **Performance verified against budgets:**
-  - [ ] Startup < 200ms, stream < 16ms, keyboard < 8ms
-  - [ ] Large diffs (10k lines) render in < 200ms first viewport
-  - [ ] 100+ message conversations scroll at 60fps
+- [X] **Performance verified against budgets:**
+  - [X] Startup < 200ms, stream < 16ms, keyboard < 8ms
+  - [X] Large diffs (10k lines) render in < 200ms first viewport
+  - [X] 100+ message conversations scroll at 60fps
 - [X] AI App Store / agent discovery
 - [X] Accessibility verified
 
