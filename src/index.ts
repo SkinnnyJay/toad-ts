@@ -44,6 +44,7 @@ export * from "@/constants/cursor-event-types";
 export * from "@/constants/cursor-hook-events";
 export * from "@/constants/cursor-hook-ipc";
 export * from "@/constants/cursor-cloud-api";
+export * from "@/constants/cursor-cli-commands";
 export * from "@/constants/cursor-performance";
 export * from "@/utils/credentials";
 export * from "@/utils/package-info";
