@@ -288,6 +288,41 @@ describe("slash command agent management", () => {
     }
   });
 
+  it("orders /sessions runtime-native output by newest created timestamp", async () => {
+    const newest = "9b7418b2-5b71-4a12-97b4-64f2131e5241";
+    const oldest = "36bf2c71-c56a-4c0a-a2e6-f7d47c2cd2e7";
+    const listAgentSessions = vi.fn(async () => [
+      {
+        id: oldest,
+        title: "Older session",
+        createdAt: "2026-02-10T18:30:00.000Z",
+      },
+      {
+        id: newest,
+        title: "Newest session",
+        createdAt: "2026-02-11T18:30:00.000Z",
+      },
+    ]);
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      listAgentSessions,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.SESSIONS, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const lastMessage = appendSystemMessage.mock.calls.at(-1)?.[0];
+    expect(typeof lastMessage).toBe("string");
+    if (typeof lastMessage === "string") {
+      const newestIndex = lastMessage.indexOf(newest);
+      const oldestIndex = lastMessage.indexOf(oldest);
+      expect(newestIndex).toBeGreaterThanOrEqual(0);
+      expect(oldestIndex).toBeGreaterThanOrEqual(0);
+      expect(newestIndex).toBeLessThan(oldestIndex);
+    }
+  });
+
   it("reports native session listing failures for /sessions", async () => {
     const runAgentCommand = vi.fn(async () => ({
       stdout: "",
