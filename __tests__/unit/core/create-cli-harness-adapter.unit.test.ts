@@ -226,6 +226,17 @@ describe("createCliHarnessAdapter", () => {
     expect(harness.connectionStatus).toBe(CONNECTION_STATUS.DISCONNECTED);
   });
 
+  it("uses custom unauthenticated message during authenticate", async () => {
+    const cliAgent = new FakeCliAgentPort();
+    cliAgent.authenticated = false;
+    const harness = createCliHarnessAdapter({
+      cliAgent,
+      unauthenticatedErrorMessage: "Custom auth required message",
+    });
+
+    await expect(harness.authenticate({})).rejects.toThrow("Custom auth required message");
+  });
+
   it("throws when session listing is unsupported", async () => {
     const cliAgent = new FakeCliAgentPort();
     cliAgent.listSessions = undefined;
