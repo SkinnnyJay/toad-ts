@@ -54,3 +54,5 @@ ref
 skills/
 .cursor/skills/
 .claude/skills/
+!.toadstool/skills/
+!.toadstool/skills/**
