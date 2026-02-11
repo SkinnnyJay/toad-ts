@@ -1,9 +1,11 @@
 import { LIMIT } from "@/config/limits";
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
+import { formatFileRefForInput } from "@/constants/file-ref";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
+import { KEY_NAME } from "@/constants/key-names";
 import { PLAN_STATUS } from "@/constants/plan-status";
-import { SIDEBAR_TAB_VALUES, type SidebarTab } from "@/constants/sidebar-tabs";
+import { SIDEBAR_TAB_LABEL, SIDEBAR_TAB_VALUES, type SidebarTab } from "@/constants/sidebar-tabs";
 import type { UiSymbols } from "@/constants/ui-symbols";
 import { useAppStore } from "@/store/app-store";
 import type { Plan, Session, SessionId } from "@/types/domain";
@@ -12,9 +14,10 @@ import { useUiSymbols } from "@/ui/hooks/useUiSymbols";
 import { TextAttributes } from "@opentui/core";
 import { type BoxProps, useKeyboard } from "@opentui/react";
 import { type ReactNode, memo, useCallback, useEffect, useMemo, useState } from "react";
-import { AccordionSection } from "./AccordionSection";
 import { FileTree } from "./FileTree";
 import { ScrollArea } from "./ScrollArea";
+import { SidebarTabBar } from "./SidebarTabBar";
+import { TodoList } from "./TodoList";
 
 // Helper function to truncate text with ellipsis
 const truncateText = (text: string, maxLength: number, ellipsis: string): string => {
@@ -30,6 +33,7 @@ interface SidebarProps {
   currentAgentName?: string;
   currentSessionId?: SessionId;
   onSelectSession?: (sessionId: SessionId) => void;
+  onFocusTab?: (tab: SidebarSection) => void;
   focusTarget?: FocusTarget;
 }
 
@@ -96,12 +100,14 @@ const SessionsSection = memo(
     selectedIndex,
     maxWidth,
     symbols,
+    onSessionClick,
   }: {
     sessions: Session[];
     currentSessionId?: SessionId;
     selectedIndex: number;
     maxWidth: number;
     symbols: UiSymbols;
+    onSessionClick?: (sessionId: SessionId) => void;
   }) => {
     if (sessions.length === 0) {
       return <text attributes={TextAttributes.DIM}>No sessions</text>;
@@ -117,7 +123,7 @@ const SessionsSection = memo(
           const isCurrent = session.id === currentSessionId;
           const isSelected = idx === selectedIndex;
           const truncatedId = truncateText(session.id, maxSessionIdLength, symbols.ELLIPSIS);
-          return (
+          const row = (
             <text
               key={session.id}
               fg={isSelected ? COLOR.CYAN : isCurrent ? COLOR.GREEN : undefined}
@@ -127,6 +133,19 @@ const SessionsSection = memo(
               {isCurrent ? symbols.DOT_FILLED : symbols.DOT_EMPTY} {truncatedId}
             </text>
           );
+          if (onSessionClick) {
+            return (
+              <box
+                key={session.id}
+                flexDirection="row"
+                width="100%"
+                onMouseDown={() => onSessionClick(session.id)}
+              >
+                {row}
+              </box>
+            );
+          }
+          return row;
         })}
       </box>
     );
@@ -137,14 +156,6 @@ type SidebarSection = SidebarTab;
 
 const SIDEBAR_TAB_SET = new Set<string>(SIDEBAR_TAB_VALUES);
 
-const sectionShortcuts: Record<SidebarSection, string> = {
-  [FOCUS_TARGET.FILES]: "Cmd/Ctrl+F or Cmd/Ctrl+1",
-  [FOCUS_TARGET.PLAN]: "Cmd/Ctrl+2",
-  [FOCUS_TARGET.CONTEXT]: "Cmd/Ctrl+3",
-  [FOCUS_TARGET.SESSIONS]: "Cmd/Ctrl+4",
-  [FOCUS_TARGET.AGENT]: "Cmd/Ctrl+5",
-};
-
 const isSidebarSection = (value: FocusTarget): value is SidebarSection =>
   SIDEBAR_TAB_SET.has(value);
 
@@ -154,6 +165,7 @@ export function Sidebar({
   currentAgentName,
   currentSessionId,
   onSelectSession,
+  onFocusTab,
   focusTarget = FOCUS_TARGET.CHAT,
 }: SidebarProps): ReactNode {
   const symbols = useUiSymbols();
@@ -173,9 +185,8 @@ export function Sidebar({
 
   const sessionsById = useAppStore((state) => state.sessions);
   const contextAttachmentsBySession = useAppStore((state) => state.contextAttachments);
+  const sidebarTab = useAppStore((state) => state.uiState.sidebarTab);
   const setSidebarTab = useAppStore((state) => state.setSidebarTab);
-  const accordionCollapsed = useAppStore((state) => state.uiState.accordionCollapsed ?? {});
-  const setAccordionCollapsed = useAppStore((state) => state.setAccordionCollapsed);
   const sessions = useMemo<Session[]>(() => {
     const values = Object.values(sessionsById).filter(
       (session): session is Session => session !== undefined
@@ -184,18 +195,26 @@ export function Sidebar({
   }, [sessionsById]);
 
   const [sessionIndex, setSessionIndex] = useState(0);
+  const [isTabViewCollapsed, setIsTabViewCollapsed] = useState(false);
 
-  const isCollapsed = useCallback(
-    (section: SidebarSection): boolean => accordionCollapsed?.[section] ?? false,
-    [accordionCollapsed]
-  );
+  const activeTab: SidebarSection = isSidebarSection(focusTarget) ? focusTarget : sidebarTab;
+  const activeTabLabel = SIDEBAR_TAB_LABEL[activeTab];
 
-  const toggleSection = useCallback(
+  const toggleTabViewCollapsed = useCallback(() => {
+    setIsTabViewCollapsed((prev) => !prev);
+  }, []);
+
+  useEffect(() => {
+    if (isSidebarSection(focusTarget)) {
+      setSidebarTab(focusTarget);
+    }
+  }, [focusTarget, setSidebarTab]);
+
+  const selectTab = useCallback(
     (section: SidebarSection) => {
       setSidebarTab(section);
-      setAccordionCollapsed(section, !isCollapsed(section));
     },
-    [isCollapsed, setAccordionCollapsed, setSidebarTab]
+    [setSidebarTab]
   );
 
   useEffect(() => {
@@ -224,34 +243,74 @@ export function Sidebar({
   useKeyboard((key) => {
     const active = focusTarget ?? FOCUS_TARGET.CHAT;
 
+    if (key.name === "]" && isSidebarSection(active)) {
+      key.preventDefault();
+      key.stopPropagation();
+      toggleTabViewCollapsed();
+      return;
+    }
+
+    if (isSidebarSection(active)) {
+      if (key.name === KEY_NAME.LEFT) {
+        key.preventDefault();
+        key.stopPropagation();
+        const idx = SIDEBAR_TAB_VALUES.indexOf(active as SidebarTab);
+        const prevIdx = idx <= 0 ? SIDEBAR_TAB_VALUES.length - 1 : idx - 1;
+        const prevTab = SIDEBAR_TAB_VALUES[prevIdx];
+        if (prevTab) {
+          onFocusTab?.(prevTab);
+          selectTab(prevTab);
+        }
+        return;
+      }
+      if (key.name === KEY_NAME.RIGHT) {
+        key.preventDefault();
+        key.stopPropagation();
+        const idx = SIDEBAR_TAB_VALUES.indexOf(active as SidebarTab);
+        const nextIdx = idx < 0 || idx >= SIDEBAR_TAB_VALUES.length - 1 ? 0 : idx + 1;
+        const nextTab = SIDEBAR_TAB_VALUES[nextIdx];
+        if (nextTab) {
+          onFocusTab?.(nextTab);
+          selectTab(nextTab);
+        }
+        return;
+      }
+    }
+
     if (
-      (key.name === "return" || key.name === "linefeed" || key.name === "space") &&
+      (key.name === KEY_NAME.RETURN ||
+        key.name === KEY_NAME.LINEFEED ||
+        key.name === KEY_NAME.SPACE) &&
       isSidebarSection(active)
     ) {
       key.preventDefault();
       key.stopPropagation();
-      toggleSection(active);
+      if (isTabViewCollapsed) {
+        toggleTabViewCollapsed();
+      } else {
+        selectTab(active);
+      }
       return;
     }
 
     if (
       active === FOCUS_TARGET.SESSIONS &&
-      !isCollapsed(FOCUS_TARGET.SESSIONS) &&
+      activeTab === FOCUS_TARGET.SESSIONS &&
       sessions.length > 0
     ) {
-      if (key.name === "up") {
+      if (key.name === KEY_NAME.UP) {
         key.preventDefault();
         key.stopPropagation();
         setSessionIndex((prev) => Math.max(0, prev - 1));
         return;
       }
-      if (key.name === "down") {
+      if (key.name === KEY_NAME.DOWN) {
         key.preventDefault();
         key.stopPropagation();
         setSessionIndex((prev) => Math.min(sessions.length - 1, prev + 1));
         return;
       }
-      if (key.name === "return" || key.name === "linefeed") {
+      if (key.name === KEY_NAME.RETURN || key.name === KEY_NAME.LINEFEED) {
         key.preventDefault();
         key.stopPropagation();
         const chosen = sessions[sessionIndex];
@@ -271,21 +330,96 @@ export function Sidebar({
   const sidebarWidth =
     typeof width === "number" ? width : Math.floor(terminalWidth * sidebarWidthPercent);
   const sidebarPadding = UI.SIDEBAR_PADDING;
-  const containerPadding = UI.SIDEBAR_PADDING;
   const scrollbarWidth = UI.SCROLLBAR_WIDTH;
-  const maxSessionIdWidth = Math.max(
-    LIMIT.FILE_TREE_PADDING,
-    sidebarWidth - sidebarPadding - containerPadding - scrollbarWidth
+  const tabBarHeight = 2;
+  const tabContentPaddingTop = 1;
+  const tabGap = 0;
+  const chevronBoxWidth = 2;
+  const contentHeightBelowTabs = Math.max(6, contentHeight - tabBarHeight - tabContentPaddingTop);
+  const contentAreaWidth = Math.max(1, sidebarWidth - sidebarPadding * 2 - scrollbarWidth);
+  const tabCount = SIDEBAR_TAB_VALUES.length;
+  const minTabWidth = 3;
+  const tabWidth = Math.max(
+    minTabWidth,
+    Math.floor((contentAreaWidth - chevronBoxWidth - tabCount * tabGap) / tabCount)
   );
-
-  const filesHeight = Math.max(6, Math.floor(contentHeight * UI.SIDEBAR_FILES_RATIO));
-  const sessionsHeight = Math.max(4, Math.floor(contentHeight * UI.SIDEBAR_TASKS_RATIO));
+  const tabRows: SidebarSection[][] = [[...SIDEBAR_TAB_VALUES]];
+  const maxSessionIdWidth = Math.max(LIMIT.FILE_TREE_PADDING, contentAreaWidth - 2);
 
   const contextAttachments = activeSessionId
     ? (contextAttachmentsBySession[activeSessionId] ?? [])
     : [];
   const displayedContext = contextAttachments.slice(0, LIMIT.SIDEBAR_TASKS_DISPLAY);
   const hiddenContextCount = Math.max(0, contextAttachments.length - displayedContext.length);
+
+  const tabContent = (
+    <>
+      {activeTab === FOCUS_TARGET.FILES ? (
+        <FileTree
+          isFocused={focusTarget === FOCUS_TARGET.FILES}
+          height={contentHeightBelowTabs}
+          textSize="small"
+          onRequestFocus={() => onFocusTab?.(FOCUS_TARGET.FILES)}
+          onSelectFile={(_path, name) => {
+            useAppStore.getState().setPendingFileRefForInput(formatFileRefForInput(name));
+          }}
+        />
+      ) : null}
+      {activeTab === FOCUS_TARGET.PLAN ? (
+        <box padding={1} paddingTop={0} gap={1} flexDirection="column">
+          <PlanSection plan={plan} symbols={symbols} />
+        </box>
+      ) : null}
+      {activeTab === FOCUS_TARGET.CONTEXT ? (
+        <box padding={1} paddingTop={0} gap={1} flexDirection="column" minHeight={0}>
+          {displayedContext.length === 0 ? (
+            <text attributes={TextAttributes.DIM}>No context files attached</text>
+          ) : (
+            <box flexDirection="column" gap={0} minWidth={0} width="100%">
+              {displayedContext.map((file) => (
+                <text key={file} truncate={true}>
+                  {symbols.BULLET}{" "}
+                  {truncateText(file, LIMIT.SIDEBAR_TRUNCATE_LENGTH, symbols.ELLIPSIS)}
+                </text>
+              ))}
+              {hiddenContextCount > 0 ? (
+                <text attributes={TextAttributes.DIM}>
+                  {`${symbols.ELLIPSIS} ${hiddenContextCount} more`}
+                </text>
+              ) : null}
+            </box>
+          )}
+        </box>
+      ) : null}
+      {activeTab === FOCUS_TARGET.SESSIONS ? (
+        <box padding={1} paddingTop={0} gap={1} flexDirection="column">
+          <SessionsSection
+            sessions={sessions}
+            currentSessionId={activeSessionId}
+            selectedIndex={sessionIndex}
+            maxWidth={maxSessionIdWidth}
+            symbols={symbols}
+            onSessionClick={
+              onSelectSession ??
+              ((sessionId) => useAppStore.getState().setCurrentSession(sessionId))
+            }
+          />
+        </box>
+      ) : null}
+      {activeTab === FOCUS_TARGET.AGENT ? (
+        <box padding={1} paddingTop={0} gap={1} flexDirection="column">
+          <AgentsSection currentAgentName={currentAgentName} />
+        </box>
+      ) : null}
+      {activeTab === FOCUS_TARGET.TODOS ? (
+        <box padding={1} paddingTop={0} gap={1} flexDirection="column">
+          <TodoList sessionId={activeSessionId} />
+        </box>
+      ) : null}
+    </>
+  );
+
+  const isSidebarFocused = isSidebarSection(focusTarget);
 
   return (
     <box
@@ -295,107 +429,73 @@ export function Sidebar({
       flexGrow={height === undefined ? 1 : undefined}
       minHeight={0}
       border={true}
-      borderStyle="single"
-      borderColor={COLOR.GRAY}
+      borderStyle={isSidebarFocused ? "double" : "single"}
+      borderColor={isSidebarFocused ? COLOR.CYAN : COLOR.GRAY}
       paddingLeft={1}
       paddingRight={1}
-      paddingTop={1}
+      paddingTop={0}
       paddingBottom={1}
-      gap={1}
+      gap={0}
     >
-      <ScrollArea
-        height={contentHeight}
-        viewportCulling={true}
-        focused={focusTarget !== FOCUS_TARGET.CHAT}
+      <SidebarTabBar
+        isCollapsed={isTabViewCollapsed}
+        onToggleCollapsed={toggleTabViewCollapsed}
+        tabRows={tabRows}
+        activeTab={activeTab}
+        focusTarget={focusTarget}
+        onSelectTab={selectTab}
+        onFocusTab={onFocusTab}
+        tabBarHeight={tabBarHeight}
+        tabGap={tabGap}
+        chevronBoxWidth={chevronBoxWidth}
+        contentAreaWidth={contentAreaWidth}
+        tabWidth={tabWidth}
+        activeTabLabel={activeTabLabel}
+      />
+      <box
+        flexDirection="column"
+        flexGrow={1}
+        flexShrink={1}
+        minWidth={0}
+        minHeight={0}
+        width={contentAreaWidth}
+        maxHeight={contentHeightBelowTabs}
+        paddingTop={tabContentPaddingTop}
+        overflow="hidden"
       >
-        <box flexDirection="column" gap={1} minHeight={0}>
-          <AccordionSection
-            title="Files"
-            isCollapsed={isCollapsed(FOCUS_TARGET.FILES)}
-            shortcutHint={sectionShortcuts[FOCUS_TARGET.FILES]}
-            height={filesHeight + 2}
+        {activeTab === FOCUS_TARGET.FILES ? (
+          <box
+            flexDirection="column"
+            width="100%"
+            minWidth={0}
+            minHeight={0}
+            height={contentHeightBelowTabs - tabContentPaddingTop}
+            maxHeight={contentHeightBelowTabs - tabContentPaddingTop}
+            overflow="hidden"
+            flexShrink={1}
           >
-            {!isCollapsed(FOCUS_TARGET.FILES) ? (
-              <FileTree
-                isFocused={focusTarget === FOCUS_TARGET.FILES}
-                height={filesHeight}
-                textSize="small"
-              />
-            ) : null}
-          </AccordionSection>
-
-          <AccordionSection
-            title="Plan"
-            isCollapsed={isCollapsed(FOCUS_TARGET.PLAN)}
-            shortcutHint={sectionShortcuts[FOCUS_TARGET.PLAN]}
+            <FileTree
+              isFocused={focusTarget === FOCUS_TARGET.FILES}
+              height={contentHeightBelowTabs - tabContentPaddingTop}
+              textSize="small"
+              onRequestFocus={() => onFocusTab?.(FOCUS_TARGET.FILES)}
+              onSelectFile={(_path, name) => {
+                useAppStore.getState().setPendingFileRefForInput(formatFileRefForInput(name));
+              }}
+            />
+          </box>
+        ) : (
+          <ScrollArea
+            height={contentHeightBelowTabs}
+            viewportCulling={true}
+            focused={focusTarget !== FOCUS_TARGET.CHAT}
           >
-            {!isCollapsed(FOCUS_TARGET.PLAN) ? (
-              <box padding={1} paddingTop={0} gap={1} flexDirection="column">
-                <PlanSection plan={plan} symbols={symbols} />
-              </box>
-            ) : null}
-          </AccordionSection>
-
-          <AccordionSection
-            title="Context"
-            isCollapsed={isCollapsed(FOCUS_TARGET.CONTEXT)}
-            shortcutHint={sectionShortcuts[FOCUS_TARGET.CONTEXT]}
-          >
-            {!isCollapsed(FOCUS_TARGET.CONTEXT) ? (
-              <box padding={1} paddingTop={0} gap={1} flexDirection="column" minHeight={0}>
-                {displayedContext.length === 0 ? (
-                  <text attributes={TextAttributes.DIM}>No context files attached</text>
-                ) : (
-                  <box flexDirection="column" gap={0} minWidth={0} width="100%">
-                    {displayedContext.map((file) => (
-                      <text key={file} truncate={true}>
-                        {symbols.BULLET}{" "}
-                        {truncateText(file, LIMIT.SIDEBAR_TRUNCATE_LENGTH, symbols.ELLIPSIS)}
-                      </text>
-                    ))}
-                    {hiddenContextCount > 0 ? (
-                      <text attributes={TextAttributes.DIM}>
-                        {`${symbols.ELLIPSIS} ${hiddenContextCount} more`}
-                      </text>
-                    ) : null}
-                  </box>
-                )}
-              </box>
-            ) : null}
-          </AccordionSection>
-
-          <AccordionSection
-            title="Sessions"
-            isCollapsed={isCollapsed(FOCUS_TARGET.SESSIONS)}
-            shortcutHint={sectionShortcuts[FOCUS_TARGET.SESSIONS]}
-            height={sessionsHeight + 2}
-          >
-            {!isCollapsed(FOCUS_TARGET.SESSIONS) ? (
-              <box padding={1} paddingTop={0} gap={1} flexDirection="column">
-                <SessionsSection
-                  sessions={sessions}
-                  currentSessionId={activeSessionId}
-                  selectedIndex={sessionIndex}
-                  maxWidth={maxSessionIdWidth}
-                  symbols={symbols}
-                />
-              </box>
-            ) : null}
-          </AccordionSection>
-
-          <AccordionSection
-            title="Sub-agents"
-            isCollapsed={isCollapsed(FOCUS_TARGET.AGENT)}
-            shortcutHint={sectionShortcuts[FOCUS_TARGET.AGENT]}
-          >
-            {!isCollapsed(FOCUS_TARGET.AGENT) ? (
-              <box padding={1} paddingTop={0} gap={1} flexDirection="column">
-                <AgentsSection currentAgentName={currentAgentName} />
-              </box>
-            ) : null}
-          </AccordionSection>
-        </box>
-      </ScrollArea>
+            <box flexDirection="column" gap={1} minHeight={0} paddingLeft={0}>
+              {tabContent}
+            </box>
+          </ScrollArea>
+        )}
+      </box>
     </box>
   );
 }
