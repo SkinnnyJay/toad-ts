@@ -57,6 +57,8 @@ const invokeNodeShim = async (
 };
 
 describe("Cursor channel integrations", () => {
+  const HOOK_ROUNDTRIP_MAX_MS = 500;
+
   it("parses NDJSON fixture and emits translated session updates", async () => {
     const fixture = await readFixture("tool-use-response.ndjson");
     const parser = new CursorStreamParser();
@@ -101,6 +103,7 @@ describe("Cursor channel integrations", () => {
     });
 
     try {
+      const roundtripStart = performance.now();
       const output = await invokeNodeShim(installation.paths.nodeShimPath, socketTarget, {
         conversation_id: "conv-1",
         generation_id: "gen-1",
@@ -108,9 +111,11 @@ describe("Cursor channel integrations", () => {
         model: "opus-4.6-thinking",
         workspace_roots: [cwd],
       });
+      const roundtripMs = performance.now() - roundtripStart;
       const parsed = JSON.parse(output) as Record<string, unknown>;
       expect(parsed.continue).toBe(true);
       expect(parsed.additional_context).toBe("Injected context from TOADSTOOL");
+      expect(roundtripMs).toBeLessThanOrEqual(HOOK_ROUNDTRIP_MAX_MS);
     } finally {
       await cleanupCursorHooks(installation);
       await hookServer.stop();
