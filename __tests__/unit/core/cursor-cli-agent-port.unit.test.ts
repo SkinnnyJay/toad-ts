@@ -113,7 +113,7 @@ describe("CursorCliAgentPort", () => {
         message: "hello",
         sessionId: "session-1",
       })
-    ).rejects.toThrow("Cursor prompt failed");
+    ).rejects.toThrow("Cursor prompt failed (exit 1): failed");
   });
 
   it("maps installation and model metadata", async () => {

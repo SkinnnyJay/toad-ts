@@ -5,6 +5,7 @@ import type { CliAgentSession } from "@/types/cli-agent.types";
 
 const CURSOR_AGENT_PORT_DEFAULT = {
   UNKNOWN_SESSION_ID: "session-unknown",
+  PROMPT_FAILURE_PREFIX: "Cursor prompt failed",
 } as const;
 
 type CursorPromptMode = NonNullable<CursorPromptRequest["mode"]>;
@@ -37,9 +38,26 @@ const resolveSessionId = (result: CursorPromptResult, fallback: string | undefin
   return result.sessionId ?? fallback ?? CURSOR_AGENT_PORT_DEFAULT.UNKNOWN_SESSION_ID;
 };
 
+const toPromptFailureMessage = (result: CursorPromptResult): string => {
+  const status = (() => {
+    if (result.signal) {
+      return `signal ${result.signal}`;
+    }
+    if (result.exitCode !== null) {
+      return `exit ${result.exitCode}`;
+    }
+    return "unknown status";
+  })();
+  const stderr = result.stderr.trim();
+  if (stderr.length === 0) {
+    return `${CURSOR_AGENT_PORT_DEFAULT.PROMPT_FAILURE_PREFIX} (${status})`;
+  }
+  return `${CURSOR_AGENT_PORT_DEFAULT.PROMPT_FAILURE_PREFIX} (${status}): ${stderr}`;
+};
+
 const assertPromptSucceeded = (result: CursorPromptResult): void => {
   if (result.exitCode !== null && result.exitCode !== 0 && result.resultText === null) {
-    throw new Error(`Cursor prompt failed${result.signal ? ` (${result.signal})` : ""}`);
+    throw new Error(toPromptFailureMessage(result));
   }
 };
 
