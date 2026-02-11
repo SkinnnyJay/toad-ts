@@ -211,7 +211,7 @@ describe("slash command agent management", () => {
   it("fetches native cursor sessions for /sessions", async () => {
     const runAgentCommand = vi.fn(async () => ({
       stdout:
-        "9b7418b2-5b71-4a12-97b4-64f2131e5241\n36bf2c71-c56a-4c0a-a2e6-f7d47c2cd2e7\nsession-resume-id Native title model: gpt-5 messages: 14 created: 2026-02-11T18:30:00Z",
+        "9b7418b2-5b71-4a12-97b4-64f2131e5241\n36bf2c71-c56a-4c0a-a2e6-f7d47c2cd2e7\nsession-resume-id Native title model: gpt-5 messages: 14 createdAt=2026-02-11T18:30:00Z",
       stderr: "",
       exitCode: 0,
     }));

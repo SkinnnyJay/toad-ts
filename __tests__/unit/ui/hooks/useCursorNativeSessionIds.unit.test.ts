@@ -54,7 +54,7 @@ describe("useCursorNativeSessionIds", () => {
     const second = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174001");
     const third = SessionIdSchema.parse("session-resume-id");
     const runAgentCommand = vi.fn(async () => ({
-      stdout: `${first}\n${second}\n${third} Native title model: gpt-5 messages: 14 created: 2026-02-11T18:30:00Z\n${first}`,
+      stdout: `${first}\n${second}\n${third} Native title model: gpt-5 messages: 14 createdAt=2026-02-11T18:30:00Z\n${first}`,
       stderr: "",
       exitCode: 0,
     }));

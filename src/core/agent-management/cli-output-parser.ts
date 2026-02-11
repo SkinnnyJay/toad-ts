@@ -13,7 +13,7 @@ const SESSION_MODEL_PATTERN = /\bmodel(?:\s*[:=]\s*|\s+)([^\s|,()]+)\b/i;
 const SESSION_MESSAGE_COUNT_PATTERN = /\bmessages?\s*[:=]\s*(\d+)\b/i;
 const SESSION_TRAILING_MESSAGE_COUNT_PATTERN = /(?:^|[\s|,;()])(\d+)\s+messages?\b/i;
 const SESSION_CREATED_AT_PATTERN =
-  /\b(?:created(?:_at)?\s*[:=]\s*)?(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))\b/i;
+  /\b(?:created(?:_?at)?\s*[:=]\s*)?(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))\b/i;
 const MODEL_LINE_PATTERN = /^(\S+)\s+-\s+(.+)$/;
 const LOGGED_IN_PATTERN = /logged in as\s+([^\s]+@[^\s]+)/i;
 const REQUIRES_TTY_PATTERN = /requires tty/i;

@@ -68,7 +68,7 @@ describe("cli-output-parser", () => {
   it("parses session metadata details when present", () => {
     const output = [
       "session-resume-id Native resume session model: gpt-5 messages: 14 created: 2026-02-11T18:30:00Z",
-      "another-session-id model gpt-4o 2 messages 2026-02-10T08:00:00+00:00",
+      "another-session-id model gpt-4o 2 messages createdAt=2026-02-10T08:00:00+00:00",
       "session-resume-id Native resume session",
     ].join("\n");
 

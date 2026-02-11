@@ -210,7 +210,7 @@ describe("createCliHarnessAdapter", () => {
     cliAgent.listSessions = undefined;
     cliAgent.runManagementCommand = async () => ({
       stdout:
-        "9b7418b2-5b71-4a12-97b4-64f2131e5241 Active session model: gpt-5 messages: 14 created: 2026-02-11T18:30:00Z\nsession-resume-id Resume title",
+        "9b7418b2-5b71-4a12-97b4-64f2131e5241 Active session model: gpt-5 messages: 14 createdAt=2026-02-11T18:30:00Z\nsession-resume-id Resume title",
       stderr: "",
       exitCode: 0,
     });
