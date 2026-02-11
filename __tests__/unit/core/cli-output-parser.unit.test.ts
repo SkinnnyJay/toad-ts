@@ -60,6 +60,15 @@ describe("cli-output-parser", () => {
     });
   });
 
+  it("parses explicit not-logged-in phrase output", () => {
+    const parsed = parseAuthStatusOutput("You are not logged in.");
+
+    expect(parsed).toEqual({
+      authenticated: false,
+      method: "none",
+    });
+  });
+
   it("parses model list output and default model flag", () => {
     const parsed = parseModelsOutput(
       "auto - Auto\nopus-4.6-thinking - Claude 4.6 Opus (Thinking) (default)"

@@ -7,6 +7,9 @@ import {
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type { CliAgentAuthStatus } from "@/types/cli-agent.types";
 
+const EXPLICIT_AUTH_STATUS_PATTERN =
+  /\b(?:logged\s+in\s+as|authenticated\s+as|authenticated\b\s*[:=]\s*(?:true|false|yes|no|1|0)|(?:auth(?:entication)?\s+)?status\b\s*[:=]\s*(?:authenticated|unauthenticated|logged[\s_-]?in|logged[\s_-]?out)|not\s+logged\s+in|logged\s+out)\b/i;
+
 export const parseAuthStatusCommandResult = (
   result: AgentManagementCommandResult
 ): CliAgentAuthStatus => {
@@ -15,5 +18,6 @@ export const parseAuthStatusCommandResult = (
     result,
     parse: parseAuthStatusOutput,
     shouldAcceptParsed: (parsed) => parsed.authenticated,
+    shouldFallbackWhenStdoutPresent: (stdout) => !EXPLICIT_AUTH_STATUS_PATTERN.test(stdout),
   });
 };

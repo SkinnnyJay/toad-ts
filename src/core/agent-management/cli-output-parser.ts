@@ -40,6 +40,7 @@ const AUTHENTICATED_AS_PATTERN = /\bauthenticated\s+as\s+([^\s]+@[^\s]+)/i;
 const AUTHENTICATED_STATUS_PATTERN = /\bauthenticated\b\s*[:=]\s*(true|false|yes|no|1|0)\b/i;
 const AUTH_STATUS_VALUE_PATTERN =
   /\b(?:auth(?:entication)?\s+)?status\b\s*[:=]\s*(authenticated|unauthenticated|logged[\s_-]?in|logged[\s_-]?out)\b/i;
+const NOT_LOGGED_IN_PATTERN = /\b(?:not\s+logged\s+in|logged\s+out)\b/i;
 const AUTH_EMAIL_PATTERN = /\b(?:email|user|account)\b\s*[:=]\s*([^\s]+@[^\s]+)/i;
 const REQUIRES_TTY_PATTERN = /requires tty/i;
 
@@ -119,6 +120,13 @@ export const parseAuthStatusOutput = (stdout: string): CliAgentAuthStatus => {
       authenticated,
       method: authenticated ? "browser_login" : "none",
       email: authenticated ? email : undefined,
+    });
+  }
+
+  if (NOT_LOGGED_IN_PATTERN.test(stdout)) {
+    return CliAgentAuthStatusSchema.parse({
+      authenticated: false,
+      method: "none",
     });
   }
 
