@@ -205,6 +205,28 @@ describe("createCliHarnessAdapter", () => {
     expect(sessions).toEqual([{ id: "session-fake" }]);
   });
 
+  it("falls back to management command session listing", async () => {
+    const cliAgent = new FakeCliAgentPort();
+    cliAgent.listSessions = undefined;
+    cliAgent.runManagementCommand = async () => ({
+      stdout: "9b7418b2-5b71-4a12-97b4-64f2131e5241 Active session\nsession-resume-id Resume title",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = createCliHarnessAdapter({ cliAgent });
+    await harness.connect();
+
+    const sessions = await harness.listAgentSessions();
+
+    expect(sessions).toEqual([
+      {
+        id: "9b7418b2-5b71-4a12-97b4-64f2131e5241",
+        title: "Active session",
+      },
+      { id: "session-resume-id", title: "Resume title" },
+    ]);
+  });
+
   it("resets connection status when connect fails", async () => {
     const cliAgent = new FakeCliAgentPort();
     cliAgent.installed = false;
@@ -240,6 +262,7 @@ describe("createCliHarnessAdapter", () => {
   it("throws when session listing is unsupported", async () => {
     const cliAgent = new FakeCliAgentPort();
     cliAgent.listSessions = undefined;
+    cliAgent.runManagementCommand = undefined;
     const harness = createCliHarnessAdapter({ cliAgent });
     await harness.connect();
 

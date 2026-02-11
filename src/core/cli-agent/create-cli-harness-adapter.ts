@@ -1,6 +1,8 @@
+import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { ALLOW_ONCE, REJECT_ONCE } from "@/constants/permission-option-kinds";
+import { parseSessionSummariesOutput } from "@/core/agent-management/cli-output-parser";
 import { CliAgentBase } from "@/core/cli-agent/cli-agent.base";
 import { CliAgentBridge } from "@/core/cli-agent/cli-agent.bridge";
 import type { CliAgentPort } from "@/core/cli-agent/cli-agent.port";
@@ -170,17 +172,33 @@ export class CliHarnessAdapter extends CliAgentBase {
   }
 
   async listAgentSessions(): Promise<AgentManagementSession[]> {
-    if (!this.cliAgent.listSessions) {
-      throw new Error("CLI agent does not support session listing.");
+    if (this.cliAgent.listSessions) {
+      const sessions = await this.cliAgent.listSessions();
+      return sessions.map((session) => ({
+        id: session.id,
+        title: session.title,
+        createdAt: session.createdAt,
+        model: session.model,
+        messageCount: session.messageCount,
+      }));
     }
-    const sessions = await this.cliAgent.listSessions();
-    return sessions.map((session) => ({
-      id: session.id,
-      title: session.title,
-      createdAt: session.createdAt,
-      model: session.model,
-      messageCount: session.messageCount,
-    }));
+
+    if (this.cliAgent.runManagementCommand) {
+      const result = await this.cliAgent.runManagementCommand([AGENT_MANAGEMENT_COMMAND.LIST]);
+      if (result.exitCode !== 0) {
+        const output = `${result.stderr}\n${result.stdout}`.trim();
+        throw new Error(output.length > 0 ? output : "CLI session listing command failed.");
+      }
+      return parseSessionSummariesOutput(`${result.stdout}\n${result.stderr}`).map((session) => ({
+        id: session.id,
+        title: session.title,
+        createdAt: session.createdAt,
+        model: session.model,
+        messageCount: session.messageCount,
+      }));
+    }
+
+    throw new Error("CLI agent does not support session listing.");
   }
 }
 
