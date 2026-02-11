@@ -3,6 +3,7 @@ import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { KEY_NAME } from "@/constants/key-names";
 import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
+import { toUniqueAgentManagementSessions } from "@/core/agent-management/session-summary-mapper";
 import { useAppStore } from "@/store/app-store";
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
@@ -49,6 +50,10 @@ export function SessionsPopup({
       .sort((a, b) => b.updatedAt - a.updatedAt);
   }, [sessions]);
 
+  const uniqueExternalSessions = useMemo(() => {
+    return toUniqueAgentManagementSessions(externalSessions);
+  }, [externalSessions]);
+
   const sessionEntries = useMemo<SessionEntry[]>(() => {
     const localEntries = sortedSessions.map((session) => {
       const sessionTitle = session.title || session.id.slice(0, LIMIT.ID_TRUNCATE_LENGTH);
@@ -64,7 +69,7 @@ export function SessionsPopup({
     });
     const localIds = new Set(localEntries.map((entry) => entry.id));
     const externalEntries: SessionEntry[] = [];
-    for (const session of externalSessions) {
+    for (const session of uniqueExternalSessions) {
       const parsedId = SessionIdSchema.safeParse(session.id);
       if (!parsedId.success) {
         continue;
@@ -105,7 +110,7 @@ export function SessionsPopup({
       return rightValue - leftValue;
     });
     return [...localEntries, ...externalEntries];
-  }, [externalSessions, sortedSessions]);
+  }, [sortedSessions, uniqueExternalSessions]);
 
   const filteredSessions = useMemo(() => {
     if (!query.trim()) {

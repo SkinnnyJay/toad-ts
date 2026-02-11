@@ -259,5 +259,37 @@ describe("UI Modals", () => {
       expect(oldestIndex).toBeGreaterThanOrEqual(0);
       expect(newestIndex).toBeLessThan(oldestIndex);
     });
+
+    it("deduplicates external cursor sessions by id", () => {
+      const duplicatedSessionId = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174000");
+      const { lastFrame, stdin } = renderInk(
+        React.createElement(
+          TruncationProvider,
+          {},
+          React.createElement(SessionsPopup, {
+            isOpen: true,
+            onClose: () => {},
+            onSelectSession: () => {},
+            externalSessions: [
+              { id: duplicatedSessionId, title: "Old title" },
+              {
+                id: duplicatedSessionId,
+                title: "Recovered title",
+                model: "gpt-5",
+                messageCount: 14,
+              },
+            ],
+          })
+        )
+      );
+
+      const frame = lastFrame();
+      const nativeLabel = "Native: 123e4567";
+      expect(frame.indexOf(nativeLabel)).toBeGreaterThanOrEqual(0);
+      expect(frame.lastIndexOf(nativeLabel)).toBe(frame.indexOf(nativeLabel));
+      stdin.write("gpt-5");
+      expect(lastFrame()).toContain("Filter: gpt-5");
+      expect(lastFrame()).toContain(nativeLabel);
+    });
   });
 });
