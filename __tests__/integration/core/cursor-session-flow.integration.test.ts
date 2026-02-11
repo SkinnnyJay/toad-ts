@@ -148,19 +148,15 @@ describe("Cursor session flow integration", () => {
         model: "opus-4.6-thinking",
       });
 
-      const firstPromptStart = performance.now();
-      await harness.prompt({
-        sessionId: session.id,
-        prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "hello from integration" }],
-      });
-      const firstPromptDurationMs = performance.now() - firstPromptStart;
-
-      const secondPromptStart = performance.now();
-      await harness.prompt({
-        sessionId: session.id,
-        prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "follow-up prompt" }],
-      });
-      const secondPromptDurationMs = performance.now() - secondPromptStart;
+      const promptDurationsMs: number[] = [];
+      for (let index = 0; index < CURSOR_PERFORMANCE.PROMPT_SAMPLE_COUNT; index += 1) {
+        const promptStart = performance.now();
+        await harness.prompt({
+          sessionId: session.id,
+          prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: `prompt-${index + 1}` }],
+        });
+        promptDurationsMs.push(performance.now() - promptStart);
+      }
       hookServer.emit("hookEvent", {
         conversation_id: session.id,
         hook_event_name: CURSOR_HOOK_EVENT.AFTER_AGENT_THOUGHT,
@@ -185,12 +181,16 @@ describe("Cursor session flow integration", () => {
       const messages = store.getMessagesForSession(session.id);
       const assistantMessages = messages.filter((message) => message.role === "assistant");
       expect(assistantMessages.length).toBeGreaterThan(0);
-      expect(connection.promptRequests).toHaveLength(2);
+      expect(connection.promptRequests).toHaveLength(CURSOR_PERFORMANCE.PROMPT_SAMPLE_COUNT);
       expect(connection.promptRequests.every((request) => request.sessionId === session.id)).toBe(
         true
       );
-      expect(firstPromptDurationMs).toBeLessThanOrEqual(CURSOR_PERFORMANCE.PROMPT_OVERHEAD_MAX_MS);
-      expect(secondPromptDurationMs).toBeLessThanOrEqual(CURSOR_PERFORMANCE.PROMPT_OVERHEAD_MAX_MS);
+      const sortedPromptDurations = promptDurationsMs.slice().sort((left, right) => left - right);
+      const p95Index = Math.max(0, Math.ceil(sortedPromptDurations.length * 0.95) - 1);
+      const p95PromptDurationMs = sortedPromptDurations[p95Index] ?? Number.POSITIVE_INFINITY;
+      expect(p95PromptDurationMs).toBeLessThanOrEqual(
+        CURSOR_PERFORMANCE.PROMPT_OVERHEAD_P95_MAX_MS
+      );
       expect(connection.promptRequests[0]?.model).toBe("opus-4.6-thinking");
       expect(hookSessionUpdates).toContain(SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK);
       expect(hookSessionUpdates).toContain(SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE);
