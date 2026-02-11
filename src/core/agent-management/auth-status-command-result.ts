@@ -13,8 +13,13 @@ export const parseAuthStatusCommandResult = (
 ): CliAgentAuthStatus => {
   assertCommandSucceeded(result, AUTH_STATUS_COMMAND_FAILURE_MESSAGE);
   const parsedFromStdout = parseAuthStatusOutput(result.stdout);
-  if (parsedFromStdout.authenticated || result.stdout.trim().length > 0) {
+  if (parsedFromStdout.authenticated) {
     return parsedFromStdout;
   }
-  return parseAuthStatusOutput(toCombinedCommandOutput(result));
+  if (result.stdout.trim().length === 0) {
+    return parseAuthStatusOutput(toCombinedCommandOutput(result));
+  }
+
+  const parsedFromCombinedOutput = parseAuthStatusOutput(toCombinedCommandOutput(result));
+  return parsedFromCombinedOutput.authenticated ? parsedFromCombinedOutput : parsedFromStdout;
 };

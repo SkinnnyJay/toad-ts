@@ -233,4 +233,23 @@ describe("CursorCliConnection", () => {
       },
     ]);
   });
+
+  it("parses auth status from stderr when stdout has warning noise", async () => {
+    const connection = new CursorCliConnection({
+      commandRunner: async (_command, args) => {
+        if (args[0] === AGENT_MANAGEMENT_COMMAND.STATUS) {
+          return {
+            stdout: "warning: using fallback auth probe",
+            stderr: "✓ Logged in as combined-user@example.com",
+            exitCode: 0,
+          };
+        }
+        return { stdout: "", stderr: "", exitCode: 0 };
+      },
+    });
+
+    const auth = await connection.verifyAuth();
+    expect(auth.authenticated).toBe(true);
+    expect(auth.email).toBe("combined-user@example.com");
+  });
 });

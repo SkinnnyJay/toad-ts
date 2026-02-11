@@ -30,6 +30,20 @@ describe("auth-status-command-result", () => {
     });
   });
 
+  it("falls back to combined output when stdout has non-auth warning", () => {
+    const parsed = parseAuthStatusCommandResult({
+      stdout: "warning: using fallback auth probe",
+      stderr: "✓ Logged in as combined-user@example.com",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual({
+      authenticated: true,
+      method: "browser_login",
+      email: "combined-user@example.com",
+    });
+  });
+
   it("throws stderr message when status command fails", () => {
     expect(() =>
       parseAuthStatusCommandResult({
