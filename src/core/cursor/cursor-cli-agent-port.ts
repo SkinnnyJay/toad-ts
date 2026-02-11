@@ -7,7 +7,7 @@ const CURSOR_AGENT_PORT_DEFAULT = {
 
 type CursorPromptMode = NonNullable<CursorPromptRequest["mode"]>;
 
-interface CursorCliConnectionLike {
+export interface CursorCliConnectionLike {
   verifyInstallation(): Promise<{ installed: boolean; version?: string }>;
   verifyAuth(): Promise<{ authenticated: boolean }>;
   listModels(): Promise<{ models: Array<{ id: string; name: string }>; defaultModel?: string }>;

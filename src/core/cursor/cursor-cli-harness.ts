@@ -11,12 +11,11 @@ import {
   type CliHarnessAdapter,
   createCliHarnessAdapter,
 } from "@/core/cli-agent/create-cli-harness-adapter";
-import { CursorCliAgentPort } from "@/core/cursor/cursor-cli-agent-port";
 import {
-  CursorCliConnection,
-  type CursorPromptRequest,
-  type CursorPromptResult,
-} from "@/core/cursor/cursor-cli-connection";
+  CursorCliAgentPort,
+  type CursorCliConnectionLike,
+} from "@/core/cursor/cursor-cli-agent-port";
+import { CursorCliConnection } from "@/core/cursor/cursor-cli-connection";
 import {
   asNonEmptyString,
   mapCursorPermissionRequestMetadata,
@@ -63,26 +62,14 @@ import type {
 import { PROTOCOL_VERSION } from "@agentclientprotocol/sdk";
 import type { EventEmitter } from "eventemitter3";
 
-interface CursorCliConnectionLike
+interface CursorCliHarnessConnection
   extends EventEmitter<{
-    event: (event: Parameters<CursorToAcpTranslator["translate"]>[0]) => void;
-    stderr: (chunk: string) => void;
-    error: (error: Error) => void;
-    exit: (info: { code: number | null; signal: NodeJS.Signals | null }) => void;
-  }> {
-  verifyInstallation(): Promise<{ installed: boolean; version?: string }>;
-  verifyAuth(): Promise<{ authenticated: boolean }>;
-  listModels(): Promise<{ models: Array<{ id: string; name: string }>; defaultModel?: string }>;
-  listSessions(): Promise<string[]>;
-  createChat(): Promise<string>;
-  spawnPrompt(request: CursorPromptRequest): Promise<CursorPromptResult>;
-  runManagementCommand(args: string[]): Promise<{
-    stdout: string;
-    stderr: string;
-    exitCode: number;
-  }>;
-  disconnect(): Promise<void>;
-}
+      event: (event: Parameters<CursorToAcpTranslator["translate"]>[0]) => void;
+      stderr: (chunk: string) => void;
+      error: (error: Error) => void;
+      exit: (info: { code: number | null; signal: NodeJS.Signals | null }) => void;
+    }>,
+    CursorCliConnectionLike {}
 
 interface CursorHookIpcServerLike {
   start(): Promise<CursorHookIpcAddress>;
@@ -103,7 +90,7 @@ const CURSOR_AUTH_REQUIRED_ERROR =
 export type CursorCliHarnessAdapterEvents = HarnessRuntimeEvents;
 
 export interface CursorCliHarnessAdapterOptions {
-  connection?: CursorCliConnectionLike;
+  connection?: CursorCliHarnessConnection;
   translator?: CursorToAcpTranslator;
   hookServer?: CursorHookIpcServerLike;
   installHooksFn?: InstallHooksFn;
@@ -116,7 +103,7 @@ export interface CursorCliHarnessAdapterOptions {
 
 export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRuntime {
   private readonly logger = createClassLogger("CursorCliHarnessAdapter");
-  private readonly connection: CursorCliConnectionLike;
+  private readonly connection: CursorCliHarnessConnection;
   private readonly translator: CursorToAcpTranslator;
   private readonly hookServer: CursorHookIpcServerLike;
   private readonly installHooksFn: InstallHooksFn;
