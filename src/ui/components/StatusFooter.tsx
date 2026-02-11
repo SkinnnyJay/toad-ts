@@ -54,15 +54,9 @@ const toWorkspaceLabel = (workspacePath?: string): string | undefined => {
 };
 
 const toPullRequestLabel = (url: string): string => {
-  const slashSegments = url.split("/");
-  const lastSegment = slashSegments[slashSegments.length - 1];
-  if (!lastSegment || lastSegment.length === 0) {
-    return "PR";
-  }
-
-  const hashSegments = lastSegment.split("#");
-  const prSegment = hashSegments[0];
-  return prSegment && prSegment.length > 0 ? `PR #${prSegment}` : "PR";
+  const match = /\/pull\/(\d+)/i.exec(url);
+  const prNumber = match?.[1];
+  return prNumber && prNumber.length > 0 ? `PR #${prNumber}` : "PR";
 };
 
 export function StatusFooter({

@@ -54,4 +54,18 @@ describe("StatusFooter", () => {
     expect(frame).toContain("Workspace: my-repo");
     expect(frame).toContain("Review: PR #123 (approved)");
   });
+
+  it("extracts pull request number from nested pull URL paths", () => {
+    const { lastFrame } = renderInk(
+      React.createElement(StatusFooter, {
+        focusTarget: FOCUS_TARGET.CHAT,
+        prStatus: {
+          url: "https://github.com/example/repo/pull/456/files",
+          reviewDecision: "review_requested",
+        },
+      })
+    );
+
+    expect(lastFrame()).toContain("Review: PR #456 (review_requested)");
+  });
 });
