@@ -50,6 +50,7 @@ export interface CursorPromptRequest {
   force?: boolean;
   streamPartialOutput?: boolean;
   apiKey?: string;
+  envOverrides?: NodeJS.ProcessEnv;
   extraArgs?: string[];
 }
 
@@ -366,7 +367,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
   }
 
   private buildPromptEnv(request: CursorPromptRequest): NodeJS.ProcessEnv {
-    const env = { ...this.env };
+    const env = { ...this.env, ...request.envOverrides };
     const apiKey = request.apiKey ?? env[ENV_KEY.CURSOR_API_KEY];
     if (apiKey) {
       env[ENV_KEY.CURSOR_API_KEY] = apiKey;
