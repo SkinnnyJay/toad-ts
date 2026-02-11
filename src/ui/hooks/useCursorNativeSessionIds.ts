@@ -1,6 +1,7 @@
 import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
 import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
 import {
+  sortAgentManagementSessionsByRecency,
   toAgentManagementSessions,
   toUniqueAgentManagementSessions,
 } from "@/core/agent-management/session-summary-mapper";
@@ -52,10 +53,12 @@ const toUniqueSessionIdsFromList = (sessionIds: string[]): SessionId[] => {
 const toUniqueSessionsFromCommandResult = (
   result: AgentManagementCommandResult
 ): AgentManagementSession[] =>
-  toUniqueAgentManagementSessions(
-    toAgentManagementSessions(parseSessionListCommandResult(result))
-      .map((session) => toValidatedSession(session))
-      .filter((session): session is AgentManagementSession => session !== undefined)
+  sortAgentManagementSessionsByRecency(
+    toUniqueAgentManagementSessions(
+      toAgentManagementSessions(parseSessionListCommandResult(result))
+        .map((session) => toValidatedSession(session))
+        .filter((session): session is AgentManagementSession => session !== undefined)
+    )
   );
 
 export interface UseCursorNativeSessionIdsOptions {
@@ -106,7 +109,7 @@ export function useCursorNativeSessionIds(
             .map((session) => toValidatedSession(session))
             .filter((session): session is AgentManagementSession => session !== undefined)
         );
-        setSessions(deduped);
+        setSessions(sortAgentManagementSessionsByRecency(deduped));
         return;
       }
       if (!client.runAgentCommand) {

@@ -60,3 +60,29 @@ export const toUniqueAgentManagementSessions = (
   }
   return Array.from(sessionsById.values());
 };
+
+export const sortAgentManagementSessionsByRecency = (
+  sessions: AgentManagementSession[]
+): AgentManagementSession[] => {
+  return sessions
+    .map((session, index) => ({
+      session,
+      index,
+      createdTimestamp: session.createdAt
+        ? Date.parse(session.createdAt)
+        : Number.NEGATIVE_INFINITY,
+    }))
+    .sort((left, right) => {
+      const normalizedLeft = Number.isNaN(left.createdTimestamp)
+        ? Number.NEGATIVE_INFINITY
+        : left.createdTimestamp;
+      const normalizedRight = Number.isNaN(right.createdTimestamp)
+        ? Number.NEGATIVE_INFINITY
+        : right.createdTimestamp;
+      if (normalizedRight !== normalizedLeft) {
+        return normalizedRight - normalizedLeft;
+      }
+      return left.index - right.index;
+    })
+    .map((entry) => entry.session);
+};

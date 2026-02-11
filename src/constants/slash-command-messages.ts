@@ -1,4 +1,5 @@
 import { LIMIT } from "@/config/limits";
+import { sortAgentManagementSessionsByRecency } from "@/core/agent-management/session-summary-mapper";
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import type { Session, SessionMode } from "@/types/domain";
 
@@ -126,37 +127,14 @@ const formatAgentSessionDetails = (session: AgentManagementSession): string => {
   return details.length > 0 ? ` (${details.join(" · ")})` : "";
 };
 
-const sortAgentSessionsForPreview = (
-  sessions: AgentManagementSession[]
-): AgentManagementSession[] => {
-  return sessions
-    .map((session, index) => ({
-      session,
-      index,
-      createdTimestamp: session.createdAt
-        ? Date.parse(session.createdAt)
-        : Number.NEGATIVE_INFINITY,
-    }))
-    .sort((left, right) => {
-      const normalizedLeft = Number.isNaN(left.createdTimestamp)
-        ? Number.NEGATIVE_INFINITY
-        : left.createdTimestamp;
-      const normalizedRight = Number.isNaN(right.createdTimestamp)
-        ? Number.NEGATIVE_INFINITY
-        : right.createdTimestamp;
-      if (normalizedRight !== normalizedLeft) {
-        return normalizedRight - normalizedLeft;
-      }
-      return left.index - right.index;
-    })
-    .map((entry) => entry.session);
-};
-
 export const formatAgentSessionListMessage = (sessions: AgentManagementSession[]): string => {
   if (sessions.length === 0) {
     return "No native agent sessions available.";
   }
-  const preview = sortAgentSessionsForPreview(sessions).slice(0, LIMIT.SESSION_LIST_PREVIEW);
+  const preview = sortAgentManagementSessionsByRecency(sessions).slice(
+    0,
+    LIMIT.SESSION_LIST_PREVIEW
+  );
   const lines = preview.map(
     (session, index) => `${index + 1}. ${session.id}${formatAgentSessionDetails(session)}`
   );

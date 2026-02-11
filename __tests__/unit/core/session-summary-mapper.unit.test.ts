@@ -1,4 +1,5 @@
 import {
+  sortAgentManagementSessionsByRecency,
   toAgentManagementSession,
   toAgentManagementSessions,
   toUniqueAgentManagementSessions,
@@ -99,6 +100,22 @@ describe("session-summary-mapper", () => {
         model: "gpt-5",
         messageCount: 14,
       },
+    ]);
+  });
+
+  it("sorts sessions by newest created timestamp while preserving ties", () => {
+    const sortedSessions = sortAgentManagementSessionsByRecency([
+      { id: "session-1", createdAt: "2026-02-10T18:30:00.000Z" },
+      { id: "session-2" },
+      { id: "session-3", createdAt: "2026-02-11T18:30:00.000Z" },
+      { id: "session-4", createdAt: "2026-02-11T18:30:00.000Z" },
+    ]);
+
+    expect(sortedSessions.map((session) => session.id)).toEqual([
+      "session-3",
+      "session-4",
+      "session-1",
+      "session-2",
     ]);
   });
 });
