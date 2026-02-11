@@ -1,5 +1,6 @@
 import type { CliAgentPort, CliAgentPromptExecution } from "@/core/cli-agent/cli-agent.port";
 import type { CursorPromptRequest, CursorPromptResult } from "@/core/cursor/cursor-cli-connection";
+import type { CliAgentSession } from "@/types/cli-agent.types";
 
 const CURSOR_AGENT_PORT_DEFAULT = {
   UNKNOWN_SESSION_ID: "session-unknown",
@@ -11,7 +12,7 @@ export interface CursorCliConnectionLike {
   verifyInstallation(): Promise<{ installed: boolean; version?: string }>;
   verifyAuth(): Promise<{ authenticated: boolean }>;
   listModels(): Promise<{ models: Array<{ id: string; name: string }>; defaultModel?: string }>;
-  listSessions(): Promise<string[]>;
+  listSessions(): Promise<CliAgentSession[]>;
   createChat(): Promise<string>;
   spawnPrompt(request: CursorPromptRequest): Promise<CursorPromptResult>;
   disconnect(): Promise<void>;
@@ -93,8 +94,14 @@ export class CursorCliAgentPort implements CliAgentPort {
   }
 
   async listSessions() {
-    const sessionIds = await this.connection.listSessions();
-    return sessionIds.map((id) => ({ id }));
+    const sessions = await this.connection.listSessions();
+    return sessions.map((session) => ({
+      id: session.id,
+      title: session.title,
+      createdAt: session.createdAt,
+      model: session.model,
+      messageCount: session.messageCount,
+    }));
   }
 
   async prompt(input: {

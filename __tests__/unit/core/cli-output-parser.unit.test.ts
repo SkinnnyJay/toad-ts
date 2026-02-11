@@ -5,6 +5,7 @@ import {
   parseKeyValueLines,
   parseModelsOutput,
   parseSessionListOutput,
+  parseSessionSummariesOutput,
   parseUuidLines,
 } from "../../../src/core/agent-management/cli-output-parser";
 
@@ -47,6 +48,20 @@ describe("cli-output-parser", () => {
       "03db60d8-ec0a-4376-aa2b-d89acc9b4abc",
       "session-resume-id",
       "session_resume_id",
+    ]);
+    expect(parseSessionSummariesOutput(output)).toEqual([
+      {
+        id: "03db60d8-ec0a-4376-aa2b-d89acc9b4abc",
+        title: "Active session",
+      },
+      {
+        id: "session-resume-id",
+        title: "Native resume session",
+      },
+      {
+        id: "session_resume_id",
+        title: "Another resume session",
+      },
     ]);
   });
 

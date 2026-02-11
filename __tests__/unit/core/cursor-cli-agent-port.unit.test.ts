@@ -27,8 +27,8 @@ class FakeCursorConnection {
     return "session-created";
   }
 
-  async listSessions(): Promise<string[]> {
-    return ["session-created"];
+  async listSessions() {
+    return [{ id: "session-created", title: "Session Created" }];
   }
 
   async spawnPrompt(request: CursorPromptRequest): Promise<CursorPromptResult> {
@@ -133,6 +133,16 @@ describe("CursorCliAgentPort", () => {
       isDefault: true,
       supportsThinking: true,
     });
+  });
+
+  it("maps listed sessions with metadata", async () => {
+    const port = new CursorCliAgentPort({
+      connection: new FakeCursorConnection(),
+    });
+
+    const sessions = await port.listSessions();
+
+    expect(sessions).toEqual([{ id: "session-created", title: "Session Created" }]);
   });
 
   it("treats api key as authenticated fallback", async () => {

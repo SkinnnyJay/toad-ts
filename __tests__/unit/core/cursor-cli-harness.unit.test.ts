@@ -53,8 +53,8 @@ class FakeCursorConnection extends EventEmitter<{
     return sessionId;
   }
 
-  async listSessions(): Promise<string[]> {
-    return [sessionId];
+  async listSessions() {
+    return [{ id: sessionId }];
   }
 
   async spawnPrompt(request: CursorPromptRequest): Promise<CursorPromptResult> {

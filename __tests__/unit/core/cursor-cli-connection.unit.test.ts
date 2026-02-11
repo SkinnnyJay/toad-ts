@@ -141,6 +141,9 @@ describe("CursorCliConnection", () => {
     });
 
     const sessions = await connection.listSessions();
-    expect(sessions).toEqual(["session-resume-id", "another-session-id"]);
+    expect(sessions).toEqual([
+      { id: "session-resume-id", title: "Active session" },
+      { id: "another-session-id", title: "done" },
+    ]);
   });
 });

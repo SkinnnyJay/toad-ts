@@ -49,8 +49,8 @@ class IntegrationFakeConnection extends EventEmitter<{
     return "session-cursor-integration";
   }
 
-  async listSessions(): Promise<string[]> {
-    return ["session-cursor-integration"];
+  async listSessions() {
+    return [{ id: "session-cursor-integration" }];
   }
 
   async spawnPrompt(request: CursorPromptRequest): Promise<CursorPromptResult> {

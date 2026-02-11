@@ -3,6 +3,8 @@ import {
   CliAgentAuthStatusSchema,
   type CliAgentModelsResponse,
   CliAgentModelsResponseSchema,
+  type CliAgentSession,
+  CliAgentSessionSchema,
 } from "@/types/cli-agent.types";
 
 const UUID_PATTERN = /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i;
@@ -67,18 +69,45 @@ export const parseUuidLines = (stdout: string): string[] =>
     .map((line) => UUID_PATTERN.exec(line)?.[0] ?? null)
     .filter((entry): entry is string => entry !== null);
 
-export const parseSessionListOutput = (stdout: string): string[] => {
+const extractSessionIdFromLine = (line: string): string | null => {
+  return UUID_PATTERN.exec(line)?.[0] ?? SESSION_ID_PATTERN.exec(line)?.[0] ?? null;
+};
+
+const extractSessionTitleFromLine = (line: string, sessionId: string): string | undefined => {
+  const sessionIdIndex = line.indexOf(sessionId);
+  if (sessionIdIndex < 0) {
+    return undefined;
+  }
+  const trailing = line.slice(sessionIdIndex + sessionId.length).trim();
+  return trailing.length > 0 ? trailing : undefined;
+};
+
+export const parseSessionSummariesOutput = (stdout: string): CliAgentSession[] => {
   const lines = getNonEmptyLines(stdout);
   if (lines.some((line) => REQUIRES_TTY_PATTERN.test(line))) {
     return [];
   }
 
-  const sessionIds = lines
-    .map((line) => UUID_PATTERN.exec(line)?.[0] ?? SESSION_ID_PATTERN.exec(line)?.[0] ?? null)
-    .filter((entry): entry is string => entry !== null);
-
-  return Array.from(new Set(sessionIds));
+  const sessionById = new Map<string, CliAgentSession>();
+  for (const line of lines) {
+    const sessionId = extractSessionIdFromLine(line);
+    if (!sessionId) {
+      continue;
+    }
+    const parsedSession = CliAgentSessionSchema.parse({
+      id: sessionId,
+      title: extractSessionTitleFromLine(line, sessionId),
+    });
+    const existing = sessionById.get(sessionId);
+    if (!existing || (!existing.title && parsedSession.title)) {
+      sessionById.set(sessionId, parsedSession);
+    }
+  }
+  return Array.from(sessionById.values());
 };
+
+export const parseSessionListOutput = (stdout: string): string[] =>
+  parseSessionSummariesOutput(stdout).map((session) => session.id);
 
 export const extractFirstUuid = (stdout: string): string | null => {
   const match = UUID_PATTERN.exec(stdout);
