@@ -517,7 +517,7 @@ Beyond combining features, TOADSTOOL should have its own identity:
 - [ ] `SKILL.md` discovery in `.opencode/skills/`, `.claude/skills/`, `~/.config/opencode/skills/`
 - [ ] `skill` tool for on-demand loading by agents
 - [ ] Frontmatter validation (name, description, license)
-- [ ] Skill permissions (allow/deny/ask with glob patterns)
+- [X] Skill permissions (allow/deny/ask with glob patterns)
 - [ ] Per-agent skill permission overrides
 - [ ] Ability to disable skill tool entirely per agent
 
@@ -2766,7 +2766,7 @@ Establish performance patterns during migration while components are being rewri
   - [X] Session forking (`--fork-session` from any point)
   - [X] Session naming (`/rename`)
   - [X] Session resume by name or ID
-  - [ ] `--from-pr` flag (resume sessions linked to PRs)
+  - [X] `--from-pr` flag (resume sessions linked to PRs)
   - [X] Auto-title generation (via hidden title agent)
 - [X] **Workspace management (multi-repo):**
   - [X] Add/remove workspace roots
@@ -2780,18 +2780,18 @@ Establish performance patterns during migration while components are being rewri
 - [X] **Session diff (from OpenCode):**
   - [X] View all file changes made in a session
   - [X] Per-message diff view
-- [ ] Add share state tracking per session
-- [ ] Config options: `share: "manual" | "auto" | "disabled"`
+- [X] Add share state tracking per session
+- [X] Config options: `share: "manual" | "auto" | "disabled"`
 - [X] **Session storage & retention (parity + reliability):**
   - [X] Define storage contract (port) for sessions/messages/parts
   - [X] Implement SQLite adapter (primary)
   - [X] Implement JSON adapter (fallback)
   - [X] Add adapter selection + migration path
   - [X] Add retention policy (TTL + max sessions/bytes)
-  - [ ] Background cleanup job (scheduled + on-start)
+  - [X] Background cleanup job (scheduled + on-start)
   - [X] Compaction policy for long sessions (summaries + pruning)
   - [X] Indexing for fast session lookup and search
-  - [ ] Integrity checks + orphan cleanup tooling
+  - [X] Integrity checks + orphan cleanup tooling
   - [X] Config options: `retention.max_sessions`, `retention.max_bytes`, `retention.ttl_days`
 
 ### Phase 12: Provider Expansion (2 weeks)
@@ -2810,10 +2810,10 @@ Establish performance patterns during migration while components are being rewri
 - [X] Store model IDs in `src/constants/provider-models.ts` with refresh task
 - [X] **Popular provider adapters:**
   - [X] Azure OpenAI
-  - [ ] AWS Bedrock (Anthropic/OpenAI-compatible)
-  - [ ] Google Vertex AI (Anthropic/OpenAI-compatible)
+  - [X] AWS Bedrock (Anthropic/OpenAI-compatible)
+  - [X] Google Vertex AI (Anthropic/OpenAI-compatible)
   - [X] Mistral
-  - [ ] Cohere
+  - [X] Cohere
   - [X] Groq
   - [X] Perplexity
   - [X] xAI
@@ -2836,7 +2836,7 @@ Establish performance patterns during migration while components are being rewri
   - [X] Scan global: `~/.config/toadstool/skills/`, `~/.claude/skills/`
   - [X] SKILL.md frontmatter parsing and validation
   - [X] `skill` tool for on-demand loading by agents
-  - [ ] Skill permissions (allow/deny/ask with glob patterns)
+  - [X] Skill permissions (allow/deny/ask with glob patterns)
 - [ ] **Resources system (skills/resources/commands parity):**
   - [ ] Resource registry + loader (local + remote)
   - [ ] Resource picker UI in TUI
@@ -2847,25 +2847,25 @@ Establish performance patterns during migration while components are being rewri
 - [X] **Universal agents loader:**
   - [X] Scan `.toadstool/agents/`, `.claude/agents/`, `.cursor/agents/`, `.opencode/agents/`
   - [X] Parse YAML frontmatter + Markdown body
-  - [ ] Register as selectable agents
+  - [X] Register as selectable agents
 - [X] **Universal hooks loader:**
   - [X] Scan `.toadstool/hooks/`, `.claude/hooks/`
   - [X] Load hook config from `.toadstool/settings.json`, `.claude/settings.json`
-  - [ ] Register and execute hooks at lifecycle events
+  - [X] Register and execute hooks at lifecycle events
 - [X] **Cursor .mdc rule format parser:**
   - [X] Parse MDC frontmatter (description, globs, alwaysApply)
   - [X] Map to internal rule types (always, auto_attached, agent_requested)
   - [X] Load `.cursor/rules/*.mdc` files
-- [ ] **MCP config merger:**
-  - [ ] Load from `.cursor/mcp.json`, `.toadstool/mcp.json`
-  - [ ] Merge MCP server configs with dedup
+- [X] **MCP config merger:**
+  - [X] Load from `.cursor/mcp.json`, `.toadstool/mcp.json`
+  - [X] Merge MCP server configs with dedup
 - [X] **Config compatibility options:**
   - [X] `compatibility.claude`, `compatibility.cursor`, `compatibility.gemini`, `compatibility.opencode`
   - [X] `compatibility.disabled_tools` array to exclude specific tool folders
 - [X] **Custom tool files:**
   - [X] Load `.opencode/tools/*.ts` and `.toadstool/tools/*.ts`
-  - [ ] `tool()` helper with Zod schema args and context
-  - [ ] Multi-export tool files (`<file>_<export>` naming)
+  - [X] `tool()` helper with Zod schema args and context
+  - [X] Multi-export tool files (`<file>_<export>` naming)
 - [X] `/init` command (scan project, generate TOADSTOOL.md)
 - [X] `instructions` config array (files, globs, remote URLs)
 - [X] Tests for every loader (rules, skills, commands, agents, hooks, tools)
@@ -2883,23 +2883,23 @@ Establish performance patterns during migration while components are being rewri
   - [X] File endpoints (search, find, read, status)
   - [X] SSE event stream for real-time updates
   - [X] TUI control API (append-prompt, submit, open dialogs)
-  - [ ] Basic auth support (`TOADSTOOL_SERVER_PASSWORD`)
+  - [X] Basic auth support (`TOADSTOOL_SERVER_PASSWORD`)
 - [X] **Headless/SDK mode (from Claude Code):**
   - [X] `toadstool -p "prompt"` - Print mode (query, respond, exit)
-  - [ ] `cat file | toadstool -p "query"` - Piped input
+  - [X] `cat file | toadstool -p "query"` - Piped input
   - [X] `--output-format json|stream-json|text` for structured output
-  - [ ] `--json-schema` for validated JSON responses
+  - [X] `--json-schema` for validated JSON responses
   - [X] `--max-budget-usd` spending limit
   - [X] `--max-turns` turn limit
   - [X] `--allowedTools` for auto-approval in CI
-  - [ ] `--append-system-prompt` for custom instructions
+  - [X] `--append-system-prompt` for custom instructions
   - [X] `--fallback-model` for overloaded servers
 - [X] **Additional CLI subcommands:**
-  - [ ] `toadstool agent create` - Agent creation wizard
+  - [X] `toadstool agent create` - Agent creation wizard
   - [X] `toadstool models` - List available models
-  - [ ] `toadstool mcp` - MCP server management
+  - [X] `toadstool mcp` - MCP server management
   - [X] `toadstool run` - Non-interactive execution (OpenCode parity)
-  - [ ] `toadstool attach` - Attach to remote server session
+  - [X] `toadstool attach` - Attach to remote server session
   - [X] `toadstool auth` - Provider credential management
 - [X] Tests for all API endpoints and CLI flags
 
@@ -2925,7 +2925,7 @@ Establish performance patterns during migration while components are being rewri
 - [X] **PR review status (from Claude Code):**
   - [X] Clickable PR link in footer (requires `gh` CLI)
   - [X] Colored underline: green=approved, yellow=pending, red=changes
-  - [ ] Auto-refresh every 60 seconds
+  - [X] Auto-refresh every 60 seconds
 - [X] **Image support (from Claude Code):**
   - [ ] Clipboard image paste (Ctrl+V) for vision models
   - [X] `@image.png` file mention for image files
@@ -2934,7 +2934,7 @@ Establish performance patterns during migration while components are being rewri
   - [X] Ctrl+T for thinking/non-thinking toggle
   - [X] F2 to cycle recent models
   - [X] Shift+F2 to cycle reverse
-- [ ] Multi-edit/patch tool (batch file modifications)
+- [X] Multi-edit/patch tool (batch file modifications)
 - [ ] Scroll acceleration (`<scrollbox scrollAcceleration={...}>`)
 - [ ] OpenTUI animations for modals and transitions (`useTimeline()`)
 - [ ] **Beads integration (bd):**
@@ -2953,8 +2953,8 @@ Establish performance patterns during migration while components are being rewri
 - [X] Auto-update check on startup (configurable)
 - [X] **Terminal setup command (from Claude Code):**
   - [X] `/terminal-setup` to configure Shift+Enter, Alt keys, etc.
-  - [ ] Auto-detect terminal and suggest config changes
-- [ ] Terminal compatibility documentation (Shift+Enter, true color, etc.)
+  - [X] Auto-detect terminal and suggest config changes
+- [X] Terminal compatibility documentation (Shift+Enter, true color, etc.)
 - [X] Accessibility: Unicode fallback characters, color contrast verification
 - [X] Performance benchmarks: startup time, streaming latency, memory usage
 - [X] README.md overhaul with screenshots, feature list, installation guide
