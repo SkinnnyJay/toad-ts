@@ -186,7 +186,9 @@ export function Sidebar({
   const sessionsById = useAppStore((state) => state.sessions);
   const contextAttachmentsBySession = useAppStore((state) => state.contextAttachments);
   const sidebarTab = useAppStore((state) => state.uiState.sidebarTab);
+  const accordionCollapsed = useAppStore((state) => state.uiState.accordionCollapsed ?? {});
   const setSidebarTab = useAppStore((state) => state.setSidebarTab);
+  const toggleAccordionSection = useAppStore((state) => state.toggleAccordionSection);
   const sessions = useMemo<Session[]>(() => {
     const values = Object.values(sessionsById).filter(
       (session): session is Session => session !== undefined
@@ -195,14 +197,13 @@ export function Sidebar({
   }, [sessionsById]);
 
   const [sessionIndex, setSessionIndex] = useState(0);
-  const [isTabViewCollapsed, setIsTabViewCollapsed] = useState(false);
-
   const activeTab: SidebarSection = isSidebarSection(focusTarget) ? focusTarget : sidebarTab;
   const activeTabLabel = SIDEBAR_TAB_LABEL[activeTab];
+  const isTabViewCollapsed = accordionCollapsed[activeTab] ?? false;
 
   const toggleTabViewCollapsed = useCallback(() => {
-    setIsTabViewCollapsed((prev) => !prev);
-  }, []);
+    toggleAccordionSection(activeTab);
+  }, [activeTab, toggleAccordionSection]);
 
   useEffect(() => {
     if (isSidebarSection(focusTarget)) {
@@ -277,10 +278,15 @@ export function Sidebar({
       }
     }
 
+    if (key.name === KEY_NAME.SPACE && isSidebarSection(active)) {
+      key.preventDefault();
+      key.stopPropagation();
+      toggleTabViewCollapsed();
+      return;
+    }
+
     if (
-      (key.name === KEY_NAME.RETURN ||
-        key.name === KEY_NAME.LINEFEED ||
-        key.name === KEY_NAME.SPACE) &&
+      (key.name === KEY_NAME.RETURN || key.name === KEY_NAME.LINEFEED) &&
       isSidebarSection(active)
     ) {
       key.preventDefault();
@@ -463,6 +469,7 @@ export function Sidebar({
         paddingTop={tabContentPaddingTop}
         overflow="hidden"
       >
+        <text attributes={TextAttributes.DIM}>{activeTabLabel}</text>
         {activeTab === FOCUS_TARGET.FILES ? (
           <box
             flexDirection="column"

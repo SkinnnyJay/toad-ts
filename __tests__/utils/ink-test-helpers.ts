@@ -83,8 +83,9 @@ const extractText = (node: unknown): string => {
               .map((option) => {
                 if (!option || typeof option !== "object") return "";
                 const label = (option as { label?: string }).label;
+                const name = (option as { name?: string }).name;
                 const value = (option as { value?: string }).value;
-                return label ?? value ?? "";
+                return label ?? name ?? value ?? "";
               })
               .filter((value) => value.length > 0)
               .join("\n")

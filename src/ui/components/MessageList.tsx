@@ -9,6 +9,7 @@ import { ScrollArea } from "@/ui/components/ScrollArea";
 import { useScrollState } from "@/ui/hooks/useScrollState";
 import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
 import { useToolCalls } from "@/ui/hooks/useToolCalls";
+import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import { type ReactNode, memo, useMemo } from "react";
 import stripAnsi from "strip-ansi";
@@ -195,7 +196,10 @@ export const MessageList = memo(
           border={true}
           borderStyle="single"
           borderColor={COLOR.GRAY}
-        />
+          justifyContent="center"
+        >
+          <text attributes={TextAttributes.DIM}>No messages yet</text>
+        </box>
       );
     }
 
