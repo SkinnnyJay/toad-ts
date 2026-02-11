@@ -97,6 +97,16 @@ describe("session-list-command-result", () => {
     expect(parsed).toEqual([]);
   });
 
+  it("treats zero-session status output as explicit empty result", () => {
+    const parsed = parseSessionListCommandResult({
+      stdout: "0 sessions",
+      stderr: "warning: stale cached session-noise-id",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual([]);
+  });
+
   it("falls back to combined output when stdout has warning noise", () => {
     const parsed = parseSessionListCommandResult({
       stdout: "warning: sessions output redirected to stderr",
