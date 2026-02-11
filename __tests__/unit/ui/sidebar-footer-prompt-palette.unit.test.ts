@@ -113,7 +113,7 @@ describe("InputWithAutocomplete", () => {
 });
 
 describe("CommandPalette", () => {
-  it("renders open palette with commands and highlights first item", () => {
+  it("renders open palette with section headers and commands", () => {
     const commands = [
       { name: "/help", description: "Show help" },
       { name: "/mode", description: "Change mode", args: "<mode>" },
@@ -129,8 +129,9 @@ describe("CommandPalette", () => {
     );
 
     const frame = lastFrame();
-    expect(frame).toContain("Command Palette");
-    expect(frame).toContain("› /help");
-    expect(frame).toContain("/mode <mode>");
+    expect(frame).toContain("Other [-]" /* section header when commands have no category */);
+    expect(frame).toContain("/help");
+    expect(frame).toContain("/mode");
+    expect(frame).toContain("Change mode");
   });
 });

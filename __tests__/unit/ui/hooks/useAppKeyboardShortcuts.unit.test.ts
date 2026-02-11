@@ -33,9 +33,13 @@ describe("useAppKeyboardShortcuts", () => {
       expect(FOCUS_NUMBER_MAP["5"]).toBe(FOCUS_TARGET.AGENT);
     });
 
+    it("maps 6 to TODOS", () => {
+      expect(FOCUS_NUMBER_MAP["6"]).toBe(FOCUS_TARGET.TODOS);
+    });
+
     it("has no mapping for invalid numbers", () => {
       expect(FOCUS_NUMBER_MAP["0"]).toBeUndefined();
-      expect(FOCUS_NUMBER_MAP["6"]).toBeUndefined();
+      expect(FOCUS_NUMBER_MAP["7"]).toBeUndefined();
     });
   });
 

@@ -8,7 +8,7 @@ import { harnessConfigSchema } from "../../../src/harness/harnessConfig";
 describe("HarnessAdapter", () => {
   describe("createDefaultHarnessConfig()", () => {
     it("should create default config with claude command", () => {
-      const result = createDefaultHarnessConfig();
+      const result = createDefaultHarnessConfig({});
 
       expect(result.harnessId).toBe(HARNESS_DEFAULT.CLAUDE_CLI_ID);
       expect(result.harness.id).toBe(HARNESS_DEFAULT.CLAUDE_CLI_ID);
@@ -35,29 +35,34 @@ describe("HarnessAdapter", () => {
       expect(result.harness.args).toEqual(["arg1", "arg2", "arg3"]);
     });
 
-    it("should create both claude and mock harnesses", () => {
-      const result = createDefaultHarnessConfig();
+    it("should create claude, gemini, codex, cursor, and mock harnesses", () => {
+      const result = createDefaultHarnessConfig({});
 
       expect(result.harnesses[HARNESS_DEFAULT.CLAUDE_CLI_ID]).toBeDefined();
       expect(result.harnesses[HARNESS_DEFAULT.GEMINI_CLI_ID]).toBeDefined();
       expect(result.harnesses[HARNESS_DEFAULT.CODEX_CLI_ID]).toBeDefined();
+      expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]).toBeDefined();
       expect(result.harnesses[HARNESS_DEFAULT.MOCK_ID]).toBeDefined();
     });
 
-    it("should use environment overrides for gemini and codex commands", () => {
+    it("should use environment overrides for gemini, codex, and cursor commands", () => {
       const env = {
         [ENV_KEY.TOADSTOOL_GEMINI_COMMAND]: "custom-gemini",
         [ENV_KEY.TOADSTOOL_CODEX_COMMAND]: "custom-codex",
+        [ENV_KEY.TOADSTOOL_CURSOR_COMMAND]: "agent",
+        [ENV_KEY.TOADSTOOL_CURSOR_ARGS]: "-p",
       };
 
       const result = createDefaultHarnessConfig(env);
 
       expect(result.harnesses[HARNESS_DEFAULT.GEMINI_CLI_ID]?.command).toBe("custom-gemini");
       expect(result.harnesses[HARNESS_DEFAULT.CODEX_CLI_ID]?.command).toBe("custom-codex");
+      expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]?.command).toBe("agent");
+      expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]?.args).toEqual(["-p"]);
     });
 
     it("should validate config with schema", () => {
-      const result = createDefaultHarnessConfig();
+      const result = createDefaultHarnessConfig({});
 
       // Should not throw when parsing
       expect(() => harnessConfigSchema.parse(result.harness)).not.toThrow();
@@ -66,6 +71,9 @@ describe("HarnessAdapter", () => {
       ).not.toThrow();
       expect(() =>
         harnessConfigSchema.parse(result.harnesses[HARNESS_DEFAULT.CODEX_CLI_ID])
+      ).not.toThrow();
+      expect(() =>
+        harnessConfigSchema.parse(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID])
       ).not.toThrow();
       expect(() =>
         harnessConfigSchema.parse(result.harnesses[HARNESS_DEFAULT.MOCK_ID])

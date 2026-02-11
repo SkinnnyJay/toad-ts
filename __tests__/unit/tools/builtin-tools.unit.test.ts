@@ -138,9 +138,9 @@ describe("Built-in tools", () => {
     const todoRead = await runtime.registry.execute(TOOL_NAME.TODO_READ, {}, runtime.context);
     expect(todoRead.ok).toBe(true);
     if (todoRead.ok) {
-      if (Array.isArray(todoRead.output)) {
-        expect(todoRead.output.length).toBe(2);
-      }
+      const out = todoRead.output as { items: unknown[]; activeCount: number };
+      expect(out.items).toHaveLength(2);
+      expect(out.activeCount).toBe(2);
     }
   });
 
