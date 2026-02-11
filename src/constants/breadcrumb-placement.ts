@@ -1,0 +1,17 @@
+export const BREADCRUMB_PLACEMENT = {
+  TOP: "top",
+  BOTTOM: "bottom",
+  LEFT: "left",
+  RIGHT: "right",
+  HIDDEN: "hidden",
+} as const;
+
+export type BreadcrumbPlacement = (typeof BREADCRUMB_PLACEMENT)[keyof typeof BREADCRUMB_PLACEMENT];
+
+export const BREADCRUMB_PLACEMENT_VALUES = [
+  BREADCRUMB_PLACEMENT.TOP,
+  BREADCRUMB_PLACEMENT.BOTTOM,
+  BREADCRUMB_PLACEMENT.LEFT,
+  BREADCRUMB_PLACEMENT.RIGHT,
+  BREADCRUMB_PLACEMENT.HIDDEN,
+] as const;
