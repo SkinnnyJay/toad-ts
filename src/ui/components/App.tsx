@@ -352,10 +352,17 @@ export function App(): ReactNode {
 
   const breadcrumbPlacement = appConfig.ui.breadcrumb.placement;
   const breadcrumbVisible = breadcrumbPlacement !== BREADCRUMB_PLACEMENT.HIDDEN;
+  const workspacePath = process.cwd();
   const { info: repoWorkflowInfo, loading: repoWorkflowLoading } = useRepoWorkflow({
     pollIntervalMs: appConfig.ui.breadcrumb.pollIntervalMs,
     enabled: breadcrumbVisible,
   });
+  const statusFooterPrStatus = repoWorkflowInfo?.prUrl
+    ? {
+        url: repoWorkflowInfo.prUrl,
+        reviewDecision: repoWorkflowInfo.status,
+      }
+    : undefined;
   const handleRunBreadcrumbAction = useCallback(() => {
     if (repoWorkflowInfo?.action?.skill) {
       setQueuedBreadcrumbSkill(repoWorkflowInfo.action.skill);
@@ -670,6 +677,8 @@ export function App(): ReactNode {
                 agentName={selectedAgent?.name}
                 modelName={activeSession?.metadata?.model}
                 cloudAgentCount={cloudAgentCount ?? undefined}
+                workspacePath={workspacePath}
+                prStatus={statusFooterPrStatus}
               />
             </box>
           </box>
