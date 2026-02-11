@@ -238,6 +238,37 @@ describe("slash command agent management", () => {
     expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("messages: 14"));
   });
 
+  it("orders fallback /sessions output by newest created timestamp", async () => {
+    const newest = "session-newest-id";
+    const oldest = "session-oldest-id";
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: [
+        `${oldest} Older title model: gpt-4 messages: 2 createdAt=2026-02-10T18:30:00Z`,
+        `${newest} Newer title model: gpt-5 messages: 14 createdAt=2026-02-11T18:30:00Z`,
+      ].join("\n"),
+      stderr: "",
+      exitCode: 0,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.SESSIONS, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const lastMessage = appendSystemMessage.mock.calls.at(-1)?.[0];
+    expect(typeof lastMessage).toBe("string");
+    if (typeof lastMessage === "string") {
+      const newestIndex = lastMessage.indexOf(newest);
+      const oldestIndex = lastMessage.indexOf(oldest);
+      expect(newestIndex).toBeGreaterThanOrEqual(0);
+      expect(oldestIndex).toBeGreaterThanOrEqual(0);
+      expect(newestIndex).toBeLessThan(oldestIndex);
+    }
+  });
+
   it("prefers runtime-native session listing for /sessions when available", async () => {
     const listAgentSessions = vi.fn(async () => [
       {
