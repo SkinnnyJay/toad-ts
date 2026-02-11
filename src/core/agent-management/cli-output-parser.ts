@@ -47,8 +47,7 @@ export const parseModelsOutput = (stdout: string): CliAgentModelsResponse => {
       }
       const id = match[1];
       const name = match[2]
-        ?.replace(/\s+\((current|default)[^)]+\)/gi, "")
-        .replace(/\s+\(current,\s*default\)/gi, "")
+        ?.replace(/\s+\((?:current|default)(?:\s*,\s*(?:current|default))*\)/gi, "")
         .trim();
       if (!id || !name) {
         return null;

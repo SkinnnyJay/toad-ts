@@ -14,7 +14,7 @@ describe("models-command-result", () => {
       { id: "auto", name: "Auto", isDefault: false, supportsThinking: false },
       {
         id: "opus-4.6-thinking",
-        name: "Claude 4.6 Opus (Thinking) (default)",
+        name: "Claude 4.6 Opus (Thinking)",
         isDefault: true,
         supportsThinking: true,
       },
@@ -53,7 +53,7 @@ describe("models-command-result", () => {
       { id: "auto", name: "Auto", isDefault: false, supportsThinking: false },
       {
         id: "opus-4.6-thinking",
-        name: "Claude 4.6 Opus (Thinking) (default)",
+        name: "Claude 4.6 Opus (Thinking)",
         isDefault: true,
         supportsThinking: true,
       },
@@ -72,7 +72,7 @@ describe("models-command-result", () => {
       { id: "auto", name: "Auto", isDefault: false, supportsThinking: false },
       {
         id: "opus-4.6-thinking",
-        name: "Claude 4.6 Opus (Thinking) (default)",
+        name: "Claude 4.6 Opus (Thinking)",
         isDefault: true,
         supportsThinking: true,
       },

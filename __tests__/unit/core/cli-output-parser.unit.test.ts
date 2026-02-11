@@ -21,6 +21,7 @@ describe("cli-output-parser", () => {
       "auto - Auto\nopus-4.6-thinking - Claude 4.6 Opus (Thinking) (default)"
     );
     expect(parsed.models).toHaveLength(2);
+    expect(parsed.models[1]?.name).toBe("Claude 4.6 Opus (Thinking)");
     expect(parsed.defaultModel).toBe("opus-4.6-thinking");
   });
 
