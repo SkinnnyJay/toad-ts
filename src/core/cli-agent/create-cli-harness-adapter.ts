@@ -29,16 +29,20 @@ import { PROTOCOL_VERSION } from "@agentclientprotocol/sdk";
 export interface CreateCliHarnessAdapterOptions {
   cliAgent: CliAgentPort;
   bridge?: CliAgentBridge;
+  unauthenticatedErrorMessage?: string;
 }
 
 export class CliHarnessAdapter extends CliAgentBase {
   private readonly cliAgent: CliAgentPort;
   private readonly bridge: CliAgentBridge;
+  private readonly unauthenticatedErrorMessage: string;
 
   constructor(options: CreateCliHarnessAdapterOptions) {
     super();
     this.cliAgent = options.cliAgent;
     this.bridge = options.bridge ?? new CliAgentBridge();
+    this.unauthenticatedErrorMessage =
+      options.unauthenticatedErrorMessage ?? "CLI agent is not authenticated.";
 
     this.bridge.on("sessionUpdate", (update) => this.emit("sessionUpdate", update));
     this.bridge.on("error", (error) => this.emit("error", error));
@@ -75,7 +79,7 @@ export class CliHarnessAdapter extends CliAgentBase {
       const authStatus = await this.cliAgent.verifyAuth();
       this.cacheAuthStatus(authStatus.authenticated);
       if (!authStatus.authenticated) {
-        throw new Error("CLI agent is not authenticated.");
+        throw new Error(this.unauthenticatedErrorMessage);
       }
 
       this.setConnectionStatus(CONNECTION_STATUS.CONNECTED);
@@ -139,7 +143,7 @@ export class CliHarnessAdapter extends CliAgentBase {
     const authStatus = await this.cliAgent.verifyAuth();
     this.cacheAuthStatus(authStatus.authenticated);
     if (!authStatus.authenticated) {
-      throw new Error("CLI agent is not authenticated.");
+      throw new Error(this.unauthenticatedErrorMessage);
     }
     return {};
   }

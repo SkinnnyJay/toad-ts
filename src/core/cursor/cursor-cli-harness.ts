@@ -98,6 +98,9 @@ type InstallHooksFn = (
 ) => Promise<CursorHookInstallation>;
 type CleanupHooksFn = (installation: CursorHookInstallation) => Promise<void>;
 
+const CURSOR_AUTH_REQUIRED_ERROR =
+  "Cursor CLI is not authenticated. Run `cursor-agent login` or set CURSOR_API_KEY.";
+
 export type CursorCliHarnessAdapterEvents = HarnessRuntimeEvents;
 
 export interface CursorCliHarnessAdapterOptions {
@@ -151,6 +154,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
         getPromptEnvOverrides: () => this.getHookSocketEnvOverrides(),
         isApiKeyConfigured: () => Boolean(this.env[ENV_KEY.CURSOR_API_KEY]),
       }),
+      unauthenticatedErrorMessage: CURSOR_AUTH_REQUIRED_ERROR,
     });
     this.installHooksFn = options.installHooksFn ?? installCursorHooks;
     this.cleanupHooksFn = options.cleanupHooksFn ?? cleanupCursorHooks;
@@ -219,7 +223,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
         this.hookAddress = null;
       }
       this.setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
-      throw this.normalizeConnectError(error);
+      throw error;
     }
   }
 
@@ -474,16 +478,6 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
       return undefined;
     }
     return injectHookSocketEnv({}, hookSocketTarget);
-  }
-
-  private normalizeConnectError(error: unknown): Error {
-    const message = error instanceof Error ? error.message : String(error);
-    if (message.includes("CLI agent is not authenticated")) {
-      return new Error(
-        "Cursor CLI is not authenticated. Run `cursor-agent login` or set CURSOR_API_KEY."
-      );
-    }
-    return error instanceof Error ? error : new Error(message);
   }
 }
 
