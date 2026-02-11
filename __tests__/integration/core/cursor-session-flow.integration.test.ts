@@ -11,6 +11,7 @@ import type {
   CursorPromptResult,
 } from "../../../src/core/cursor/cursor-cli-connection";
 import { CursorCliHarnessAdapter } from "../../../src/core/cursor/cursor-cli-harness";
+import type { CursorHookPermissionRequest } from "../../../src/core/cursor/hook-ipc-server";
 import { SessionManager } from "../../../src/core/session-manager";
 import { SessionStream } from "../../../src/core/session-stream";
 import { useAppStore } from "../../../src/store/app-store";
@@ -85,6 +86,7 @@ class IntegrationFakeConnection extends EventEmitter<{
 
 class IntegrationFakeHookServer extends EventEmitter<{
   hookEvent: (_event: CursorHookInput) => void;
+  permissionRequest: (_request: CursorHookPermissionRequest) => void;
   error: (_error: Error) => void;
 }> {
   async start(): Promise<{ transport: "http"; url: string }> {

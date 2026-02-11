@@ -12,6 +12,7 @@ import type {
   CursorPromptResult,
 } from "../../../src/core/cursor/cursor-cli-connection";
 import { CursorCliHarnessAdapter } from "../../../src/core/cursor/cursor-cli-harness";
+import type { CursorHookPermissionRequest } from "../../../src/core/cursor/hook-ipc-server";
 import type { CursorHookInput } from "../../../src/types/cursor-hooks.types";
 
 const sessionId = "14855632-18d5-44a3-ab27-5c93e95a8011";
@@ -89,7 +90,7 @@ class FakeCursorConnection extends EventEmitter<{
 
 class FakeHookServer extends EventEmitter<{
   hookEvent: (_event: CursorHookInput) => void;
-  permissionRequest: (_request: unknown) => void;
+  permissionRequest: (_request: CursorHookPermissionRequest) => void;
   error: (_error: Error) => void;
 }> {
   public started = false;
@@ -115,6 +116,7 @@ describe("CursorCliHarnessAdapter", () => {
     let installCalled = 0;
     let cleanupCalled = 0;
     const sessionUpdates: string[] = [];
+    const permissionRequestIds: string[] = [];
 
     const harness = new CursorCliHarnessAdapter({
       connection,
@@ -146,6 +148,9 @@ describe("CursorCliHarnessAdapter", () => {
     harness.on("sessionUpdate", (update) => {
       sessionUpdates.push(update.update.sessionUpdate);
     });
+    harness.on("permissionRequest", (request) => {
+      permissionRequestIds.push(request.toolCall.toolCallId);
+    });
 
     await harness.connect();
     expect(harness.connectionStatus).toBe(CONNECTION_STATUS.CONNECTED);
@@ -171,10 +176,23 @@ describe("CursorCliHarnessAdapter", () => {
       thought: "Need to inspect the diff before applying changes.",
       workspace_roots: ["/workspace"],
     });
+    hookServer.emit("permissionRequest", {
+      requestId: "permission-shell-1",
+      responseField: "permission",
+      event: {
+        conversation_id: sessionId,
+        hook_event_name: CURSOR_HOOK_EVENT.BEFORE_SHELL_EXECUTION,
+        command: "npm run test",
+        workspace_roots: ["/workspace"],
+      },
+    });
     hookServer.emit("hookEvent", {
       conversation_id: sessionId,
-      hook_event_name: CURSOR_HOOK_EVENT.BEFORE_SHELL_EXECUTION,
+      hook_event_name: CURSOR_HOOK_EVENT.AFTER_SHELL_EXECUTION,
       command: "npm run test",
+      exit_code: 0,
+      stdout: "ok",
+      stderr: "",
       workspace_roots: ["/workspace"],
     });
     hookServer.emit("hookEvent", {
@@ -201,6 +219,7 @@ describe("CursorCliHarnessAdapter", () => {
     const managementResult = await harness.runAgentCommand(["status"]);
     expect(managementResult.stdout).toBe("ok");
     expect(connection.managementRequests[0]).toEqual(["status"]);
+    expect(permissionRequestIds).toEqual(["hook-14855632-18d5-44a3-ab27-5c93e95a8011-1"]);
     expect(sessionUpdates).toContain(SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK);
     expect(sessionUpdates).toContain(SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK);
     expect(sessionUpdates).toContain(SESSION_UPDATE_TYPE.TOOL_CALL);

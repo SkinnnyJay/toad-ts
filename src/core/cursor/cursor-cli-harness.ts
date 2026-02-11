@@ -3,6 +3,7 @@ import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
+import { ALLOW_ONCE, REJECT_ONCE } from "@/constants/permission-option-kinds";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { SIGNAL } from "@/constants/signals";
 import { CliAgentBase } from "@/core/cli-agent/cli-agent.base";
@@ -11,8 +12,16 @@ import {
   type CursorPromptRequest,
   type CursorPromptResult,
 } from "@/core/cursor/cursor-cli-connection";
+import {
+  asNonEmptyString,
+  mapCursorPermissionRequestMetadata,
+  normalizeCursorFileEdits,
+} from "@/core/cursor/cursor-hook-utils";
 import { CursorToAcpTranslator } from "@/core/cursor/cursor-to-acp-translator";
-import type { CursorHookIpcAddress } from "@/core/cursor/hook-ipc-server";
+import type {
+  CursorHookIpcAddress,
+  CursorHookPermissionRequest,
+} from "@/core/cursor/hook-ipc-server";
 import { CursorHookIpcServer } from "@/core/cursor/hook-ipc-server";
 import {
   type CursorHookInstallation,
@@ -73,6 +82,7 @@ interface CursorHookIpcServerLike {
   stop(): Promise<void>;
   on(event: "error", fn: (error: Error) => void): this;
   on(event: "hookEvent", fn: (event: CursorHookInput) => void): this;
+  on(event: "permissionRequest", fn: (request: CursorHookPermissionRequest) => void): this;
 }
 
 type InstallHooksFn = (
@@ -150,6 +160,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
 
     this.hookServer.on("error", (error) => this.emit("error", error));
     this.hookServer.on("hookEvent", (event) => this.handleHookEvent(event));
+    this.hookServer.on("permissionRequest", (request) => this.handlePermissionRequest(request));
   }
 
   async connect(): Promise<void> {
@@ -320,7 +331,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
     const sessionId = event.conversation_id;
     switch (event.hook_event_name) {
       case CURSOR_HOOK_EVENT.AFTER_AGENT_THOUGHT: {
-        const thought = this.asNonEmptyString(event.thought);
+        const thought = asNonEmptyString(event.thought);
         if (!thought) {
           return;
         }
@@ -333,26 +344,8 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
         });
         return;
       }
-      case CURSOR_HOOK_EVENT.BEFORE_SHELL_EXECUTION: {
-        const command = this.asNonEmptyString(event.command);
-        if (!command) {
-          return;
-        }
-        const toolCallId = this.getOrCreateHookToolCallId(sessionId, `shell:${command}`);
-        this.emit("sessionUpdate", {
-          sessionId,
-          update: {
-            sessionUpdate: SESSION_UPDATE_TYPE.TOOL_CALL,
-            toolCallId,
-            title: `Shell: ${command}`,
-            rawInput: { command },
-            status: "in_progress",
-          },
-        });
-        return;
-      }
       case CURSOR_HOOK_EVENT.AFTER_SHELL_EXECUTION: {
-        const command = this.asNonEmptyString(event.command);
+        const command = asNonEmptyString(event.command);
         if (!command) {
           return;
         }
@@ -374,8 +367,59 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
         });
         return;
       }
+      case CURSOR_HOOK_EVENT.AFTER_MCP_EXECUTION: {
+        const serverName = asNonEmptyString(event.server_name) ?? "mcp";
+        const toolName = asNonEmptyString(event.tool_name) ?? "tool";
+        const toolCallId = this.getOrCreateHookToolCallId(
+          sessionId,
+          `mcp:${serverName}:${toolName}`
+        );
+        this.emit("sessionUpdate", {
+          sessionId,
+          update: {
+            sessionUpdate: SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE,
+            toolCallId,
+            title: `MCP: ${serverName}/${toolName}`,
+            rawOutput: event.tool_output,
+            status: "completed",
+          },
+        });
+        return;
+      }
+      case CURSOR_HOOK_EVENT.POST_TOOL_USE: {
+        const toolName = asNonEmptyString(event.tool_name) ?? "tool";
+        const toolCallId = this.getOrCreateHookToolCallId(sessionId, `tool:${toolName}`);
+        this.emit("sessionUpdate", {
+          sessionId,
+          update: {
+            sessionUpdate: SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE,
+            toolCallId,
+            title: toolName,
+            rawOutput: event.tool_output,
+            status: "completed",
+          },
+        });
+        return;
+      }
+      case CURSOR_HOOK_EVENT.POST_TOOL_USE_FAILURE: {
+        const toolName = asNonEmptyString(event.tool_name) ?? "tool";
+        const toolCallId = this.getOrCreateHookToolCallId(sessionId, `tool:${toolName}`);
+        this.emit("sessionUpdate", {
+          sessionId,
+          update: {
+            sessionUpdate: SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE,
+            toolCallId,
+            title: toolName,
+            rawOutput: {
+              error: asNonEmptyString(event.error),
+            },
+            status: "failed",
+          },
+        });
+        return;
+      }
       case CURSOR_HOOK_EVENT.AFTER_FILE_EDIT: {
-        const pathLabel = this.asNonEmptyString(event.path) ?? "unknown";
+        const pathLabel = asNonEmptyString(event.path) ?? "unknown";
         const toolCallId = this.getOrCreateHookToolCallId(sessionId, `edit:${pathLabel}`);
         this.emit("sessionUpdate", {
           sessionId,
@@ -384,8 +428,8 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
             toolCallId,
             title: `File edit: ${pathLabel}`,
             rawOutput: {
-              path: this.asNonEmptyString(event.path),
-              edits: this.normalizeFileEdits(event.edits, this.asNonEmptyString(event.path)),
+              path: asNonEmptyString(event.path),
+              edits: normalizeCursorFileEdits(event.edits, asNonEmptyString(event.path)),
             },
             status: "completed",
           },
@@ -397,37 +441,31 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
     }
   }
 
-  private asNonEmptyString(value: unknown): string | null {
-    if (typeof value !== "string") {
-      return null;
-    }
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
-  }
+  private handlePermissionRequest(request: CursorHookPermissionRequest): void {
+    const sessionId = request.event.conversation_id;
+    const permissionMetadata = mapCursorPermissionRequestMetadata(request.event);
+    const toolCallId = this.getOrCreateHookToolCallId(sessionId, permissionMetadata.toolCallKey);
 
-  private normalizeFileEdits(
-    edits: unknown,
-    fallbackPath: string | null
-  ): Array<{ path?: string; old_string?: string; new_string?: string }> {
-    if (!Array.isArray(edits)) {
-      return [];
-    }
-    return edits.map((edit) => {
-      if (!edit || typeof edit !== "object") {
-        return {
-          path: fallbackPath ?? undefined,
-        };
-      }
-      const typedEdit = edit as {
-        path?: unknown;
-        old_string?: unknown;
-        new_string?: unknown;
-      };
-      return {
-        path: this.asNonEmptyString(typedEdit.path) ?? fallbackPath ?? undefined,
-        old_string: this.asNonEmptyString(typedEdit.old_string) ?? undefined,
-        new_string: this.asNonEmptyString(typedEdit.new_string) ?? undefined,
-      };
+    this.emit("sessionUpdate", {
+      sessionId,
+      update: {
+        sessionUpdate: SESSION_UPDATE_TYPE.TOOL_CALL,
+        toolCallId,
+        title: permissionMetadata.title,
+        rawInput: permissionMetadata.input,
+      },
+    });
+
+    this.emit("permissionRequest", {
+      sessionId,
+      toolCall: {
+        toolCallId,
+        kind: permissionMetadata.kind,
+      },
+      options: [
+        { optionId: ALLOW_ONCE, kind: ALLOW_ONCE, name: "Allow once" },
+        { optionId: REJECT_ONCE, kind: REJECT_ONCE, name: "Reject once" },
+      ],
     });
   }
 
