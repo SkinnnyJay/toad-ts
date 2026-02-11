@@ -91,4 +91,30 @@ describe("models-command-result", () => {
       defaultModel: undefined,
     });
   });
+
+  it("does not fallback when stdout explicitly reports no models", () => {
+    const parsed = parseModelsCommandResult({
+      stdout: "No models available.",
+      stderr: "gpt-5 - GPT-5 (default)",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual({
+      models: [],
+      defaultModel: undefined,
+    });
+  });
+
+  it("does not fallback when stdout explicitly reports zero models", () => {
+    const parsed = parseModelsCommandResult({
+      stdout: "0 models",
+      stderr: "gpt-5 - GPT-5 (default)",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual({
+      models: [],
+      defaultModel: undefined,
+    });
+  });
 });

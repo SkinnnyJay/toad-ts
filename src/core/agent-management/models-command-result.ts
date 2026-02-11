@@ -7,6 +7,8 @@ import {
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type { CliAgentModelsResponse } from "@/types/cli-agent.types";
 
+const NO_MODELS_PATTERN = /\b(?:no\s+models?|0\s+models?)\b/i;
+
 export const parseModelsCommandResult = (
   result: AgentManagementCommandResult
 ): CliAgentModelsResponse => {
@@ -15,5 +17,6 @@ export const parseModelsCommandResult = (
     result,
     parse: parseModelsOutput,
     shouldAcceptParsed: (parsed) => parsed.models.length > 0,
+    shouldFallbackWhenStdoutPresent: (stdout) => !NO_MODELS_PATTERN.test(stdout),
   });
 };
