@@ -31,6 +31,18 @@ export interface ParseStdoutWithCombinedFallbackOptions<TParsed> {
 export const parseStdoutWithCombinedFallback = <TParsed>(
   options: ParseStdoutWithCombinedFallbackOptions<TParsed>
 ): TParsed => {
+  const parseFallbackOutput = (): TParsed => {
+    const parsedFromStderr = options.parse(options.result.stderr);
+    if (options.shouldAcceptParsed(parsedFromStderr)) {
+      return parsedFromStderr;
+    }
+
+    const parsedFromCombinedOutput = options.parse(toCombinedCommandOutput(options.result));
+    return options.shouldAcceptParsed(parsedFromCombinedOutput)
+      ? parsedFromCombinedOutput
+      : parsedFromStderr;
+  };
+
   const parsedFromStdout = options.parse(options.result.stdout);
   if (options.shouldAcceptParsed(parsedFromStdout)) {
     return parsedFromStdout;
@@ -38,7 +50,7 @@ export const parseStdoutWithCombinedFallback = <TParsed>(
 
   const stdout = options.result.stdout;
   if (stdout.trim().length === 0) {
-    return options.parse(toCombinedCommandOutput(options.result));
+    return parseFallbackOutput();
   }
 
   if (options.shouldFallbackWhenStdoutPresent) {
@@ -48,8 +60,8 @@ export const parseStdoutWithCombinedFallback = <TParsed>(
     }
   }
 
-  const parsedFromCombinedOutput = options.parse(toCombinedCommandOutput(options.result));
-  return options.shouldAcceptParsed(parsedFromCombinedOutput)
-    ? parsedFromCombinedOutput
+  const parsedFromFallbackOutput = parseFallbackOutput();
+  return options.shouldAcceptParsed(parsedFromFallbackOutput)
+    ? parsedFromFallbackOutput
     : parsedFromStdout;
 };

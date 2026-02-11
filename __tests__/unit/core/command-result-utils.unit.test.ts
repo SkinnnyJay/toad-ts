@@ -70,7 +70,7 @@ describe("command-result-utils", () => {
     ).not.toThrow();
   });
 
-  it("falls back to combined output when stdout parse is unaccepted", () => {
+  it("falls back to stderr output when stdout parse is unaccepted", () => {
     const parsed = parseStdoutWithCombinedFallback({
       result: {
         stdout: "warning: output in stderr",
@@ -84,7 +84,7 @@ describe("command-result-utils", () => {
     expect(parsed).toBe(true);
   });
 
-  it("uses combined output when stdout is empty", () => {
+  it("uses stderr output when stdout is empty", () => {
     const parsed = parseStdoutWithCombinedFallback({
       result: {
         stdout: "",
@@ -92,6 +92,20 @@ describe("command-result-utils", () => {
         exitCode: 0,
       },
       parse: (output) => output.includes("value=42"),
+      shouldAcceptParsed: (accepted) => accepted,
+    });
+
+    expect(parsed).toBe(true);
+  });
+
+  it("falls back to combined output only when stderr parse is unaccepted", () => {
+    const parsed = parseStdoutWithCombinedFallback({
+      result: {
+        stdout: "header",
+        stderr: "value=42",
+        exitCode: 0,
+      },
+      parse: (output) => output.includes("header\nvalue=42"),
       shouldAcceptParsed: (accepted) => accepted,
     });
 
