@@ -103,10 +103,30 @@ export abstract class CliAgentBase
   abstract prompt(params: PromptRequest): Promise<PromptResponse>;
   abstract authenticate(params: AuthenticateRequest): Promise<AuthenticateResponse>;
   abstract sessionUpdate(params: SessionNotification): Promise<void>;
-  abstract setSessionMode?(params: SetSessionModeRequest): Promise<SetSessionModeResponse>;
-  abstract setSessionModel?(params: SetSessionModelRequest): Promise<SetSessionModelResponse>;
-  abstract runAgentCommand?(args: string[]): Promise<AgentManagementCommandResult>;
-  abstract login?(): Promise<AgentManagementCommandResult>;
-  abstract logout?(): Promise<AgentManagementCommandResult>;
-  abstract getStatus?(): Promise<AgentManagementCommandResult>;
+
+  async setSessionMode(params: SetSessionModeRequest): Promise<SetSessionModeResponse> {
+    this.setSessionModeValue(params);
+    return {};
+  }
+
+  async setSessionModel(params: SetSessionModelRequest): Promise<SetSessionModelResponse> {
+    this.setSessionModelValue(params);
+    return {};
+  }
+
+  async runAgentCommand(_args: string[]): Promise<AgentManagementCommandResult> {
+    throw new Error("Agent command execution is not supported by this harness.");
+  }
+
+  async login(): Promise<AgentManagementCommandResult> {
+    return this.runAgentCommand(["login"]);
+  }
+
+  async logout(): Promise<AgentManagementCommandResult> {
+    return this.runAgentCommand(["logout"]);
+  }
+
+  async getStatus(): Promise<AgentManagementCommandResult> {
+    return this.runAgentCommand(["status"]);
+  }
 }
