@@ -52,6 +52,18 @@ const buildCommandResultMessage = (
   return `${title}\n${preview}`;
 };
 
+const buildCommandFailureMessage = (result: {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+}): string => {
+  const preview = buildOutputPreview(result.stdout, result.stderr);
+  if (preview.length === 0) {
+    return `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} (exit ${result.exitCode})`;
+  }
+  return `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${preview}`;
+};
+
 const resolveStatusArgs = (harnessId: string | undefined): string[] | null => {
   switch (harnessId) {
     case HARNESS_DEFAULT.CURSOR_CLI_ID:
@@ -146,12 +158,7 @@ export const handleStatusCommand = (deps: SlashCommandDeps): void => {
     .runAgentCommand(statusArgs)
     .then((result) => {
       if (result.exitCode !== 0) {
-        deps.appendSystemMessage(
-          `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${buildOutputPreview(
-            result.stdout,
-            result.stderr
-          )}`
-        );
+        deps.appendSystemMessage(buildCommandFailureMessage(result));
         return;
       }
 
@@ -203,12 +210,7 @@ export const handleLoginCommand = (deps: SlashCommandDeps): void => {
     .runAgentCommand(args)
     .then((result) => {
       if (result.exitCode !== 0) {
-        deps.appendSystemMessage(
-          `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${buildOutputPreview(
-            result.stdout,
-            result.stderr
-          )}`
-        );
+        deps.appendSystemMessage(buildCommandFailureMessage(result));
         return;
       }
       deps.appendSystemMessage(buildCommandResultMessage("Login command completed.", result));
@@ -241,12 +243,7 @@ export const handleLogoutCommand = (deps: SlashCommandDeps): void => {
     .runAgentCommand([MANAGEMENT_COMMAND.LOGOUT])
     .then((result) => {
       if (result.exitCode !== 0) {
-        deps.appendSystemMessage(
-          `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${buildOutputPreview(
-            result.stdout,
-            result.stderr
-          )}`
-        );
+        deps.appendSystemMessage(buildCommandFailureMessage(result));
         return;
       }
       deps.appendSystemMessage(buildCommandResultMessage("Logout command completed.", result));
@@ -340,12 +337,7 @@ export const handleMcpCommand = (parts: string[], deps: SlashCommandDeps): void 
     .runAgentCommand(args)
     .then((result) => {
       if (result.exitCode !== 0) {
-        deps.appendSystemMessage(
-          `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${buildOutputPreview(
-            result.stdout,
-            result.stderr
-          )}`
-        );
+        deps.appendSystemMessage(buildCommandFailureMessage(result));
         return;
       }
       deps.appendSystemMessage(buildCommandResultMessage("MCP command result:", result));
@@ -373,12 +365,7 @@ export const handleAgentCommand = (parts: string[], deps: SlashCommandDeps): voi
     .runAgentCommand(args)
     .then((result) => {
       if (result.exitCode !== 0) {
-        deps.appendSystemMessage(
-          `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${buildOutputPreview(
-            result.stdout,
-            result.stderr
-          )}`
-        );
+        deps.appendSystemMessage(buildCommandFailureMessage(result));
         return;
       }
       deps.appendSystemMessage(buildCommandResultMessage("Agent command result:", result));

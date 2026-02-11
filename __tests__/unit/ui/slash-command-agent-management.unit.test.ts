@@ -186,6 +186,26 @@ describe("slash command agent management", () => {
     );
   });
 
+  it("reports fallback exit code when /agent failure has no output", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 1,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand("/agent status", deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("Native agent command failed. (exit 1)")
+    );
+  });
+
   it("runs native status command for cursor harness", async () => {
     const runAgentCommand = vi.fn(async () => ({
       stdout: "Model: Auto\nOS: linux",
