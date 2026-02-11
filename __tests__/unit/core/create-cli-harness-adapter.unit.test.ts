@@ -1,6 +1,8 @@
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { ALLOW_ONCE, REJECT_ONCE } from "@/constants/permission-option-kinds";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
+import { TOOL_KIND } from "@/constants/tool-kinds";
 import type { CliAgentPort, CliAgentPromptExecution } from "@/core/cli-agent/cli-agent.port";
 import {
   type CliHarnessAdapter,
@@ -137,5 +139,56 @@ describe("createCliHarnessAdapter", () => {
 
     cliAgent.releasePrompt?.();
     await expect(firstPrompt).resolves.toEqual({ stopReason: "end_turn" });
+  });
+
+  it("maps permission stream events to ACP permission requests", async () => {
+    const cliAgent = new FakeCliAgentPort();
+    cliAgent.prompt = async (input: CliAgentPromptInput): Promise<CliAgentPromptExecution> => {
+      cliAgent.promptInputs.push(input);
+      return {
+        result: {
+          text: "done",
+          sessionId: input.sessionId ?? "session-fake",
+          toolCallCount: 0,
+        },
+        events: [
+          {
+            type: STREAM_EVENT_TYPE.PERMISSION_REQUEST,
+            sessionId: input.sessionId ?? "session-fake",
+            requestId: "req-1",
+            toolName: "shell",
+            toolInput: { command: "ls" },
+          },
+        ],
+      };
+    };
+    const harness = createCliHarnessAdapter({ cliAgent });
+    const requests: Array<{
+      optionKinds: string[];
+      toolKind: string;
+      sessionId: string;
+    }> = [];
+
+    harness.on("permissionRequest", (request) => {
+      requests.push({
+        optionKinds: request.options.map((option) => option.kind),
+        toolKind: request.toolCall.kind ?? "",
+        sessionId: request.sessionId,
+      });
+    });
+
+    await harness.connect();
+    await harness.prompt({
+      sessionId: "session-fake",
+      prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "needs permission" }],
+    });
+
+    expect(requests).toEqual([
+      {
+        optionKinds: [ALLOW_ONCE, REJECT_ONCE],
+        toolKind: TOOL_KIND.EXECUTE,
+        sessionId: "session-fake",
+      },
+    ]);
   });
 });
