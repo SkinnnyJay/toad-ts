@@ -88,6 +88,7 @@ export function App(): ReactNode {
   const [isAgentDiscoveryOpen, setIsAgentDiscoveryOpen] = useState(false);
   const startupMeasured = useRef(false);
   const currentSessionId = useAppStore((state) => state.currentSessionId);
+  const connectionStatus = useAppStore((state) => state.connectionStatus);
   const theme = useAppStore((state) => state.uiState.theme);
   const getPlanBySession = useAppStore((state) => state.getPlanBySession);
   const setCurrentSession = useAppStore((state) => state.setCurrentSession);
@@ -196,6 +197,10 @@ export function App(): ReactNode {
     }
   }, [currentSessionId]);
   const activeSessionId = sessionId ?? currentSessionId;
+  const activeSession = useMemo(
+    () => (activeSessionId ? getSession(activeSessionId) : undefined),
+    [activeSessionId, getSession]
+  );
   const agentContext = useMemo(
     () =>
       selectedAgent
@@ -641,6 +646,11 @@ export function App(): ReactNode {
                 checkpointStatus={checkpointStatus}
                 contextStats={contextStats ?? undefined}
                 focusTarget={focusTarget}
+                connectionStatus={connectionStatus}
+                sessionMode={activeSession?.mode}
+                sessionId={activeSessionId}
+                agentName={selectedAgent?.name}
+                modelName={activeSession?.metadata?.model}
               />
             </box>
           </box>
