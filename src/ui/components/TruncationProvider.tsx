@@ -1,3 +1,4 @@
+import { KEY_NAME } from "@/constants/key-names";
 import { useKeyboard } from "@opentui/react";
 import type { ReactNode } from "react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
@@ -49,28 +50,32 @@ export function TruncationProvider({ children }: { children: ReactNode }): React
   useKeyboard((key) => {
     if (!key.ctrl || entries.length === 0) return;
 
-    if (key.name === "up") {
+    if (key.name === KEY_NAME.UP) {
       key.preventDefault();
       key.stopPropagation();
       setActiveIndex((prev) => (prev <= 0 ? entries.length - 1 : prev - 1));
       return;
     }
 
-    if (key.name === "down") {
+    if (key.name === KEY_NAME.DOWN) {
       key.preventDefault();
       key.stopPropagation();
       setActiveIndex((prev) => (prev + 1) % entries.length);
       return;
     }
 
-    if (key.name === "return" || key.name === "linefeed" || key.name === "space") {
+    if (
+      key.name === KEY_NAME.RETURN ||
+      key.name === KEY_NAME.LINEFEED ||
+      key.name === KEY_NAME.SPACE
+    ) {
       key.preventDefault();
       key.stopPropagation();
       entries[activeIndex]?.toggle();
       return;
     }
 
-    if (key.name === "e") {
+    if (key.name === KEY_NAME.E) {
       key.preventDefault();
       key.stopPropagation();
       if (key.shift) {

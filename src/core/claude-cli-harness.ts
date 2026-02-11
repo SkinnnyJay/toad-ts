@@ -4,6 +4,7 @@ import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { ENV_KEY } from "@/constants/env-keys";
+import { ERROR_CODE } from "@/constants/error-codes";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 
 import { createAcpAgentPort } from "@/core/acp-agent-port";
@@ -176,7 +177,7 @@ export class ClaudeCliHarnessAdapter
   private isRetryableConnectionError(error: unknown): boolean {
     if (isErrnoException(error)) {
       const code = error.code;
-      if (code === "ENOENT" || code === "EACCES") {
+      if (code === ERROR_CODE.ENOENT || code === ERROR_CODE.EACCES) {
         return false;
       }
     }

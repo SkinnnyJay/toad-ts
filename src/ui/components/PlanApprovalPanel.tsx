@@ -1,5 +1,6 @@
 import { APPROVAL_DECISION, type ApprovalDecision } from "@/constants/approval-decisions";
 import { COLOR } from "@/constants/colors";
+import { KEY_NAME } from "@/constants/key-names";
 import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { TASK_DECISION, type TaskDecision } from "@/constants/task-decisions";
@@ -80,13 +81,13 @@ export function PlanApprovalPanel({
 
     // Navigate through tasks
     if (showTaskDetails && plan.tasks.length > 0) {
-      if (key.name === "up") {
+      if (key.name === KEY_NAME.UP) {
         key.preventDefault();
         key.stopPropagation();
         setSelectedTaskIndex((prev) => (prev > 0 ? prev - 1 : plan.tasks.length - 1));
         return;
       }
-      if (key.name === "down") {
+      if (key.name === KEY_NAME.DOWN) {
         key.preventDefault();
         key.stopPropagation();
         setSelectedTaskIndex((prev) => (prev < plan.tasks.length - 1 ? prev + 1 : 0));
@@ -118,11 +119,15 @@ export function PlanApprovalPanel({
     }
 
     // Plan-level actions
-    if (key.name === KEYBOARD_INPUT.YES_LOWER || key.name === "return" || key.name === "linefeed") {
+    if (
+      key.name === KEYBOARD_INPUT.YES_LOWER ||
+      key.name === KEY_NAME.RETURN ||
+      key.name === KEY_NAME.LINEFEED
+    ) {
       key.preventDefault();
       key.stopPropagation();
       handleApprove();
-    } else if (key.name === KEYBOARD_INPUT.NO_LOWER || key.name === "escape") {
+    } else if (key.name === KEYBOARD_INPUT.NO_LOWER || key.name === KEY_NAME.ESCAPE) {
       key.preventDefault();
       key.stopPropagation();
       handleDeny();

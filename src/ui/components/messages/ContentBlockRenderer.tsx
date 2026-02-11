@@ -1,4 +1,5 @@
 import { LIMIT } from "@/config/limits";
+import { FULL_WIDTH_STYLE } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { ENV_KEY } from "@/constants/env-keys";
@@ -59,7 +60,7 @@ function CodeBlock({
         syntaxStyle={syntaxStyle}
         wrapMode="none"
         conceal={true}
-        style={{ width: "100%" }}
+        style={FULL_WIDTH_STYLE}
       />
       {truncated > 0 ? (
         <text fg={COLOR.DIM} attributes={TextAttributes.DIM}>

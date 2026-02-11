@@ -1,10 +1,12 @@
 import { spawn } from "node:child_process";
 
+import { PLATFORM } from "@/constants/platform";
+
 const buildClipboardCommands = (): Array<{ command: string; args: string[] }> => {
-  if (process.platform === "darwin") {
+  if (process.platform === PLATFORM.DARWIN) {
     return [{ command: "pbcopy", args: [] }];
   }
-  if (process.platform === "win32") {
+  if (process.platform === PLATFORM.WIN32) {
     return [{ command: "clip", args: [] }];
   }
   return [

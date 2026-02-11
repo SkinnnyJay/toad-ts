@@ -204,6 +204,14 @@ The following are **acceptable as string literals** because they represent exter
 
 These should be documented with comments when used, explaining they are external types.
 
+**Other allowed exceptions:**
+- **typeof checks**: `typeof x === "string"`, `typeof x === "number"`, `typeof x === "object"` (JavaScript built-ins) may use string literals.
+- **One-off UI copy**: Truly unique, non-repeated UI text that does not represent a domain concept may remain as literals.
+
+**Literal guardrails:**
+- Use constants from `src/constants/` for `key.name === "..."` (keyboard key names) and `pathname === "..."` / route comparisons instead of raw strings.
+- Run `bun run check:literals` (or `bun run check:literals:strict`) before committing to catch new magic literals.
+
 **Examples of Acceptable vs Unacceptable:**
 
 ```typescript

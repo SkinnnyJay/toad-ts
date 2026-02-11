@@ -1,6 +1,8 @@
 import type { AgentInfo } from "@/agents/agent-manager";
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
+import { KEY_NAME } from "@/constants/key-names";
+import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { useUiSymbols } from "@/ui/hooks/useUiSymbols";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
@@ -23,7 +25,7 @@ export function AgentDiscoveryModal({
 
   useKeyboard((key) => {
     if (!isOpen) return;
-    if (key.name === "escape" || (key.ctrl && key.name === "s")) {
+    if (key.name === KEY_NAME.ESCAPE || (key.ctrl && key.name === KEYBOARD_INPUT.SKIP_LOWER)) {
       key.preventDefault();
       key.stopPropagation();
       onClose();

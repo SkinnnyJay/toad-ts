@@ -1,6 +1,8 @@
 import { LIMIT } from "@/config/limits";
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
+import { KEY_NAME } from "@/constants/key-names";
+import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { useAppStore } from "@/store/app-store";
 import type { SessionId } from "@/types/domain";
 import { ScrollArea } from "@/ui/components/ScrollArea";
@@ -52,7 +54,7 @@ export function ContextModal({ isOpen, sessionId, onClose }: ContextModalProps):
 
   useKeyboard((key) => {
     if (!isOpen) return;
-    if (key.name === "escape" || (key.ctrl && key.name === "s")) {
+    if (key.name === KEY_NAME.ESCAPE || (key.ctrl && key.name === KEYBOARD_INPUT.SKIP_LOWER)) {
       key.preventDefault();
       key.stopPropagation();
       onClose();
@@ -61,19 +63,23 @@ export function ContextModal({ isOpen, sessionId, onClose }: ContextModalProps):
     if (!sessionId || list.length === 0) {
       return;
     }
-    if (key.name === "up") {
+    if (key.name === KEY_NAME.UP) {
       key.preventDefault();
       key.stopPropagation();
       setSelectedIndex((prev) => (prev - 1 + list.length) % list.length);
       return;
     }
-    if (key.name === "down") {
+    if (key.name === KEY_NAME.DOWN) {
       key.preventDefault();
       key.stopPropagation();
       setSelectedIndex((prev) => (prev + 1) % list.length);
       return;
     }
-    if (key.name === "return" || key.name === "linefeed" || key.name === "space") {
+    if (
+      key.name === KEY_NAME.RETURN ||
+      key.name === KEY_NAME.LINEFEED ||
+      key.name === KEY_NAME.SPACE
+    ) {
       key.preventDefault();
       key.stopPropagation();
       const target = list[selectedIndex];

@@ -1,5 +1,6 @@
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
+import { KEY_NAME } from "@/constants/key-names";
 import { RENDER_STAGE } from "@/constants/render-stage";
 import type { AgentId } from "@/types/domain";
 import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
@@ -37,25 +38,25 @@ export function AgentSelect({
   useKeyboard((key) => {
     if (agents.length === 0) return;
 
-    if (key.name === "up" || key.name === "k") {
+    if (key.name === KEY_NAME.UP || key.name === KEY_NAME.K) {
       key.preventDefault();
       key.stopPropagation();
       setIndex((prev) => (prev - cols + agents.length) % agents.length);
       return;
     }
-    if (key.name === "down" || key.name === "j") {
+    if (key.name === KEY_NAME.DOWN || key.name === KEY_NAME.J) {
       key.preventDefault();
       key.stopPropagation();
       setIndex((prev) => (prev + cols) % agents.length);
       return;
     }
-    if (key.name === "left" || key.name === "h") {
+    if (key.name === KEY_NAME.LEFT || key.name === KEY_NAME.H) {
       key.preventDefault();
       key.stopPropagation();
       setIndex((prev) => (prev - 1 + agents.length) % agents.length);
       return;
     }
-    if (key.name === "right" || key.name === "l") {
+    if (key.name === KEY_NAME.RIGHT || key.name === KEY_NAME.L) {
       key.preventDefault();
       key.stopPropagation();
       setIndex((prev) => (prev + 1) % agents.length);
@@ -73,14 +74,14 @@ export function AgentSelect({
       }
       return;
     }
-    if (key.name === "return" || key.name === "linefeed") {
+    if (key.name === KEY_NAME.RETURN || key.name === KEY_NAME.LINEFEED) {
       key.preventDefault();
       key.stopPropagation();
       const selected = agents[index];
       if (selected) onSelect(selected);
       return;
     }
-    if (key.name === "escape" && onCancel) {
+    if (key.name === KEY_NAME.ESCAPE && onCancel) {
       key.preventDefault();
       key.stopPropagation();
       onCancel();

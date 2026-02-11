@@ -3,6 +3,8 @@ import { createRoot } from "@opentui/react";
 import { Command } from "commander";
 import { createElement } from "react";
 
+import { SERVER_CONFIG } from "@/config/server";
+import { TERMINAL_TITLE } from "@/constants/app-branding";
 import { PERFORMANCE_MARK } from "@/constants/performance-marks";
 import { HOST_FLAG, PORT_FLAG, SERVER_FLAG, SETUP_FLAG } from "@/constants/server-cli";
 import { createDefaultProviderRegistry } from "@/core/providers/provider-registry";
@@ -36,6 +38,33 @@ program
   .option("--append-system-prompt <prompt>", "Append to system prompt")
   .option("--fallback-model <model>", "Fallback model for overloaded servers")
   .option("--from-pr <pr>", "Resume session linked to a PR number");
+
+// Default subcommand: start interactive TUI when no command is given
+program
+  .command("start", { isDefault: true })
+  .description("Start the interactive TUI (default)")
+  .action(async () => {
+    void checkForUpdates();
+    try {
+      process.title = TERMINAL_TITLE;
+      if (process.stdout.isTTY) {
+        process.stdout.write(`\x1b]0;${TERMINAL_TITLE}\x07`);
+      }
+      const renderer = await createCliRenderer({
+        exitOnCtrlC: true,
+      });
+      createRoot(renderer).render(createElement(App));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/raw mode|stdin|isRawModeSupported|TTY|terminal.*support/i.test(msg)) {
+        process.stderr.write(
+          "Error: This app needs an interactive terminal (raw TTY). Run `bun run dev` or `bun run start` from a real terminal, not from an IDE run panel or a non-interactive shell.\n"
+        );
+        process.exit(1);
+      }
+      throw err;
+    }
+  });
 
 // Subcommand: run
 program
@@ -143,7 +172,9 @@ program
   .description("Attach to a running TOADSTOOL server")
   .option("--port <port>", "Server port")
   .action((url?: string, subOpts?: { port?: string }) => {
-    const target = url ?? `http://127.0.0.1:${subOpts?.port ?? "4141"}`;
+    const target =
+      url ??
+      `http://${SERVER_CONFIG.DEFAULT_HOST}:${subOpts?.port ?? String(SERVER_CONFIG.DEFAULT_PORT)}`;
     process.stdout.write(`Connecting to ${target}...\n`);
     process.stdout.write("Use 'toadstool serve' on the remote machine first.\n");
   });
@@ -228,10 +259,21 @@ if (!subcommandUsed) {
       });
       await startHeadlessServer(config);
     } else {
-      const renderer = await createCliRenderer({
-        exitOnCtrlC: true,
-      });
-      createRoot(renderer).render(createElement(App));
+      try {
+        const renderer = await createCliRenderer({
+          exitOnCtrlC: true,
+        });
+        createRoot(renderer).render(createElement(App));
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (/raw mode|stdin|isRawModeSupported|TTY|terminal.*support/i.test(msg)) {
+          process.stderr.write(
+            "Error: This app needs an interactive terminal (raw TTY). Run from a real terminal, not from an IDE run panel or a non-interactive shell.\n"
+          );
+          process.exit(1);
+        }
+        throw err;
+      }
     }
   }
 }

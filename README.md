@@ -1,4 +1,11 @@
-# 🍄 TOADSTOOL
+<img
+  src="./public/banner.png"
+  alt="TOADSTOOL banner"
+  width="100%"
+  style="max-width: 100%; height: auto; display: block;"
+/>
+
+# TOADSTOOL
 
 **Terminal Orchestration for AI Development** — A unified terminal interface for AI coding agents.
 
@@ -50,6 +57,8 @@ bun install
 bun run build
 ```
 
+**Note:** `toadstool` runs with **Bun** (OpenTUI depends on Bun). If installed via npm, the command will delegate to `bun` at runtime.
+
 ## Quick Start
 
 ```bash
@@ -68,6 +77,17 @@ toadstool serve --port 3000
 # List models
 toadstool models
 ```
+
+## Terminal setup (recommended)
+
+If you see weird rendering (colors, progress bar, symbols), register the terminal setup script:
+
+```bash
+npm run setup:shell
+```
+
+This writes `~/.toadstool/terminal-setup.sh` and adds a small block to your shell rc (e.g. `~/.zshrc`)
+to source it.
 
 ## Configuration
 

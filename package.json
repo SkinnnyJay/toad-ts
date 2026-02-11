@@ -4,9 +4,9 @@
   "description": "A unified terminal interface for AI coding agents",
   "type": "module",
   "bin": {
-    "toadstool": "./dist/cli.js"
+    "toadstool": "./dist/cliBootstrap.js"
   },
-  "files": ["dist", "README.md"],
+  "files": ["dist", "README.md", "public"],
   "publishConfig": {
     "access": "public"
   },
@@ -20,28 +20,31 @@
   },
   "scripts": {
     "clean": "rm -rf dist .next",
-    "dev": "bun src/cli.ts",
+    "dev": "bun src/cli.ts start",
     "dev:watch": "bun --watch src/cli.ts",
-    "build": "npx tsup",
+    "build": "bunx tsup",
+    "setup:shell": "bun scripts/register-terminal-setup.ts",
+    "prestart": "bun run build",
     "start": "bun dist/cli.js",
-    "test": "bash scripts/run-tests.sh",
+    "test": "TEST_SKIP_SKIPPABLE=1 bash scripts/run-tests.sh",
+    "test:all": "bash scripts/run-tests.sh",
     "test:watch": "bunx vitest",
     "test:integration": "bunx vitest run --config vitest.integration.config.ts",
     "test:unit": "bunx vitest run --config vitest.unit.config.ts",
     "test:e2e": "bunx vitest run --config vitest.e2e.config.ts",
     "test:coverage": "bunx vitest run --coverage",
-    "check:literals": "bunx tsx scripts/check-magic-literals.ts",
-    "check:literals:strict": "bunx tsx scripts/check-magic-literals.ts --strict",
+    "check:literals": "bun scripts/check-magic-literals.ts",
+    "check:literals:strict": "bun scripts/check-magic-literals.ts --strict",
     "lint": "bunx biome check . && bunx eslint .",
     "lint:fix": "bunx biome check --write . && bunx eslint . --fix",
     "format": "bunx biome format --write .",
     "typecheck": "bunx tsc --noEmit",
-    "db:clear": "bunx tsx scripts/db/clear-db.ts",
-    "db:migrate": "bunx tsx scripts/db/migrate-db.ts",
+    "db:clear": "bun scripts/db/clear-db.ts",
+    "db:migrate": "bun scripts/db/migrate-db.ts",
     "db:reset": "bun run db:clear && bun run db:migrate",
-    "persistence:export": "bunx tsx scripts/persistence/export.ts",
-    "persistence:import": "bunx tsx scripts/persistence/import.ts",
-    "benchmark": "bunx tsx scripts/benchmarks/run.ts",
+    "persistence:export": "bun scripts/persistence/export.ts",
+    "persistence:import": "bun scripts/persistence/import.ts",
+    "benchmark": "bun scripts/benchmarks/run.ts",
     "build:test:all": "bun run clean && bun run typecheck && bun run format && bun run lint && bun run build && bun run test:unit && bun run test:integration && bun run test:e2e"
   },
   "dependencies": {
@@ -77,7 +80,7 @@
     "nanoid": "^5.1.6",
     "p-queue": "^8.1.1",
     "papaparse": "^5.5.3",
-    "react": "^18.3.1",
+    "react": "^19.0.0",
     "slice-ansi": "^7.1.2",
     "strip-ansi": "^7.1.2",
     "tinyglobby": "^0.2.15",
@@ -95,7 +98,7 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.19.10",
     "@types/papaparse": "^5.5.2",
-    "@types/react": "^18.3.28",
+    "@types/react": "^19.0.0",
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.55.0",
     "@typescript-eslint/parser": "^8.55.0",
@@ -105,14 +108,14 @@
     "globals": "^17.3.0",
     "node-html-parser": "^6.1.13",
     "prisma": "^7.3.0",
-    "react-test-renderer": "^18.3.1",
+    "react-test-renderer": "^19.0.0",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^2.1.9"
   },
   "peerDependencies": {
-    "react": "^18.0.0"
+    "react": ">=19.0.0"
   },
   "engines": {
     "node": ">=20.0.0"

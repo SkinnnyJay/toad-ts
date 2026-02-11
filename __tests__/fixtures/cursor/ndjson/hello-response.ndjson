@@ -1,0 +1,13 @@
+{"type":"system","subtype":"init","apiKeySource":"login","cwd":"/Users/boice/Documents/GitHub/toad-ts","session_id":"b423b428-a576-4c0c-ae1a-ef80457ba379","model":"Claude 4.6 Opus (Thinking)","permissionMode":"default"}
+{"type":"user","message":{"role":"user","content":[{"type":"text","text":"say hello in one sentence"}]},"session_id":"b423b428-a576-4c0c-ae1a-ef80457ba379"}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Hello"}]},"session_id":"b423b428-a576-4c0c-ae1a-ef80457ba379","timestamp_ms":1770787139442}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":","}]},"session_id":"b423b428-a576-4c0c-ae1a-ef80457ba379","timestamp_ms":1770787139451}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":" welcome"}]},"session_id":"b423b428-a576-4c0c-ae1a-ef80457ba379","timestamp_ms":1770787139525}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":" to the"}]},"session_id":"b423b428-a576-4c0c-ae1a-ef80457ba379","timestamp_ms":1770787139550}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":" t"}]},"session_id":"b423b428-a576-4c0c-ae1a-ef80457ba379","timestamp_ms":1770787139602}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"oad-ts project"}]},"session_id":"b423b428-a576-4c0c-ae1a-ef80457ba379","timestamp_ms":1770787139659}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":" —"}]},"session_id":"b423b428-a576-4c0c-ae1a-ef80457ba379","timestamp_ms":1770787139701}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":" how"}]},"session_id":"b423b428-a576-4c0c-ae1a-ef80457ba379","timestamp_ms":1770787139762}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":" can I help you today?"}]},"session_id":"b423b428-a576-4c0c-ae1a-ef80457ba379","timestamp_ms":1770787139804}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Hello, welcome to the toad-ts project — how can I help you today?"}]},"session_id":"b423b428-a576-4c0c-ae1a-ef80457ba379"}
+{"type":"result","subtype":"success","duration_ms":4400,"duration_api_ms":4400,"is_error":false,"result":"Hello, welcome to the toad-ts project — how can I help you today?","session_id":"b423b428-a576-4c0c-ae1a-ef80457ba379","request_id":"76b071c0-3a86-4f58-a8d9-9c3a76293525"}

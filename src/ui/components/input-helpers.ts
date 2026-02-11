@@ -16,5 +16,8 @@ export const createIgnoreFilter = async (
   } catch (_error) {
     // ignore missing .gitignore
   }
-  return (relativePath: string): boolean => ig.ignores(toPosix(relativePath));
+  return (relativePath: string): boolean => {
+    const posix = toPosix(relativePath);
+    return ig.ignores(posix) || ig.ignores(`${posix}/`);
+  };
 };

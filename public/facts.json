@@ -1,0 +1,245 @@
+[
+  {
+    "id": 1,
+    "type": "fact",
+    "text": "“Toadstool” is a casual term, often used for mushrooms people think are poisonous, but it is not a scientific category."
+  },
+  {
+    "id": 2,
+    "type": "fact",
+    "text": "Most of a mushroom lives underground as mycelium, a web of tiny threads that can spread for meters to miles."
+  },
+  {
+    "id": 3,
+    "type": "fact",
+    "text": "A mushroom is the fruiting body, like an apple on a tree. It is built to make and spread spores."
+  },
+  {
+    "id": 4,
+    "type": "fact",
+    "text": "Mushroom spores are like fungal “seeds,” but they are usually microscopic and can ride wind, water, or animals."
+  },
+  {
+    "id": 5,
+    "type": "fact",
+    "text": "Some mushrooms have gills, some have pores, some have teeth. All are different ways to increase spore surface area."
+  },
+  {
+    "id": 6,
+    "type": "fact",
+    "text": "The classic red cap with white spots (Amanita muscaria) is iconic in art, but it is not a “safe” beginner mushroom."
+  },
+  {
+    "id": 7,
+    "type": "fact",
+    "text": "Fairy rings happen when a fungal colony grows outward evenly, fruiting in a circle as it expands."
+  },
+  {
+    "id": 8,
+    "type": "fact",
+    "text": "Some mushrooms glow in the dark. Bioluminescent fungi use chemistry similar to fireflies, just different molecules."
+  },
+  {
+    "id": 9,
+    "type": "fact",
+    "text": "Many fungi form mycorrhiza, partnering with plant roots: fungi trade minerals and water for plant sugars."
+  },
+  {
+    "id": 10,
+    "type": "fact",
+    "text": "Fungi are not plants or animals. They are their own kingdom, closer to animals than plants on the family tree."
+  },
+  {
+    "id": 11,
+    "type": "fact",
+    "text": "“Stool” in toadstool likely comes from old words for “seat” or “platform,” not the bathroom kind. Sorry."
+  },
+  {
+    "id": 12,
+    "type": "fact",
+    "text": "Some mushrooms can pop up overnight because the mycelium was already built and ready, like inflating a tent fast."
+  },
+  {
+    "id": 13,
+    "type": "fact",
+    "text": "Puffballs release spores in little “poofs” when raindrops or footsteps hit them, basically fungal confetti cannons."
+  },
+  {
+    "id": 14,
+    "type": "fact",
+    "text": "Bracket fungi on trees can act like wood recyclers, breaking down tough lignin and cellulose over time."
+  },
+  {
+    "id": 15,
+    "type": "fact",
+    "text": "Some fungi are parasites, some are decomposers, some are mutualists, and some switch roles depending on conditions."
+  },
+  {
+    "id": 16,
+    "type": "fact",
+    "text": "Mushrooms can be huge. The fruiting body is small, but the mycelium network can cover acres."
+  },
+  {
+    "id": 17,
+    "type": "fact",
+    "text": "Mushroom “caps” help protect spore-producing surfaces and can shape airflow to spread spores more effectively."
+  },
+  {
+    "id": 18,
+    "type": "fact",
+    "text": "The “ring” on some stems is a leftover skirt (partial veil) that once covered the gills while the mushroom grew."
+  },
+  {
+    "id": 19,
+    "type": "fact",
+    "text": "The “volva” cup at a stem’s base (in some species) is a leftover egg-like wrapper from early growth stages."
+  },
+  {
+    "id": 20,
+    "type": "fact",
+    "text": "Some mushrooms bruise blue, some red, some brown. Color change can be chemistry reacting to air or handling."
+  },
+  {
+    "id": 21,
+    "type": "fact",
+    "text": "Truffles are fungi that fruit underground. Many rely on animals to dig them up and spread spores."
+  },
+  {
+    "id": 22,
+    "type": "fact",
+    "text": "Fungi helped early plants colonize land by improving water and nutrient uptake through root partnerships."
+  },
+  {
+    "id": 23,
+    "type": "fact",
+    "text": "Yeast is a fungus too. Different lifestyle, same kingdom: single-celled fungi that love sugar."
+  },
+  {
+    "id": 24,
+    "type": "fact",
+    "text": "Lichens are a team-up: fungus plus algae or cyanobacteria. The fungus builds the house, the partner makes food."
+  },
+  {
+    "id": 25,
+    "type": "fact",
+    "text": "Some mushrooms smell like almonds, anise, or even seafood. Scent helps attract insects or signals chemistry."
+  },
+  {
+    "id": 26,
+    "type": "fact",
+    "text": "“Poisonous” and “edible” is not a simple line. Many species have lookalikes, and effects vary by species and person."
+  },
+
+  {
+    "id": 27,
+    "type": "joke",
+    "text": "Why did the mushroom get invited to every party? Because he was a real fun-gi."
+  },
+  {
+    "id": 28,
+    "type": "joke",
+    "text": "I tried to tell a mushroom joke… but it needed more room to grow."
+  },
+  {
+    "id": 29,
+    "type": "joke",
+    "text": "What do you call a mushroom that tells secrets? A spore-taler."
+  },
+  {
+    "id": 30,
+    "type": "joke",
+    "text": "Why did the toad sit on the mushroom? It wanted a ribbiting little seat."
+  },
+  {
+    "id": 31,
+    "type": "joke",
+    "text": "My mushroom started a podcast. It is mostly cap-tivating stories."
+  },
+  {
+    "id": 32,
+    "type": "joke",
+    "text": "I asked the toadstool for life advice. It said: “Stay grounded and don’t get too cap-y.”"
+  },
+  {
+    "id": 33,
+    "type": "joke",
+    "text": "Why did the mushroom go to therapy? Too many unresolved spore issues."
+  },
+  {
+    "id": 34,
+    "type": "joke",
+    "text": "What is a toad’s favorite kind of music? Hip hop. Lots of hops."
+  },
+  {
+    "id": 35,
+    "type": "joke",
+    "text": "I opened a mushroom bakery. Business is rising, but the margins are pretty crumby."
+  },
+  {
+    "id": 36,
+    "type": "joke",
+    "text": "Why don’t mushrooms ever get lost? They follow their gut instincts. And sometimes their gills."
+  },
+  { "id": 37, "type": "joke", "text": "The toad joined a gym. Now he is working on his jump set." },
+  {
+    "id": 38,
+    "type": "joke",
+    "text": "I tried to make a mushroom pun, but I am not a good spore-tsman."
+  },
+  { "id": 39, "type": "joke", "text": "What do you call a fashionable fungus? Haute-culture." },
+  {
+    "id": 40,
+    "type": "joke",
+    "text": "Two mushrooms walk into a bar. The bartender says, “Sorry, we don’t serve your kind.” They reply, “Why not? We are fun guys!”"
+  },
+  {
+    "id": 41,
+    "type": "joke",
+    "text": "Why did the toad bring an umbrella? Forecast said a chance of fly-ting."
+  },
+  {
+    "id": 42,
+    "type": "joke",
+    "text": "My toad started a delivery service. It is called Ribbit and Ship It."
+  },
+  {
+    "id": 43,
+    "type": "joke",
+    "text": "Why was the mushroom so calm? It had a good sense of my-celium."
+  },
+  {
+    "id": 44,
+    "type": "joke",
+    "text": "What did the mushroom say to the chef? “I am in a stew-pendous mood.”"
+  },
+  {
+    "id": 45,
+    "type": "joke",
+    "text": "I made a mushroom belt. It is held together with a little strap-ore."
+  },
+  {
+    "id": 46,
+    "type": "joke",
+    "text": "The toad tried stand-up comedy. Reviews said his timing was a little amphibious."
+  },
+  {
+    "id": 47,
+    "type": "joke",
+    "text": "Why did the mushroom win the talent show? Outstanding in its field."
+  },
+  {
+    "id": 48,
+    "type": "joke",
+    "text": "A toad and a mushroom started a band. Their first album: “Hop, Drop, and Spore.”"
+  },
+  {
+    "id": 49,
+    "type": "joke",
+    "text": "What is a mushroom’s favorite game? Hide and shriek. It is a little spore-y."
+  },
+  {
+    "id": 50,
+    "type": "joke",
+    "text": "I asked the mushroom if it wanted seconds. It said, “No thanks, I am stuffed… there’s not mushroom left.”"
+  }
+]

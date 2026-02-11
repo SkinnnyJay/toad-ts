@@ -1,3 +1,4 @@
+import { ALLOW_ALWAYS, ALLOW_ONCE } from "@/constants/permission-option-kinds";
 import { PERMISSION, type Permission } from "@/constants/permissions";
 import { TOOL_KIND, type ToolKind } from "@/constants/tool-kinds";
 import { getRulesState } from "@/rules/rules-service";
@@ -30,18 +31,20 @@ const selectOption = (
     return undefined;
   }
 
-  const allowKinds = ["allow_always", "allow_once"]; // ACP permission option kinds
-  const rejectKinds = ["reject_always", "reject_once"]; // ACP permission option kinds
+  const allowKinds: string[] = [ALLOW_ALWAYS, ALLOW_ONCE];
 
   if (permission === PERMISSION.ALLOW) {
     return options.find((option) => allowKinds.includes(option.kind)) ?? options[0];
   }
 
   if (permission === PERMISSION.DENY) {
-    return options.find((option) => rejectKinds.includes(option.kind)) ?? options[0];
+    return (
+      options.find((option) => option.kind === "reject_always" || option.kind === "reject_once") ??
+      options[0]
+    );
   }
 
-  return options.find((option) => option.kind === "allow_once") ?? options[0];
+  return options.find((option) => option.kind === ALLOW_ONCE) ?? options[0];
 };
 
 export const createPermissionHandler = (

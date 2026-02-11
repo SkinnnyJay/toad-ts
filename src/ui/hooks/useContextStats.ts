@@ -12,13 +12,14 @@ export interface ContextStats {
 }
 
 export const useContextStats = (sessionId?: SessionId): ContextStats | null => {
-  const getMessagesForSession = useAppStore((state) => state.getMessagesForSession);
+  const messages = useAppStore((state) =>
+    sessionId ? state.getMessagesForSession(sessionId) : []
+  );
 
   return useMemo(() => {
     if (!sessionId) {
       return null;
     }
-    const messages = getMessagesForSession(sessionId);
     if (messages.length === 0) {
       return {
         tokens: 0,
@@ -34,5 +35,5 @@ export const useContextStats = (sessionId?: SessionId): ContextStats | null => {
       bytes: stats.bytes,
       limit: LIMIT.CONTEXT_TOKEN_BUDGET,
     };
-  }, [getMessagesForSession, sessionId]);
+  }, [sessionId, messages]);
 };

@@ -10,6 +10,7 @@ import {
   type ThemeConfig,
   appConfigSchema,
 } from "@/config/app-config-schema";
+import { BREADCRUMB_PLACEMENT, type BreadcrumbPlacement } from "@/constants/breadcrumb-placement";
 import { CONFIG_FILE, PROJECT_CONFIG_FILES } from "@/constants/config-files";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
@@ -27,6 +28,7 @@ const logger = createClassLogger("AppConfig");
 export type {
   AppConfigDefaults,
   AppConfigInput,
+  BreadcrumbConfig,
   CompatibilityConfig,
   CompactionConfig,
   FormatterConfig,
@@ -39,6 +41,7 @@ export type {
   RoutingConfig,
   RoutingRule,
   ThemeConfig,
+  UiConfig,
   VimConfig,
 } from "@/config/app-config-schema";
 export { appConfigSchema } from "@/config/app-config-schema";
@@ -52,6 +55,7 @@ const defaultKeybinds = {
   [KEYBIND_ACTION.FOCUS_CONTEXT]: "ctrl+3,meta+3",
   [KEYBIND_ACTION.FOCUS_SESSIONS]: "ctrl+4,meta+4",
   [KEYBIND_ACTION.FOCUS_AGENT]: "ctrl+5,meta+5",
+  [KEYBIND_ACTION.FOCUS_TODOS]: "ctrl+6,meta+6",
   [KEYBIND_ACTION.OPEN_HELP]: "ctrl+?,meta+?,ctrl+/,meta+/",
   [KEYBIND_ACTION.TOGGLE_SESSIONS]: "ctrl+s",
   [KEYBIND_ACTION.TOGGLE_BACKGROUND_TASKS]: "ctrl+b",
@@ -62,6 +66,7 @@ const defaultKeybinds = {
   [KEYBIND_ACTION.PERMISSION_MODE_CYCLE]: "shift+tab",
   [KEYBIND_ACTION.SESSION_CHILD_CYCLE]: `${KEYBIND.LEADER_TOKEN}right`,
   [KEYBIND_ACTION.SESSION_CHILD_CYCLE_REVERSE]: `${KEYBIND.LEADER_TOKEN}left`,
+  [KEYBIND_ACTION.RUN_BREADCRUMB_ACTION]: `${KEYBIND.LEADER_TOKEN}b`,
 } as const;
 
 export interface ResolvedKeybindConfig {
@@ -102,10 +107,18 @@ export interface AppConfig {
   };
   formatters: Record<string, FormatterConfig>;
   instructions: string[];
+  ui: {
+    breadcrumb: {
+      placement: BreadcrumbPlacement;
+      pollIntervalMs: number;
+      showAction: boolean;
+    };
+  };
 }
 
 const DEFAULT_COMPACTION_THRESHOLD = 0.8;
 const DEFAULT_PRESERVE_RECENT = 5;
+const DEFAULT_BREADCRUMB_POLL_MS = 30_000;
 
 export const DEFAULT_APP_CONFIG: AppConfig = {
   defaults: undefined,
@@ -145,6 +158,13 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
   },
   formatters: {},
   instructions: [],
+  ui: {
+    breadcrumb: {
+      placement: BREADCRUMB_PLACEMENT.TOP,
+      pollIntervalMs: DEFAULT_BREADCRUMB_POLL_MS,
+      showAction: true,
+    },
+  },
 };
 
 export interface LoadAppConfigOptions {
@@ -324,6 +344,14 @@ export const mergeAppConfig = (base: AppConfig, override: AppConfigInput): AppCo
       ...(override.formatters ?? {}),
     },
     instructions: [...base.instructions, ...(override.instructions ?? [])],
+    ui: {
+      breadcrumb: {
+        placement: override.ui?.breadcrumb?.placement ?? base.ui.breadcrumb.placement,
+        pollIntervalMs:
+          override.ui?.breadcrumb?.pollIntervalMs ?? base.ui.breadcrumb.pollIntervalMs,
+        showAction: override.ui?.breadcrumb?.showAction ?? base.ui.breadcrumb.showAction,
+      },
+    },
   };
 };
 
@@ -418,6 +446,13 @@ const serializeConfig = (config: AppConfig): AppConfigInput => {
     compatibility: config.compatibility,
     formatters: config.formatters,
     instructions: config.instructions.length > 0 ? config.instructions : undefined,
+    ui: {
+      breadcrumb: {
+        placement: config.ui.breadcrumb.placement,
+        pollIntervalMs: config.ui.breadcrumb.pollIntervalMs,
+        showAction: config.ui.breadcrumb.showAction,
+      },
+    },
   };
 };
 

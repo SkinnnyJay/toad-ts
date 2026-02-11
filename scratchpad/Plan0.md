@@ -103,3 +103,13 @@
   - [X] Accessibility improvements (ASCII/high-contrast)
   - [X] Performance benchmarks + docs
   - [X] Agent discovery modal
+
+## PLAN2 Addendum B: Repository Breadcrumb UI
+- [X] Breadcrumb bar (owner > repo > branch > status) with configurable placement
+  - [X] Constants: repo-workflow-status, repo-workflow-actions, breadcrumb-placement
+  - [X] Config: ui.breadcrumb (placement, pollIntervalMs, showAction)
+  - [X] Service: getRepoWorkflowInfo (git + gh PR + CI + status derivation)
+  - [X] Hook: useRepoWorkflow (polling)
+  - [X] Component: BreadcrumbBar; placement top/bottom/left/right/hidden
+  - [X] Action keybind (Leader+b); skill prompt injection into chat
+  - [X] PLAN2 Addendum B checklist updated

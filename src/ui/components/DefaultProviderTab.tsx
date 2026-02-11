@@ -1,4 +1,5 @@
 import { COLOR } from "@/constants/colors";
+import { KEY_NAME } from "@/constants/key-names";
 import { getDefaultProvider, setDefaultProvider } from "@/store/settings/settings-manager";
 import type { AgentId } from "@/types/domain";
 import type { AgentOption } from "@/ui/components/AgentSelect";
@@ -66,17 +67,17 @@ export function DefaultProviderTab({ agents, onSave }: DefaultProviderTabProps):
     if (isLoading) return;
     if (options.length === 0) return;
 
-    if (key.name === "up") {
+    if (key.name === KEY_NAME.UP) {
       key.preventDefault();
       key.stopPropagation();
       setIndex((prev) => (prev - 1 + options.length) % options.length);
     }
-    if (key.name === "down") {
+    if (key.name === KEY_NAME.DOWN) {
       key.preventDefault();
       key.stopPropagation();
       setIndex((prev) => (prev + 1) % options.length);
     }
-    if (key.name === "return" || key.name === "linefeed") {
+    if (key.name === KEY_NAME.RETURN || key.name === KEY_NAME.LINEFEED) {
       key.preventDefault();
       key.stopPropagation();
       const selected = options[index];

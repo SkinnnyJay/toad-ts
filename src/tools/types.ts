@@ -8,8 +8,11 @@ import type { TerminalHandler } from "@/core/terminal-handler";
 import type { BackgroundTaskManager } from "@/tools/background-task-manager";
 import type { ShellSessionManager } from "@/tools/shell-session";
 import type { TodoStore } from "@/tools/todo-store";
+import type { TodoItem } from "@/types/domain";
 
 export type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+
+export type OnTodosUpdated = (sessionId: string, items: TodoItem[]) => void;
 
 export interface ToolContext {
   readonly fs: FsHandler;
@@ -22,6 +25,7 @@ export interface ToolContext {
   readonly baseDir: string;
   readonly sessionId?: string;
   readonly now: () => number;
+  readonly onTodosUpdated?: OnTodosUpdated;
 }
 
 export interface ToolSuccess<Output> {

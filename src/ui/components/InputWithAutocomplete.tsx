@@ -1,10 +1,17 @@
 import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
+import { FULL_WIDTH_STYLE } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { COMMAND_DEFINITIONS, type CommandDefinition } from "@/constants/command-definitions";
+import { FILE_SUGGESTION_KIND } from "@/constants/file-suggestion-kind";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
+import { KEY_NAME } from "@/constants/key-names";
 import { createIgnoreFilter } from "@/ui/components/input-helpers";
-import { CommandSuggestions, FileSuggestions } from "@/ui/components/input-suggestions";
+import {
+  CommandSuggestions,
+  type FileMentionSuggestion,
+  FileSuggestions,
+} from "@/ui/components/input-suggestions";
 import { useVimInput } from "@/ui/hooks/useVimInput";
 import type {
   InputRenderable,
@@ -25,7 +32,7 @@ export interface InputWithAutocompleteProps {
   onSubmit: (value: string) => void;
   slashCommands?: SlashCommand[];
   placeholder?: string;
-  /** Enable multiline editing; Enter inserts newline, Ctrl+Enter submits. Default: false. */
+  /** Enable multiline editing; Enter submits, Shift+Enter inserts newline. Default: false. */
   multiline?: boolean;
   /** Enable @-mention file suggestions. Default: true. */
   enableMentions?: boolean;
@@ -46,10 +53,11 @@ export interface ShellCompletionProvider {
 const DEFAULT_COMMANDS: SlashCommand[] = COMMAND_DEFINITIONS;
 const MENTION_REGEX = /@([\w./-]*)$/;
 const MENTION_SUGGESTION_LIMIT = 8;
+const PATH_SEPARATOR = "/" as const;
 
 const TEXTAREA_KEYBINDINGS: TextareaKeyBinding[] = [
+  { name: "return", action: "submit" },
   { name: "return", shift: true, action: "newline" },
-  { name: "return", ctrl: true, action: "submit" },
 ];
 
 export function InputWithAutocomplete({
@@ -71,8 +79,11 @@ export function InputWithAutocomplete({
   const [cursorPosition, setCursorPosition] = useState(value.length);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [filePaths, setFilePaths] = useState<string[]>([]);
-  const [mentionSuggestions, setMentionSuggestions] = useState<string[]>([]);
+  const [mentionCandidatePaths, setMentionCandidatePaths] = useState<string[]>([]);
+  const [mentionCandidateIsDir, setMentionCandidateIsDir] = useState<Map<string, boolean>>(
+    () => new Map()
+  );
+  const [mentionSuggestions, setMentionSuggestions] = useState<FileMentionSuggestion[]>([]);
   const [isLoadingFiles, setIsLoadingFiles] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
   const [shellSuggestions, setShellSuggestions] = useState<string[]>([]);
@@ -124,14 +135,34 @@ export function InputWithAutocomplete({
         setIsLoadingFiles(true);
         const cwd = process.cwd();
         const shouldIgnore = await createIgnoreFilter(cwd);
-        const files = await fg("**/*", {
-          cwd,
-          onlyFiles: true,
-          dot: false,
-        });
+        const [files, dirs] = await Promise.all([
+          fg("**/*", {
+            cwd,
+            onlyFiles: true,
+            dot: false,
+          }),
+          fg("**/*", {
+            cwd,
+            onlyDirectories: true,
+            dot: false,
+          }),
+        ]);
+
+        const filteredDirs = dirs.filter((dir) => !shouldIgnore(dir));
+        const filteredFiles = files.filter((file) => !shouldIgnore(file));
+
+        const isDirByPath = new Map<string, boolean>();
+        for (const dir of filteredDirs) {
+          isDirByPath.set(dir, true);
+        }
+        for (const file of filteredFiles) {
+          isDirByPath.set(file, false);
+        }
+
+        const combined = [...filteredDirs, ...filteredFiles].slice(0, LIMIT.MAX_FILES);
         if (cancelled) return;
-        const filtered = files.filter((file) => !shouldIgnore(file)).slice(0, LIMIT.MAX_FILES);
-        setFilePaths(filtered);
+        setMentionCandidatePaths(combined);
+        setMentionCandidateIsDir(isDirByPath);
       } catch (error) {
         if (cancelled) return;
         const message = error instanceof Error ? error.message : String(error);
@@ -160,9 +191,14 @@ export function InputWithAutocomplete({
     const textarea = textareaRef.current;
     if (!textarea) return;
     if (textarea.plainText !== value) {
-      textarea.replaceText(value);
-      textarea.cursorOffset = value.length;
-      setCursorPosition(value.length);
+      const nextValue = value;
+      queueMicrotask(() => {
+        const current = textareaRef.current;
+        if (!current || current.plainText === nextValue) return;
+        current.replaceText(nextValue);
+        current.cursorOffset = nextValue.length;
+        setCursorPosition(nextValue.length);
+      });
     }
   }, [multiline, value]);
 
@@ -179,36 +215,53 @@ export function InputWithAutocomplete({
     return match ? match[1] : null;
   }, [cursorPosition, enableMentions, value]);
 
+  const buildMentionSuggestion = useCallback(
+    (path: string): FileMentionSuggestion => {
+      const isDir = mentionCandidateIsDir.get(path) ?? false;
+      if (isDir) {
+        const text = path.endsWith(PATH_SEPARATOR) ? path : `${path}${PATH_SEPARATOR}`;
+        return {
+          kind: FILE_SUGGESTION_KIND.FOLDER,
+          displayText: text,
+          insertText: text,
+        };
+      }
+      return {
+        kind: FILE_SUGGESTION_KIND.FILE,
+        displayText: path,
+        insertText: path,
+      };
+    },
+    [mentionCandidateIsDir]
+  );
+
   useEffect(() => {
     if (!enableMentions || !mentionQuery) {
       setMentionSuggestions([]);
       return;
     }
-    if (filePaths.length === 0) {
+    if (mentionCandidatePaths.length === 0) {
       setMentionSuggestions([]);
       return;
     }
     const handle = setTimeout(() => {
-      const results = fuzzysort.go(mentionQuery, filePaths, {
+      const results = fuzzysort.go(mentionQuery, mentionCandidatePaths, {
         limit: MENTION_SUGGESTION_LIMIT,
       });
-      setMentionSuggestions(results.map((r) => r.target));
+      setMentionSuggestions(results.map((r) => buildMentionSuggestion(r.target)));
     }, TIMEOUT.MENTION_DEBOUNCE_MS);
     return () => clearTimeout(handle);
-  }, [enableMentions, filePaths, mentionQuery]);
+  }, [buildMentionSuggestion, enableMentions, mentionCandidatePaths, mentionQuery]);
 
   useEffect(() => {
     setShowAutocomplete(value.startsWith("/") && commandSuggestions.length > 0);
     setSelectedIndex(0);
-  }, [value, commandSuggestions]);
-
-  useEffect(() => {
     if (!shellCompletion || !shellCompletion.isShellInput(value)) {
       setShellSuggestions([]);
       setShellIndex(0);
       setShellAnchor(null);
     }
-  }, [shellCompletion, value]);
+  }, [value, commandSuggestions, shellCompletion]);
 
   const hasMentionSuggestions = mentionSuggestions.length > 0;
 
@@ -288,11 +341,16 @@ export function InputWithAutocomplete({
   );
 
   const applyMentionSuggestion = useCallback(
-    (selected: string) => {
+    (selected: FileMentionSuggestion) => {
       const before = value.slice(0, cursorPosition);
       const after = value.slice(cursorPosition);
-      const replaced = before.replace(MENTION_REGEX, `@${selected} `) + after;
-      const newCursor = before.replace(MENTION_REGEX, `@${selected} `).length;
+
+      const trailing = selected.kind === FILE_SUGGESTION_KIND.FILE ? " " : "";
+      const insertion = `@${selected.insertText}${trailing}`;
+      const replacedBefore = before.replace(MENTION_REGEX, insertion);
+      const replaced = replacedBefore + after;
+      const newCursor = replacedBefore.length;
+
       onChange(replaced);
       setCursorOffset(newCursor);
       setSelectedIndex(0);
@@ -310,19 +368,23 @@ export function InputWithAutocomplete({
     }
 
     if (showAutocomplete && commandSuggestions.length > 0) {
-      if (key.name === "up") {
+      if (key.name === KEY_NAME.UP) {
         key.preventDefault();
         key.stopPropagation();
         setSelectedIndex((prev) => (prev > 0 ? prev - 1 : commandSuggestions.length - 1));
         return;
       }
-      if (key.name === "down") {
+      if (key.name === KEY_NAME.DOWN) {
         key.preventDefault();
         key.stopPropagation();
         setSelectedIndex((prev) => (prev < commandSuggestions.length - 1 ? prev + 1 : 0));
         return;
       }
-      if ((key.name === "tab" && !key.shift) || key.name === "return" || key.name === "linefeed") {
+      if (
+        (key.name === KEY_NAME.TAB && !key.shift) ||
+        key.name === KEY_NAME.RETURN ||
+        key.name === KEY_NAME.LINEFEED
+      ) {
         key.preventDefault();
         key.stopPropagation();
         const selected = commandSuggestions[selectedIndex];
@@ -331,7 +393,7 @@ export function InputWithAutocomplete({
         }
         return;
       }
-      if (key.name === "escape") {
+      if (key.name === KEY_NAME.ESCAPE) {
         key.preventDefault();
         key.stopPropagation();
         setShowAutocomplete(false);
@@ -340,19 +402,23 @@ export function InputWithAutocomplete({
     }
 
     if (hasMentionSuggestions) {
-      if (key.name === "up") {
+      if (key.name === KEY_NAME.UP) {
         key.preventDefault();
         key.stopPropagation();
         setSelectedIndex((prev) => (prev > 0 ? prev - 1 : mentionSuggestions.length - 1));
         return;
       }
-      if (key.name === "down") {
+      if (key.name === KEY_NAME.DOWN) {
         key.preventDefault();
         key.stopPropagation();
         setSelectedIndex((prev) => (prev < mentionSuggestions.length - 1 ? prev + 1 : 0));
         return;
       }
-      if ((key.name === "tab" && !key.shift) || key.name === "return" || key.name === "linefeed") {
+      if (
+        (key.name === KEY_NAME.TAB && !key.shift) ||
+        key.name === KEY_NAME.RETURN ||
+        key.name === KEY_NAME.LINEFEED
+      ) {
         key.preventDefault();
         key.stopPropagation();
         const selected = mentionSuggestions[selectedIndex];
@@ -361,7 +427,7 @@ export function InputWithAutocomplete({
         }
         return;
       }
-      if (key.name === "escape") {
+      if (key.name === KEY_NAME.ESCAPE) {
         key.preventDefault();
         key.stopPropagation();
         setSelectedIndex(0);
@@ -369,14 +435,14 @@ export function InputWithAutocomplete({
       }
     }
 
-    if (key.name === "tab" && !key.shift && shellCompletion?.isShellInput(value)) {
+    if (key.name === KEY_NAME.TAB && !key.shift && shellCompletion?.isShellInput(value)) {
       key.preventDefault();
       key.stopPropagation();
       void handleShellTab();
       return;
     }
 
-    if (key.name === "tab" && !key.shift && onAgentSwitch && value.trim().length === 0) {
+    if (key.name === KEY_NAME.TAB && !key.shift && onAgentSwitch && value.trim().length === 0) {
       key.preventDefault();
       key.stopPropagation();
       onAgentSwitch();
@@ -418,7 +484,7 @@ export function InputWithAutocomplete({
   const shellModeActive = shellCompletion?.isShellInput(value) ?? false;
 
   return (
-    <box flexDirection="column" flexGrow={1} minWidth={0}>
+    <box flexDirection="column" flexShrink={0} minWidth={0}>
       {shellModeActive ? (
         <text fg={COLOR.YELLOW} attributes={TextAttributes.DIM}>
           Shell mode active (Tab to complete, add & for background)
@@ -430,7 +496,7 @@ export function InputWithAutocomplete({
 
       {enableMentions && hasMentionSuggestions && (
         <FileSuggestions
-          files={mentionSuggestions}
+          suggestions={mentionSuggestions}
           selectedIndex={selectedIndex}
           isLoading={isLoadingFiles}
           error={fileError}
@@ -442,11 +508,10 @@ export function InputWithAutocomplete({
         borderStyle="single"
         paddingLeft={1}
         paddingRight={1}
-        paddingTop={multiline ? 1 : 0}
-        paddingBottom={multiline ? 1 : 0}
-        minHeight={multiline ? 5 : 1}
-        height={multiline ? undefined : 1}
-        flexGrow={multiline ? 1 : undefined}
+        paddingTop={0}
+        paddingBottom={0}
+        minHeight={multiline ? 2 : 1}
+        height={multiline ? 3 : 1}
         minWidth={0}
         flexDirection={multiline ? "column" : "row"}
       >
@@ -460,7 +525,7 @@ export function InputWithAutocomplete({
             onCursorChange={updateCursor}
             onSubmit={handleTextareaSubmit}
             keyBindings={TEXTAREA_KEYBINDINGS}
-            style={{ width: "100%" }}
+            style={FULL_WIDTH_STYLE}
           />
         ) : (
           <input
@@ -472,7 +537,7 @@ export function InputWithAutocomplete({
             onChange={handleInput}
             onSubmit={handleSubmit}
             onCursorChange={updateCursor}
-            style={{ width: "100%" }}
+            style={FULL_WIDTH_STYLE}
           />
         )}
       </box>

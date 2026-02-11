@@ -5,6 +5,7 @@ import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { FALLBACK } from "@/constants/fallbacks";
 import { PERMISSION } from "@/constants/permissions";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
+import { TOOL_CALL_VARIANT } from "@/constants/tool-call-variant";
 import { useAppStore } from "@/store/app-store";
 import type { ToolCallId } from "@/types/domain";
 import { type PermissionProfile, ToolCallApproval } from "@/ui/components/ToolCallApproval";
@@ -216,7 +217,7 @@ export function ToolCallManager({
             Active Tools:
           </text>
           {activeCalls.map((tool) => (
-            <ToolCallItem key={tool.id} tool={tool} variant="active" />
+            <ToolCallItem key={tool.id} tool={tool} variant={TOOL_CALL_VARIANT.ACTIVE} />
           ))}
         </box>
       )}
@@ -227,7 +228,7 @@ export function ToolCallManager({
             Recent:
           </text>
           {recentCalls.map((tool) => (
-            <ToolCallItem key={tool.id} tool={tool} variant="recent" />
+            <ToolCallItem key={tool.id} tool={tool} variant={TOOL_CALL_VARIANT.RECENT} />
           ))}
         </box>
       )}

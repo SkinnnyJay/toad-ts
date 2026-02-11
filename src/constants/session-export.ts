@@ -6,7 +6,16 @@ export const SESSION_EXPORT = {
   ZIP_EXTENSION: ".zip",
 } as const;
 
+/** Format names for export (json, markdown, zip). */
+export const SESSION_EXPORT_FORMAT_NAME = {
+  JSON: "json",
+  MARKDOWN: "markdown",
+  ZIP: "zip",
+} as const;
+
 export type SessionExportConfig = typeof SESSION_EXPORT;
+export type SessionExportFormatName =
+  (typeof SESSION_EXPORT_FORMAT_NAME)[keyof typeof SESSION_EXPORT_FORMAT_NAME];
 
 export const {
   VERSION: SESSION_EXPORT_VERSION,
@@ -15,3 +24,9 @@ export const {
   MARKDOWN_EXTENSION: SESSION_EXPORT_MARKDOWN_EXTENSION,
   ZIP_EXTENSION: SESSION_EXPORT_ZIP_EXTENSION,
 } = SESSION_EXPORT;
+
+export const {
+  JSON: FORMAT_JSON,
+  MARKDOWN: FORMAT_MARKDOWN,
+  ZIP: FORMAT_ZIP,
+} = SESSION_EXPORT_FORMAT_NAME;

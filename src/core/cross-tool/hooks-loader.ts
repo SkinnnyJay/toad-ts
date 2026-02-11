@@ -1,5 +1,6 @@
 import { readFile, readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
+import { DISCOVERY_SUBPATH } from "@/constants/discovery-subpaths";
 import { ENCODING } from "@/constants/encodings";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { TOOL_DIRS, type ToolSource } from "./discovery-paths";
@@ -24,10 +25,22 @@ export interface LoadedHookConfig {
  */
 export const loadHookScripts = async (cwd: string): Promise<LoadedHookScript[]> => {
   const hookDirs = [
-    { source: "TOADSTOOL" as ToolSource, dir: join(cwd, TOOL_DIRS.TOADSTOOL.project, "hooks") },
-    { source: "TOADSTOOL" as ToolSource, dir: join(TOOL_DIRS.TOADSTOOL.global, "hooks") },
-    { source: "CLAUDE" as ToolSource, dir: join(cwd, TOOL_DIRS.CLAUDE.project, "hooks") },
-    { source: "CLAUDE" as ToolSource, dir: join(TOOL_DIRS.CLAUDE.global, "hooks") },
+    {
+      source: "TOADSTOOL" as ToolSource,
+      dir: join(cwd, TOOL_DIRS.TOADSTOOL.project, DISCOVERY_SUBPATH.HOOKS),
+    },
+    {
+      source: "TOADSTOOL" as ToolSource,
+      dir: join(TOOL_DIRS.TOADSTOOL.global, DISCOVERY_SUBPATH.HOOKS),
+    },
+    {
+      source: "CLAUDE" as ToolSource,
+      dir: join(cwd, TOOL_DIRS.CLAUDE.project, DISCOVERY_SUBPATH.HOOKS),
+    },
+    {
+      source: "CLAUDE" as ToolSource,
+      dir: join(TOOL_DIRS.CLAUDE.global, DISCOVERY_SUBPATH.HOOKS),
+    },
   ];
 
   const scripts: LoadedHookScript[] = [];

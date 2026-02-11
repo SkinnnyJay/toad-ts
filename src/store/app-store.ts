@@ -4,6 +4,10 @@ import { SIDEBAR_TAB } from "@/constants/sidebar-tabs";
 import { THEME } from "@/constants/themes";
 import { type SessionSnapshot, SessionSnapshotSchema } from "@/store/session-persistence";
 import {
+  getRecentCommandNames,
+  setRecentCommandNames as persistRecentCommandNames,
+} from "@/store/settings/settings-manager";
+import {
   MessageIdSchema,
   MessageSchema,
   PlanIdSchema,
@@ -14,12 +18,15 @@ import {
 import type {
   AppState,
   ConnectionStatus,
+  LoadedCommand,
+  LoadedSkill,
   Message,
   MessageId,
   Plan,
   Session,
   SessionId,
   SubAgent,
+  TodoItem,
   UpdateMessageParams,
   UpsertSessionParams,
 } from "@/types/domain";
@@ -55,9 +62,24 @@ export interface AppStore extends AppState {
   setShowThinking: (value: boolean) => void;
   toggleThinking: () => void;
   setTheme: (theme: AppState["uiState"]["theme"]) => void;
+  setPendingFileRefForInput: (value: string | null) => void;
+  setLoadedSkills: (skills: LoadedSkill[]) => void;
+  setLoadedCommands: (commands: LoadedCommand[]) => void;
+  setRecentCommandNames: (names: string[]) => void;
+  recordCommandUsed: (name: string) => void;
+  loadRecentCommandsFromSettings: () => Promise<void>;
+  setTodosForSession: (sessionId: SessionId, items: TodoItem[]) => void;
+  getTodosForSession: (sessionId: SessionId) => TodoItem[];
   hydrate: (snapshot: SessionSnapshot) => void;
   reset: () => void;
 }
+
+/** Cache for getMessagesForSession so callers get a stable array reference when messages for a session are unchanged. */
+const messagesForSessionCache = new Map<
+  SessionId,
+  { messageIds: MessageId[]; result: Message[] }
+>();
+let messagesForSessionCacheStateRef: AppState["messages"] | null = null;
 
 const initialState: AppState = {
   connectionStatus: CONNECTION_STATUS.DISCONNECTED,
@@ -66,13 +88,18 @@ const initialState: AppState = {
   messages: {},
   plans: {},
   subAgents: {},
+  todosBySession: {},
   contextAttachments: {},
+  loadedSkills: [],
+  loadedCommands: [],
+  recentCommandNames: [],
   uiState: {
     sidebarTab: SIDEBAR_TAB.FILES,
     accordionCollapsed: {},
     showToolDetails: true,
     showThinking: true,
     theme: THEME.DEFAULT,
+    pendingFileRefForInput: null,
   },
 };
 
@@ -205,8 +232,40 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
   getSession: (sessionId) => get().sessions[sessionId],
   getMessage: (messageId) => get().messages[messageId],
   getMessagesForSession: (sessionId) => {
-    const messages = Object.values(get().messages) as Message[];
-    return messages.filter((m) => m.sessionId === sessionId);
+    const state = get();
+    const messagesMap = state.messages;
+    if (messagesMap !== messagesForSessionCacheStateRef) {
+      messagesForSessionCache.clear();
+      messagesForSessionCacheStateRef = messagesMap;
+    }
+    const session = state.sessions[sessionId];
+    const orderIds = session?.messageIds ?? [];
+    const messages = Object.values(messagesMap) as Message[];
+    const forSession = messages.filter((m) => m.sessionId === sessionId);
+    const orderSet = new Set(orderIds);
+    const sorted =
+      orderIds.length > 0
+        ? [
+            ...orderIds
+              .map((id) => forSession.find((m) => m.id === id))
+              .filter((m): m is Message => m !== undefined),
+            ...forSession
+              .filter((m) => !orderSet.has(m.id))
+              .sort((a, b) => a.id.localeCompare(b.id)),
+          ]
+        : forSession.slice().sort((a, b) => a.id.localeCompare(b.id));
+    const messageIds = sorted.map((m) => m.id);
+    const cached = messagesForSessionCache.get(sessionId);
+    if (
+      cached &&
+      cached.messageIds.length === messageIds.length &&
+      cached.messageIds.every((id, i) => id === messageIds[i])
+    ) {
+      return cached.result;
+    }
+    const result = sorted;
+    messagesForSessionCache.set(sessionId, { messageIds, result });
+    return result;
   },
   upsertPlan: (plan) => set((state) => ({ plans: { ...state.plans, [plan.id]: plan } })),
   getPlanBySession: (sessionId) => {
@@ -267,6 +326,29 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
     set((state) => ({
       uiState: { ...state.uiState, theme },
     })),
+  setPendingFileRefForInput: (value) =>
+    set((state) => ({
+      uiState: { ...state.uiState, pendingFileRefForInput: value },
+    })),
+  setLoadedSkills: (skills) => set({ loadedSkills: skills }),
+  setLoadedCommands: (commands) => set({ loadedCommands: commands }),
+  setRecentCommandNames: (names) =>
+    set({ recentCommandNames: names.slice(0, LIMIT.RECENT_COMMANDS_STORED) }),
+  recordCommandUsed: (name) => {
+    const current = get().recentCommandNames;
+    const next = [...current.filter((n) => n !== name), name].slice(-LIMIT.RECENT_COMMANDS_STORED);
+    set({ recentCommandNames: next });
+    persistRecentCommandNames(next).catch(() => {});
+  },
+  loadRecentCommandsFromSettings: async () => {
+    const names = await getRecentCommandNames();
+    set({ recentCommandNames: names });
+  },
+  setTodosForSession: (sessionId, items) =>
+    set((state) => ({
+      todosBySession: { ...state.todosBySession, [sessionId]: items },
+    })),
+  getTodosForSession: (sessionId) => get().todosBySession[sessionId] ?? [],
   hydrate: (snapshot) =>
     set(() => ({
       ...initialState,
@@ -279,6 +361,7 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
       messages: {},
       plans: {},
       subAgents: {},
+      todosBySession: {},
       contextAttachments: {},
     })),
 }));

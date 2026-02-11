@@ -36,13 +36,24 @@ export const LIMIT = {
   MESSAGE_LIST_MAX_MESSAGES: 120,
   MESSAGE_LIST_ESTIMATED_ROW_HEIGHT: 3,
   MESSAGE_LIST_BUFFER: 4,
+  /** Column width used to estimate wrapped line count for left message bar height. */
+  MESSAGE_BAR_WRAP_WIDTH: 80,
+  /** Extra lines added to left bar height while streaming so bar reaches bottom of streamed text. */
+  STREAMING_BAR_BUFFER_LINES: 20,
   CONTEXT_TOKEN_BUDGET: 8000,
   CONTEXT_BAR_WIDTH: 12,
   CONTEXT_WARNING_RATIO: 0.9,
   WEBFETCH_MAX_CHARS: 20000,
   TERMINAL_OUTPUT_MAX_BYTES: 200000,
   SHELL_COMPLETION_MAX_RESULTS: 24,
+  /** Max commands shown in palette list (scroll to see all). */
   COMMAND_PALETTE_MAX_RESULTS: 10,
+  /** Max recent commands/skills to persist for "Recently used" section. */
+  RECENT_COMMANDS_STORED: 20,
+  /** Max items shown in "Recently used" section of command palette. */
+  RECENT_COMMANDS_DISPLAY: 5,
+  /** Max length for fact line (Fact: …) to avoid overflow; truncate with ellipsis. */
+  FACT_DISPLAY_MAX_LENGTH: 78,
   SESSION_LIST_PREVIEW: 10,
   HELP_MAX_DESCRIPTION_WIDTH: 11,
   TOOL_NAME_TRUNCATE: 50,
@@ -118,6 +129,8 @@ export const {
   MESSAGE_LIST_MAX_MESSAGES,
   MESSAGE_LIST_ESTIMATED_ROW_HEIGHT,
   MESSAGE_LIST_BUFFER,
+  MESSAGE_BAR_WRAP_WIDTH,
+  STREAMING_BAR_BUFFER_LINES,
   CONTEXT_TOKEN_BUDGET,
   CONTEXT_BAR_WIDTH,
   CONTEXT_WARNING_RATIO,
@@ -125,6 +138,8 @@ export const {
   TERMINAL_OUTPUT_MAX_BYTES,
   SHELL_COMPLETION_MAX_RESULTS,
   COMMAND_PALETTE_MAX_RESULTS,
+  RECENT_COMMANDS_STORED,
+  RECENT_COMMANDS_DISPLAY,
   SESSION_LIST_PREVIEW,
   HELP_MAX_DESCRIPTION_WIDTH,
   TOOL_NAME_TRUNCATE,

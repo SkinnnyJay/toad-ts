@@ -19,6 +19,7 @@ import { openExternalEditorForFile } from "@/utils/editor/externalEditor";
 import { EnvManager } from "@/utils/env/env.utils";
 import { useRenderer } from "@opentui/react";
 import { useCallback } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { runSlashCommand } from "./slash-command-runner";
 
 export { runSlashCommand } from "./slash-command-runner";
@@ -37,6 +38,8 @@ export interface SlashCommandHandlerOptions {
   onOpenHooks?: () => void;
   onOpenProgress?: () => void;
   onOpenAgents?: () => void;
+  onOpenSkills?: () => void;
+  onOpenCommands?: () => void;
   onToggleVimMode?: () => boolean;
   checkpointManager?: CheckpointManager;
   client?: HarnessRuntime | null;
@@ -60,6 +63,8 @@ export const useSlashCommandHandler = ({
   onOpenHooks,
   onOpenProgress,
   onOpenAgents,
+  onOpenSkills,
+  onOpenCommands,
   onToggleVimMode,
   checkpointManager,
   client,
@@ -74,7 +79,7 @@ export const useSlashCommandHandler = ({
   const getMessagesForSession = useAppStore((state) => state.getMessagesForSession);
   const getPlanBySession = useAppStore((state) => state.getPlanBySession);
   const connectionStatus = useAppStore((state) => state.connectionStatus);
-  const listSessions = useAppStore((state) => Object.values(state.sessions));
+  const listSessions = useAppStore(useShallow((state) => Object.values(state.sessions)));
   const upsertSession = useAppStore((state) => state.upsertSession);
   const appendMessage = useAppStore((state) => state.appendMessage);
   const clearMessagesForSession = useAppStore((state) => state.clearMessagesForSession);
@@ -308,6 +313,8 @@ export const useSlashCommandHandler = ({
         openHooks: onOpenHooks,
         openProgress: onOpenProgress,
         openAgents: onOpenAgents,
+        openSkills: onOpenSkills,
+        openCommands: onOpenCommands,
         openMemoryFile,
         copyToClipboard,
         runCompaction,
@@ -344,6 +351,8 @@ export const useSlashCommandHandler = ({
       onOpenHooks,
       onOpenProgress,
       onOpenAgents,
+      onOpenSkills,
+      onOpenCommands,
       onToggleVimMode,
       checkpointManager,
       client,

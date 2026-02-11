@@ -1,6 +1,7 @@
 import { LIMIT } from "@/config/limits";
 import { BACKGROUND_TASK_STATUS } from "@/constants/background-task-status";
 import { ENV_KEY } from "@/constants/env-keys";
+import { PLATFORM } from "@/constants/platform";
 import { type BackgroundTask, type BackgroundTaskId, BackgroundTaskIdSchema } from "@/types/domain";
 import { EnvManager } from "@/utils/env/env.utils";
 import { nanoid } from "nanoid";
@@ -36,7 +37,7 @@ const SHELL_ARGS = {
 } as const;
 
 const resolveShellCommand = (command: string): ShellCommandSpec => {
-  if (process.platform === "win32") {
+  if (process.platform === PLATFORM.WIN32) {
     return { command: SHELL_COMMAND.WINDOWS, args: [...SHELL_ARGS.WINDOWS, command] };
   }
   const envShell = EnvManager.getInstance().getSnapshot()[ENV_KEY.SHELL];

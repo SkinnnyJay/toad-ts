@@ -41,7 +41,7 @@ describe("useHarnessConnection", () => {
       const error = Object.assign(new Error("spawn ENOENT"), { code: "ENOENT" });
       const result = formatHarnessError(error, {});
 
-      expect(result).toContain("claude-code");
+      expect(result).toContain("claude-code-acp");
     });
 
     it("uses default agent name when not provided for ENOENT", () => {

@@ -1,7 +1,9 @@
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import { SERVER_CONFIG } from "@/config/server";
+import { HTTP_METHOD } from "@/constants/http-methods";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { SERVER_EVENT } from "@/constants/server-events";
+import { SERVER_PATH } from "@/constants/server-paths";
 import { claudeCliHarnessAdapter } from "@/core/claude-cli-harness";
 import { codexCliHarnessAdapter } from "@/core/codex-cli-harness";
 import { geminiCliHarnessAdapter } from "@/core/gemini-cli-harness";
@@ -95,17 +97,17 @@ export const startHeadlessServer = async (
 
       // Auth check (skip for health endpoint)
       const authUrl = new URL(req.url, `http://${req.headers.host ?? "localhost"}`);
-      if (authUrl.pathname !== "/health" && !checkServerAuth(req, res)) {
+      if (authUrl.pathname !== SERVER_PATH.HEALTH && !checkServerAuth(req, res)) {
         return;
       }
       const url = new URL(req.url, `http://${req.headers.host ?? "localhost"}`);
 
-      if (req.method === "GET" && url.pathname === "/health") {
+      if (req.method === HTTP_METHOD.GET && url.pathname === SERVER_PATH.HEALTH) {
         sendJson(res, HTTP_STATUS.OK, { status: "ok" });
         return;
       }
 
-      if (req.method === "POST" && url.pathname === "/sessions") {
+      if (req.method === HTTP_METHOD.POST && url.pathname === SERVER_PATH.SESSIONS) {
         const raw = await parseJson(req);
         const payload = createSessionRequestSchema.parse(raw);
         const harnessId = payload.harnessId ?? harnessConfigResult.harnessId;
@@ -145,9 +147,9 @@ export const startHeadlessServer = async (
         return;
       }
 
-      if (req.method === "POST" && url.pathname.startsWith("/sessions/")) {
+      if (req.method === HTTP_METHOD.POST && url.pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
         const [_, __, sessionId, action] = url.pathname.split("/");
-        if (!sessionId || action !== "prompt") {
+        if (!sessionId || action !== SERVER_PATH.SEGMENT_PROMPT) {
           sendError(res, HTTP_STATUS.NOT_FOUND, "Unknown endpoint.");
           return;
         }
@@ -171,9 +173,9 @@ export const startHeadlessServer = async (
         return;
       }
 
-      if (req.method === "GET" && url.pathname.startsWith("/sessions/")) {
+      if (req.method === HTTP_METHOD.GET && url.pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
         const [_, __, sessionId, resource] = url.pathname.split("/");
-        if (!sessionId || resource !== "messages") {
+        if (!sessionId || resource !== SERVER_PATH.SEGMENT_MESSAGES) {
           sendError(res, HTTP_STATUS.NOT_FOUND, "Unknown endpoint.");
           return;
         }
@@ -188,7 +190,7 @@ export const startHeadlessServer = async (
       }
 
       // Try API routes from api-routes.ts
-      const matched = matchRoute(req.method ?? "GET", url.pathname);
+      const matched = matchRoute(req.method ?? HTTP_METHOD.GET, url.pathname);
       if (matched) {
         await matched.handler(req, res, matched.params);
         return;

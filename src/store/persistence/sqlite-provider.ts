@@ -122,6 +122,11 @@ class SqliteWorkerClient implements SqliteClient {
 
   async close(): Promise<void> {
     await this.request<void>({ type: PERSISTENCE_REQUEST_TYPE.CLOSE });
+    const closedError = new Error("Sqlite worker closed");
+    for (const { reject } of this.pending.values()) {
+      reject(closedError);
+    }
+    this.pending.clear();
     await this.worker.terminate();
   }
 }

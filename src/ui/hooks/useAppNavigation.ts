@@ -1,8 +1,11 @@
 import type { AgentInfo } from "@/agents/agent-manager";
+import type { NavigationDirection } from "@/constants/navigation-direction";
+import { NAVIGATION_DIRECTION } from "@/constants/navigation-direction";
 import { VIEW, type View } from "@/constants/views";
 import type { Session } from "@/types/domain";
 import type { SessionId } from "@/types/domain";
 import type { AgentOption } from "@/ui/components/AgentSelect";
+import { clearScreen } from "@/utils/terminal/clearScreen.utils";
 import { useCallback } from "react";
 
 export interface UseAppNavigationOptions {
@@ -25,7 +28,7 @@ export interface UseAppNavigationResult {
   handleAgentSelect: (agent: AgentOption) => void;
   handleAgentSwitchRequest: () => void;
   handleAgentSelectCancel: () => void;
-  navigateChildSession: (direction: "prev" | "next") => void;
+  navigateChildSession: (direction: NavigationDirection) => void;
 }
 
 export const useAppNavigation = ({
@@ -68,6 +71,7 @@ export const useAppNavigation = ({
 
   const handleAgentSwitchRequest = useCallback(() => {
     if (agentOptions.length === 0) return;
+    clearScreen();
     setView(VIEW.AGENT_SELECT);
   }, [agentOptions.length, setView]);
 
@@ -78,7 +82,7 @@ export const useAppNavigation = ({
   }, [selectedAgent, setView]);
 
   const navigateChildSession = useCallback(
-    (direction: "prev" | "next") => {
+    (direction: NavigationDirection) => {
       const activeSessionId = currentSessionId ?? sessionId;
       if (!activeSessionId) return;
       const activeSession = sessionsById[activeSessionId];
@@ -95,7 +99,7 @@ export const useAppNavigation = ({
       const index = chain.findIndex((session) => session.id === activeSessionId);
       if (index < 0) return;
       const nextIndex =
-        direction === "next"
+        direction === NAVIGATION_DIRECTION.NEXT
           ? (index + 1) % chain.length
           : (index - 1 + chain.length) % chain.length;
       const target = chain[nextIndex];

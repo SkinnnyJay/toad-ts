@@ -63,6 +63,7 @@ const createEmptyKeybindMap = (): Record<KeybindAction, KeybindDefinition[]> => 
   [KEYBIND_ACTION.FOCUS_CONTEXT]: [],
   [KEYBIND_ACTION.FOCUS_SESSIONS]: [],
   [KEYBIND_ACTION.FOCUS_AGENT]: [],
+  [KEYBIND_ACTION.FOCUS_TODOS]: [],
   [KEYBIND_ACTION.OPEN_HELP]: [],
   [KEYBIND_ACTION.TOGGLE_SESSIONS]: [],
   [KEYBIND_ACTION.TOGGLE_BACKGROUND_TASKS]: [],
@@ -73,6 +74,7 @@ const createEmptyKeybindMap = (): Record<KeybindAction, KeybindDefinition[]> => 
   [KEYBIND_ACTION.PERMISSION_MODE_CYCLE]: [],
   [KEYBIND_ACTION.SESSION_CHILD_CYCLE]: [],
   [KEYBIND_ACTION.SESSION_CHILD_CYCLE_REVERSE]: [],
+  [KEYBIND_ACTION.RUN_BREADCRUMB_ACTION]: [],
 });
 
 export const normalizeKeyName = (name: string): string => {

@@ -1,5 +1,6 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { DISCOVERY_SUBPATH } from "@/constants/discovery-subpaths";
 
 /**
  * Discovery path definitions for all AI tool folders.
@@ -28,6 +29,10 @@ export const TOOL_DIRS = {
   GEMINI: {
     project: ".gemini",
     global: join(home, ".gemini"),
+  },
+  CODEX: {
+    project: ".codex",
+    global: join(home, ".codex"),
   },
 } as const;
 
@@ -82,11 +87,30 @@ export const getDiscoveryLocations = (cwd: string, subPath: string): DiscoveryLo
     scope: "global",
   });
 
-  // Cursor project (no global skills convention)
+  // Cursor project + global (non-standard skills-cursor path for global)
   locations.push({
     source: "CURSOR",
     dir: join(cwd, TOOL_DIRS.CURSOR.project, subPath),
     scope: "project",
+  });
+  if (subPath === DISCOVERY_SUBPATH.SKILLS) {
+    locations.push({
+      source: "CURSOR",
+      dir: join(TOOL_DIRS.CURSOR.global, "skills-cursor"),
+      scope: "global",
+    });
+  }
+
+  // Codex project + global
+  locations.push({
+    source: "CODEX",
+    dir: join(cwd, TOOL_DIRS.CODEX.project, subPath),
+    scope: "project",
+  });
+  locations.push({
+    source: "CODEX",
+    dir: join(TOOL_DIRS.CODEX.global, subPath),
+    scope: "global",
   });
 
   // Gemini project + global

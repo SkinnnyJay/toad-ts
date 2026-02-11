@@ -1,5 +1,6 @@
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
+import { KEY_NAME } from "@/constants/key-names";
 import { useAppStore } from "@/store/app-store";
 import { useUiSymbols } from "@/ui/hooks/useUiSymbols";
 import { THEME_DEFINITIONS, THEME_ORDER } from "@/ui/theme/theme-definitions";
@@ -31,19 +32,19 @@ export function ThemesModal({ isOpen, onClose }: ThemesModalProps): ReactNode {
     if (!isOpen) return;
     if (themes.length === 0) return;
 
-    if (key.name === "up") {
+    if (key.name === KEY_NAME.UP) {
       key.preventDefault();
       key.stopPropagation();
       setIndex((prev) => (prev - 1 + themes.length) % themes.length);
       return;
     }
-    if (key.name === "down") {
+    if (key.name === KEY_NAME.DOWN) {
       key.preventDefault();
       key.stopPropagation();
       setIndex((prev) => (prev + 1) % themes.length);
       return;
     }
-    if (key.name === "return" || key.name === "linefeed") {
+    if (key.name === KEY_NAME.RETURN || key.name === KEY_NAME.LINEFEED) {
       key.preventDefault();
       key.stopPropagation();
       const selected = themes[index];
@@ -52,7 +53,7 @@ export function ThemesModal({ isOpen, onClose }: ThemesModalProps): ReactNode {
       }
       return;
     }
-    if (key.name === "escape") {
+    if (key.name === KEY_NAME.ESCAPE) {
       key.preventDefault();
       key.stopPropagation();
       onClose();

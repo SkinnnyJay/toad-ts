@@ -1,3 +1,4 @@
+import { BREADCRUMB_PLACEMENT_VALUES } from "@/constants/breadcrumb-placement";
 import { HOOK_EVENT } from "@/constants/hook-events";
 import { HOOK_TYPE } from "@/constants/hook-types";
 import { z } from "zod";
@@ -129,6 +130,20 @@ export const formatterSchema = z
   })
   .strict();
 
+export const breadcrumbSchema = z
+  .object({
+    placement: z.enum(BREADCRUMB_PLACEMENT_VALUES).optional(),
+    pollIntervalMs: z.number().int().positive().optional(),
+    showAction: z.boolean().optional(),
+  })
+  .strict();
+
+export const uiSchema = z
+  .object({
+    breadcrumb: breadcrumbSchema.optional(),
+  })
+  .strict();
+
 export const appConfigSchema = z
   .object({
     defaults: defaultsSchema.optional(),
@@ -144,6 +159,7 @@ export const appConfigSchema = z
     formatters: z.record(formatterSchema).optional(),
     instructions: z.array(z.string()).optional(),
     share: shareSchema.optional(),
+    ui: uiSchema.optional(),
   })
   .strict();
 
@@ -161,4 +177,6 @@ export type ThemeConfig = z.infer<typeof themeSchema>;
 export type ProviderConfig = z.infer<typeof providerConfigSchema>;
 export type CompatibilityConfig = z.infer<typeof compatibilitySchema>;
 export type FormatterConfig = z.infer<typeof formatterSchema>;
+export type BreadcrumbConfig = z.infer<typeof breadcrumbSchema>;
+export type UiConfig = z.infer<typeof uiSchema>;
 export type AppConfigInput = z.infer<typeof appConfigSchema>;

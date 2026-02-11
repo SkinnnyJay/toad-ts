@@ -82,6 +82,8 @@ export interface SlashCommandDeps {
   openHooks?: () => void;
   openProgress?: () => void;
   openAgents?: () => void;
+  openSkills?: () => void;
+  openCommands?: () => void;
   openMemoryFile?: (filePath: string) => Promise<boolean>;
   copyToClipboard?: (text: string) => Promise<boolean>;
   runCompaction?: (sessionId: SessionId) => Promise<SessionId | null>;
@@ -112,6 +114,8 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     command === SLASH_COMMAND.HOOKS ||
     command === SLASH_COMMAND.PROGRESS ||
     command === SLASH_COMMAND.AGENTS ||
+    command === SLASH_COMMAND.SKILLS ||
+    command === SLASH_COMMAND.COMMANDS ||
     command === SLASH_COMMAND.VIM ||
     command === SLASH_COMMAND.IMPORT ||
     command === SLASH_COMMAND.INIT ||
@@ -451,6 +455,22 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         return true;
       }
       deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.AGENTS_NOT_AVAILABLE);
+      return true;
+    }
+    case SLASH_COMMAND.SKILLS: {
+      if (deps.openSkills) {
+        deps.openSkills();
+        return true;
+      }
+      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.SKILLS_NOT_AVAILABLE);
+      return true;
+    }
+    case SLASH_COMMAND.COMMANDS: {
+      if (deps.openCommands) {
+        deps.openCommands();
+        return true;
+      }
+      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.COMMANDS_NOT_AVAILABLE);
       return true;
     }
     case SLASH_COMMAND.ADD_DIR: {

@@ -1,9 +1,4 @@
-import { createClassLogger } from "@/utils/logging/logger.utils";
-
-const logger = createClassLogger("ImageRenderer");
-
 const BLOCK_CHARS = [" ", "░", "▒", "▓", "█"];
-const GRAYSCALE_CHARS = " .:-=+*#%@";
 
 /**
  * Render a base64 image as ASCII art for terminal display.

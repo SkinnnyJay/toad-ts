@@ -1,0 +1,52 @@
+/**
+ * Key names from Ink/OpenTUI key events. Use these instead of raw strings in key handlers.
+ */
+export const KEY_NAME = {
+  ESCAPE: "escape",
+  TAB: "tab",
+  UP: "up",
+  DOWN: "down",
+  RETURN: "return",
+  LINEFEED: "linefeed",
+  BACKSPACE: "backspace",
+  DELETE: "delete",
+  SPACE: "space",
+  PAGEUP: "pageup",
+  PAGEDOWN: "pagedown",
+  HOME: "home",
+  END: "end",
+  LEFT: "left",
+  RIGHT: "right",
+  E: "e",
+  P: "p",
+  S: "s",
+  B: "b",
+  H: "h",
+  J: "j",
+  K: "k",
+  L: "l",
+  I: "i",
+  A: "a",
+  W: "w",
+  BACKTICK: "`",
+} as const;
+
+export type KeyName = (typeof KEY_NAME)[keyof typeof KEY_NAME];
+
+export const {
+  ESCAPE,
+  TAB,
+  UP,
+  DOWN,
+  RETURN,
+  LINEFEED,
+  BACKSPACE,
+  DELETE,
+  SPACE,
+  PAGEUP,
+  PAGEDOWN,
+  HOME,
+  END,
+  LEFT,
+  RIGHT,
+} = KEY_NAME;
