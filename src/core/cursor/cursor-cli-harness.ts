@@ -1,4 +1,3 @@
-import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
@@ -273,18 +272,6 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
 
   async listAgentSessions(): Promise<AgentManagementSession[]> {
     return this.coreHarness.listAgentSessions();
-  }
-
-  async login(): Promise<AgentManagementCommandResult> {
-    return this.runAgentCommand([AGENT_MANAGEMENT_COMMAND.LOGIN]);
-  }
-
-  async logout(): Promise<AgentManagementCommandResult> {
-    return this.runAgentCommand([AGENT_MANAGEMENT_COMMAND.LOGOUT]);
-  }
-
-  async getStatus(): Promise<AgentManagementCommandResult> {
-    return this.runAgentCommand([AGENT_MANAGEMENT_COMMAND.STATUS]);
   }
 
   async setSessionMode(params: SetSessionModeRequest): Promise<SetSessionModeResponse> {
