@@ -153,4 +153,21 @@ describe("CursorCliConnection", () => {
       { id: "another-session-id", title: "done" },
     ]);
   });
+
+  it("surfaces list session command errors", async () => {
+    const connection = new CursorCliConnection({
+      commandRunner: async (_command, args) => {
+        if (args[0] === AGENT_MANAGEMENT_COMMAND.LIST) {
+          return {
+            stdout: "",
+            stderr: "requires tty",
+            exitCode: 1,
+          };
+        }
+        return { stdout: "", stderr: "", exitCode: 0 };
+      },
+    });
+
+    await expect(connection.listSessions()).rejects.toThrow("requires tty");
+  });
 });

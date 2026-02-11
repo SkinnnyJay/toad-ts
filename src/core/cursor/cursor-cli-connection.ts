@@ -9,8 +9,8 @@ import {
   extractFirstUuid,
   parseAuthStatusOutput,
   parseModelsOutput,
-  parseSessionSummariesOutput,
 } from "@/core/agent-management/cli-output-parser";
+import { parseSessionListCommandResult } from "@/core/agent-management/session-list-command-result";
 import { CursorStreamParser } from "@/core/cursor/cursor-stream-parser";
 import type {
   CliAgentAuthStatus,
@@ -163,7 +163,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
 
   async listSessions(): Promise<CliAgentSession[]> {
     const result = await this.runCommand([CURSOR_CLI_COMMAND.LIST]);
-    return parseSessionSummariesOutput(`${result.stdout}\n${result.stderr}`);
+    return parseSessionListCommandResult(result);
   }
 
   async createChat(): Promise<string> {
