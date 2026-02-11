@@ -160,4 +160,46 @@ describe("slash command agent management", () => {
       expect.stringContaining("Native agent command failed.")
     );
   });
+
+  it("runs native status command for cursor harness", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "Model: Auto\nOS: linux",
+      stderr: "",
+      exitCode: 0,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: "cursor-cli",
+      activeAgentName: "Cursor CLI",
+      connectionStatus: "connected",
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.STATUS, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runAgentCommand).toHaveBeenCalledWith(["status"]);
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("Agent status (Cursor CLI):")
+    );
+  });
+
+  it("runs codex status via login status command", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "logged in as codex@example.com",
+      stderr: "",
+      exitCode: 0,
+    }));
+    const { deps } = createDeps({
+      activeHarnessId: "codex-cli",
+      connectionStatus: "connected",
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.STATUS, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runAgentCommand).toHaveBeenCalledWith(["login", "status"]);
+  });
 });
