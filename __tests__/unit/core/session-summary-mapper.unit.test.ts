@@ -118,4 +118,18 @@ describe("session-summary-mapper", () => {
       "session-2",
     ]);
   });
+
+  it("sorts invalid created timestamps after valid timestamps", () => {
+    const sortedSessions = sortAgentManagementSessionsByRecency([
+      { id: "session-valid", createdAt: "2026-02-11T18:30:00.000Z" },
+      { id: "session-invalid", createdAt: "not-a-date" },
+      { id: "session-missing" },
+    ]);
+
+    expect(sortedSessions.map((session) => session.id)).toEqual([
+      "session-valid",
+      "session-invalid",
+      "session-missing",
+    ]);
+  });
 });
