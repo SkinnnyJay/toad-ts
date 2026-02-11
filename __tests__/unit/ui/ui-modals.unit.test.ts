@@ -163,5 +163,24 @@ describe("UI Modals", () => {
 
       expect(lastFrame()).toContain("No sessions");
     });
+
+    it("shows external cursor sessions in the popup list", () => {
+      const nativeSessionId = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174000");
+
+      const { lastFrame } = renderInk(
+        React.createElement(
+          TruncationProvider,
+          {},
+          React.createElement(SessionsPopup, {
+            isOpen: true,
+            onClose: () => {},
+            onSelectSession: () => {},
+            externalSessionIds: [nativeSessionId],
+          })
+        )
+      );
+
+      expect(lastFrame()).toContain("Native: 123e4567");
+    });
   });
 });

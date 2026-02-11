@@ -5,6 +5,7 @@ import { VIEW, type View } from "@/constants/views";
 import type { Session } from "@/types/domain";
 import type { SessionId } from "@/types/domain";
 import type { AgentOption } from "@/ui/components/AgentSelect";
+import { switchToSessionWithFallback } from "@/ui/utils/session-switcher";
 import { clearScreen } from "@/utils/terminal/clearScreen.utils";
 import { useCallback } from "react";
 
@@ -13,6 +14,7 @@ export interface UseAppNavigationOptions {
   sessionId?: SessionId;
   sessionsById: Partial<Record<SessionId, Session>>;
   getSession: (sessionId: SessionId) => Session | undefined;
+  upsertSession: (params: { session: Session }) => void;
   setCurrentSession: (sessionId: SessionId) => void;
   setSessionId: (sessionId: SessionId) => void;
   view: View;
@@ -36,6 +38,7 @@ export const useAppNavigation = ({
   sessionId,
   sessionsById,
   getSession,
+  upsertSession,
   setCurrentSession,
   setSessionId,
   view,
@@ -47,16 +50,19 @@ export const useAppNavigation = ({
 }: UseAppNavigationOptions): UseAppNavigationResult => {
   const handleSelectSession = useCallback(
     (selectedSessionId: SessionId) => {
-      const session = getSession(selectedSessionId);
-      if (session) {
-        setCurrentSession(selectedSessionId);
-        setSessionId(selectedSessionId);
-        if (view !== VIEW.CHAT) {
-          setView(VIEW.CHAT);
-        }
+      switchToSessionWithFallback({
+        targetSessionId: selectedSessionId,
+        getSession,
+        upsertSession,
+        setCurrentSession,
+        setSessionId,
+        agent: selectedAgent ?? undefined,
+      });
+      if (view !== VIEW.CHAT) {
+        setView(VIEW.CHAT);
       }
     },
-    [getSession, setCurrentSession, setSessionId, setView, view]
+    [getSession, selectedAgent, setCurrentSession, setSessionId, setView, upsertSession, view]
   );
 
   const handleAgentSelect = useCallback(

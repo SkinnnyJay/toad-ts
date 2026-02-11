@@ -15,9 +15,26 @@ interface SessionsPopupProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectSession: (sessionId: SessionId) => void;
+  externalSessionIds?: SessionId[];
+  externalSessionLoading?: boolean;
+  externalSessionError?: string | null;
 }
 
-export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopupProps): ReactNode {
+interface SessionEntry {
+  id: SessionId;
+  title: string;
+  searchAgentLabel: string;
+  description: string;
+}
+
+export function SessionsPopup({
+  isOpen,
+  onClose,
+  onSelectSession,
+  externalSessionIds = [],
+  externalSessionLoading = false,
+  externalSessionError = null,
+}: SessionsPopupProps): ReactNode {
   const sessions = useAppStore(useShallow((state) => Object.values(state.sessions)));
   const currentSessionId = useAppStore((state) => state.currentSessionId);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -30,31 +47,55 @@ export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopu
       .sort((a, b) => b.updatedAt - a.updatedAt);
   }, [sessions]);
 
-  const filteredSessions = useMemo(() => {
-    if (!query.trim()) {
-      return sortedSessions;
-    }
-    const normalized = query.trim().toLowerCase();
-    return sortedSessions.filter((session) => {
-      const title = session.title ?? "";
-      const agentId = session.agentId ?? "";
-      return (
-        session.id.toLowerCase().includes(normalized) ||
-        title.toLowerCase().includes(normalized) ||
-        agentId.toLowerCase().includes(normalized)
-      );
-    });
-  }, [query, sortedSessions]);
-
-  const options = useMemo<SelectOption[]>(() => {
-    return filteredSessions.map((session) => {
+  const sessionEntries = useMemo<SessionEntry[]>(() => {
+    const localEntries = sortedSessions.map((session) => {
       const sessionTitle = session.title || session.id.slice(0, LIMIT.ID_TRUNCATE_LENGTH);
       const createdAt = new Date(session.createdAt).toLocaleString();
       const updatedAt = new Date(session.updatedAt).toLocaleString();
       const agentLabel = session.agentId?.slice(0, LIMIT.ID_TRUNCATE_LENGTH) || "N/A";
       return {
-        name: sessionTitle,
+        id: session.id,
+        title: sessionTitle,
+        searchAgentLabel: agentLabel,
         description: `Agent: ${agentLabel} · Created: ${createdAt} · Updated: ${updatedAt}`,
+      };
+    });
+    const localIds = new Set(localEntries.map((entry) => entry.id));
+    const externalEntries = externalSessionIds
+      .filter((sessionId) => !localIds.has(sessionId))
+      .map((sessionId) => {
+        const shortId = sessionId.slice(0, LIMIT.ID_TRUNCATE_LENGTH);
+        return {
+          id: sessionId,
+          title: `Native: ${shortId}`,
+          searchAgentLabel: "cursor",
+          description: `Native Cursor session (${sessionId})`,
+        };
+      });
+    return [...localEntries, ...externalEntries];
+  }, [externalSessionIds, sortedSessions]);
+
+  const filteredSessions = useMemo(() => {
+    if (!query.trim()) {
+      return sessionEntries;
+    }
+    const normalized = query.trim().toLowerCase();
+    return sessionEntries.filter((session) => {
+      const title = session.title;
+      const agentLabel = session.searchAgentLabel;
+      return (
+        session.id.toLowerCase().includes(normalized) ||
+        title.toLowerCase().includes(normalized) ||
+        agentLabel.toLowerCase().includes(normalized)
+      );
+    });
+  }, [query, sessionEntries]);
+
+  const options = useMemo<SelectOption[]>(() => {
+    return filteredSessions.map((session) => {
+      return {
+        name: session.title,
+        description: session.description,
         value: session.id,
       };
     });
@@ -118,6 +159,10 @@ export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopu
         </text>
       </box>
       <text attributes={TextAttributes.DIM}>Filter: {query.length > 0 ? query : "(none)"}</text>
+      {externalSessionLoading ? (
+        <text attributes={TextAttributes.DIM}>Loading native Cursor sessions…</text>
+      ) : null}
+      {externalSessionError ? <text fg={COLOR.YELLOW}>Native sessions unavailable</text> : null}
       {filteredSessions.length === 0 ? (
         <text attributes={TextAttributes.DIM}>No sessions available</text>
       ) : (

@@ -138,6 +138,11 @@ export type {
   UseCursorCloudAgentCountOptions,
   UseCursorCloudAgentCountResult,
 } from "./useCursorCloudAgentCount";
+export { useCursorNativeSessionIds } from "./useCursorNativeSessionIds";
+export type {
+  UseCursorNativeSessionIdsOptions,
+  UseCursorNativeSessionIdsResult,
+} from "./useCursorNativeSessionIds";
 
 export { useRandomFact, useRotatingFact } from "./useRandomFact";
 export type {

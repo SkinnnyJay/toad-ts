@@ -65,6 +65,7 @@ import {
   useCheckpointUI,
   useContextStats,
   useCursorCloudAgentCount,
+  useCursorNativeSessionIds,
   useDefaultAgentSelection,
   useExecutionEngine,
   useHarnessConnection,
@@ -297,6 +298,7 @@ export function App(): ReactNode {
     sessionId,
     sessionsById,
     getSession,
+    upsertSession,
     setCurrentSession,
     setSessionId,
     view,
@@ -391,6 +393,14 @@ export function App(): ReactNode {
     onCyclePermissionMode: handleCyclePermissionMode,
     onRunBreadcrumbAction: handleRunBreadcrumbAction,
     hasOtherModalOpen: isContextOpen || isHooksOpen || isProgressOpen || isAgentDiscoveryOpen,
+  });
+  const {
+    sessionIds: nativeCursorSessionIds,
+    loading: nativeCursorSessionsLoading,
+    error: nativeCursorSessionsError,
+  } = useCursorNativeSessionIds({
+    enabled: isSessionsPopupOpen && selectedAgent?.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID,
+    client,
   });
   const { checkpointStatus, handleRewindSelect } = useCheckpointUI({
     checkpointManager,
@@ -519,6 +529,9 @@ export function App(): ReactNode {
                     isOpen={isSessionsPopupOpen}
                     onClose={() => setIsSessionsPopupOpen(false)}
                     onSelectSession={handleSelectSession}
+                    externalSessionIds={nativeCursorSessionIds}
+                    externalSessionLoading={nativeCursorSessionsLoading}
+                    externalSessionError={nativeCursorSessionsError}
                   />
                 ) : isBackgroundTasksOpen ? (
                   <BackgroundTasksModal

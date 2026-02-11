@@ -1,0 +1,136 @@
+import { SessionIdSchema } from "@/types/domain";
+import { useCursorNativeSessionIds } from "@/ui/hooks/useCursorNativeSessionIds";
+import React from "react";
+import { describe, expect, it, vi } from "vitest";
+import { renderInk } from "../../../utils/ink-test-helpers";
+
+const flushMicrotasks = async (): Promise<void> => {
+  await Promise.resolve();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await Promise.resolve();
+};
+
+interface NativeSessionTestClient {
+  runAgentCommand?: (
+    args: string[]
+  ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
+}
+
+const createIdleClient = (): NativeSessionTestClient => ({
+  runAgentCommand: undefined,
+});
+
+describe("useCursorNativeSessionIds", () => {
+  it("stays idle when disabled", async () => {
+    const runAgentCommand = vi.fn();
+    const client: NativeSessionTestClient = { runAgentCommand };
+
+    function TestComponent() {
+      const result = useCursorNativeSessionIds({
+        enabled: false,
+        client,
+      });
+      return React.createElement(
+        "text",
+        null,
+        `ids:${result.sessionIds.length} loading:${String(result.loading)} error:${result.error ?? "none"}`
+      );
+    }
+
+    const { lastFrame, unmount } = renderInk(React.createElement(TestComponent));
+    await flushMicrotasks();
+
+    expect(runAgentCommand).not.toHaveBeenCalled();
+    expect(lastFrame()).toContain("ids:0");
+    expect(lastFrame()).toContain("loading:false");
+    expect(lastFrame()).toContain("error:none");
+    unmount();
+  });
+
+  it("loads and deduplicates native session ids", async () => {
+    const first = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174000");
+    const second = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174001");
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: `${first}\n${second}\n${first}`,
+      stderr: "",
+      exitCode: 0,
+    }));
+    const client: NativeSessionTestClient = { runAgentCommand };
+
+    function TestComponent() {
+      const result = useCursorNativeSessionIds({
+        enabled: true,
+        client,
+      });
+      return React.createElement(
+        "text",
+        null,
+        `ids:${result.sessionIds.join(",")} loading:${String(result.loading)} error:${result.error ?? "none"}`
+      );
+    }
+
+    const { lastFrame, unmount } = renderInk(React.createElement(TestComponent));
+    await flushMicrotasks();
+
+    expect(runAgentCommand).toHaveBeenCalledWith(["ls"]);
+    const frame = lastFrame();
+    expect(frame).toContain(first);
+    expect(frame).toContain(second);
+    expect(frame).toContain("loading:false");
+    expect(frame).toContain("error:none");
+    unmount();
+  });
+
+  it("reports command errors", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "permission denied",
+      exitCode: 1,
+    }));
+    const client: NativeSessionTestClient = { runAgentCommand };
+
+    function TestComponent() {
+      const result = useCursorNativeSessionIds({
+        enabled: true,
+        client,
+      });
+      return React.createElement(
+        "text",
+        null,
+        `ids:${result.sessionIds.length} loading:${String(result.loading)} error:${result.error ?? "none"}`
+      );
+    }
+
+    const { lastFrame, unmount } = renderInk(React.createElement(TestComponent));
+    await flushMicrotasks();
+
+    expect(lastFrame()).toContain("ids:0");
+    expect(lastFrame()).toContain("loading:false");
+    expect(lastFrame()).toContain("permission denied");
+    unmount();
+  });
+
+  it("clears state when client lacks management command support", async () => {
+    const client = createIdleClient();
+
+    function TestComponent() {
+      const result = useCursorNativeSessionIds({
+        enabled: true,
+        client,
+      });
+      return React.createElement(
+        "text",
+        null,
+        `ids:${result.sessionIds.length} loading:${String(result.loading)} error:${result.error ?? "none"}`
+      );
+    }
+
+    const { lastFrame, unmount } = renderInk(React.createElement(TestComponent));
+    await flushMicrotasks();
+
+    expect(lastFrame()).toContain("ids:0");
+    expect(lastFrame()).toContain("loading:false");
+    expect(lastFrame()).toContain("error:none");
+    unmount();
+  });
+});

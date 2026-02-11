@@ -7,7 +7,6 @@ import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { ENCODING } from "@/constants/encodings";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
-import { SESSION_MODE } from "@/constants/session-modes";
 import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
@@ -18,6 +17,7 @@ import type { HarnessConfig } from "@/harness/harnessConfig";
 import { useAppStore } from "@/store/app-store";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { Message, Session, SessionId } from "@/types/domain";
+import { switchToSessionWithFallback } from "@/ui/utils/session-switcher";
 import { copyToClipboard } from "@/utils/clipboard/clipboard.utils";
 import { openExternalEditorForFile } from "@/utils/editor/externalEditor";
 import { EnvManager } from "@/utils/env/env.utils";
@@ -316,29 +316,14 @@ export const useSlashCommandHandler = ({
           return session.id;
         },
         switchToSession: (targetSessionId) => {
-          const existing = getSession(targetSessionId);
-          if (existing) {
-            setCurrentSession(targetSessionId);
-            return true;
-          }
-
-          const nowValue = now?.() ?? Date.now();
-          const nextSession: Session = {
-            id: targetSessionId,
-            title: `${agent?.name ?? "Session"} (${targetSessionId.slice(0, 8)})`,
-            agentId: agent?.id,
-            messageIds: [],
-            createdAt: nowValue,
-            updatedAt: nowValue,
-            mode: agent?.sessionMode ?? SESSION_MODE.AUTO,
-            metadata: {
-              mcpServers: [],
-              ...(agent?.model ? { model: agent.model } : {}),
-            },
-          };
-          upsertSession({ session: nextSession });
-          setCurrentSession(targetSessionId);
-          return true;
+          return switchToSessionWithFallback({
+            targetSessionId,
+            getSession,
+            upsertSession,
+            setCurrentSession,
+            agent,
+            now,
+          });
         },
         setSessionModel: async (modelId: string) => {
           if (!client?.setSessionModel || !sessionId) {
