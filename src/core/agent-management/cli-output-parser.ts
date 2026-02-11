@@ -15,9 +15,10 @@ import {
 const UUID_PATTERN_SOURCE =
   "[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}";
 const SESSION_ID_PATTERN_SOURCE = "[a-z0-9][a-z0-9._:-]*[-_][a-z0-9._:-]+";
+const LEADING_LIST_PREFIX_PATTERN_SOURCE = "(?:[-*•]\\s+|\\[\\d+\\]\\s+|\\d+[.)]\\s+)?";
 const UUID_PATTERN = new RegExp(`\\b${UUID_PATTERN_SOURCE}\\b`, "i");
 const LEADING_SESSION_ID_PATTERN = new RegExp(
-  `^(?:[-*•]\\s+|\\[\\d+\\]\\s+|\\d+[.)]\\s+)?(?:session(?:_?id)?\\s*[:=]\\s*)?(${UUID_PATTERN_SOURCE}|${SESSION_ID_PATTERN_SOURCE})\\b`,
+  `^${LEADING_LIST_PREFIX_PATTERN_SOURCE}(?:session(?:_?id)?\\s*[:=]\\s*)?(${UUID_PATTERN_SOURCE}|${SESSION_ID_PATTERN_SOURCE})\\b`,
   "i"
 );
 const ISO_DATE_TOKEN_PATTERN =
@@ -27,7 +28,7 @@ const SESSION_MESSAGE_COUNT_PATTERN = /\bmessages?\s*[:=]\s*(\d+)\b/i;
 const SESSION_TRAILING_MESSAGE_COUNT_PATTERN = /(?:^|[\s|,;()])(\d+)\s+messages?\b/i;
 const SESSION_CREATED_AT_PATTERN =
   /\b(?:created(?:_?at)?\s*[:=]\s*)?(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))\b/i;
-const MODEL_LINE_PATTERN = /^(?:[-*]\s+)?(\S+)\s+-\s+(.+)$/;
+const MODEL_LINE_PATTERN = new RegExp(`^${LEADING_LIST_PREFIX_PATTERN_SOURCE}(\\S+)\\s+-\\s+(.+)$`);
 const MODEL_STATE_SUFFIX_PATTERN = /\s+\((?:current|default|,|\s)+\)/gi;
 const MODEL_STATE_MARKER_PATTERN = /\((?:current|default|,|\s)+\)/i;
 const LOGGED_IN_PATTERN = /logged in as\s+([^\s]+@[^\s]+)/i;

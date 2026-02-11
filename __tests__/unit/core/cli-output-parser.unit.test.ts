@@ -118,7 +118,9 @@ describe("cli-output-parser", () => {
   });
 
   it("parses bulleted model lines", () => {
-    const parsed = parseModelsOutput(["- gpt-5 - GPT-5 (default)", "* gpt-4o - GPT-4o"].join("\n"));
+    const parsed = parseModelsOutput(
+      ["- gpt-5 - GPT-5 (default)", "* gpt-4o - GPT-4o", "1. gpt-3.5 - GPT-3.5"].join("\n")
+    );
 
     expect(parsed.models).toEqual([
       {
@@ -130,6 +132,12 @@ describe("cli-output-parser", () => {
       {
         id: "gpt-4o",
         name: "GPT-4o",
+        isDefault: false,
+        supportsThinking: false,
+      },
+      {
+        id: "gpt-3.5",
+        name: "GPT-3.5",
         isDefault: false,
         supportsThinking: false,
       },
@@ -257,6 +265,7 @@ describe("cli-output-parser", () => {
       "- session-fallback-id Backup title",
       "• session-dot-bullet-id Dot bullet title",
       "[2] session-bracket-index-id Bracket index title",
+      "3) session-numbered-id Numbered title",
     ].join("\n");
 
     expect(parseSessionSummariesOutput(output)).toEqual([
@@ -275,6 +284,10 @@ describe("cli-output-parser", () => {
       {
         id: "session-bracket-index-id",
         title: "Bracket index title",
+      },
+      {
+        id: "session-numbered-id",
+        title: "Numbered title",
       },
     ]);
   });
