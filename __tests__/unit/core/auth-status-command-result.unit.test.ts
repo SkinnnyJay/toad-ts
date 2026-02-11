@@ -30,6 +30,20 @@ describe("auth-status-command-result", () => {
     });
   });
 
+  it("parses authenticated status token output from stdout", () => {
+    const parsed = parseAuthStatusCommandResult({
+      stdout: "status=authenticated\nemail=status-user@example.com",
+      stderr: "",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual({
+      authenticated: true,
+      method: "browser_login",
+      email: "status-user@example.com",
+    });
+  });
+
   it("falls back to stderr when stdout is empty", () => {
     const parsed = parseAuthStatusCommandResult({
       stdout: "",

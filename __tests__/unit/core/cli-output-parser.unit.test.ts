@@ -28,6 +28,33 @@ describe("cli-output-parser", () => {
     expect(parsed.email).toBeUndefined();
   });
 
+  it("parses status-token auth output variants", () => {
+    const authenticatedParsed = parseAuthStatusOutput(
+      "status: logged-in\nemail: status-user@example.com"
+    );
+    const unauthenticatedParsed = parseAuthStatusOutput("authentication status=unauthenticated");
+
+    expect(authenticatedParsed).toEqual({
+      authenticated: true,
+      method: "browser_login",
+      email: "status-user@example.com",
+    });
+    expect(unauthenticatedParsed).toEqual({
+      authenticated: false,
+      method: "none",
+    });
+  });
+
+  it("parses authenticated-as phrase output", () => {
+    const parsed = parseAuthStatusOutput("You are authenticated as phrase-user@example.com");
+
+    expect(parsed).toEqual({
+      authenticated: true,
+      method: "browser_login",
+      email: "phrase-user@example.com",
+    });
+  });
+
   it("parses model list output and default model flag", () => {
     const parsed = parseModelsOutput(
       "auto - Auto\nopus-4.6-thinking - Claude 4.6 Opus (Thinking) (default)"

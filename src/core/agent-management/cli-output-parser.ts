@@ -31,7 +31,10 @@ const MODEL_LINE_PATTERN = /^(?:[-*]\s+)?(\S+)\s+-\s+(.+)$/;
 const MODEL_STATE_SUFFIX_PATTERN = /\s+\((?:current|default|,|\s)+\)/gi;
 const MODEL_STATE_MARKER_PATTERN = /\((?:current|default|,|\s)+\)/i;
 const LOGGED_IN_PATTERN = /logged in as\s+([^\s]+@[^\s]+)/i;
+const AUTHENTICATED_AS_PATTERN = /\bauthenticated\s+as\s+([^\s]+@[^\s]+)/i;
 const AUTHENTICATED_STATUS_PATTERN = /\bauthenticated\b\s*[:=]\s*(true|false|yes|no|1|0)\b/i;
+const AUTH_STATUS_VALUE_PATTERN =
+  /\b(?:auth(?:entication)?\s+)?status\b\s*[:=]\s*(authenticated|unauthenticated|logged[\s_-]?in|logged[\s_-]?out)\b/i;
 const AUTH_EMAIL_PATTERN = /\b(?:email|user|account)\b\s*[:=]\s*([^\s]+@[^\s]+)/i;
 const REQUIRES_TTY_PATTERN = /requires tty/i;
 
@@ -46,6 +49,27 @@ const parseBooleanToken = (value: string): boolean =>
   value.trim().toLowerCase() === "yes" ||
   value.trim() === "1";
 
+const AUTH_STATUS_TOKEN = {
+  AUTHENTICATED: "authenticated",
+  UNAUTHENTICATED: "unauthenticated",
+  LOGGED_IN: "logged_in",
+  LOGGED_OUT: "logged_out",
+} as const;
+
+const normalizeAuthStatusToken = (value: string): string => {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+};
+
+const isAuthenticatedStatusToken = (value: string): boolean => {
+  const normalized = normalizeAuthStatusToken(value);
+  return (
+    normalized === AUTH_STATUS_TOKEN.AUTHENTICATED || normalized === AUTH_STATUS_TOKEN.LOGGED_IN
+  );
+};
+
 export const parseAuthStatusOutput = (stdout: string): CliAgentAuthStatus => {
   const loggedIn = LOGGED_IN_PATTERN.exec(stdout);
   if (loggedIn) {
@@ -56,9 +80,29 @@ export const parseAuthStatusOutput = (stdout: string): CliAgentAuthStatus => {
     });
   }
 
+  const authenticatedAs = AUTHENTICATED_AS_PATTERN.exec(stdout);
+  if (authenticatedAs) {
+    return CliAgentAuthStatusSchema.parse({
+      authenticated: true,
+      method: "browser_login",
+      email: authenticatedAs[1],
+    });
+  }
+
   const authenticatedStatus = AUTHENTICATED_STATUS_PATTERN.exec(stdout);
   if (authenticatedStatus?.[1]) {
     const authenticated = parseBooleanToken(authenticatedStatus[1]);
+    const email = AUTH_EMAIL_PATTERN.exec(stdout)?.[1];
+    return CliAgentAuthStatusSchema.parse({
+      authenticated,
+      method: authenticated ? "browser_login" : "none",
+      email: authenticated ? email : undefined,
+    });
+  }
+
+  const statusValue = AUTH_STATUS_VALUE_PATTERN.exec(stdout)?.[1];
+  if (statusValue) {
+    const authenticated = isAuthenticatedStatusToken(statusValue);
     const email = AUTH_EMAIL_PATTERN.exec(stdout)?.[1];
     return CliAgentAuthStatusSchema.parse({
       authenticated,
