@@ -1,5 +1,6 @@
 import type { CliAgentPort, CliAgentPromptExecution } from "@/core/cli-agent/cli-agent.port";
 import type { CursorPromptRequest, CursorPromptResult } from "@/core/cursor/cursor-cli-connection";
+import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type { CliAgentSession } from "@/types/cli-agent.types";
 
 const CURSOR_AGENT_PORT_DEFAULT = {
@@ -16,11 +17,7 @@ export interface CursorCliConnectionLike {
   createChat(): Promise<string>;
   spawnPrompt(request: CursorPromptRequest): Promise<CursorPromptResult>;
   disconnect(): Promise<void>;
-  runManagementCommand(args: string[]): Promise<{
-    stdout: string;
-    stderr: string;
-    exitCode: number;
-  }>;
+  runManagementCommand(args: string[]): Promise<AgentManagementCommandResult>;
 }
 
 export interface CursorCliAgentPortOptions {

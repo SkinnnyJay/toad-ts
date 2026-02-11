@@ -16,6 +16,7 @@ import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import { useAppStore } from "@/store/app-store";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
+import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type { Message, Session, SessionId } from "@/types/domain";
 import { switchToSessionWithFallback } from "@/ui/utils/session-switcher";
 import { copyToClipboard } from "@/utils/clipboard/clipboard.utils";
@@ -223,7 +224,7 @@ export const useSlashCommandHandler = ({
   );
 
   const runAgentCommand = useCallback(
-    async (args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> => {
+    async (args: string[]): Promise<AgentManagementCommandResult> => {
       if (client?.runAgentCommand) {
         return client.runAgentCommand(args);
       }

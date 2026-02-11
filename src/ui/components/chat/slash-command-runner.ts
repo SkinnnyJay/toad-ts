@@ -29,7 +29,10 @@ import { parseModelsCommandResult } from "@/core/agent-management/models-command
 import { parseAgentManagementSessionsFromCommandResult } from "@/core/agent-management/session-list-command-result";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
-import type { AgentManagementSession } from "@/types/agent-management.types";
+import type {
+  AgentManagementCommandResult,
+  AgentManagementSession,
+} from "@/types/agent-management.types";
 import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
 import { PlanIdSchema, SessionIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
 import { nanoid } from "nanoid";
@@ -103,9 +106,7 @@ export interface SlashCommandDeps {
   harnesses?: Record<string, HarnessConfig>;
   activeHarnessId?: string;
   activeAgentName?: string;
-  runAgentCommand?: (
-    args: string[]
-  ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
+  runAgentCommand?: (args: string[]) => Promise<AgentManagementCommandResult>;
   listAgentSessions?: () => Promise<AgentManagementSession[]>;
   listCloudAgents?: () => Promise<number>;
   toggleVimMode?: () => boolean;

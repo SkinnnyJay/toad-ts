@@ -16,6 +16,7 @@ import {
 import { parseAuthStatusCommandResult } from "@/core/agent-management/auth-status-command-result";
 import { parseKeyValueLines } from "@/core/agent-management/cli-output-parser";
 import { toCommandFailureMessage } from "@/core/agent-management/command-result-utils";
+import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import { EnvManager } from "@/utils/env/env.utils";
 import type { SlashCommandDeps } from "./slash-command-runner";
 
@@ -40,10 +41,7 @@ const buildOutputPreview = (stdout: string, stderr: string): string => {
   return combined.join("\n");
 };
 
-const buildCommandResultMessage = (
-  title: string,
-  result: { stdout: string; stderr: string; exitCode: number }
-): string => {
+const buildCommandResultMessage = (title: string, result: AgentManagementCommandResult): string => {
   const preview = buildOutputPreview(result.stdout, result.stderr);
   if (preview.length === 0) {
     return `${title}\n(exit ${result.exitCode})`;
@@ -51,11 +49,7 @@ const buildCommandResultMessage = (
   return `${title}\n${preview}`;
 };
 
-const buildCommandFailureMessage = (result: {
-  stdout: string;
-  stderr: string;
-  exitCode: number;
-}): string => {
+const buildCommandFailureMessage = (result: AgentManagementCommandResult): string => {
   const fallbackMessage = `exit ${result.exitCode}`;
   const failureMessage = toCommandFailureMessage(result, fallbackMessage);
   if (failureMessage === fallbackMessage) {
