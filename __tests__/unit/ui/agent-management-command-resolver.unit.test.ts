@@ -15,6 +15,7 @@ import {
   isCursorHarness,
   mapClaudeStatusLines,
   mapCursorAboutLines,
+  mapCursorLoginLines,
   mapCursorLogoutLines,
   mapCursorModelLines,
   mapCursorStatusLines,
@@ -181,6 +182,11 @@ describe("agent-management-command-resolver", () => {
       "Logged out: yes",
       "Command: cursor-agent logout",
       "Logged out successfully",
+    ]);
+    expect(mapCursorLoginLines(cursorHarness, "Opening browser for login...", "")).toEqual([
+      "Run `cursor-agent login` in a terminal.",
+      "Login will open a browser for authentication.",
+      "Opening browser for login...",
     ]);
   });
 

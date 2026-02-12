@@ -346,6 +346,12 @@ describe("agent management commands integration", () => {
   });
 
   it("returns browser login guidance for cursor harness", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "Opening browser for login...",
+      stderr: "",
+      exitCode: 0,
+    });
     const harness = harnessConfigSchema.parse({
       id: "cursor-cli",
       name: "Cursor CLI",
@@ -361,6 +367,12 @@ describe("agent management commands integration", () => {
     expect(lines[0]).toContain("cursor-agent");
     expect(lines[0]).toContain("login");
     expect(lines[1]).toContain("browser");
+    expect(lines[2]).toContain("Opening browser");
+    expect(execaMock).toHaveBeenCalledWith(
+      "cursor-agent",
+      ["login"],
+      expect.objectContaining({ reject: false })
+    );
   });
 
   it("formats cursor logout command result", async () => {

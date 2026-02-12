@@ -129,6 +129,12 @@ describe("agent-management-command-service", () => {
   });
 
   it("routes /agent login to login command flow", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "Opening browser for login...",
+      stderr: "",
+      exitCode: 0,
+    });
     const harness = harnessConfigSchema.parse({
       id: "cursor-cli",
       name: "Cursor CLI",
@@ -147,6 +153,8 @@ describe("agent-management-command-service", () => {
 
     expect(lines[0]).toContain("cursor-agent");
     expect(lines[0]).toContain("login");
+    const args = execaMock.mock.calls[0]?.[1] as string[] | undefined;
+    expect(args).toEqual(["login"]);
   });
 
   it("returns unsupported /agent subcommand guidance", async () => {
@@ -234,6 +242,12 @@ describe("agent-management-command-service", () => {
   });
 
   it("returns login guidance command for active harness", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "Opening browser for login...",
+      stderr: "",
+      exitCode: 0,
+    });
     const harness = harnessConfigSchema.parse({
       id: "cursor-cli",
       name: "Cursor CLI",
@@ -247,6 +261,7 @@ describe("agent-management-command-service", () => {
 
     expect(lines[0]).toContain("cursor-agent --foo login");
     expect(lines[1]).toContain("open a browser");
+    expect(lines[2]).toContain("Opening browser for login");
   });
 
   it("returns env guidance when gemini login is requested", async () => {

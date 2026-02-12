@@ -41,6 +41,7 @@ import {
   isCursorHarness,
   mapClaudeStatusLines,
   mapCursorAboutLines,
+  mapCursorLoginLines,
   mapCursorLogoutLines,
   mapCursorModelLines,
   mapCursorStatusLines,
@@ -293,6 +294,8 @@ const resolveAgentRootCommand = (subcommand: string | undefined): string | undef
       return AGENT_MANAGEMENT_COMMAND.STATUS;
     case AGENT_SUBCOMMAND.MODELS:
       return AGENT_MANAGEMENT_COMMAND.MODELS;
+    case AGENT_SUBCOMMAND.ABOUT:
+      return AGENT_MANAGEMENT_COMMAND.ABOUT;
     default:
       return undefined;
   }
@@ -315,34 +318,6 @@ export const runAgentCommand = async (
       if (args[0] === AGENT_SUBCOMMAND.MCP) {
         return runMcpCommand(context, args.slice(1));
       }
-      if (args[0] === AGENT_SUBCOMMAND.ABOUT) {
-        if (!harness) {
-          return [HARNESS_MESSAGE.NO_ACTIVE_HARNESS];
-        }
-        if (!hasCapability(harness, AGENT_MANAGEMENT_CAPABILITY.ABOUT)) {
-          return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.ABOUT)];
-        }
-        const result = await runHarnessCommand(
-          harness,
-          resolveNativeCommandArgs(harness, AGENT_MANAGEMENT_COMMAND.ABOUT)
-        );
-        if (result.exitCode !== 0) {
-          return [result.stderr || result.stdout || COMMAND_RESULT_EMPTY];
-        }
-        if (isCursorHarness(harness)) {
-          return mapCursorAboutLines(result.stdout);
-        }
-        const aboutOutput = result.stdout || result.stderr;
-        const version = parseAboutVersionForHarness(harness, aboutOutput);
-        return formatAboutResult(
-          {
-            supported: true,
-            version,
-            message: !version ? aboutOutput || COMMAND_RESULT_EMPTY : undefined,
-          },
-          harness.name
-        );
-      }
       {
         const delegatedCommand = resolveAgentRootCommand(args[0]);
         if (delegatedCommand) {
@@ -362,7 +337,14 @@ export const runAgentCommand = async (
         }
         return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.LOGIN)];
       }
-      if (harness.id === HARNESS_ID.CURSOR_CLI || harness.id === HARNESS_ID.CODEX_CLI) {
+      if (harness.id === HARNESS_ID.CURSOR_CLI) {
+        const result = await runHarnessCommand(
+          harness,
+          resolveNativeCommandArgs(harness, AGENT_MANAGEMENT_COMMAND.LOGIN)
+        );
+        return mapCursorLoginLines(harness, result.stdout, result.stderr);
+      }
+      if (harness.id === HARNESS_ID.CODEX_CLI) {
         return formatLoginResult(
           {
             supported: true,
