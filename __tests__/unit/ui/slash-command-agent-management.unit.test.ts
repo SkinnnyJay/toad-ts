@@ -1,3 +1,4 @@
+import { CURSOR_AUTH_GUIDANCE } from "@/constants/cursor-auth-guidance";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
@@ -796,6 +797,50 @@ describe("slash command agent management", () => {
       expect.stringContaining("Agent status (Codex CLI):")
     );
     expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("Authenticated: yes"));
+  });
+
+  it("shows cursor login guidance when /status reports unauthenticated", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "Authenticated: no",
+      stderr: "",
+      exitCode: 0,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      activeAgentName: "Cursor CLI",
+      connectionStatus: "connected",
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.STATUS, deps)).toBe(true);
+    await vi.waitFor(() => {
+      expect(appendSystemMessage.mock.calls.length).toBeGreaterThan(1);
+    });
+
+    expect(appendSystemMessage).toHaveBeenCalledWith(CURSOR_AUTH_GUIDANCE.LOGIN_REQUIRED);
+  });
+
+  it("shows generic login guidance when non-cursor /status reports unauthenticated", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "Authenticated: no",
+      stderr: "",
+      exitCode: 0,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CODEX_CLI_ID,
+      activeAgentName: "Codex CLI",
+      connectionStatus: "connected",
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.STATUS, deps)).toBe(true);
+    await vi.waitFor(() => {
+      expect(appendSystemMessage.mock.calls.length).toBeGreaterThan(1);
+    });
+
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      SLASH_COMMAND_MESSAGE.AUTH_REQUIRED_LOGIN_HINT
+    );
   });
 
   it("fetches native cursor sessions for /sessions", async () => {

@@ -83,6 +83,7 @@ export const SLASH_COMMAND_MESSAGE = {
   SESSIONS_NOT_AVAILABLE: "Session listing is not available for this provider.",
   GEMINI_LOGIN_HINT:
     "Gemini uses API-key auth. Set GOOGLE_API_KEY or GEMINI_API_KEY in your environment.",
+  AUTH_REQUIRED_LOGIN_HINT: "Authentication required. Run /login for the active provider.",
   CONFIG_NOT_AVAILABLE: "Configuration panel is not available.",
   INIT_STARTING: "Generating TOADSTOOL.md for this project...",
   INIT_COMPLETE: "TOADSTOOL.md generated successfully.",

@@ -24,6 +24,7 @@ import { EnvManager } from "@/utils/env/env.utils";
 import { handleCloudDispatchSubcommand } from "./slash-command-cloud-dispatch";
 import { resolveCloudCommandErrorMessage } from "./slash-command-cloud-utils";
 import type { SlashCommandDeps } from "./slash-command-runner";
+import { appendStatusAuthGuidance, toStatusAuthState } from "./slash-command-status-auth";
 
 const MANAGEMENT_COMMAND = {
   LOGIN: AGENT_MANAGEMENT_COMMAND.LOGIN,
@@ -176,6 +177,9 @@ export const handleStatusCommand = (deps: SlashCommandDeps): void => {
         deps.appendSystemMessage(
           `Agent status (${deps.activeAgentName ?? deps.activeHarnessId ?? "active"}):\n${mapped}`
         );
+        if (toStatusAuthState(keyValues) === false) {
+          appendStatusAuthGuidance(deps);
+        }
         return;
       }
 
@@ -184,6 +188,10 @@ export const handleStatusCommand = (deps: SlashCommandDeps): void => {
         `Agent status (${deps.activeAgentName ?? deps.activeHarnessId ?? "active"}):\n` +
           `Authenticated: ${auth.authenticated ? "yes" : "no"}`
       );
+      if (auth.authenticated) {
+        return;
+      }
+      appendStatusAuthGuidance(deps);
     })
     .catch((error) => appendAgentCommandRuntimeError(deps, error));
 };
