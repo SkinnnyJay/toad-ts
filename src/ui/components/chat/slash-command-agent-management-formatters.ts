@@ -1,6 +1,7 @@
 import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import { toCommandFailureMessage } from "@/core/agent-management/command-result-utils";
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
+import { toErrorMessage } from "@/ui/utils/auth-error-matcher";
 
 const PREVIEW_LINE_LIMIT = 8;
 
@@ -38,9 +39,7 @@ export const buildAgentManagementCommandFailureMessage = (
 export const appendAgentManagementCommandRuntimeError = (
   appendSystemMessage: (text: string) => void,
   error: unknown
-): void =>
-  appendSystemMessage(
-    `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${
-      error instanceof Error ? error.message : String(error)
-    }`
-  );
+): void => {
+  const details = toErrorMessage(error) ?? String(error);
+  appendSystemMessage(`${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${details}`);
+};

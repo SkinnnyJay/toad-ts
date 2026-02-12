@@ -69,4 +69,14 @@ describe("slash-command-agent-management-formatters", () => {
       "Native agent command failed. runtime failure"
     );
   });
+
+  it("formats runtime object messages through callback", () => {
+    const appendSystemMessage = vi.fn();
+    appendAgentManagementCommandRuntimeError(appendSystemMessage, {
+      message: "runtime object failure",
+    });
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      "Native agent command failed. runtime object failure"
+    );
+  });
 });
