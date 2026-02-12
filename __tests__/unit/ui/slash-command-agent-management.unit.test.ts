@@ -509,6 +509,35 @@ describe("slash command agent management", () => {
     expect(appendSystemMessage).toHaveBeenCalledWith("Switched to session: resumed-session-id");
   });
 
+  it("hydrates /sessions <id> switch with native seed metadata when available", async () => {
+    const switchToSession = vi.fn(() => true);
+    const listAgentSessions = vi.fn(async () => [
+      {
+        id: "resumed-session-id",
+        title: "Recovered title",
+        createdAt: "2026-02-11T18:30:00.000Z",
+        model: "gpt-5",
+      },
+    ]);
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      switchToSession,
+      listAgentSessions,
+    });
+
+    expect(runSlashCommand("/sessions resumed-session-id", deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(switchToSession).toHaveBeenNthCalledWith(1, "resumed-session-id");
+    expect(switchToSession).toHaveBeenNthCalledWith(2, "resumed-session-id", {
+      title: "Recovered title",
+      createdAt: "2026-02-11T18:30:00.000Z",
+      model: "gpt-5",
+    });
+    expect(appendSystemMessage).toHaveBeenCalledWith("Switched to session: resumed-session-id");
+  });
+
   it("reports when /sessions <id> fails to switch sessions", () => {
     const switchToSession = vi.fn(() => false);
     const { deps, appendSystemMessage } = createDeps({

@@ -36,6 +36,7 @@ import type {
 } from "@/types/agent-management.types";
 import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
 import { PlanIdSchema, SessionIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
+import type { SessionSwitchSeed } from "@/ui/utils/session-switcher";
 import { nanoid } from "nanoid";
 import {
   runCopyCommand,
@@ -86,7 +87,7 @@ export interface SlashCommandDeps {
   upsertPlan: (plan: Plan) => void;
   openSessions?: () => void;
   createSession?: (title?: string) => Promise<SessionId | null>;
-  switchToSession?: (sessionId: SessionId) => boolean;
+  switchToSession?: (sessionId: SessionId, seedSession?: SessionSwitchSeed) => boolean;
   setSessionModel?: (modelId: string) => Promise<void>;
   toggleToolDetails?: () => boolean;
   toggleThinking?: () => boolean;
@@ -184,9 +185,26 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
           deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.SESSION_SWITCH_NOT_AVAILABLE);
           return true;
         }
-        const switched = deps.switchToSession(SessionIdSchema.parse(targetSessionId));
+        const parsedSessionId = SessionIdSchema.parse(targetSessionId);
+        const switched = deps.switchToSession(parsedSessionId);
         if (switched) {
           deps.appendSystemMessage(formatSessionSwitchedMessage(targetSessionId));
+          if (deps.activeHarnessId === HARNESS_DEFAULT.CURSOR_CLI_ID && deps.listAgentSessions) {
+            void deps
+              .listAgentSessions()
+              .then((sessions) => {
+                const seed = sessions.find((session) => session.id === targetSessionId);
+                if (!seed) {
+                  return;
+                }
+                deps.switchToSession?.(parsedSessionId, {
+                  title: seed.title,
+                  createdAt: seed.createdAt,
+                  model: seed.model,
+                });
+              })
+              .catch(() => undefined);
+          }
         } else {
           deps.appendSystemMessage(formatSessionSwitchFailedMessage(targetSessionId));
         }
