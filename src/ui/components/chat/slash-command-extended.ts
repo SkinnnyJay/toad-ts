@@ -19,6 +19,7 @@ import { parseKeyValueLines } from "@/core/agent-management/cli-output-parser";
 import { toCommandFailureMessage } from "@/core/agent-management/command-result-utils";
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import { sortCloudAgentItemsByRecency } from "@/ui/utils/cloud-agent-list";
+import { formatMcpToolPreview, parseMcpServerToolsCommandResult } from "@/ui/utils/mcp-server-list";
 import { EnvManager } from "@/utils/env/env.utils";
 import type { SlashCommandDeps } from "./slash-command-runner";
 
@@ -445,8 +446,17 @@ export const handleMcpCommand = (parts: string[], deps: SlashCommandDeps): void 
   }
 
   const subcommand = parts.slice(1);
+  const firstSubcommand = subcommand[0];
+  const firstSubcommandNormalized = firstSubcommand?.trim().toLowerCase();
   if (subcommand.length === 0 && deps.openMcpPanel) {
     deps.openMcpPanel();
+    return;
+  }
+  if (
+    firstSubcommandNormalized === MCP_MANAGEMENT_SUBCOMMAND.LIST_TOOLS &&
+    !subcommand[1]?.trim()
+  ) {
+    deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.MCP_LIST_TOOLS_USAGE);
     return;
   }
   const args =
@@ -462,6 +472,19 @@ export const handleMcpCommand = (parts: string[], deps: SlashCommandDeps): void 
     .then((result) => {
       if (result.exitCode !== 0) {
         deps.appendSystemMessage(buildCommandFailureMessage(result));
+        return;
+      }
+      if (
+        firstSubcommandNormalized === MCP_MANAGEMENT_SUBCOMMAND.LIST_TOOLS &&
+        subcommand[1]?.trim()
+      ) {
+        const serverId = subcommand[1].trim();
+        const tools = parseMcpServerToolsCommandResult(result, serverId);
+        const toolMessage =
+          tools.length === 0
+            ? `No MCP tools found for ${serverId}.`
+            : `MCP tools for ${serverId}: ${formatMcpToolPreview(tools)}`;
+        deps.appendSystemMessage(toolMessage);
         return;
       }
       deps.appendSystemMessage(buildCommandResultMessage("MCP command result:", result));

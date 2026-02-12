@@ -206,6 +206,36 @@ describe("slash command agent management", () => {
     expect(runAgentCommand).not.toHaveBeenCalled();
   });
 
+  it("formats MCP list-tools output when server id is provided", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "read_file\nwrite_file",
+      stderr: "",
+      exitCode: 0,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand("/mcp list-tools github", deps)).toBe(true);
+    await vi.waitFor(() => {
+      expect(runAgentCommand.mock.calls.length).toBe(1);
+    });
+
+    expect(runAgentCommand).toHaveBeenCalledWith(["mcp", "list-tools", "github"]);
+    expect(appendSystemMessage).toHaveBeenCalledWith("MCP tools for github: read_file, write_file");
+  });
+
+  it("shows usage when /mcp list-tools is missing server id", () => {
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      runAgentCommand: vi.fn(),
+    });
+
+    expect(runSlashCommand("/mcp list-tools", deps)).toBe(true);
+    expect(appendSystemMessage).toHaveBeenCalledWith("Usage: /mcp list-tools <server-id>");
+  });
+
   it("delegates /mode updates to runtime setSessionMode when available", async () => {
     const sessionId = SessionIdSchema.parse("session-mode");
     const session: Session = {

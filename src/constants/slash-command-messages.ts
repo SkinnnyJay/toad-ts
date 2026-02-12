@@ -64,6 +64,7 @@ export const SLASH_COMMAND_MESSAGE = {
   MCP_NOT_AVAILABLE: "MCP command is not available for this provider.",
   MCP_UNSUPPORTED: "MCP command is not supported for the active provider.",
   MCP_STARTING: "Running MCP command...",
+  MCP_LIST_TOOLS_USAGE: "Usage: /mcp list-tools <server-id>",
   MODELS_FETCHING: "Fetching models from active provider...",
   MODELS_NOT_AVAILABLE: "Model listing is not available for this provider.",
   CLOUD_USAGE: "Usage: /cloud [list|status <id>|stop <id>|followup <id> <prompt>]",
