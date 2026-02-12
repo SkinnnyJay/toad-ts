@@ -272,7 +272,11 @@ export class CursorCliHarnessAdapter
 
     // Wait for result event
     return new Promise<PromptResponse>((resolve, reject) => {
+      let resolved = false;
+
       translator.on("promptResult", (result) => {
+        if (resolved) return;
+        resolved = true;
         resolve({
           content: [{ type: "text", text: result.text }],
           metadata: {
@@ -284,13 +288,28 @@ export class CursorCliHarnessAdapter
       });
 
       childProcess.on("exit", (code) => {
-        // If we didn't get a result event, the process may have crashed
+        if (resolved) return;
         if (code !== 0 && code !== null) {
+          resolved = true;
           reject(new Error(`cursor-agent exited with code ${code}`));
+        } else {
+          // Process exited cleanly but no result event — wait briefly
+          // then resolve with empty response (handles edge case)
+          setTimeout(() => {
+            if (resolved) return;
+            resolved = true;
+            logger.warn("Process exited without result event");
+            resolve({
+              content: [{ type: "text", text: "" }],
+              metadata: {},
+            } as unknown as PromptResponse);
+          }, 100);
         }
       });
 
       childProcess.on("error", (error) => {
+        if (resolved) return;
+        resolved = true;
         reject(error);
       });
     });
