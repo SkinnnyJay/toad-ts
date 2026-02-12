@@ -1,8 +1,18 @@
 import { LIMIT } from "@/config/limits";
-import { formatAgentSessionListMessage } from "@/constants/slash-command-messages";
+import {
+  SLASH_COMMAND_MESSAGE,
+  formatAgentSessionListMessage,
+} from "@/constants/slash-command-messages";
 import { describe, expect, it } from "vitest";
 
 describe("slash command message formatters", () => {
+  it("exports auth guidance messages for status and cloud failures", () => {
+    expect(SLASH_COMMAND_MESSAGE.AUTH_REQUIRED_LOGIN_HINT).toBe(
+      "Authentication required. Run /login for the active provider."
+    );
+    expect(SLASH_COMMAND_MESSAGE.CLOUD_AUTH_REQUIRED).toContain("cursor-agent login");
+  });
+
   it("formats native agent sessions with metadata details", () => {
     const message = formatAgentSessionListMessage([
       {
