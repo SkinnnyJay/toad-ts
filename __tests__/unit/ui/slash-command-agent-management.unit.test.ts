@@ -199,7 +199,9 @@ describe("slash command agent management", () => {
       branch: "feature/cloud-dispatch",
     });
     expect(appendSystemMessage).toHaveBeenCalledWith(
-      expect.stringContaining("Cloud agent started: agent-3 (queued).")
+      expect.stringContaining(
+        "Cloud agent started: agent-3 (queued). [owner/repo @ feature/cloud-dispatch]"
+      )
     );
   });
 

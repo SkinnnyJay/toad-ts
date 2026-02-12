@@ -23,6 +23,7 @@ export const handleCloudDispatchSubcommand = (parts: string[], deps: SlashComman
     : undefined;
   const repository = toOptionalTrimmed(deps.cloudDispatchContext?.repository);
   const branch = toOptionalTrimmed(deps.cloudDispatchContext?.branch);
+  const contextDetails = repository ? `${repository}${branch ? ` @ ${branch}` : ""}` : branch;
 
   deps.appendSystemMessage("Dispatching cloud prompt…");
   void deps
@@ -33,7 +34,9 @@ export const handleCloudDispatchSubcommand = (parts: string[], deps: SlashComman
       ...(branch ? { branch } : {}),
     })
     .then((agent) => {
-      deps.appendSystemMessage(`Cloud agent started: ${agent.id} (${agent.status}).`);
+      deps.appendSystemMessage(
+        `Cloud agent started: ${agent.id} (${agent.status}).${contextDetails ? ` [${contextDetails}]` : ""}`
+      );
     })
     .catch((error) => {
       deps.appendSystemMessage(resolveCloudCommandErrorMessage(error, "Cloud dispatch failed"));
