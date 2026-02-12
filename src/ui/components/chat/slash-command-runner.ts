@@ -326,10 +326,14 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
                 deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MODELS_AVAILABLE);
                 return;
               }
-              const modelLines = parsed.models.map(
-                (model) => `- ${model.id} (${model.name})${model.isDefault ? " (default)" : ""}`
+              const parsedCurrentModel = parsed.models.find((model) => model.isDefault)?.id;
+              const normalizedModels = parsed.models.map((model) => ({
+                modelId: model.id,
+                name: model.name,
+              }));
+              deps.appendSystemMessage(
+                formatModelListMessage(normalizedModels, parsedCurrentModel)
               );
-              deps.appendSystemMessage(`Available models:\n${modelLines.join("\n")}`);
             })
             .catch((error) => {
               deps.appendSystemMessage(

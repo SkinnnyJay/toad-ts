@@ -86,6 +86,9 @@ describe("slash command agent management", () => {
 
     expect(runAgentCommand).toHaveBeenCalledWith(["models"]);
     expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("Available models"));
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("opus-4.6-thinking (Claude 4.6 Opus (Thinking)) (current)")
+    );
   });
 
   it("uses /model alias to fetch model list", async () => {
