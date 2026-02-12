@@ -1,8 +1,10 @@
 import { PassThrough, Readable, Writable } from "node:stream";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
+import { harnessConfigSchema } from "@/harness/harnessConfig";
 import { EnvManager } from "@/utils/env/env.utils";
 import {
   type Agent,
@@ -16,7 +18,10 @@ import { EventEmitter } from "eventemitter3";
 import { describe, expect, it, vi } from "vitest";
 import type { ACPConnectionLike } from "../../../src/core/acp-client";
 import type { ACPConnectionOptions } from "../../../src/core/acp-connection";
-import { ClaudeCliHarnessAdapter } from "../../../src/core/claude-cli-harness";
+import {
+  ClaudeCliHarnessAdapter,
+  claudeCliHarnessAdapter,
+} from "../../../src/core/claude-cli-harness";
 import type { ConnectionStatus } from "../../../src/types/domain";
 
 class FakeConnection extends EventEmitter implements ACPConnectionLike {
@@ -335,5 +340,22 @@ describe("ClaudeCliHarnessAdapter", () => {
     await adapter.disconnect();
     clientToAgent.end();
     agentToClient.end();
+  });
+
+  it("exposes claude adapter metadata and runtime factory wiring", () => {
+    const config = harnessConfigSchema.parse({
+      id: HARNESS_DEFAULT.CLAUDE_CLI_ID,
+      name: HARNESS_DEFAULT.CLAUDE_CLI_NAME,
+      command: HARNESS_DEFAULT.CLAUDE_COMMAND,
+      args: HARNESS_DEFAULT.CLAUDE_ARGS,
+      env: {},
+    });
+
+    const runtime = claudeCliHarnessAdapter.createHarness(config);
+
+    expect(claudeCliHarnessAdapter.id).toBe(HARNESS_DEFAULT.CLAUDE_CLI_ID);
+    expect(claudeCliHarnessAdapter.name).toBe(HARNESS_DEFAULT.CLAUDE_CLI_NAME);
+    expect(runtime).toBeInstanceOf(ClaudeCliHarnessAdapter);
+    expect(runtime.connectionStatus).toBe(CONNECTION_STATUS.DISCONNECTED);
   });
 });

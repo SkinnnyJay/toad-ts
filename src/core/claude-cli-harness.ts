@@ -12,6 +12,7 @@ import type { ACPClientOptions, ACPConnectionLike } from "@/core/acp-client";
 import { ACPConnection, type ACPConnectionOptions } from "@/core/acp-connection";
 import type { AgentPort } from "@/core/agent-port";
 import { CliAgentBase } from "@/core/cli-agent/cli-agent.base";
+import { createCliHarnessAdapter } from "@/core/cli-agent/create-cli-harness-adapter";
 import type {
   HarnessAdapter,
   HarnessRuntime,
@@ -247,14 +248,12 @@ export const createCliHarnessRuntime = (config: HarnessConfig): HarnessRuntime =
   });
 };
 
-export const claudeCliHarnessAdapter: HarnessAdapter = {
-  id: "claude-cli",
-  name: "Claude CLI",
+export const claudeCliHarnessAdapter: HarnessAdapter = createCliHarnessAdapter({
+  id: HARNESS_DEFAULT.CLAUDE_CLI_ID,
+  name: HARNESS_DEFAULT.CLAUDE_CLI_NAME,
   configSchema: harnessConfigSchema,
-  createHarness: (config) => {
-    return createCliHarnessRuntime(config);
-  },
-};
+  createRuntime: (config: HarnessConfig) => createCliHarnessRuntime(config),
+});
 
 const isErrnoException = (error: unknown): error is NodeJS.ErrnoException =>
   typeof error === "object" && error !== null && "code" in error;
