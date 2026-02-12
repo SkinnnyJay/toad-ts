@@ -350,6 +350,33 @@ export function App(): ReactNode {
     return nextEnabled;
   }, [appConfig.vim.enabled, updateConfig]);
 
+  const handleSelectSessionModel = useCallback(
+    async (modelId: string) => {
+      if (!client?.setSessionModel || !activeSessionId) {
+        throw new Error("Session model switching not supported.");
+      }
+      await client.setSessionModel({ sessionId: activeSessionId, modelId });
+      const session = getSession(activeSessionId);
+      if (!session) {
+        return;
+      }
+      const metadataBase = {
+        ...(session.metadata ?? { mcpServers: [] }),
+        mcpServers: session.metadata?.mcpServers ?? [],
+      };
+      upsertSession({
+        session: {
+          ...session,
+          metadata: {
+            ...metadataBase,
+            model: modelId,
+          },
+        },
+      });
+    },
+    [activeSessionId, client, getSession, upsertSession]
+  );
+
   const breadcrumbPlacement = appConfig.ui.breadcrumb.placement;
   const breadcrumbVisible = breadcrumbPlacement !== BREADCRUMB_PLACEMENT.HIDDEN;
   const workspacePath = process.cwd();
@@ -579,6 +606,9 @@ export function App(): ReactNode {
                     agents={agentOptions}
                     keybinds={appConfig.keybinds}
                     onUpdateKeybinds={handleUpdateKeybinds}
+                    availableModels={activeSession?.metadata?.availableModels ?? []}
+                    currentModelId={activeSession?.metadata?.model}
+                    onSelectModel={handleSelectSessionModel}
                   />
                 ) : isHooksOpen ? (
                   <HooksModal

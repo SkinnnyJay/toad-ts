@@ -1,12 +1,13 @@
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { DEFAULT_APP_CONFIG } from "../../../src/config/app-config";
 import { useAppStore } from "../../../src/store/app-store";
 import { SessionIdSchema } from "../../../src/types/domain";
 import { HelpModal } from "../../../src/ui/components/HelpModal";
 import { SessionsPopup } from "../../../src/ui/components/SessionsPopup";
 import { SettingsModal } from "../../../src/ui/components/SettingsModal";
 import { TruncationProvider } from "../../../src/ui/components/TruncationProvider";
-import { cleanup, renderInk, setupSession } from "../../utils/ink-test-helpers";
+import { cleanup, renderInk, setupSession, waitFor } from "../../utils/ink-test-helpers";
 import { keyboardRuntime } from "../../utils/opentui-test-runtime";
 
 afterEach(() => {
@@ -24,6 +25,8 @@ describe("UI Modals", () => {
             isOpen: true,
             onClose: () => {},
             agents: [],
+            keybinds: DEFAULT_APP_CONFIG.keybinds,
+            onUpdateKeybinds: () => {},
           })
         )
       );
@@ -40,11 +43,38 @@ describe("UI Modals", () => {
             isOpen: false,
             onClose: () => {},
             agents: [],
+            keybinds: DEFAULT_APP_CONFIG.keybinds,
+            onUpdateKeybinds: () => {},
           })
         )
       );
 
       expect(lastFrame()).not.toContain("Settings");
+    });
+
+    it("renders model settings tab and content when active", async () => {
+      const { lastFrame, stdin } = renderInk(
+        React.createElement(
+          TruncationProvider,
+          {},
+          React.createElement(SettingsModal, {
+            isOpen: true,
+            onClose: () => {},
+            agents: [],
+            keybinds: DEFAULT_APP_CONFIG.keybinds,
+            onUpdateKeybinds: () => {},
+            availableModels: [{ modelId: "auto", name: "Auto" }],
+            currentModelId: "auto",
+            onSelectModel: async () => undefined,
+          })
+        )
+      );
+
+      expect(lastFrame()).toContain("Model");
+      stdin.write("\x1B[C");
+      await waitFor(() => lastFrame().includes("Session Model"));
+      expect(lastFrame()).toContain("Session Model");
+      expect(lastFrame()).toContain("Auto");
     });
   });
 

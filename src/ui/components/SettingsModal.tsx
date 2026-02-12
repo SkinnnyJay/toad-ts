@@ -4,9 +4,11 @@ import { COLOR } from "@/constants/colors";
 import { KEY_NAME } from "@/constants/key-names";
 import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { SETTINGS_TAB, SETTINGS_TAB_VALUES, type SettingsTab } from "@/constants/settings-tabs";
+import type { ModelInfo } from "@/types/domain";
 import type { AgentOption } from "@/ui/components/AgentSelect";
 import { DefaultProviderTab } from "@/ui/components/DefaultProviderTab";
 import { KeybindsTab } from "@/ui/components/KeybindsTab";
+import { SessionModelTab } from "@/ui/components/SessionModelTab";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import { type ReactNode, useState } from "react";
@@ -17,6 +19,9 @@ interface SettingsModalProps {
   agents: AgentOption[];
   keybinds: KeybindConfig;
   onUpdateKeybinds: (keybinds: KeybindConfig) => void;
+  availableModels?: ModelInfo[];
+  currentModelId?: string;
+  onSelectModel?: (modelId: string) => Promise<void>;
 }
 
 export function SettingsModal({
@@ -25,6 +30,9 @@ export function SettingsModal({
   agents,
   keybinds,
   onUpdateKeybinds,
+  availableModels = [],
+  currentModelId,
+  onSelectModel,
 }: SettingsModalProps): ReactNode {
   const [activeTab, setActiveTab] = useState<SettingsTab>(SETTINGS_TAB.DEFAULT_PROVIDER);
   const [isEditingKeybind, setIsEditingKeybind] = useState(false);
@@ -93,6 +101,13 @@ export function SettingsModal({
         </text>
         <text fg={COLOR.GRAY}> | </text>
         <text
+          fg={activeTab === SETTINGS_TAB.MODEL ? COLOR.CYAN : COLOR.GRAY}
+          attributes={TextAttributes.BOLD}
+        >
+          Model
+        </text>
+        <text fg={COLOR.GRAY}> | </text>
+        <text
           fg={activeTab === SETTINGS_TAB.KEYBINDS ? COLOR.CYAN : COLOR.GRAY}
           attributes={TextAttributes.BOLD}
         >
@@ -103,6 +118,13 @@ export function SettingsModal({
       <box flexDirection="column" flexGrow={1} minHeight={contentMinHeight}>
         {activeTab === SETTINGS_TAB.DEFAULT_PROVIDER ? (
           <DefaultProviderTab agents={agents} onSave={handleSave} />
+        ) : activeTab === SETTINGS_TAB.MODEL ? (
+          <SessionModelTab
+            isActive={activeTab === SETTINGS_TAB.MODEL}
+            availableModels={availableModels}
+            currentModelId={currentModelId}
+            onSelectModel={onSelectModel}
+          />
         ) : (
           <KeybindsTab
             isActive={activeTab === SETTINGS_TAB.KEYBINDS}
