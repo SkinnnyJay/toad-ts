@@ -205,10 +205,9 @@ const runCloudAgentCommand = async (
   if (!subcommand) {
     return [CLOUD_AGENT_MESSAGE.USAGE];
   }
-
-  const cloudClient = getCloudClient(context);
   switch (subcommand) {
     case CLOUD_AGENT_SUBCOMMAND.LIST: {
+      const cloudClient = getCloudClient(context);
       const { limit, cursor } = parseCloudListArgs(subArgs);
       const list = await cloudClient.listAgents({ limit, cursor });
       if (list.items.length === 0) {
@@ -225,6 +224,7 @@ const runCloudAgentCommand = async (
       if (!prompt) {
         return [CLOUD_AGENT_MESSAGE.MISSING_PROMPT];
       }
+      const cloudClient = getCloudClient(context);
       const launchResponse = await cloudClient.launchAgent({
         prompt,
         model: context.session?.metadata?.model,
@@ -249,6 +249,7 @@ const runCloudAgentCommand = async (
       if (!agentId) {
         return [CLOUD_AGENT_MESSAGE.MISSING_AGENT_ID];
       }
+      const cloudClient = getCloudClient(context);
       await cloudClient.stopAgent(agentId);
       return [`Stopped cloud agent: ${agentId}`];
     }
@@ -258,6 +259,7 @@ const runCloudAgentCommand = async (
       if (!agentId || !prompt) {
         return [CLOUD_AGENT_MESSAGE.MISSING_FOLLOWUP];
       }
+      const cloudClient = getCloudClient(context);
       const response = await cloudClient.followupAgent(agentId, { prompt });
       return [
         `Follow-up sent to cloud agent: ${agentId}`,
@@ -269,6 +271,7 @@ const runCloudAgentCommand = async (
       if (!agentId) {
         return [CLOUD_AGENT_MESSAGE.MISSING_CONVERSATION];
       }
+      const cloudClient = getCloudClient(context);
       const conversation = await cloudClient.getConversation(agentId);
       const messageCount = conversation.messages.length;
       return [

@@ -1,10 +1,12 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
+import { ENV_KEY } from "@/constants/env-keys";
 import { harnessConfigSchema } from "@/harness/harnessConfig";
 import { AgentIdSchema, SessionIdSchema } from "@/types/domain";
 import { runAgentCommand } from "@/ui/components/chat/agent-management-command-service";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { EnvManager } from "@/utils/env/env.utils";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("execa", () => {
   return {
@@ -18,9 +20,20 @@ const getExecaMock = async () => {
 };
 
 describe("agent-management-command-service", () => {
+  const originalCursorApiKey = process.env[ENV_KEY.CURSOR_API_KEY];
+
   beforeEach(async () => {
     const execaMock = await getExecaMock();
     execaMock.mockReset();
+  });
+
+  afterEach(() => {
+    if (originalCursorApiKey === undefined) {
+      delete process.env[ENV_KEY.CURSOR_API_KEY];
+    } else {
+      process.env[ENV_KEY.CURSOR_API_KEY] = originalCursorApiKey;
+    }
+    EnvManager.resetInstance();
   });
 
   it("returns fallback status lines when harness is unavailable", async () => {
@@ -1083,5 +1096,49 @@ describe("agent-management-command-service", () => {
     expect(cloudClient.getConversation).toHaveBeenCalledWith("cloud-agent-2");
     expect(lines[0]).toContain("conversation-1");
     expect(lines[1]).toContain("1");
+  });
+
+  it("returns followup usage without requiring cloud api key", async () => {
+    delete process.env[ENV_KEY.CURSOR_API_KEY];
+    EnvManager.resetInstance();
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["cloud", "followup", "cloud-agent-2"]
+    );
+
+    expect(lines).toEqual(["Usage: /agent cloud followup <agentId> <prompt>"]);
+  });
+
+  it("returns cloud usage for unknown subcommand without requiring api key", async () => {
+    delete process.env[ENV_KEY.CURSOR_API_KEY];
+    EnvManager.resetInstance();
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["cloud", "unknown-subcommand"]
+    );
+
+    expect(lines[0]).toContain("Usage: /agent cloud list [limit] [cursor]");
   });
 });
