@@ -126,4 +126,13 @@ describe("message sender cloud dispatch helpers", () => {
       resolveCloudDispatchErrorMessage(new Error("Cursor cloud API requires CURSOR_API_KEY."))
     ).toBe(CHAT_MESSAGE.CLOUD_DISPATCH_MISSING_API_KEY);
   });
+
+  it("maps unauthorized errors to auth guidance", () => {
+    expect(resolveCloudDispatchErrorMessage(new Error("Request failed with status 401"))).toBe(
+      CHAT_MESSAGE.CLOUD_DISPATCH_AUTH_REQUIRED
+    );
+    expect(resolveCloudDispatchErrorMessage(new Error("unauthorized request"))).toBe(
+      CHAT_MESSAGE.CLOUD_DISPATCH_AUTH_REQUIRED
+    );
+  });
 });

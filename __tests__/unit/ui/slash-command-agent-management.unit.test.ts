@@ -1,5 +1,6 @@
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { SESSION_MODE } from "@/constants/session-modes";
+import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { type Session, SessionIdSchema } from "@/types/domain";
 import { type SlashCommandDeps, runSlashCommand } from "@/ui/components/chat/slash-command-runner";
@@ -200,6 +201,35 @@ describe("slash command agent management", () => {
     expect(appendSystemMessage).toHaveBeenCalledWith(
       expect.stringContaining("Cloud agent started: agent-3 (queued).")
     );
+  });
+
+  it("shows auth guidance when cloud dispatch fails with unauthorized error", async () => {
+    const sessionId = SessionIdSchema.parse("cloud-auth-session");
+    const launchCloudAgentItem = vi.fn(async () => {
+      throw new Error("Request failed with status 401");
+    });
+    const { deps, appendSystemMessage } = createDeps({
+      sessionId,
+      getSession: () =>
+        ({
+          id: sessionId,
+          title: "Cloud auth session",
+          messageIds: [],
+          createdAt: 1,
+          updatedAt: 1,
+          mode: SESSION_MODE.AUTO,
+          metadata: { mcpServers: [] },
+        }) satisfies Session,
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      launchCloudAgentItem,
+    });
+
+    expect(runSlashCommand("/cloud dispatch check auth", deps)).toBe(true);
+    await vi.waitFor(() => {
+      expect(appendSystemMessage.mock.calls.length).toBeGreaterThan(1);
+    });
+
+    expect(appendSystemMessage).toHaveBeenCalledWith(SLASH_COMMAND_MESSAGE.CLOUD_AUTH_REQUIRED);
   });
 
   it("shows unsupported message for cloud command on non-cursor harness", () => {

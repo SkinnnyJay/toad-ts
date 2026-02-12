@@ -88,6 +88,12 @@ export const resolveCloudDispatchErrorMessage = (error: unknown): string => {
   if (error instanceof Error && error.message.includes(ENV_KEY.CURSOR_API_KEY)) {
     return CHAT_MESSAGE.CLOUD_DISPATCH_MISSING_API_KEY;
   }
+  if (
+    error instanceof Error &&
+    /(unauthorized|forbidden|authentication|status 401|status 403)/i.test(error.message)
+  ) {
+    return CHAT_MESSAGE.CLOUD_DISPATCH_AUTH_REQUIRED;
+  }
 
   return `${CHAT_MESSAGE.CLOUD_DISPATCH_FAILED} ${
     error instanceof Error ? error.message : String(error)

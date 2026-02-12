@@ -13,4 +13,6 @@ export const CHAT_MESSAGE = {
   CLOUD_DISPATCH_STARTED: "Cursor Cloud agent started:",
   CLOUD_DISPATCH_FAILED: "Cloud dispatch failed:",
   CLOUD_DISPATCH_MISSING_API_KEY: "Cloud dispatch requires CURSOR_API_KEY.",
+  CLOUD_DISPATCH_AUTH_REQUIRED:
+    "Cloud dispatch requires authentication. Run `cursor-agent login` or set CURSOR_API_KEY.",
 } as const;

@@ -22,6 +22,7 @@ import { sortCloudAgentItemsByRecency } from "@/ui/utils/cloud-agent-list";
 import { formatMcpToolPreview, parseMcpServerToolsCommandResult } from "@/ui/utils/mcp-server-list";
 import { EnvManager } from "@/utils/env/env.utils";
 import { handleCloudDispatchSubcommand } from "./slash-command-cloud-dispatch";
+import { resolveCloudCommandErrorMessage } from "./slash-command-cloud-utils";
 import type { SlashCommandDeps } from "./slash-command-runner";
 
 const MANAGEMENT_COMMAND = {
@@ -226,7 +227,7 @@ export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): voi
         })
         .catch((error) => {
           deps.appendSystemMessage(
-            `Cloud agents unavailable: ${error instanceof Error ? error.message : String(error)}`
+            resolveCloudCommandErrorMessage(error, "Cloud agents unavailable")
           );
         });
       return;
@@ -251,7 +252,7 @@ export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): voi
         })
         .catch((error) => {
           deps.appendSystemMessage(
-            `Cloud status unavailable: ${error instanceof Error ? error.message : String(error)}`
+            resolveCloudCommandErrorMessage(error, "Cloud status unavailable")
           );
         });
       return;
@@ -273,9 +274,7 @@ export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): voi
           deps.appendSystemMessage(`Stop requested for cloud agent ${result.id}.`);
         })
         .catch((error) => {
-          deps.appendSystemMessage(
-            `Cloud stop failed: ${error instanceof Error ? error.message : String(error)}`
-          );
+          deps.appendSystemMessage(resolveCloudCommandErrorMessage(error, "Cloud stop failed"));
         });
       return;
     }
@@ -298,7 +297,7 @@ export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): voi
         })
         .catch((error) => {
           deps.appendSystemMessage(
-            `Cloud follow-up failed: ${error instanceof Error ? error.message : String(error)}`
+            resolveCloudCommandErrorMessage(error, "Cloud follow-up failed")
           );
         });
       return;

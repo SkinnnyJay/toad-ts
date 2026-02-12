@@ -1,4 +1,5 @@
 import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
+import { resolveCloudCommandErrorMessage } from "./slash-command-cloud-utils";
 import type { SlashCommandDeps } from "./slash-command-runner";
 
 const toOptionalTrimmed = (value: string | undefined): string | undefined => {
@@ -35,8 +36,6 @@ export const handleCloudDispatchSubcommand = (parts: string[], deps: SlashComman
       deps.appendSystemMessage(`Cloud agent started: ${agent.id} (${agent.status}).`);
     })
     .catch((error) => {
-      deps.appendSystemMessage(
-        `Cloud dispatch failed: ${error instanceof Error ? error.message : String(error)}`
-      );
+      deps.appendSystemMessage(resolveCloudCommandErrorMessage(error, "Cloud dispatch failed"));
     });
 };

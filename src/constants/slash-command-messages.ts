@@ -75,6 +75,8 @@ export const SLASH_COMMAND_MESSAGE = {
   CLOUD_STOP_NOT_AVAILABLE: "Cloud stop is not available for this provider.",
   CLOUD_FOLLOWUP_NOT_AVAILABLE: "Cloud follow-up is not available for this provider.",
   CLOUD_DISPATCH_NOT_AVAILABLE: "Cloud dispatch is not available for this provider.",
+  CLOUD_AUTH_REQUIRED:
+    "Cloud commands require authentication. Run `cursor-agent login` or set CURSOR_API_KEY.",
   CLOUD_FETCHING: "Fetching cloud agents…",
   CLOUD_NONE_ACTIVE: "No active cloud agents.",
   SESSIONS_FETCHING: "Fetching sessions from active provider...",
