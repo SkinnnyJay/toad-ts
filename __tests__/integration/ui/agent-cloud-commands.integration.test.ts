@@ -78,4 +78,34 @@ describe("agent cloud commands integration", () => {
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/agents");
     expect(String(fetchMock.mock.calls[3]?.[0])).toContain("/agents/cloud-agent-42/conversation");
   });
+
+  it("passes list pagination arguments through to cloud api query params", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+      createJsonResponse({
+        items: [{ id: "cloud-agent-50", status: "running" }],
+        nextCursor: "cursor-next-50",
+      })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["cloud", "list", "25", "cursor-1"]
+    );
+
+    expect(lines[0]).toContain("cloud-agent-50");
+    expect(lines[1]).toContain("cursor-next-50");
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/agents?cursor=cursor-1&limit=25");
+  });
 });
