@@ -29,6 +29,14 @@ interface SessionEntry {
   description: string;
 }
 
+const truncateMiddle = (value: string, max: number): string => {
+  if (value.length <= max) {
+    return value;
+  }
+  const half = Math.floor((max - 3) / 2);
+  return `${value.slice(0, half)}...${value.slice(-half)}`;
+};
+
 const toNativeSessionLabel = (session: AgentManagementSession): string => {
   const shortId = session.id.slice(0, LIMIT.ID_TRUNCATE_LENGTH);
   const nativeTitle = session.title?.trim();
@@ -44,6 +52,14 @@ const toDisplayTimestamp = (timestamp: string): string => {
     return timestamp;
   }
   return parsedDate.toLocaleString();
+};
+
+const toExternalSessionErrorLabel = (error: string): string => {
+  const trimmedError = error.trim();
+  if (trimmedError.length === 0) {
+    return "Native sessions unavailable";
+  }
+  return `Native sessions unavailable: ${truncateMiddle(trimmedError, LIMIT.STRING_TRUNCATE_MEDIUM)}`;
 };
 
 export function SessionsPopup({
@@ -201,7 +217,9 @@ export function SessionsPopup({
       {externalSessionLoading ? (
         <text attributes={TextAttributes.DIM}>Loading native Cursor sessions…</text>
       ) : null}
-      {externalSessionError ? <text fg={COLOR.YELLOW}>Native sessions unavailable</text> : null}
+      {externalSessionError ? (
+        <text fg={COLOR.YELLOW}>{toExternalSessionErrorLabel(externalSessionError)}</text>
+      ) : null}
       {filteredSessions.length === 0 ? (
         <text attributes={TextAttributes.DIM}>No sessions available</text>
       ) : (

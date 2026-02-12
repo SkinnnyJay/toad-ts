@@ -164,6 +164,41 @@ describe("UI Modals", () => {
       expect(lastFrame()).toContain("No sessions");
     });
 
+    it("renders external native-session loading state", () => {
+      const { lastFrame } = renderInk(
+        React.createElement(
+          TruncationProvider,
+          {},
+          React.createElement(SessionsPopup, {
+            isOpen: true,
+            onClose: () => {},
+            onSelectSession: () => {},
+            externalSessionLoading: true,
+          })
+        )
+      );
+
+      expect(lastFrame()).toContain("Loading native Cursor sessions");
+    });
+
+    it("renders external native-session error details", () => {
+      const { lastFrame } = renderInk(
+        React.createElement(
+          TruncationProvider,
+          {},
+          React.createElement(SessionsPopup, {
+            isOpen: true,
+            onClose: () => {},
+            onSelectSession: () => {},
+            externalSessionError: "agent ls failed: requires tty in this terminal",
+          })
+        )
+      );
+
+      expect(lastFrame()).toContain("Native sessions unavailable:");
+      expect(lastFrame()).toContain("requires tty");
+    });
+
     it("shows external cursor sessions in the popup list", () => {
       const nativeSessionId = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174000");
 
