@@ -220,4 +220,93 @@ describe("agent cloud commands integration", () => {
     expect(lines[1]).toContain("Status check pending.");
     expect(fetchMock.mock.calls).toHaveLength(2);
   });
+
+  it("sends follow-up prompt to existing cloud agent", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+      createJsonResponse({
+        id: "cloud-agent-followup",
+        status: "running",
+      })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["cloud", "followup", "cloud-agent-followup", "Continue", "analysis"]
+    );
+
+    expect(lines).toContain("Follow-up sent to cloud agent: cloud-agent-followup");
+    expect(lines).toContain("Status: running");
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/agents/cloud-agent-followup/followup");
+  });
+
+  it("renders cloud conversation summary for agent id", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+      createJsonResponse({
+        id: "conversation-77",
+        messages: [{}, {}, {}],
+      })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["cloud", "conversation", "cloud-agent-77"]
+    );
+
+    expect(lines).toContain("Cloud conversation: conversation-77");
+    expect(lines).toContain("Messages: 3");
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/agents/cloud-agent-77/conversation");
+  });
+
+  it("stops cloud agent through pause endpoint", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+      createJsonResponse({
+        id: "cloud-agent-stop",
+        status: "paused",
+      })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["cloud", "stop", "cloud-agent-stop"]
+    );
+
+    expect(lines).toContain("Stopped cloud agent: cloud-agent-stop");
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/agents/cloud-agent-stop/stop");
+  });
 });
