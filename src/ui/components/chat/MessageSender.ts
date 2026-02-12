@@ -142,8 +142,15 @@ export const handleCloudDispatchInput = ({
         ...(repository ? { repository } : {}),
         ...(branch ? { branch } : {}),
       });
+      const contextDetails = repository
+        ? `${repository}${branch ? ` @ ${branch}` : ""}`
+        : branch
+          ? branch
+          : null;
       appendSystemMessage(
-        `${CHAT_MESSAGE.CLOUD_DISPATCH_STARTED} ${launchResult.id} (${launchResult.status})`
+        `${CHAT_MESSAGE.CLOUD_DISPATCH_STARTED} ${launchResult.id} (${launchResult.status})${
+          contextDetails ? ` [${contextDetails}]` : ""
+        }`
       );
     } catch (error) {
       appendSystemMessage(resolveCloudDispatchErrorMessage(error));

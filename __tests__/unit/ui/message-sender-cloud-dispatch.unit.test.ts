@@ -78,13 +78,14 @@ describe("message sender cloud dispatch helpers", () => {
 
   it("forwards repository and branch context to cloud dispatch launch", async () => {
     const launchAgent = vi.fn(async () => ({ id: "cloud-2", status: "queued" }));
+    const systemMessages: string[] = [];
 
     const handled = handleCloudDispatchInput({
       input: "&open a fix PR",
       sessionMode: SESSION_MODE.AUTO,
       currentAgent: createCursorAgent(),
       onResetInput: () => {},
-      appendSystemMessage: () => {},
+      appendSystemMessage: (text) => systemMessages.push(text),
       setModeWarning: () => {},
       cloudDispatchContext: {
         repository: "owner/repo",
@@ -101,6 +102,7 @@ describe("message sender cloud dispatch helpers", () => {
       repository: "owner/repo",
       branch: "feature/cloud-dispatch",
     });
+    expect(systemMessages.at(-1)).toContain("owner/repo @ feature/cloud-dispatch");
   });
 
   it("maps missing API key errors to friendly message", async () => {
