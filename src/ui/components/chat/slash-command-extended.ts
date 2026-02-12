@@ -40,7 +40,6 @@ const CLOUD_SUBCOMMAND = {
   FOLLOWUP: "followup",
 } as const;
 
-const CLOUD_USAGE = "Usage: /cloud [list|status <id>|stop <id>|followup <id> <prompt>]";
 const INVALID_TIMESTAMP = -1;
 
 const isCursorCloudSupported = (deps: SlashCommandDeps): boolean => {
@@ -56,10 +55,6 @@ const toSortableTimestamp = (value: string | undefined): number => {
     return INVALID_TIMESTAMP;
   }
   return timestamp;
-};
-
-const toCloudUnsupportedMessage = (): string => {
-  return "Cloud commands are only available for the Cursor harness.";
 };
 
 const buildOutputPreview = (stdout: string, stderr: string): string => {
@@ -218,22 +213,22 @@ export const handleStatusCommand = (deps: SlashCommandDeps): void => {
 
 export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): void => {
   if (!isCursorCloudSupported(deps)) {
-    deps.appendSystemMessage(toCloudUnsupportedMessage());
+    deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_UNSUPPORTED);
     return;
   }
   const subcommand = parts[1] ?? CLOUD_SUBCOMMAND.LIST;
   switch (subcommand) {
     case CLOUD_SUBCOMMAND.LIST: {
       if (!deps.listCloudAgentItems) {
-        deps.appendSystemMessage("Cloud listing is not available for this provider.");
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_LIST_NOT_AVAILABLE);
         return;
       }
-      deps.appendSystemMessage("Fetching cloud agents…");
+      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_FETCHING);
       void deps
         .listCloudAgentItems()
         .then((agents) => {
           if (agents.length === 0) {
-            deps.appendSystemMessage("No active cloud agents.");
+            deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_NONE_ACTIVE);
             return;
           }
           const sortedAgents = [...agents].sort((first, second) => {
@@ -265,11 +260,11 @@ export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): voi
     case CLOUD_SUBCOMMAND.STATUS: {
       const agentId = parts[2]?.trim();
       if (!agentId) {
-        deps.appendSystemMessage(CLOUD_USAGE);
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_USAGE);
         return;
       }
       if (!deps.getCloudAgentItem) {
-        deps.appendSystemMessage("Cloud status lookup is not available for this provider.");
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_STATUS_NOT_AVAILABLE);
         return;
       }
       deps.appendSystemMessage(`Fetching cloud agent ${agentId}…`);
@@ -290,11 +285,11 @@ export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): voi
     case CLOUD_SUBCOMMAND.STOP: {
       const agentId = parts[2]?.trim();
       if (!agentId) {
-        deps.appendSystemMessage(CLOUD_USAGE);
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_USAGE);
         return;
       }
       if (!deps.stopCloudAgentItem) {
-        deps.appendSystemMessage("Cloud stop is not available for this provider.");
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_STOP_NOT_AVAILABLE);
         return;
       }
       deps.appendSystemMessage(`Stopping cloud agent ${agentId}…`);
@@ -314,11 +309,11 @@ export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): voi
       const agentId = parts[2]?.trim();
       const prompt = parts.slice(3).join(" ").trim();
       if (!agentId || !prompt) {
-        deps.appendSystemMessage(CLOUD_USAGE);
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_USAGE);
         return;
       }
       if (!deps.followupCloudAgentItem) {
-        deps.appendSystemMessage("Cloud follow-up is not available for this provider.");
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_FOLLOWUP_NOT_AVAILABLE);
         return;
       }
       deps.appendSystemMessage(`Sending cloud follow-up to ${agentId}…`);
@@ -335,7 +330,7 @@ export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): voi
       return;
     }
     default: {
-      deps.appendSystemMessage(CLOUD_USAGE);
+      deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_USAGE);
     }
   }
 };
