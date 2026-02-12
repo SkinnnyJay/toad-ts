@@ -230,6 +230,7 @@ export CURSOR_API_KEY=...
   - Native session listings are sorted by newest created timestamp first when timestamp metadata is available
 - Supports cloud-dispatch prompts with `&` prefix (for Cursor CLI sessions):
   - Example: `&investigate failing CI checks`
+  - Dispatch payloads include repository/branch context when repo workflow metadata is available
 
 ## Development
 
