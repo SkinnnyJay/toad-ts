@@ -10,11 +10,14 @@ describe("cloud-auth-errors", () => {
     expect(isCloudAuthError(new Error("Request failed with status 401"))).toBe(true);
     expect(isCloudAuthError(new Error("status 403 forbidden"))).toBe(true);
     expect(isCloudAuthError(new Error("authentication required"))).toBe(true);
+    expect(isCloudAuthError("unauthorized response")).toBe(true);
+    expect(isCloudAuthError({ message: "authentication token expired" })).toBe(true);
   });
 
-  it("returns false for non-auth errors and non-error values", () => {
+  it("returns false for non-auth errors and non-message values", () => {
     expect(isCloudAuthError(new Error("network timeout"))).toBe(false);
-    expect(isCloudAuthError("unauthorized")).toBe(false);
+    expect(isCloudAuthError("network timeout")).toBe(false);
+    expect(isCloudAuthError({ message: 123 })).toBe(false);
     expect(isCloudAuthError(undefined)).toBe(false);
   });
 });

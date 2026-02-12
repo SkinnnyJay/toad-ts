@@ -21,6 +21,15 @@ describe("slash-command-cloud-utils", () => {
     expect(result).toBe(SLASH_COMMAND_MESSAGE.CLOUD_AUTH_REQUIRED);
   });
 
+  it("maps string unauthorized errors to auth guidance", () => {
+    const result = resolveCloudCommandErrorMessage(
+      "forbidden by policy",
+      "Cloud status unavailable"
+    );
+
+    expect(result).toBe(SLASH_COMMAND_MESSAGE.CLOUD_AUTH_REQUIRED);
+  });
+
   it("returns prefixed fallback for non-auth errors", () => {
     const result = resolveCloudCommandErrorMessage(
       new Error("network timeout"),
@@ -28,5 +37,14 @@ describe("slash-command-cloud-utils", () => {
     );
 
     expect(result).toBe("Cloud agents unavailable: network timeout");
+  });
+
+  it("returns prefixed fallback using object message when available", () => {
+    const result = resolveCloudCommandErrorMessage(
+      { message: "request cancelled" },
+      "Cloud agents unavailable"
+    );
+
+    expect(result).toBe("Cloud agents unavailable: request cancelled");
   });
 });

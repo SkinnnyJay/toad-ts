@@ -134,5 +134,20 @@ describe("message sender cloud dispatch helpers", () => {
     expect(resolveCloudDispatchErrorMessage(new Error("unauthorized request"))).toBe(
       CHAT_MESSAGE.CLOUD_DISPATCH_AUTH_REQUIRED
     );
+    expect(resolveCloudDispatchErrorMessage("unauthorized request")).toBe(
+      CHAT_MESSAGE.CLOUD_DISPATCH_AUTH_REQUIRED
+    );
+    expect(resolveCloudDispatchErrorMessage({ message: "authentication required" })).toBe(
+      CHAT_MESSAGE.CLOUD_DISPATCH_AUTH_REQUIRED
+    );
+  });
+
+  it("uses string/object details for non-auth fallback messages", () => {
+    expect(resolveCloudDispatchErrorMessage("network timeout")).toBe(
+      `${CHAT_MESSAGE.CLOUD_DISPATCH_FAILED} network timeout`
+    );
+    expect(resolveCloudDispatchErrorMessage({ message: "request cancelled" })).toBe(
+      `${CHAT_MESSAGE.CLOUD_DISPATCH_FAILED} request cancelled`
+    );
   });
 });

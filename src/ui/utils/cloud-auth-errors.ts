@@ -1,10 +1,11 @@
-import { isAuthFailureMessage } from "@/ui/utils/auth-error-matcher";
+import { isAuthFailureMessage, toErrorMessage } from "@/ui/utils/auth-error-matcher";
 
 export const isCloudAuthError = (error: unknown): boolean => {
-  if (!(error instanceof Error)) {
+  const message = toErrorMessage(error);
+  if (!message) {
     return false;
   }
-  return isAuthFailureMessage(error.message, {
+  return isAuthFailureMessage(message, {
     includeGenericAuthenticationTerm: true,
     includeCursorApiKeyHint: true,
   });

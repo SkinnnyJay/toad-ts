@@ -9,6 +9,28 @@ interface AuthFailureMatchOptions {
   includeCursorApiKeyHint?: boolean;
 }
 
+const hasMessageString = (value: unknown): value is { message: string } => {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "message" in value &&
+    typeof value.message === "string"
+  );
+};
+
+export const toErrorMessage = (error: unknown): string | undefined => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  if (hasMessageString(error)) {
+    return error.message;
+  }
+  return undefined;
+};
+
 export const hasCursorApiKeyHint = (message: string): boolean =>
   message.includes(ENV_KEY.CURSOR_API_KEY);
 

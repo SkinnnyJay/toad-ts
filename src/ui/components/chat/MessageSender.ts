@@ -17,7 +17,7 @@ import type { ShellCommandConfig } from "@/tools/shell-command-config";
 import { parseShellCommandInput } from "@/tools/shell-command-config";
 import type { Message, SessionId, SessionMode } from "@/types/domain";
 import { MessageIdSchema, ToolCallIdSchema } from "@/types/domain";
-import { hasCursorApiKeyHint } from "@/ui/utils/auth-error-matcher";
+import { hasCursorApiKeyHint, toErrorMessage } from "@/ui/utils/auth-error-matcher";
 import { isCloudAuthError } from "@/ui/utils/cloud-auth-errors";
 import {
   type CloudDispatchContext,
@@ -86,16 +86,15 @@ export const toCloudDispatchPrompt = (input: string): string =>
   input.slice(INPUT_PREFIX.CLOUD_DISPATCH.length).trim();
 
 export const resolveCloudDispatchErrorMessage = (error: unknown): string => {
-  if (error instanceof Error && hasCursorApiKeyHint(error.message)) {
+  const message = toErrorMessage(error);
+  if (message && hasCursorApiKeyHint(message)) {
     return CHAT_MESSAGE.CLOUD_DISPATCH_MISSING_API_KEY;
   }
   if (isCloudAuthError(error)) {
     return CHAT_MESSAGE.CLOUD_DISPATCH_AUTH_REQUIRED;
   }
 
-  return `${CHAT_MESSAGE.CLOUD_DISPATCH_FAILED} ${
-    error instanceof Error ? error.message : String(error)
-  }`;
+  return `${CHAT_MESSAGE.CLOUD_DISPATCH_FAILED} ${message ?? String(error)}`;
 };
 
 export const handleCloudDispatchInput = ({
