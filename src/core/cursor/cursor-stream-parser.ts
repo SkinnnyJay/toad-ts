@@ -1,4 +1,5 @@
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
+import { StreamLineParser } from "@/core/cli-agent/stream-line-parser";
 import type { CursorStreamEvent } from "@/types/cursor-cli.types";
 import { cursorStreamEvent } from "@/types/cursor-cli.types";
 import { createClassLogger } from "@/utils/logging/logger.utils";
@@ -50,15 +51,12 @@ const truncateToBytes = (value: string, maxBytes: number): string => {
 
 export class CursorStreamParser extends EventEmitter<CursorStreamParserEvents> {
   private readonly logger = createClassLogger("CursorStreamParser");
+  private readonly lineParser = new StreamLineParser();
   private readonly pendingEvents: CursorStreamEvent[] = [];
   private readonly assistantOutputBySession = new Map<string, AssistantOutputState>();
   private readonly maxAccumulatedOutputBytes: number;
   private readonly maxPendingEvents: number;
   private readonly resumePendingEvents: number;
-
-  private lineBuffer = "";
-  private paused = false;
-  private flushRequested = false;
 
   public constructor(options: CursorStreamParserOptions = {}) {
     super();
@@ -66,16 +64,15 @@ export class CursorStreamParser extends EventEmitter<CursorStreamParserEvents> {
       options.maxAccumulatedOutputBytes ?? CURSOR_LIMIT.MAX_ACCUMULATED_OUTPUT_BYTES;
     this.maxPendingEvents = options.maxPendingEvents ?? CURSOR_LIMIT.MAX_PENDING_EVENTS;
     this.resumePendingEvents = options.resumePendingEvents ?? CURSOR_LIMIT.RESUME_PENDING_EVENTS;
+    this.lineParser.on("line", (line) => this.parseLine(line));
   }
 
   public write(chunk: Buffer | string): void {
-    this.lineBuffer += chunk.toString();
-    this.parseAvailableLines();
+    this.lineParser.write(chunk);
   }
 
   public flush(): void {
-    this.flushRequested = true;
-    this.parseAvailableLines();
+    this.lineParser.flush();
   }
 
   public drain(maxCount = this.pendingEvents.length): CursorStreamEvent[] {
@@ -93,7 +90,7 @@ export class CursorStreamParser extends EventEmitter<CursorStreamParserEvents> {
   }
 
   public isPaused(): boolean {
-    return this.paused;
+    return this.lineParser.isPaused();
   }
 
   public getAccumulatedAssistantText(sessionId: string): string {
@@ -105,47 +102,14 @@ export class CursorStreamParser extends EventEmitter<CursorStreamParserEvents> {
   }
 
   private maybeResume(): void {
-    if (!this.paused) {
+    if (!this.lineParser.isPaused()) {
       return;
     }
     if (this.pendingEvents.length > this.resumePendingEvents) {
       return;
     }
-    this.paused = false;
+    this.lineParser.resume();
     this.emit("resumed", { pendingEvents: this.pendingEvents.length });
-    this.parseAvailableLines();
-  }
-
-  private parseAvailableLines(): void {
-    if (this.paused) {
-      return;
-    }
-
-    while (!this.paused) {
-      const newlineIndex = this.lineBuffer.indexOf("\n");
-      if (newlineIndex < 0) {
-        break;
-      }
-
-      const line = this.lineBuffer.slice(0, newlineIndex).trim();
-      this.lineBuffer = this.lineBuffer.slice(newlineIndex + 1);
-
-      if (line.length === 0) {
-        continue;
-      }
-      this.parseLine(line);
-    }
-
-    if (this.paused || !this.flushRequested) {
-      return;
-    }
-
-    const remaining = this.lineBuffer.trim();
-    this.lineBuffer = "";
-    this.flushRequested = false;
-    if (remaining.length > 0) {
-      this.parseLine(remaining);
-    }
   }
 
   private parseLine(line: string): void {
@@ -170,7 +134,7 @@ export class CursorStreamParser extends EventEmitter<CursorStreamParserEvents> {
     this.emit("event", event);
 
     if (this.pendingEvents.length >= this.maxPendingEvents) {
-      this.paused = true;
+      this.lineParser.pause();
       this.emit("paused", { pendingEvents: this.pendingEvents.length });
     }
   }
