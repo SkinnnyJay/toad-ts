@@ -4,12 +4,21 @@ import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { PERMISSION, type Permission } from "@/constants/permissions";
-import { SESSION_MODE } from "@/constants/session-modes";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { TOOL_KIND, type ToolKind } from "@/constants/tool-kinds";
 import { CliAgentBase } from "@/core/cli-agent/cli-agent.base";
 import { createCliHarnessAdapter } from "@/core/cli-agent/create-cli-harness-adapter";
 import { CursorCliConnection } from "@/core/cursor/cursor-cli-connection";
+import {
+  resolveCliMode,
+  toAboutResult,
+  toLoginResult,
+  toLogoutResult,
+  toMcpResult,
+  toModelsResult,
+  toSandboxMode,
+  toStatusResult,
+} from "@/core/cursor/cursor-management";
 import { CursorToAcpTranslator } from "@/core/cursor/cursor-to-acp-translator";
 import { HookIpcServer } from "@/core/cursor/hook-ipc-server";
 import { HooksConfigGenerator } from "@/core/cursor/hooks-config-generator";
@@ -20,11 +29,15 @@ import type {
 } from "@/harness/harnessAdapter";
 import { type HarnessConfig, harnessConfigSchema } from "@/harness/harnessConfig";
 import { getRulesState } from "@/rules/rules-service";
-import {
-  CLI_AGENT_MODE,
-  CLI_AGENT_SANDBOX_MODE,
-  type CliAgentMode,
-  type CliAgentSandboxMode,
+import type {
+  CliAgentAboutResult,
+  CliAgentLoginResult,
+  CliAgentLogoutResult,
+  CliAgentMcpListResult,
+  CliAgentMode,
+  CliAgentModelsResult,
+  CliAgentSandboxMode,
+  CliAgentStatusResult,
 } from "@/types/cli-agent.types";
 import type { CursorHookInput } from "@/types/cursor-hooks.types";
 import type {
@@ -55,12 +68,6 @@ export interface CursorCliHarnessAdapterOptions {
   config?: HarnessConfig;
 }
 
-const SESSION_MODE_TO_CLI_MODE: Record<string, CliAgentMode> = {
-  [SESSION_MODE.AUTO]: CLI_AGENT_MODE.AGENT,
-  [SESSION_MODE.FULL_ACCESS]: CLI_AGENT_MODE.AGENT,
-  [SESSION_MODE.READ_ONLY]: CLI_AGENT_MODE.ASK,
-} as const;
-
 interface CursorPromptDefaults {
   model?: string;
   mode?: CliAgentMode;
@@ -70,24 +77,6 @@ interface CursorPromptDefaults {
   approveMcps?: boolean;
   workspacePath?: string;
 }
-
-const toSandboxMode = (enabled: boolean | undefined): CliAgentSandboxMode | undefined => {
-  if (enabled === undefined) {
-    return undefined;
-  }
-  return enabled ? CLI_AGENT_SANDBOX_MODE.ENABLED : CLI_AGENT_SANDBOX_MODE.DISABLED;
-};
-
-const resolveCliMode = (mode: string): CliAgentMode | undefined => {
-  if (
-    mode === CLI_AGENT_MODE.AGENT ||
-    mode === CLI_AGENT_MODE.PLAN ||
-    mode === CLI_AGENT_MODE.ASK
-  ) {
-    return mode;
-  }
-  return SESSION_MODE_TO_CLI_MODE[mode];
-};
 
 export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRuntime {
   private readonly connection: CursorCliConnection;
@@ -255,10 +244,31 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
     }
     return {};
   }
-
-  public async sessionUpdate(_params: SessionNotification): Promise<void> {
-    // Cursor CLI is source-of-truth for session updates; no-op.
+  public async login(): Promise<CliAgentLoginResult> {
+    return toLoginResult(await this.connection.login());
   }
+
+  public async logout(): Promise<CliAgentLogoutResult> {
+    return toLogoutResult(await this.connection.logout());
+  }
+
+  public async status(): Promise<CliAgentStatusResult> {
+    return toStatusResult(await this.connection.verifyAuth());
+  }
+
+  public async about(): Promise<CliAgentAboutResult> {
+    return toAboutResult(await this.connection.about());
+  }
+
+  public async models(): Promise<CliAgentModelsResult> {
+    return toModelsResult(await this.connection.listModels());
+  }
+
+  public async mcp(): Promise<CliAgentMcpListResult> {
+    return toMcpResult(await this.connection.listMcpServers());
+  }
+
+  public async sessionUpdate(_params: SessionNotification): Promise<void> {}
 
   private resolveHookSessionId(payload: CursorHookInput): string {
     return payload.session_id ?? payload.conversation_id;

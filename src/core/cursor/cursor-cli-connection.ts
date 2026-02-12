@@ -17,8 +17,11 @@ import { EnvManager } from "@/utils/env/env.utils";
 import { EventEmitter } from "eventemitter3";
 import {
   type CursorAboutInfo,
+  type CursorAuthCommandResult,
   type CursorMcpServerStatus,
   parseCursorAboutOutput,
+  parseCursorLoginOutput,
+  parseCursorLogoutOutput,
   parseCursorMcpListOutput,
   parseCursorModelsOutput,
   parseCursorStatusOutput,
@@ -41,6 +44,8 @@ const CURSOR_CLI_ARG = {
   API_KEY: "--api-key",
   VERSION: "--version",
   STATUS: "status",
+  LOGIN: "login",
+  LOGOUT: "logout",
   ABOUT: "about",
   MODELS: "models",
   MCP: "mcp",
@@ -179,6 +184,16 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
   public async verifyAuth(): Promise<CliAgentAuthStatus> {
     const result = await this.runCommand([CURSOR_CLI_ARG.STATUS]);
     return parseCursorStatusOutput(result.stdout, result.stderr, this.env[ENV_KEY.CURSOR_API_KEY]);
+  }
+
+  public async login(): Promise<CursorAuthCommandResult> {
+    const result = await this.runCommand([CURSOR_CLI_ARG.LOGIN]);
+    return parseCursorLoginOutput(result.stdout, result.stderr);
+  }
+
+  public async logout(): Promise<CursorAuthCommandResult> {
+    const result = await this.runCommand([CURSOR_CLI_ARG.LOGOUT]);
+    return parseCursorLogoutOutput(result.stdout, result.stderr);
   }
 
   public async createChat(): Promise<string> {

@@ -19,6 +19,29 @@ import { describe, expect, it } from "vitest";
 class FakeConnection extends CursorCliConnection {
   public installStatus = { installed: true, binaryName: "cursor-agent" };
   public authStatus = { authenticated: true };
+  public loginStatus = {
+    success: true,
+    message: "Opening browser for login",
+    requiresBrowser: true,
+  };
+  public logoutStatus = { success: true, message: "Logged out successfully" };
+  public aboutInfo = {
+    cliVersion: "1.2.3",
+    model: "gpt-5",
+    os: "linux",
+    shell: "bash",
+    userEmail: "dev@example.com",
+    fields: { shell: "bash" },
+  };
+  public modelInfo = {
+    models: [
+      { id: "gpt-5", name: "GPT-5", isCurrent: true, isDefault: true },
+      { id: "claude-sonnet-4", name: "Claude Sonnet 4", isCurrent: false, isDefault: false },
+    ],
+    defaultModel: "gpt-5",
+    currentModel: "gpt-5",
+  };
+  public mcpServers = [{ name: "filesystem", status: "connected" }];
   public promptCalls: Array<{
     message: string;
     sessionId?: string;
@@ -56,6 +79,26 @@ class FakeConnection extends CursorCliConnection {
 
   public override async createChat(): Promise<string> {
     return "session-123";
+  }
+
+  public override async login() {
+    return this.loginStatus;
+  }
+
+  public override async logout() {
+    return this.logoutStatus;
+  }
+
+  public override async about() {
+    return this.aboutInfo;
+  }
+
+  public override async listModels() {
+    return this.modelInfo;
+  }
+
+  public override async listMcpServers() {
+    return this.mcpServers;
   }
 
   public override async runPrompt(input: {
@@ -192,6 +235,24 @@ describe("CursorCliHarnessAdapter", () => {
     connection.authStatus = { authenticated: false };
 
     await expect(harness.authenticate({})).rejects.toThrow("Cursor authentication required");
+  });
+
+  it("exposes management command methods via typed harness APIs", async () => {
+    const { harness } = createHarness();
+    const login = await harness.login();
+    const logout = await harness.logout();
+    const status = await harness.status();
+    const about = await harness.about();
+    const models = await harness.models();
+    const mcp = await harness.mcp();
+
+    expect(login.supported).toBe(true);
+    expect(login.requiresBrowser).toBe(true);
+    expect(logout.loggedOut).toBe(true);
+    expect(status.authenticated).toBe(true);
+    expect(about.version).toBe("1.2.3");
+    expect(models.models).toContain("gpt-5");
+    expect(mcp.servers[0]?.name).toBe("filesystem");
   });
 
   it("applies setSessionModel to subsequent prompts", async () => {

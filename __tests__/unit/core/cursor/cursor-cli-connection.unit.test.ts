@@ -163,6 +163,29 @@ describe("CursorCliConnection", () => {
     expect(calls[0]?.args).toEqual(["mcp", "list"]);
   });
 
+  it("parses login command output", async () => {
+    const { spawnFn, calls } = createSpawnFn([
+      { stdout: "Authenticated as dev@example.com", exitCode: 0 },
+    ]);
+    const connection = new CursorCliConnection({ spawnFn, command: "cursor-agent" });
+
+    const login = await connection.login();
+
+    expect(login.success).toBe(true);
+    expect(login.email).toBe("dev@example.com");
+    expect(calls[0]?.args).toEqual(["login"]);
+  });
+
+  it("parses logout command output", async () => {
+    const { spawnFn, calls } = createSpawnFn([{ stdout: "Logged out successfully", exitCode: 0 }]);
+    const connection = new CursorCliConnection({ spawnFn, command: "cursor-agent" });
+
+    const logout = await connection.logout();
+
+    expect(logout.success).toBe(true);
+    expect(calls[0]?.args).toEqual(["logout"]);
+  });
+
   it("returns empty sessions list for TTY-only ls output", async () => {
     const fixture = readFixture("__tests__/fixtures/cursor/ls-output.txt");
     const { spawnFn } = createSpawnFn([{ stdout: fixture, exitCode: 0 }]);
