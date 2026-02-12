@@ -1,3 +1,4 @@
+import { CURSOR_CLOUD_AGENT_STATUS } from "@/constants/cursor-cloud-agent-status";
 import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
 import { EnvManager } from "@/utils/env/env.utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -110,5 +111,53 @@ describe("CursorCloudAgentClient", () => {
       "https://example.test/repos",
       "https://example.test/key-info",
     ]);
+  });
+
+  it("polls cloud agent status until reaching a terminal state", async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(createJsonResponse({ id: "a-1", status: "queued" }))
+      .mockResolvedValueOnce(createJsonResponse({ id: "a-1", status: "running" }));
+
+    const client = new CursorCloudAgentClient({
+      apiKey: "test-key",
+      baseUrl: "https://example.test",
+      fetchFn: fetchMock,
+    });
+
+    const agent = await client.waitForAgentStatus("a-1", {
+      pollIntervalMs: 0,
+      timeoutMs: 1_000,
+      terminalStatuses: [CURSOR_CLOUD_AGENT_STATUS.RUNNING],
+    });
+
+    expect(agent.status).toBe(CURSOR_CLOUD_AGENT_STATUS.RUNNING);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("fails cloud agent status polling when timeout is reached", async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(createJsonResponse({ id: "a-1", status: "queued" }));
+    const nowValues = [0, 0, 1_000, 1_001];
+    let nowIndex = 0;
+    vi.spyOn(Date, "now").mockImplementation(() => {
+      const value = nowValues[nowIndex];
+      nowIndex = Math.min(nowIndex + 1, nowValues.length - 1);
+      return value ?? 1_001;
+    });
+
+    const client = new CursorCloudAgentClient({
+      apiKey: "test-key",
+      baseUrl: "https://example.test",
+      fetchFn: fetchMock,
+    });
+
+    await expect(
+      client.waitForAgentStatus("a-1", {
+        pollIntervalMs: 0,
+        timeoutMs: 500,
+      })
+    ).rejects.toThrow("Timed out waiting for cloud agent a-1.");
   });
 });

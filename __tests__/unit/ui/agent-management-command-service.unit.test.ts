@@ -123,6 +123,7 @@ describe("agent-management-command-service", () => {
       stopAgent: vi.fn(),
       followupAgent: vi.fn(),
       getConversation: vi.fn(),
+      waitForAgentStatus: vi.fn(),
     };
 
     const lines = await runAgentCommand(
@@ -151,9 +152,10 @@ describe("agent-management-command-service", () => {
       launchAgent: vi.fn(async () => ({
         agent: { id: "cloud-agent-2", status: "queued" },
       })),
+      waitForAgentStatus: vi.fn(async () => ({ id: "cloud-agent-2", status: "running" })),
       stopAgent: vi.fn(),
       followupAgent: vi.fn(),
-      getConversation: vi.fn(),
+      getConversation: vi.fn(async () => ({ id: "conversation-2", messages: [{}] })),
     };
 
     const lines = await runAgentCommand(
@@ -181,7 +183,10 @@ describe("agent-management-command-service", () => {
       prompt: "Investigate failing tests",
       model: "gpt-5",
     });
+    expect(cloudClient.waitForAgentStatus).toHaveBeenCalledWith("cloud-agent-2");
+    expect(cloudClient.getConversation).toHaveBeenCalledWith("cloud-agent-2");
     expect(lines.some((line) => line.includes("cloud-agent-2"))).toBe(true);
+    expect(lines.some((line) => line.includes("Conversation messages: 1"))).toBe(true);
   });
 
   it("sends follow-up prompts to cloud agents", async () => {
@@ -198,6 +203,7 @@ describe("agent-management-command-service", () => {
       stopAgent: vi.fn(),
       followupAgent: vi.fn(async () => ({ id: "cloud-agent-2", status: "running" })),
       getConversation: vi.fn(),
+      waitForAgentStatus: vi.fn(),
     };
 
     const lines = await runAgentCommand(
@@ -232,6 +238,7 @@ describe("agent-management-command-service", () => {
         id: "conversation-1",
         messages: [{ role: "user", content: "hello" }],
       })),
+      waitForAgentStatus: vi.fn(),
     };
 
     const lines = await runAgentCommand(

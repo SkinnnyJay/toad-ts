@@ -1,3 +1,7 @@
+import {
+  CURSOR_CLOUD_AGENT_STATUS,
+  type CursorCloudAgentStatus,
+} from "@/constants/cursor-cloud-agent-status";
 import { CURSOR_CLOUD_ENDPOINT } from "@/constants/cursor-cloud-endpoints";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { ENV_KEY } from "@/constants/env-keys";
@@ -48,12 +52,41 @@ export interface CursorCloudListAgentsOptions {
   limit?: number;
 }
 
+export interface CursorCloudWaitForAgentStatusOptions {
+  pollIntervalMs?: number;
+  timeoutMs?: number;
+  terminalStatuses?: CursorCloudAgentStatus[];
+}
+
 const DEFAULT_CURSOR_CLOUD_BASE_URL = "https://api2.cursor.sh";
 
 const shouldRetry = (status: number): boolean => status >= 500;
 
 const wait = async (durationMs: number): Promise<void> => {
   await new Promise((resolve) => setTimeout(resolve, durationMs));
+};
+
+const normalizeAgentStatus = (status: string | undefined): CursorCloudAgentStatus | undefined => {
+  if (!status) {
+    return undefined;
+  }
+  const normalizedStatus = status.toLowerCase();
+  switch (normalizedStatus) {
+    case CURSOR_CLOUD_AGENT_STATUS.QUEUED:
+      return CURSOR_CLOUD_AGENT_STATUS.QUEUED;
+    case CURSOR_CLOUD_AGENT_STATUS.RUNNING:
+      return CURSOR_CLOUD_AGENT_STATUS.RUNNING;
+    case CURSOR_CLOUD_AGENT_STATUS.COMPLETED:
+      return CURSOR_CLOUD_AGENT_STATUS.COMPLETED;
+    case CURSOR_CLOUD_AGENT_STATUS.FAILED:
+      return CURSOR_CLOUD_AGENT_STATUS.FAILED;
+    case CURSOR_CLOUD_AGENT_STATUS.STOPPED:
+      return CURSOR_CLOUD_AGENT_STATUS.STOPPED;
+    case CURSOR_CLOUD_AGENT_STATUS.CANCELED:
+      return CURSOR_CLOUD_AGENT_STATUS.CANCELED;
+    default:
+      return undefined;
+  }
 };
 
 export class CursorCloudAgentClient {
@@ -139,6 +172,40 @@ export class CursorCloudAgentClient {
       `${CURSOR_CLOUD_ENDPOINT.AGENTS}/${agentId}${CURSOR_CLOUD_ENDPOINT.CONVERSATION_SUFFIX}`
     );
     return CursorCloudConversationSchema.parse(payload);
+  }
+
+  public async waitForAgentStatus(
+    agentId: string,
+    options: CursorCloudWaitForAgentStatusOptions = {}
+  ): Promise<CursorCloudAgent> {
+    const pollIntervalMs = options.pollIntervalMs ?? CURSOR_LIMIT.CLOUD_POLL_INTERVAL_MS;
+    const timeoutMs = options.timeoutMs ?? CURSOR_LIMIT.CLOUD_POLL_TIMEOUT_MS;
+    const terminalStatuses = new Set<CursorCloudAgentStatus>(
+      options.terminalStatuses ?? [
+        CURSOR_CLOUD_AGENT_STATUS.RUNNING,
+        CURSOR_CLOUD_AGENT_STATUS.COMPLETED,
+        CURSOR_CLOUD_AGENT_STATUS.FAILED,
+        CURSOR_CLOUD_AGENT_STATUS.STOPPED,
+        CURSOR_CLOUD_AGENT_STATUS.CANCELED,
+      ]
+    );
+    const startedAt = Date.now();
+    let lastKnownStatus = "";
+
+    while (Date.now() - startedAt <= timeoutMs) {
+      const agent = await this.getAgent(agentId);
+      const normalizedStatus = normalizeAgentStatus(agent.status);
+      if (normalizedStatus) {
+        lastKnownStatus = normalizedStatus;
+      }
+      if (normalizedStatus && terminalStatuses.has(normalizedStatus)) {
+        return agent;
+      }
+      await wait(pollIntervalMs);
+    }
+
+    const statusSuffix = lastKnownStatus ? ` Last status: ${lastKnownStatus}.` : "";
+    throw new Error(`Timed out waiting for cloud agent ${agentId}.${statusSuffix}`);
   }
 
   public async listModels(): Promise<CursorCloudModels> {

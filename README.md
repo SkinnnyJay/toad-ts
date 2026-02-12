@@ -192,6 +192,14 @@ Skills, commands, agents, hooks, and rules from all tools are merged automatical
 /vim
 ```
 
+Cloud workflows are available through `/agent` when Cursor compatibility is enabled:
+
+- `/agent cloud list`
+- `/agent cloud launch <prompt>`
+- `/agent cloud followup <agentId> <prompt>`
+- `/agent cloud conversation <agentId>`
+- `/agent cloud stop <agentId>`
+
 ## Development
 
 ```bash

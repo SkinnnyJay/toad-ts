@@ -18,7 +18,12 @@ export interface AgentManagementContext {
   connectionStatus?: string;
   cloudClient?: Pick<
     CursorCloudAgentClient,
-    "listAgents" | "launchAgent" | "stopAgent" | "followupAgent" | "getConversation"
+    | "listAgents"
+    | "launchAgent"
+    | "stopAgent"
+    | "followupAgent"
+    | "getConversation"
+    | "waitForAgentStatus"
   >;
 }
 
@@ -125,7 +130,12 @@ const getCloudClient = (
   context: AgentManagementContext
 ): Pick<
   CursorCloudAgentClient,
-  "listAgents" | "launchAgent" | "stopAgent" | "followupAgent" | "getConversation"
+  | "listAgents"
+  | "launchAgent"
+  | "stopAgent"
+  | "followupAgent"
+  | "getConversation"
+  | "waitForAgentStatus"
 > => {
   if (context.cloudClient) {
     return context.cloudClient;
@@ -161,13 +171,16 @@ const runCloudAgentCommand = async (
       if (!prompt) {
         return [CLOUD_AGENT_MESSAGE.MISSING_PROMPT];
       }
-      const response = await cloudClient.launchAgent({
+      const launchResponse = await cloudClient.launchAgent({
         prompt,
         model: context.session?.metadata?.model,
       });
+      const agent = await cloudClient.waitForAgentStatus(launchResponse.agent.id);
+      const conversation = await cloudClient.getConversation(launchResponse.agent.id);
       return [
-        `Dispatched cloud agent: ${response.agent.id}`,
-        `Status: ${response.agent.status ?? "unknown"}`,
+        `Dispatched cloud agent: ${launchResponse.agent.id}`,
+        `Status: ${agent.status ?? "unknown"}`,
+        `Conversation messages: ${conversation.messages.length}`,
       ];
     }
     case CLOUD_AGENT_SUBCOMMAND.STOP: {
