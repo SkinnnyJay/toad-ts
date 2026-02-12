@@ -6,12 +6,20 @@ import {
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import type { CliAgentSession } from "@/types/cli-agent.types";
 
+const toNormalizedOptionalString = (value: string | undefined): string | undefined => {
+  const trimmedValue = value?.trim();
+  if (!trimmedValue) {
+    return undefined;
+  }
+  return trimmedValue;
+};
+
 export const toAgentManagementSession = (session: CliAgentSession): AgentManagementSession => {
   return {
     id: session.id,
     title: session.title,
     createdAt: session.createdAt,
-    model: session.model,
+    model: toNormalizedOptionalString(session.model),
     messageCount: session.messageCount,
   };
 };
@@ -26,11 +34,13 @@ const mergeAgentManagementSessions = (
   existing: AgentManagementSession,
   incoming: AgentManagementSession
 ): AgentManagementSession => {
+  const existingModel = toNormalizedOptionalString(existing.model);
+  const incomingModel = toNormalizedOptionalString(incoming.model);
   return {
     id: existing.id,
     title: pickPreferredTitle(existing.title, incoming.title),
     createdAt: pickPreferredCreatedAt(existing.createdAt, incoming.createdAt),
-    model: existing.model ?? incoming.model,
+    model: existingModel ?? incomingModel,
     messageCount: pickPreferredMessageCount(existing.messageCount, incoming.messageCount),
   };
 };
@@ -48,7 +58,7 @@ export const toUniqueAgentManagementSessions = (
       id: sessionId,
       title: session.title,
       createdAt: session.createdAt,
-      model: session.model,
+      model: toNormalizedOptionalString(session.model),
       messageCount: session.messageCount,
     };
     const existing = sessionsById.get(sessionId);

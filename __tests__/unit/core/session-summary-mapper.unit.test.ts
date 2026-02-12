@@ -104,6 +104,20 @@ describe("session-summary-mapper", () => {
     ]);
   });
 
+  it("normalizes session model metadata when deduplicating", () => {
+    const uniqueSessions = toUniqueAgentManagementSessions([
+      { id: "session-1", model: "   " },
+      { id: "session-1", model: "  gpt-5  " },
+    ]);
+
+    expect(uniqueSessions).toEqual([
+      {
+        id: "session-1",
+        model: "gpt-5",
+      },
+    ]);
+  });
+
   it("sorts sessions by newest created timestamp while preserving ties", () => {
     const sortedSessions = sortAgentManagementSessionsByRecency([
       { id: "session-1", createdAt: "2026-02-10T18:30:00.000Z" },
