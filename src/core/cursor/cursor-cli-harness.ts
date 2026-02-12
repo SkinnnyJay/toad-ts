@@ -114,7 +114,8 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
   private hookAddress: CursorHookIpcAddress | null = null;
   private hookInstallation: CursorHookInstallation | null = null;
   private signalHandlersInstalled = false;
-  private readonly hookToolCallByKey = new Map<string, string>();
+  private readonly pendingHookToolCallIdsByKey = new Map<string, string[]>();
+  private hookToolCallCounter = 0;
 
   constructor(options: CursorCliHarnessAdapterOptions = {}) {
     super();
@@ -208,6 +209,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
         await this.hookServer.stop().catch(() => undefined);
         this.hookAddress = null;
       }
+      this.resetHookToolCallState();
       this.setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
       throw error;
     }
@@ -226,6 +228,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
         }
         this.hookAddress = null;
         this.removeSignalHandlers();
+        this.resetHookToolCallState();
         this.setConnectionStatus(CONNECTION_STATUS.DISCONNECTED);
       }
     }
@@ -315,7 +318,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
         if (!command) {
           return;
         }
-        const toolCallId = this.getOrCreateHookToolCallId(sessionId, `shell:${command}`);
+        const toolCallId = this.resolveHookToolCallId(sessionId, `shell:${command}`);
         const status = event.exit_code === 0 ? "completed" : "failed";
         this.emit("sessionUpdate", {
           sessionId,
@@ -336,10 +339,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
       case CURSOR_HOOK_EVENT.AFTER_MCP_EXECUTION: {
         const serverName = asNonEmptyString(event.server_name) ?? "mcp";
         const toolName = asNonEmptyString(event.tool_name) ?? "tool";
-        const toolCallId = this.getOrCreateHookToolCallId(
-          sessionId,
-          `mcp:${serverName}:${toolName}`
-        );
+        const toolCallId = this.resolveHookToolCallId(sessionId, `mcp:${serverName}:${toolName}`);
         this.emit("sessionUpdate", {
           sessionId,
           update: {
@@ -354,7 +354,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
       }
       case CURSOR_HOOK_EVENT.POST_TOOL_USE: {
         const toolName = asNonEmptyString(event.tool_name) ?? "tool";
-        const toolCallId = this.getOrCreateHookToolCallId(sessionId, `tool:${toolName}`);
+        const toolCallId = this.resolveHookToolCallId(sessionId, `tool:${toolName}`);
         this.emit("sessionUpdate", {
           sessionId,
           update: {
@@ -369,7 +369,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
       }
       case CURSOR_HOOK_EVENT.POST_TOOL_USE_FAILURE: {
         const toolName = asNonEmptyString(event.tool_name) ?? "tool";
-        const toolCallId = this.getOrCreateHookToolCallId(sessionId, `tool:${toolName}`);
+        const toolCallId = this.resolveHookToolCallId(sessionId, `tool:${toolName}`);
         this.emit("sessionUpdate", {
           sessionId,
           update: {
@@ -386,7 +386,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
       }
       case CURSOR_HOOK_EVENT.AFTER_FILE_EDIT: {
         const pathLabel = asNonEmptyString(event.path) ?? "unknown";
-        const toolCallId = this.getOrCreateHookToolCallId(sessionId, `edit:${pathLabel}`);
+        const toolCallId = this.resolveHookToolCallId(sessionId, `edit:${pathLabel}`);
         this.emit("sessionUpdate", {
           sessionId,
           update: {
@@ -410,7 +410,8 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
   private handlePermissionRequest(request: CursorHookPermissionRequest): void {
     const sessionId = request.event.conversation_id;
     const permissionMetadata = mapCursorPermissionRequestMetadata(request.event);
-    const toolCallId = this.getOrCreateHookToolCallId(sessionId, permissionMetadata.toolCallKey);
+    const toolCallId = this.createHookToolCallId(sessionId);
+    this.enqueuePendingHookToolCallId(sessionId, permissionMetadata.toolCallKey, toolCallId);
 
     this.emit("sessionUpdate", {
       sessionId,
@@ -435,15 +436,42 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
     });
   }
 
-  private getOrCreateHookToolCallId(sessionId: string, key: string): string {
+  private resolveHookToolCallId(sessionId: string, key: string): string {
+    return (
+      this.dequeuePendingHookToolCallId(sessionId, key) ?? this.createHookToolCallId(sessionId)
+    );
+  }
+
+  private createHookToolCallId(sessionId: string): string {
+    this.hookToolCallCounter += 1;
+    return `hook-${sessionId}-${this.hookToolCallCounter}`;
+  }
+
+  private enqueuePendingHookToolCallId(sessionId: string, key: string, toolCallId: string): void {
     const cacheKey = `${sessionId}:${key}`;
-    const existing = this.hookToolCallByKey.get(cacheKey);
-    if (existing) {
-      return existing;
+    const pending = this.pendingHookToolCallIdsByKey.get(cacheKey) ?? [];
+    pending.push(toolCallId);
+    this.pendingHookToolCallIdsByKey.set(cacheKey, pending);
+  }
+
+  private dequeuePendingHookToolCallId(sessionId: string, key: string): string | undefined {
+    const cacheKey = `${sessionId}:${key}`;
+    const pending = this.pendingHookToolCallIdsByKey.get(cacheKey);
+    if (!pending || pending.length === 0) {
+      return undefined;
     }
-    const created = `hook-${sessionId}-${this.hookToolCallByKey.size + 1}`;
-    this.hookToolCallByKey.set(cacheKey, created);
-    return created;
+    const next = pending.shift();
+    if (pending.length === 0) {
+      this.pendingHookToolCallIdsByKey.delete(cacheKey);
+    } else {
+      this.pendingHookToolCallIdsByKey.set(cacheKey, pending);
+    }
+    return next;
+  }
+
+  private resetHookToolCallState(): void {
+    this.pendingHookToolCallIdsByKey.clear();
+    this.hookToolCallCounter = 0;
   }
 
   private getHookSocketEnvOverrides(): NodeJS.ProcessEnv | undefined {

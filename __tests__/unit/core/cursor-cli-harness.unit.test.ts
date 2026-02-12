@@ -256,6 +256,91 @@ describe("CursorCliHarnessAdapter", () => {
     expect(harness.connectionStatus).toBe(CONNECTION_STATUS.DISCONNECTED);
   });
 
+  it("assigns unique hook tool call ids for repeated identical commands", async () => {
+    const connection = new FakeCursorConnection();
+    const hookServer = new FakeHookServer();
+    const toolCallIds: string[] = [];
+    const toolCallUpdateIds: string[] = [];
+
+    const harness = new CursorCliHarnessAdapter({
+      connection,
+      hookServer,
+      installHooksFn: async () => ({
+        paths: {
+          hooksFilePath: "/tmp/hooks.json",
+          toadstoolHooksDir: "/tmp/.toadstool/hooks",
+          nodeShimPath: "/tmp/.toadstool/hooks/toadstool-hook.mjs",
+          bashShimPath: "/tmp/.toadstool/hooks/toadstool-hook.sh",
+        },
+        previousHooksRaw: null,
+        generatedCommand: "/tmp/.toadstool/hooks/toadstool-hook.mjs",
+        generatedConfig: {
+          version: 1,
+          hooks: {},
+        },
+      }),
+      cleanupHooksFn: async () => {},
+      env: {},
+    });
+
+    harness.on("sessionUpdate", (notification) => {
+      if (notification.update.sessionUpdate === SESSION_UPDATE_TYPE.TOOL_CALL) {
+        toolCallIds.push(notification.update.toolCallId);
+      }
+      if (notification.update.sessionUpdate === SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE) {
+        toolCallUpdateIds.push(notification.update.toolCallId);
+      }
+    });
+
+    await harness.connect();
+
+    hookServer.emit("permissionRequest", {
+      requestId: "permission-shell-repeat-1",
+      responseField: "permission",
+      event: {
+        conversation_id: sessionId,
+        hook_event_name: CURSOR_HOOK_EVENT.BEFORE_SHELL_EXECUTION,
+        command: "npm run test",
+        workspace_roots: ["/workspace"],
+      },
+    });
+    hookServer.emit("hookEvent", {
+      conversation_id: sessionId,
+      hook_event_name: CURSOR_HOOK_EVENT.AFTER_SHELL_EXECUTION,
+      command: "npm run test",
+      exit_code: 0,
+      stdout: "ok",
+      stderr: "",
+      workspace_roots: ["/workspace"],
+    });
+
+    hookServer.emit("permissionRequest", {
+      requestId: "permission-shell-repeat-2",
+      responseField: "permission",
+      event: {
+        conversation_id: sessionId,
+        hook_event_name: CURSOR_HOOK_EVENT.BEFORE_SHELL_EXECUTION,
+        command: "npm run test",
+        workspace_roots: ["/workspace"],
+      },
+    });
+    hookServer.emit("hookEvent", {
+      conversation_id: sessionId,
+      hook_event_name: CURSOR_HOOK_EVENT.AFTER_SHELL_EXECUTION,
+      command: "npm run test",
+      exit_code: 0,
+      stdout: "ok",
+      stderr: "",
+      workspace_roots: ["/workspace"],
+    });
+
+    expect(toolCallIds).toHaveLength(2);
+    expect(toolCallIds[0]).not.toBe(toolCallIds[1]);
+    expect(toolCallUpdateIds).toEqual([toolCallIds[0], toolCallIds[1]]);
+
+    await harness.disconnect();
+  });
+
   it("fails connect when installation or auth is missing", async () => {
     const connection = new FakeCursorConnection();
     connection.verifyInstallation = async () => ({ installed: false });
