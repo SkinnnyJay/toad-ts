@@ -47,6 +47,8 @@ export function StatusFooter({
   sessionMode,
   sessionId,
   agentName,
+  workspacePath,
+  prStatus,
 }: StatusFooterProps): ReactNode {
   const planText =
     planProgress && planProgress.total > 0
@@ -66,12 +68,21 @@ export function StatusFooter({
   const trimmedSession = sessionId
     ? truncateMiddle(sessionId, 2 * LIMIT.ID_TRUNCATE_LENGTH)
     : undefined;
+  const trimmedWorkspace = workspacePath
+    ? truncateMiddle(workspacePath, LIMIT.STRING_TRUNCATE_LONG)
+    : undefined;
+  const trimmedPrUrl = prStatus?.url
+    ? truncateMiddle(prStatus.url, LIMIT.STRING_TRUNCATE_LONG)
+    : undefined;
 
   const statusParts = [
     connectionStatus ? `Link: ${connectionStatus}` : undefined,
     trimmedAgent ? `Agent: ${trimmedAgent}` : undefined,
     sessionMode ? `Mode: ${sessionMode}` : undefined,
     trimmedSession ? `Session: ${trimmedSession}` : undefined,
+    trimmedWorkspace ? `WS: ${trimmedWorkspace}` : undefined,
+    prStatus?.reviewDecision ? `PR: ${prStatus.reviewDecision}` : undefined,
+    trimmedPrUrl ? `PR URL: ${trimmedPrUrl}` : undefined,
   ].filter((value): value is string => Boolean(value));
 
   const footerTextAttrs = TextAttributes.DIM;
