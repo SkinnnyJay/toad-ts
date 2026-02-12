@@ -264,6 +264,31 @@ describe("agent-management-command-service", () => {
     expect(lines[2]).toContain("Opening browser for login");
   });
 
+  it("formats cursor login output when already authenticated", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "Authenticated as dev@example.com",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.LOGIN, {
+      activeHarness: harness,
+    });
+
+    expect(lines).toEqual([
+      "Run `cursor-agent login` in a terminal.",
+      "Authenticated as dev@example.com",
+    ]);
+  });
+
   it("returns env guidance when gemini login is requested", async () => {
     const harness = harnessConfigSchema.parse({
       id: "gemini-cli",
@@ -387,6 +412,32 @@ describe("agent-management-command-service", () => {
       "Logged out: yes",
       "Command: cursor-agent logout",
       "Logged out successfully",
+    ]);
+  });
+
+  it("formats cursor logout failure output with logged-out false", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "",
+      stderr: "Logout failed due to network error",
+      exitCode: 1,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.LOGOUT, {
+      activeHarness: harness,
+    });
+
+    expect(lines).toEqual([
+      "Logged out: no",
+      "Command: cursor-agent logout",
+      "Logout failed due to network error",
     ]);
   });
 
