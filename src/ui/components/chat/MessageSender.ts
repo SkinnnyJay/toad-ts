@@ -18,6 +18,10 @@ import type { ShellCommandConfig } from "@/tools/shell-command-config";
 import { parseShellCommandInput } from "@/tools/shell-command-config";
 import type { Message, SessionId, SessionMode } from "@/types/domain";
 import { MessageIdSchema, ToolCallIdSchema } from "@/types/domain";
+import {
+  type CloudDispatchContext,
+  toNormalizedCloudDispatchContextValue,
+} from "@/ui/utils/cloud-dispatch-context";
 import { nanoid } from "nanoid";
 import { useCallback, useState } from "react";
 
@@ -49,11 +53,6 @@ export interface MessageSenderOptions {
 export interface MessageSenderResult {
   handleSubmit: (value: string) => void;
   modeWarning: string | null;
-}
-
-export interface CloudDispatchContext {
-  repository?: string;
-  branch?: string;
 }
 
 interface CloudDispatchClientLike {
@@ -93,16 +92,6 @@ export const resolveCloudDispatchErrorMessage = (error: unknown): string => {
   return `${CHAT_MESSAGE.CLOUD_DISPATCH_FAILED} ${
     error instanceof Error ? error.message : String(error)
   }`;
-};
-
-const CLOUD_DISPATCH_UNKNOWN_CONTEXT_VALUE = "unknown";
-
-const toCloudDispatchContextValue = (value: string | undefined): string | undefined => {
-  const normalized = value?.trim();
-  if (!normalized || normalized.toLowerCase() === CLOUD_DISPATCH_UNKNOWN_CONTEXT_VALUE) {
-    return undefined;
-  }
-  return normalized;
 };
 
 export const handleCloudDispatchInput = ({
@@ -145,8 +134,8 @@ export const handleCloudDispatchInput = ({
   void (async () => {
     try {
       const cloudClient = createCloudClient();
-      const repository = toCloudDispatchContextValue(cloudDispatchContext?.repository);
-      const branch = toCloudDispatchContextValue(cloudDispatchContext?.branch);
+      const repository = toNormalizedCloudDispatchContextValue(cloudDispatchContext?.repository);
+      const branch = toNormalizedCloudDispatchContextValue(cloudDispatchContext?.branch);
       const launchResult = await cloudClient.launchAgent({
         prompt: cloudPrompt,
         model: currentAgent.model,

@@ -34,13 +34,14 @@ import { ToolCallManager } from "@/ui/components/ToolCallManager";
 import { TruncationProvider } from "@/ui/components/TruncationProvider";
 import { useRotatingFact } from "@/ui/hooks/useRandomFact";
 import { roleColor } from "@/ui/theme";
+import type { CloudDispatchContext } from "@/ui/utils/cloud-dispatch-context";
 import { openExternalEditor } from "@/utils/editor/externalEditor";
 import { Env, EnvManager } from "@/utils/env/env.utils";
 import { getRepoInfo } from "@/utils/git/git-info.utils";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard, useRenderer } from "@opentui/react";
 import { type ReactNode, memo, useCallback, useEffect, useMemo, useState } from "react";
-import { type CloudDispatchContext, useMessageSender } from "./MessageSender";
+import { useMessageSender } from "./MessageSender";
 import { useSlashCommandHandler } from "./SlashCommandHandler";
 
 export interface ChatProps {
