@@ -335,18 +335,13 @@ export const useSlashCommandHandler = ({
           await client.setSessionModel({ sessionId, modelId });
           const session = getSession(sessionId);
           if (session) {
-            const metadata = {
+            const metadataBase = {
+              ...(session.metadata ?? { mcpServers: [] }),
               mcpServers: session.metadata?.mcpServers ?? [],
+            };
+            const metadata = {
+              ...metadataBase,
               model: modelId,
-              ...(session.metadata?.temperature !== undefined
-                ? { temperature: session.metadata.temperature }
-                : {}),
-              ...(session.metadata?.parentSessionId
-                ? { parentSessionId: session.metadata.parentSessionId }
-                : {}),
-              ...(session.metadata?.availableModels
-                ? { availableModels: session.metadata.availableModels }
-                : {}),
             };
             upsertSession({ session: { ...session, metadata } });
           }

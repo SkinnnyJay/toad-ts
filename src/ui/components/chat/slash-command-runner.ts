@@ -368,18 +368,16 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
               const activeSession = deps.getSession(deps.sessionId);
               if (activeSession) {
                 const model = activeSession.metadata?.model ?? parsedCurrentModel;
+                const metadataBase = {
+                  ...(activeSession.metadata ?? { mcpServers: [] }),
+                  mcpServers: activeSession.metadata?.mcpServers ?? [],
+                };
                 deps.upsertSession({
                   session: {
                     ...activeSession,
                     metadata: {
-                      mcpServers: activeSession.metadata?.mcpServers ?? [],
+                      ...metadataBase,
                       ...(model ? { model } : {}),
-                      ...(activeSession.metadata?.temperature !== undefined
-                        ? { temperature: activeSession.metadata.temperature }
-                        : {}),
-                      ...(activeSession.metadata?.parentSessionId
-                        ? { parentSessionId: activeSession.metadata.parentSessionId }
-                        : {}),
                       availableModels: normalizedModels,
                     },
                   },

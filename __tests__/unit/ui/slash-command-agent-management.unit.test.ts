@@ -123,6 +123,8 @@ describe("slash command agent management", () => {
       metadata: {
         mcpServers: [],
         model: "auto",
+        compactionSessionId: SessionIdSchema.parse("compaction-session-id"),
+        compactionSummary: "Compaction summary",
       },
     };
     const runAgentCommand = vi.fn(async () => ({
@@ -150,6 +152,8 @@ describe("slash command agent management", () => {
         metadata: {
           mcpServers: [],
           model: "auto",
+          compactionSessionId: SessionIdSchema.parse("compaction-session-id"),
+          compactionSummary: "Compaction summary",
           availableModels: [
             { modelId: "auto", name: "Auto" },
             { modelId: "fast", name: "Fast Model" },
