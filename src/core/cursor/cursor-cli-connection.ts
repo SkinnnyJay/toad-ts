@@ -1,11 +1,7 @@
-import {
-  type ChildProcessWithoutNullStreams,
-  type SpawnOptionsWithoutStdio,
-  spawn,
-} from "node:child_process";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
+import { CliAgentProcessRunner } from "@/core/cli-agent/cli-agent-process-runner";
 import type { CliAgentAuthStatus } from "@/types/cli-agent.types";
 import {
   type CliAgentInstallInfo,
@@ -18,7 +14,6 @@ import {
 } from "@/types/cli-agent.types";
 import type { CursorStreamEvent } from "@/types/cursor-cli.types";
 import { EnvManager } from "@/utils/env/env.utils";
-import { createClassLogger } from "@/utils/logging/logger.utils";
 import { EventEmitter } from "eventemitter3";
 import { parseCursorModelsOutput, parseCursorStatusOutput } from "./cursor-command-parsers";
 import { CursorStreamParser, type CursorStreamParserOptions } from "./cursor-stream-parser";
@@ -65,7 +60,7 @@ export interface CursorCliConnectionOptions extends CursorStreamParserOptions {
   args?: string[];
   cwd?: string;
   env?: NodeJS.ProcessEnv;
-  spawnFn?: CursorSpawnFunction;
+  spawnFn?: CursorCliSpawnFunction;
 }
 
 export interface CursorCommandResult {
@@ -79,11 +74,7 @@ export interface CursorCommandOptions {
   timeoutMs?: number;
 }
 
-type CursorSpawnFunction = (
-  command: string,
-  args: string[],
-  options: SpawnOptionsWithoutStdio
-) => ChildProcessWithoutNullStreams;
+type CursorCliSpawnFunction = ConstructorParameters<typeof CliAgentProcessRunner>[0]["spawnFn"];
 
 const parseArgs = (rawValue: string): string[] => {
   return rawValue
@@ -103,17 +94,10 @@ const isErrnoException = (error: unknown): error is NodeJS.ErrnoException =>
   typeof error === "object" && error !== null && "code" in error;
 
 export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents> {
-  private readonly logger = createClassLogger("CursorCliConnection");
   private readonly command: string;
-  private readonly args: string[];
-  private readonly cwd?: string;
+  private readonly runner: CliAgentProcessRunner;
   private env: NodeJS.ProcessEnv;
-  private readonly spawnFn: CursorSpawnFunction;
   private readonly parserOptions: CursorStreamParserOptions;
-
-  private activeChild: ChildProcessWithoutNullStreams | null = null;
-  private trackedPids = new Set<number>();
-  private signalHandlersAttached = false;
   private latestSessionId: string | undefined;
 
   public constructor(options: CursorCliConnectionOptions = {}) {
@@ -123,16 +107,24 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
     const argsFromEnv = baseEnv[ENV_KEY.TOADSTOOL_CURSOR_ARGS];
 
     this.command = options.command ?? commandFromEnv ?? HARNESS_DEFAULT.CURSOR_COMMAND;
-    this.args =
+    const resolvedArgs =
       options.args ?? (argsFromEnv ? parseArgs(argsFromEnv) : [...HARNESS_DEFAULT.CURSOR_ARGS]);
-    this.cwd = options.cwd;
     this.env = baseEnv;
-    this.spawnFn = options.spawnFn ?? spawn;
     this.parserOptions = {
       maxAccumulatedOutputBytes: options.maxAccumulatedOutputBytes,
       maxPendingEvents: options.maxPendingEvents,
       resumePendingEvents: options.resumePendingEvents,
     };
+    this.runner = new CliAgentProcessRunner({
+      command: this.command,
+      args: resolvedArgs,
+      cwd: options.cwd,
+      env: this.env,
+      spawnFn: options.spawnFn,
+      defaultCommandTimeoutMs: CURSOR_LIMIT.COMMAND_RESULT_TIMEOUT_MS,
+      forceKillTimeoutMs: CURSOR_LIMIT.COMMAND_FORCE_KILL_TIMEOUT_MS,
+      loggerName: "CursorCliConnection",
+    });
   }
 
   public getLastSessionId(): string | undefined {
@@ -144,11 +136,11 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
       ...this.env,
       ...overrides,
     };
+    this.runner.setEnv(overrides);
   }
 
   public async disconnect(): Promise<void> {
-    await this.terminateActiveProcess("SIGTERM");
-    this.detachSignalHandlers();
+    await this.runner.disconnect();
   }
 
   public async verifyInstallation(): Promise<CliAgentInstallInfo> {
@@ -211,68 +203,42 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
     const args = this.buildPromptArgs(payload, options.apiKey);
     const parser = new CursorStreamParser(this.parserOptions);
     const events: CursorStreamEvent[] = [];
-    const stderrChunks: string[] = [];
     let resultText: string | undefined;
     let observedSessionId = payload.sessionId ?? this.latestSessionId;
-
-    this.attachSignalHandlers();
-
-    return new Promise<CursorPromptExecutionResult>((resolve, reject) => {
-      const child = this.spawn(args);
-      this.activeChild = child;
-
-      parser.on("event", (event) => {
-        events.push(event);
-        parser.drain(1);
-        this.emit("streamEvent", event);
-        if (event.type === "system") {
-          observedSessionId = event.session_id;
-          this.latestSessionId = event.session_id;
-        }
-        if (event.type === "result" && "result" in event && typeof event.result === "string") {
-          resultText = event.result;
-        }
-      });
-
-      parser.on("parseError", (payload) => this.emit("parseError", payload));
-
-      child.stdout.on("data", (chunk: Buffer | string) => {
-        parser.write(chunk);
-      });
-
-      child.stderr.on("data", (chunk: Buffer | string) => {
-        stderrChunks.push(chunk.toString());
-      });
-
-      child.on("error", (error) => {
-        this.cleanupTrackedChild(child);
-        reject(error);
-      });
-
-      child.on("close", (code, signal) => {
-        parser.flush();
-        parser.drain();
-        this.emit("processExit", { code, signal });
-        const stderr = stderrChunks.join("");
-        this.cleanupTrackedChild(child);
-
-        if (code !== 0) {
-          reject(new Error(`Cursor process exited with code ${code}: ${stderr}`));
-          return;
-        }
-
-        resolve({
-          events,
-          sessionId: observedSessionId,
-          resultText,
-          stderr,
-          exitCode: code,
-        });
-      });
-
-      child.stdin.write(`${payload.message}\n`);
-      child.stdin.end();
+    parser.on("event", (event) => {
+      events.push(event);
+      parser.drain(1);
+      this.emit("streamEvent", event);
+      if (event.type === "system") {
+        observedSessionId = event.session_id;
+        this.latestSessionId = event.session_id;
+      }
+      if (event.type === "result" && "result" in event && typeof event.result === "string") {
+        resultText = event.result;
+      }
     });
+    parser.on("parseError", (payload) => this.emit("parseError", payload));
+
+    const execution = await this.runner.runStreamingCommand(args, {
+      stdinText: `${payload.message}\n`,
+      onStdout: (chunk) => parser.write(chunk),
+    });
+
+    parser.flush();
+    parser.drain();
+    this.emit("processExit", { code: execution.exitCode, signal: execution.signal });
+
+    if (execution.exitCode !== 0) {
+      throw new Error(`Cursor process exited with code ${execution.exitCode}: ${execution.stderr}`);
+    }
+
+    return {
+      events,
+      sessionId: observedSessionId,
+      resultText,
+      stderr: execution.stderr,
+      exitCode: execution.exitCode,
+    };
   }
 
   private parseSessionLine(line: string): CliAgentSession | null {
@@ -290,8 +256,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
   }
 
   private buildPromptArgs(input: CliAgentPromptInput, apiKeyOverride?: string): string[] {
-    const args = [
-      ...this.args,
+    const args: string[] = [
       CURSOR_CLI_ARG.PRINT,
       CURSOR_CLI_ARG.OUTPUT_FORMAT,
       CURSOR_CLI_ARG.STREAM_JSON,
@@ -327,167 +292,14 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
     args: string[],
     options: CursorCommandOptions = {}
   ): Promise<CursorCommandResult> {
-    const timeoutMs = options.timeoutMs ?? CURSOR_LIMIT.COMMAND_RESULT_TIMEOUT_MS;
-    const stdinText = options.stdinText ?? "";
-
-    return new Promise<CursorCommandResult>((resolve, reject) => {
-      const child = this.spawn(args);
-      const stdoutChunks: string[] = [];
-      const stderrChunks: string[] = [];
-      let completed = false;
-
-      const timeout = setTimeout(() => {
-        if (completed) {
-          return;
-        }
-        completed = true;
-        void this.forceKillChild(child);
-        reject(new Error(`Cursor command timed out after ${timeoutMs}ms: ${args.join(" ")}`));
-      }, timeoutMs);
-
-      child.stdout.on("data", (chunk: Buffer | string) => {
-        stdoutChunks.push(chunk.toString());
-      });
-
-      child.stderr.on("data", (chunk: Buffer | string) => {
-        stderrChunks.push(chunk.toString());
-      });
-
-      child.on("error", (error) => {
-        if (completed) {
-          return;
-        }
-        completed = true;
-        clearTimeout(timeout);
-        this.cleanupTrackedChild(child);
-        reject(error);
-      });
-
-      child.on("close", (exitCode) => {
-        if (completed) {
-          return;
-        }
-        completed = true;
-        clearTimeout(timeout);
-        this.cleanupTrackedChild(child);
-        resolve({
-          stdout: stdoutChunks.join(""),
-          stderr: stderrChunks.join(""),
-          exitCode,
-        });
-      });
-
-      if (stdinText.length > 0) {
-        child.stdin.write(stdinText);
-      }
-      child.stdin.end();
+    const result = await this.runner.runCommand(args, {
+      stdinText: options.stdinText,
+      timeoutMs: options.timeoutMs,
     });
+    return {
+      stdout: result.stdout,
+      stderr: result.stderr,
+      exitCode: result.exitCode,
+    };
   }
-
-  private spawn(args: string[]): ChildProcessWithoutNullStreams {
-    this.logger.debug("Spawning cursor command", { command: this.command, args });
-
-    const child = this.spawnFn(this.command, args, {
-      cwd: this.cwd,
-      env: this.env,
-      detached: process.platform !== "win32",
-      stdio: "pipe",
-    });
-
-    if (child.pid !== undefined) {
-      this.trackedPids.add(child.pid);
-    }
-
-    return child;
-  }
-
-  private async terminateActiveProcess(signal: NodeJS.Signals): Promise<void> {
-    if (!this.activeChild) {
-      return;
-    }
-    const child = this.activeChild;
-    this.activeChild = null;
-    await this.killChild(child, signal);
-  }
-
-  private async forceKillChild(child: ChildProcessWithoutNullStreams): Promise<void> {
-    await this.killChild(child, "SIGKILL");
-  }
-
-  private async killChild(
-    child: ChildProcessWithoutNullStreams,
-    signal: NodeJS.Signals
-  ): Promise<void> {
-    const pid = child.pid;
-    if (!pid) {
-      return;
-    }
-
-    try {
-      if (process.platform !== "win32") {
-        process.kill(-pid, signal);
-      } else {
-        child.kill(signal);
-      }
-    } catch (_error) {
-      child.kill(signal);
-    }
-
-    await new Promise<void>((resolve) => {
-      let settled = false;
-      const timeout = setTimeout(() => {
-        if (settled) {
-          return;
-        }
-        settled = true;
-        resolve();
-      }, CURSOR_LIMIT.COMMAND_FORCE_KILL_TIMEOUT_MS);
-
-      child.once("close", () => {
-        if (settled) {
-          return;
-        }
-        settled = true;
-        clearTimeout(timeout);
-        resolve();
-      });
-    });
-
-    this.cleanupTrackedChild(child);
-  }
-
-  private cleanupTrackedChild(child: ChildProcessWithoutNullStreams): void {
-    if (child.pid !== undefined) {
-      this.trackedPids.delete(child.pid);
-    }
-    if (this.activeChild === child) {
-      this.activeChild = null;
-    }
-  }
-
-  private attachSignalHandlers(): void {
-    if (this.signalHandlersAttached) {
-      return;
-    }
-    process.on("SIGINT", this.handleSigint);
-    process.on("SIGTERM", this.handleSigterm);
-    this.signalHandlersAttached = true;
-  }
-
-  private detachSignalHandlers(): void {
-    if (!this.signalHandlersAttached) {
-      return;
-    }
-    process.off("SIGINT", this.handleSigint);
-    process.off("SIGTERM", this.handleSigterm);
-    this.signalHandlersAttached = false;
-  }
-
-  private readonly handleSigint = (): void => {
-    void this.terminateActiveProcess("SIGINT");
-  };
-
-  private readonly handleSigterm = (): void => {
-    void this.terminateActiveProcess("SIGTERM");
-  };
 }
