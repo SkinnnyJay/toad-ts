@@ -136,4 +136,60 @@ describe("agent cloud commands integration", () => {
     expect(lines[0]).toContain("cloud-agent-51");
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/agents?cursor=cursor-abc&limit=10");
   });
+
+  it("returns pending status line when launch polling times out", async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        createJsonResponse({
+          agent: { id: "cloud-agent-timeout", status: "queued" },
+        })
+      )
+      .mockResolvedValueOnce(
+        createJsonResponse({
+          id: "cloud-agent-timeout",
+          status: "queued",
+        })
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const nowValues = [0, 0, 31_000];
+    let nowIndex = 0;
+    vi.spyOn(Date, "now").mockImplementation(() => {
+      const value = nowValues[nowIndex];
+      nowIndex = Math.min(nowIndex + 1, nowValues.length - 1);
+      return value ?? 31_000;
+    });
+
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+        session: {
+          id: SessionIdSchema.parse("session-timeout"),
+          agentId: AgentIdSchema.parse("cursor-cli"),
+          messageIds: [],
+          createdAt: 0,
+          updatedAt: 0,
+          mode: "auto",
+          metadata: {
+            mcpServers: [],
+          },
+        },
+      },
+      ["cloud", "launch", "Continue", "processing"]
+    );
+
+    expect(lines[0]).toContain("cloud-agent-timeout");
+    expect(lines[1]).toContain("Status check pending.");
+    expect(fetchMock.mock.calls).toHaveLength(2);
+  });
 });
