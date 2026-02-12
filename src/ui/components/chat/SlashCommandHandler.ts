@@ -18,7 +18,7 @@ import { useAppStore } from "@/store/app-store";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type { Message, Session, SessionId } from "@/types/domain";
-import { switchToSessionWithFallback } from "@/ui/utils/session-switcher";
+import { type SessionSwitchSeed, switchToSessionWithFallback } from "@/ui/utils/session-switcher";
 import { copyToClipboard } from "@/utils/clipboard/clipboard.utils";
 import { openExternalEditorForFile } from "@/utils/editor/externalEditor";
 import { EnvManager } from "@/utils/env/env.utils";
@@ -317,13 +317,14 @@ export const useSlashCommandHandler = ({
           setCurrentSession(session.id);
           return session.id;
         },
-        switchToSession: (targetSessionId) => {
+        switchToSession: (targetSessionId, seedSession?: SessionSwitchSeed) => {
           return switchToSessionWithFallback({
             targetSessionId,
             getSession,
             upsertSession,
             setCurrentSession,
             agent,
+            seedSession,
             now,
           });
         },
