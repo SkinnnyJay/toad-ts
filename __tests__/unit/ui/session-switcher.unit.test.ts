@@ -127,9 +127,36 @@ describe("switchToSessionWithFallback", () => {
         id: targetSessionId,
         title: "Recovered Native Session",
         createdAt: Date.parse("2026-02-11T18:30:00.000Z"),
-        updatedAt: 7,
+        updatedAt: Date.parse("2026-02-11T18:30:00.000Z"),
         mode: SESSION_MODE.FULL_ACCESS,
         metadata: { mcpServers: [], model: "gpt-5-thinking" },
+      }),
+    });
+    expect(setCurrentSession).toHaveBeenCalledWith(targetSessionId);
+  });
+
+  it("falls back to now when seeded createdAt is invalid", () => {
+    const targetSessionId = SessionIdSchema.parse("session-native-invalid-date");
+    const upsertSession = vi.fn();
+    const setCurrentSession = vi.fn();
+
+    switchToSessionWithFallback({
+      targetSessionId,
+      getSession: () => undefined,
+      upsertSession,
+      setCurrentSession,
+      seedSession: {
+        title: "Recovered Native Session",
+        createdAt: "not-a-date",
+      },
+      now: () => 11,
+    });
+
+    expect(upsertSession).toHaveBeenCalledWith({
+      session: expect.objectContaining({
+        id: targetSessionId,
+        createdAt: 11,
+        updatedAt: 11,
       }),
     });
     expect(setCurrentSession).toHaveBeenCalledWith(targetSessionId);

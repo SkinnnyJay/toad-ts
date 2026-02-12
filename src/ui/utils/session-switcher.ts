@@ -67,6 +67,7 @@ export const switchToSessionWithFallback = ({
   if (!existingSession) {
     const timestamp = now?.() ?? Date.now();
     const createdAt = toTimestamp(seedSession?.createdAt, timestamp);
+    const updatedAt = Math.max(timestamp, createdAt);
     upsertSession({
       session: {
         id: targetSessionId,
@@ -74,7 +75,7 @@ export const switchToSessionWithFallback = ({
         agentId: agent?.id,
         messageIds: [],
         createdAt,
-        updatedAt: timestamp,
+        updatedAt,
         mode: resolveSessionMode(agent?.sessionMode),
         metadata: {
           mcpServers: [],
