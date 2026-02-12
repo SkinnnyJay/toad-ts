@@ -81,7 +81,7 @@ export const parseCloudListArgs = (
 } => {
   const [firstArg, secondArg] = args;
   const parsedLimit = Number.parseInt(firstArg ?? "", 10);
-  const hasNumericPrefix = firstArg !== undefined && /^\d+$/.test(firstArg.trim());
+  const hasNumericPrefix = firstArg !== undefined && /^-?\d+$/.test(firstArg.trim());
   if (hasNumericPrefix) {
     return {
       limit: parsedLimit > 0 ? parsedLimit : CLOUD_DEFAULT_LIST_LIMIT,

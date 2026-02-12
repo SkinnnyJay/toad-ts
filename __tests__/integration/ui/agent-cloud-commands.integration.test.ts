@@ -137,6 +137,34 @@ describe("agent cloud commands integration", () => {
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/agents?cursor=cursor-abc&limit=10");
   });
 
+  it("passes negative numeric limit as default limit with cursor", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+      createJsonResponse({
+        items: [{ id: "cloud-agent-52", status: "queued" }],
+      })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["cloud", "list", "-5", "cursor-neg"]
+    );
+
+    expect(lines[0]).toContain("cloud-agent-52");
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/agents?cursor=cursor-neg&limit=10");
+  });
+
   it("returns pending status line when launch polling times out", async () => {
     const fetchMock = vi
       .fn<typeof fetch>()

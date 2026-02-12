@@ -28,6 +28,14 @@ describe("agent-management-command-helpers", () => {
     });
   });
 
+  it("treats negative numeric limit as non-positive numeric input", () => {
+    const parsed = parseCloudListArgs(["-5", "cursor-4"]);
+    expect(parsed).toEqual({
+      limit: CLOUD_DEFAULT_LIST_LIMIT,
+      cursor: "cursor-4",
+    });
+  });
+
   it("formats unknown and Error values for display", () => {
     expect(toErrorMessage(new Error("boom"))).toBe("boom");
     expect(toErrorMessage("plain-text")).toBe("plain-text");
