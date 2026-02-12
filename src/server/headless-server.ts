@@ -6,6 +6,7 @@ import { SERVER_EVENT } from "@/constants/server-events";
 import { SERVER_PATH } from "@/constants/server-paths";
 import { claudeCliHarnessAdapter } from "@/core/claude-cli-harness";
 import { codexCliHarnessAdapter } from "@/core/codex-cli-harness";
+import { cursorCliHarnessAdapter } from "@/core/cursor/cursor-cli-harness";
 import { geminiCliHarnessAdapter } from "@/core/gemini-cli-harness";
 import { mockHarnessAdapter } from "@/core/mock-harness";
 import { SessionManager } from "@/core/session-manager";
@@ -81,6 +82,7 @@ export const startHeadlessServer = async (
     claudeCliHarnessAdapter,
     geminiCliHarnessAdapter,
     codexCliHarnessAdapter,
+    cursorCliHarnessAdapter,
     mockHarnessAdapter,
   ]);
   const store = useAppStore;
