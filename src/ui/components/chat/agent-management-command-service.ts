@@ -18,6 +18,7 @@ import type { Session } from "@/types/domain";
 import {
   formatLoginResult,
   formatMcpList,
+  formatModelsResult,
   formatStatusResult,
 } from "@/ui/formatters/agent-command-formatter";
 import { execa } from "execa";
@@ -454,7 +455,14 @@ export const runAgentCommand = async (
         if (availableModels.length === 0) {
           return ["No models available for current session."];
         }
-        return availableModels.map((model) => `- ${model.modelId}`);
+        return formatModelsResult(
+          {
+            supported: true,
+            models: availableModels.map((model) => model.modelId),
+            activeModel: context.session?.metadata?.model,
+          },
+          context.activeAgentName ?? "Current session"
+        );
       }
       if (!hasCapability(harness, AGENT_MANAGEMENT_CAPABILITY.MODELS)) {
         return [
@@ -473,7 +481,18 @@ export const runAgentCommand = async (
         if (isCursorHarness(harness)) {
           return mapCursorModelLines(result.stdout);
         }
-        return [result.stdout || "No models output."];
+        const parsedModels = result.stdout
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0);
+        return formatModelsResult(
+          {
+            supported: true,
+            models: parsedModels,
+            message: result.stdout ? undefined : "No models output.",
+          },
+          harness.name
+        );
       }
     default:
       return ["Unsupported management command."];

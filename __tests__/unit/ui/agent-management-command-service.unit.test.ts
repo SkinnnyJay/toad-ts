@@ -195,6 +195,28 @@ describe("agent-management-command-service", () => {
     expect(lines.some((line) => line.includes("opus-4.6-thinking"))).toBe(true);
   });
 
+  it("formats session model list when no harness is active", async () => {
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.MODELS, {
+      session: {
+        id: SessionIdSchema.parse("session-models"),
+        agentId: AgentIdSchema.parse("agent-1"),
+        messageIds: [],
+        createdAt: 0,
+        updatedAt: 0,
+        mode: "auto",
+        metadata: {
+          model: "gpt-5",
+          availableModels: [{ modelId: "gpt-5" }, { modelId: "claude-sonnet-4" }],
+          mcpServers: [],
+        },
+      },
+    });
+
+    expect(lines).toContain("- gpt-5");
+    expect(lines).toContain("- claude-sonnet-4");
+    expect(lines).toContain("Active model: gpt-5");
+  });
+
   it("returns not-supported message when models command is unavailable", async () => {
     const harness = harnessConfigSchema.parse({
       id: "codex-cli",
