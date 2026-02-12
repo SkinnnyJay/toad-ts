@@ -26,7 +26,6 @@ import {
 } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { TASK_STATUS } from "@/constants/task-status";
-import { parseModelsCommandResult } from "@/core/agent-management/models-command-result";
 import { parseAgentManagementSessionsFromCommandResult } from "@/core/agent-management/session-list-command-result";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
@@ -40,6 +39,8 @@ import {
   toNormalizedOptionalString,
   withSessionAvailableModels,
 } from "@/ui/utils/session-model-metadata";
+import type { SessionModelOptions } from "@/ui/utils/session-model-refresh";
+import { toSessionModelOptionsFromCommandResult } from "@/ui/utils/session-model-refresh";
 import { type SessionSwitchSeed, toSessionSwitchSeed } from "@/ui/utils/session-switcher";
 import { nanoid } from "nanoid";
 import {
@@ -115,6 +116,7 @@ export interface SlashCommandDeps {
   runAgentCommand?: (args: string[]) => Promise<AgentManagementCommandResult>;
   listAgentSessions?: () => Promise<AgentManagementSession[]>;
   listCloudAgents?: () => Promise<number>;
+  listCloudModels?: () => Promise<SessionModelOptions>;
   toggleVimMode?: () => boolean;
   connectionStatus?: string;
   now?: () => number;
@@ -344,31 +346,32 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.MODELS_FETCHING);
         void deps
           .runAgentCommand([AGENT_MANAGEMENT_COMMAND.MODELS])
-          .then((result) => {
-            const parsed = (() => {
+          .then(async (result) => {
+            const toErrorMessage = (error: unknown): string => {
+              return error instanceof Error ? error.message : String(error);
+            };
+            const options = await (async (): Promise<SessionModelOptions> => {
               try {
-                return parseModelsCommandResult(result);
-              } catch (error) {
-                deps.appendSystemMessage(
-                  `${SLASH_COMMAND_MESSAGE.MODELS_NOT_AVAILABLE} ${
-                    error instanceof Error ? error.message : String(error)
-                  }`
-                );
-                return null;
+                return toSessionModelOptionsFromCommandResult(result);
+              } catch (commandError) {
+                if (!deps.listCloudModels) {
+                  throw commandError;
+                }
+                try {
+                  return await deps.listCloudModels();
+                } catch (cloudError) {
+                  throw new Error(
+                    `${toErrorMessage(commandError)} | ${toErrorMessage(cloudError)}`
+                  );
+                }
               }
             })();
-            if (!parsed) {
-              return;
-            }
-            if (parsed.models.length === 0) {
+            if (options.availableModels.length === 0) {
               deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MODELS_AVAILABLE);
               return;
             }
-            const parsedCurrentModel = parsed.models.find((model) => model.isDefault)?.id;
-            const normalizedModels = parsed.models.map((model) => ({
-              modelId: model.id,
-              name: model.name,
-            }));
+            const parsedCurrentModel = options.defaultModelId;
+            const normalizedModels = options.availableModels;
             if (deps.sessionId) {
               const activeSession = deps.getSession(deps.sessionId);
               if (activeSession) {

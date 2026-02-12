@@ -83,8 +83,9 @@ describe("slash command agent management", () => {
     });
 
     expect(runSlashCommand(SLASH_COMMAND.MODELS, deps)).toBe(true);
-    await Promise.resolve();
-    await Promise.resolve();
+    await vi.waitFor(() => {
+      expect(appendSystemMessage.mock.calls.length).toBeGreaterThan(1);
+    });
 
     expect(runAgentCommand).toHaveBeenCalledWith(["models"]);
     expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("Available models"));
@@ -142,8 +143,9 @@ describe("slash command agent management", () => {
     });
 
     expect(runSlashCommand(SLASH_COMMAND.MODELS, deps)).toBe(true);
-    await Promise.resolve();
-    await Promise.resolve();
+    await vi.waitFor(() => {
+      expect(appendSystemMessage.mock.calls.length).toBeGreaterThan(1);
+    });
 
     expect(runAgentCommand).toHaveBeenCalledWith(["models"]);
     expect(upsertSession).toHaveBeenCalledWith({
@@ -222,8 +224,9 @@ describe("slash command agent management", () => {
     });
 
     expect(runSlashCommand(SLASH_COMMAND.MODELS, deps)).toBe(true);
-    await Promise.resolve();
-    await Promise.resolve();
+    await vi.waitFor(() => {
+      expect(appendSystemMessage.mock.calls.length).toBeGreaterThan(1);
+    });
 
     expect(runAgentCommand).toHaveBeenCalledWith(["models"]);
     expect(appendSystemMessage).toHaveBeenCalledWith(
@@ -231,6 +234,63 @@ describe("slash command agent management", () => {
     );
     expect(appendSystemMessage).toHaveBeenCalledWith(
       expect.stringContaining("models endpoint unavailable")
+    );
+  });
+
+  it("falls back to cloud models when /models command parsing fails", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "requires tty",
+      exitCode: 1,
+    }));
+    const listCloudModels = vi.fn(async () => ({
+      availableModels: [
+        { modelId: "cloud-auto", name: "Cloud Auto" },
+        { modelId: "cloud-fast", name: "Cloud Fast" },
+      ],
+      defaultModelId: "cloud-auto",
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      runAgentCommand,
+      listCloudModels,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.MODELS, deps)).toBe(true);
+    await vi.waitFor(() => {
+      expect(appendSystemMessage.mock.calls.length).toBeGreaterThan(1);
+    });
+
+    expect(runAgentCommand).toHaveBeenCalledWith(["models"]);
+    expect(listCloudModels).toHaveBeenCalledTimes(1);
+    expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("Available models"));
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("cloud-auto (Cloud Auto) (current)")
+    );
+  });
+
+  it("reports combined /models command and cloud fallback failures", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "requires tty",
+      exitCode: 1,
+    }));
+    const listCloudModels = vi.fn(async () => {
+      throw new Error("cloud unavailable");
+    });
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      runAgentCommand,
+      listCloudModels,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.MODELS, deps)).toBe(true);
+    await vi.waitFor(() => {
+      expect(appendSystemMessage.mock.calls.length).toBeGreaterThan(1);
+    });
+
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("requires tty | cloud unavailable")
     );
   });
 

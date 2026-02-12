@@ -19,6 +19,7 @@ import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type { Message, Session, SessionId } from "@/types/domain";
 import { withSessionModel } from "@/ui/utils/session-model-metadata";
+import { toSessionModelOptionsFromCloudResponse } from "@/ui/utils/session-model-refresh";
 import { type SessionSwitchSeed, switchToSessionWithFallback } from "@/ui/utils/session-switcher";
 import { copyToClipboard } from "@/utils/clipboard/clipboard.utils";
 import { openExternalEditorForFile } from "@/utils/editor/externalEditor";
@@ -377,6 +378,14 @@ export const useSlashCommandHandler = ({
                 const cloudClient = new CursorCloudAgentClient();
                 const response = await cloudClient.listAgents({ limit: 100 });
                 return Array.isArray(response.agents) ? response.agents.length : 0;
+              }
+            : undefined,
+        listCloudModels:
+          agent?.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID
+            ? async () => {
+                const cloudClient = new CursorCloudAgentClient();
+                const response = await cloudClient.listModels();
+                return toSessionModelOptionsFromCloudResponse(response);
               }
             : undefined,
         connectionStatus,
