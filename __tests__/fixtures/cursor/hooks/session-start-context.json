@@ -1,0 +1,13 @@
+{
+  "conversation_id": "ab52c707-a56c-43a7-8056-3cfbdf8aa36e",
+  "generation_id": "ab52c707-a56c-43a7-8056-3cfbdf8aa36e",
+  "model": "claude-4.6-opus-high-thinking",
+  "session_id": "ab52c707-a56c-43a7-8056-3cfbdf8aa36e",
+  "is_background_agent": false,
+  "composer_mode": "ask",
+  "hook_event_name": "sessionStart",
+  "cursor_version": "2026.01.28-fd13201",
+  "workspace_roots": ["/Users/boice/Documents/GitHub/toad-ts"],
+  "user_email": "netwearcdz@gmail.com",
+  "transcript_path": null
+}

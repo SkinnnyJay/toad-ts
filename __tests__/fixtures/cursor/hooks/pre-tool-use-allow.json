@@ -1,0 +1,17 @@
+{
+  "conversation_id": "ab52c707-a56c-43a7-8056-3cfbdf8aa36e",
+  "generation_id": "gen-001",
+  "model": "claude-4.6-opus",
+  "hook_event_name": "preToolUse",
+  "cursor_version": "2026.01.28-fd13201",
+  "workspace_roots": ["/workspace"],
+  "user_email": "test@example.com",
+  "transcript_path": null,
+  "tool_name": "Shell",
+  "tool_input": {
+    "command": "npm test",
+    "working_directory": "/workspace"
+  },
+  "tool_use_id": "toolu_bdrk_01Y5LW1VtCe114m7w9frTuan",
+  "cwd": "/workspace"
+}

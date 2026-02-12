@@ -368,6 +368,138 @@ describe("Cursor CLI Harness Integration", () => {
         adapter.prompt({ content: [{ type: "text", text: "test" }] } as never)
       ).rejects.toThrow("exited with code 1");
     });
+
+    it("multi-turn conversation with --resume", async () => {
+      let promptCount = 0;
+      const resumeConnection = createMockConnection();
+      // Track sessionId across prompts
+      let trackedSessionId: string | null = null;
+
+      (resumeConnection as unknown as Record<string, unknown>).spawnPrompt = vi.fn(
+        (input: Record<string, unknown>) => {
+          promptCount++;
+          const proc = new EventEmitter() as unknown as ChildProcess;
+          Object.assign(proc, {
+            pid: 12345 + promptCount,
+            stdout: new EventEmitter(),
+            stderr: new EventEmitter(),
+            stdin: { write: vi.fn(), end: vi.fn() },
+            kill: vi.fn(),
+          });
+
+          const parser = new CursorStreamParser();
+          const sessionId = (input.sessionId as string) || "multi-turn-session";
+          trackedSessionId = sessionId;
+
+          setTimeout(() => {
+            const events = [
+              `{"type":"system","subtype":"init","apiKeySource":"login","cwd":"/test","session_id":"${sessionId}","model":"gpt-5.2","permissionMode":"default"}`,
+              `{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Turn ${promptCount} response"}]},"session_id":"${sessionId}","timestamp_ms":1000}`,
+              `{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Turn ${promptCount} response"}]},"session_id":"${sessionId}"}`,
+              `{"type":"result","subtype":"success","duration_ms":2000,"is_error":false,"result":"Turn ${promptCount} response","session_id":"${sessionId}"}`,
+            ];
+            parser.feed(`${events.join("\n")}\n`);
+            (proc as unknown as EventEmitter).emit("exit", 0, null);
+          }, 15);
+
+          return { process: proc, parser };
+        }
+      );
+
+      const adapter = new CursorCliHarnessAdapter({
+        enableHooks: false,
+        connectionFactory: () => resumeConnection,
+      });
+
+      await adapter.connect();
+
+      // First prompt
+      const resp1 = await adapter.prompt({
+        content: [{ type: "text", text: "First message" }],
+      } as never);
+      expect(
+        (resp1 as unknown as Record<string, Array<Record<string, string>>>).content[0]?.text
+      ).toContain("Turn 1");
+
+      // Second prompt (should use session from first)
+      const resp2 = await adapter.prompt({
+        content: [{ type: "text", text: "Second message" }],
+      } as never);
+      expect(
+        (resp2 as unknown as Record<string, Array<Record<string, string>>>).content[0]?.text
+      ).toContain("Turn 2");
+
+      // Verify spawnPrompt was called twice
+      expect(promptCount).toBe(2);
+    });
+
+    it("model and mode selection persists across prompts", async () => {
+      const adapter = new CursorCliHarnessAdapter({
+        enableHooks: false,
+        connectionFactory: () => createMockConnection(),
+        model: "sonnet-4.5",
+        mode: "plan",
+      });
+
+      await adapter.connect();
+
+      // Verify mode/model can be changed
+      const modeResult = await adapter.setSessionMode({ mode: "ask" } as never);
+      expect((modeResult as unknown as Record<string, string>).mode).toBe("ask");
+
+      const modelResult = await adapter.setSessionModel({ model: "gpt-5.2" } as never);
+      expect((modelResult as unknown as Record<string, string>).model).toBe("gpt-5.2");
+    });
+
+    it("graceful shutdown kills active process", async () => {
+      const mockConn = createMockConnection();
+      const adapter = new CursorCliHarnessAdapter({
+        enableHooks: false,
+        connectionFactory: () => mockConn,
+      });
+
+      await adapter.connect();
+
+      // Disconnect should call killActiveProcess even without an active prompt
+      await adapter.disconnect();
+
+      expect(
+        (mockConn as unknown as Record<string, { mock: { calls: unknown[] } }>).killActiveProcess
+          .mock.calls.length
+      ).toBeGreaterThan(0);
+      expect(adapter.connectionStatus).toBe(CONNECTION_STATUS.DISCONNECTED);
+    });
+
+    it("auth failure produces clear error message", async () => {
+      const noAuthConnection = createMockConnection();
+      (noAuthConnection as unknown as Record<string, unknown>).connect = vi.fn(async () => {
+        throw new Error("Cursor CLI not authenticated. Run: cursor-agent login");
+      });
+
+      const adapter = new CursorCliHarnessAdapter({
+        enableHooks: false,
+        connectionFactory: () => noAuthConnection,
+      });
+
+      await expect(adapter.connect()).rejects.toThrow("not authenticated");
+      expect(adapter.connectionStatus).toBe(CONNECTION_STATUS.ERROR);
+    });
+
+    it("missing binary produces clear error message", async () => {
+      const noBinaryConnection = createMockConnection();
+      (noBinaryConnection as unknown as Record<string, unknown>).connect = vi.fn(async () => {
+        throw new Error(
+          "Cursor CLI not found. Install with: curl -fsSL https://cursor.com/install | bash"
+        );
+      });
+
+      const adapter = new CursorCliHarnessAdapter({
+        enableHooks: false,
+        connectionFactory: () => noBinaryConnection,
+      });
+
+      await expect(adapter.connect()).rejects.toThrow("not found");
+    });
   });
 });
 

@@ -1,0 +1,11 @@
+{
+  "conversation_id": "ab52c707-a56c-43a7-8056-3cfbdf8aa36e",
+  "generation_id": "gen-004",
+  "model": "claude-4.6-opus",
+  "hook_event_name": "afterAgentThought",
+  "cursor_version": "2026.01.28-fd13201",
+  "workspace_roots": ["/workspace"],
+  "user_email": "test@example.com",
+  "transcript_path": null,
+  "thought": "I should read the package.json file first to understand the project structure before making changes."
+}
