@@ -210,7 +210,7 @@ export CURSOR_API_KEY=...
   - Settings modal now includes a **Model** tab for active sessions:
     - browse cached model options
     - press `Enter` to switch the active model
-    - press `Ctrl+R` to refresh model options from `cursor-agent models`
+    - press `Ctrl+R` to refresh model options (prefers `cursor-agent models`, falls back to Cursor Cloud models when available)
   - `/sessions <id>` to switch/resume a known Cursor session id
   - `Ctrl+S` session picker now includes native Cursor session ids from `cursor-agent ls`
   - `/sessions` native list output includes session metadata (title/created timestamp/model/message count) when available
