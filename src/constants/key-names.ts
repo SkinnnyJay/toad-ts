@@ -27,6 +27,7 @@ export const KEY_NAME = {
   L: "l",
   I: "i",
   A: "a",
+  R: "r",
   W: "w",
   BACKTICK: "`",
 } as const;

@@ -18,6 +18,7 @@ interface SessionsPopupProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectSession: (sessionId: SessionId) => void;
+  onRefreshExternalSessions?: () => Promise<void> | void;
   externalSessions?: AgentManagementSession[];
   externalSessionLoading?: boolean;
   externalSessionError?: string | null;
@@ -59,6 +60,7 @@ export function SessionsPopup({
   isOpen,
   onClose,
   onSelectSession,
+  onRefreshExternalSessions,
   externalSessions = [],
   externalSessionLoading = false,
   externalSessionError = null,
@@ -177,6 +179,12 @@ export function SessionsPopup({
       setQuery((current) => current.slice(0, -1));
       return;
     }
+    if (key.ctrl && key.name === KEY_NAME.R) {
+      key.preventDefault();
+      key.stopPropagation();
+      void onRefreshExternalSessions?.();
+      return;
+    }
     const typedKey = key.sequence ?? (key.name === KEY_NAME.SPACE ? " " : key.name);
     if (!key.ctrl && !key.meta && typedKey && typedKey.length === 1) {
       setQuery((current) => current + typedKey);
@@ -234,6 +242,7 @@ export function SessionsPopup({
       <box marginTop={1} paddingTop={1} borderStyle="single" border={["top"]}>
         <text attributes={TextAttributes.DIM}>
           ↑/↓: Navigate | Enter: Select | Type to filter | Esc/Ctrl+S: Close
+          {onRefreshExternalSessions ? " | Ctrl+R: Refresh native" : ""}
         </text>
       </box>
     </box>

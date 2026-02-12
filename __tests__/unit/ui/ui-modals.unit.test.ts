@@ -1,5 +1,5 @@
 import React from "react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { useAppStore } from "../../../src/store/app-store";
 import { SessionIdSchema } from "../../../src/types/domain";
 import { HelpModal } from "../../../src/ui/components/HelpModal";
@@ -7,6 +7,7 @@ import { SessionsPopup } from "../../../src/ui/components/SessionsPopup";
 import { SettingsModal } from "../../../src/ui/components/SettingsModal";
 import { TruncationProvider } from "../../../src/ui/components/TruncationProvider";
 import { cleanup, renderInk, setupSession } from "../../utils/ink-test-helpers";
+import { keyboardRuntime } from "../../utils/opentui-test-runtime";
 
 afterEach(() => {
   cleanup();
@@ -179,6 +180,26 @@ describe("UI Modals", () => {
       );
 
       expect(lastFrame()).toContain("Loading native Cursor sessions");
+    });
+
+    it("triggers native-session refresh on Ctrl+R", () => {
+      const onRefreshExternalSessions = vi.fn();
+      const { lastFrame } = renderInk(
+        React.createElement(
+          TruncationProvider,
+          {},
+          React.createElement(SessionsPopup, {
+            isOpen: true,
+            onClose: () => {},
+            onSelectSession: () => {},
+            onRefreshExternalSessions,
+          })
+        )
+      );
+
+      keyboardRuntime.emit("r", { ctrl: true });
+      expect(onRefreshExternalSessions).toHaveBeenCalledTimes(1);
+      expect(lastFrame()).toContain("Ctrl+R: Refresh native");
     });
 
     it("renders external native-session error details", () => {

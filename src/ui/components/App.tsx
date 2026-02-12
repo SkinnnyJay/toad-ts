@@ -405,6 +405,7 @@ export function App(): ReactNode {
     sessions: nativeCursorSessions,
     loading: nativeCursorSessionsLoading,
     error: nativeCursorSessionsError,
+    refresh: refreshNativeCursorSessions,
   } = useCursorNativeSessionIds({
     enabled: isSessionsPopupOpen && selectedAgent?.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID,
     client,
@@ -536,6 +537,7 @@ export function App(): ReactNode {
                     isOpen={isSessionsPopupOpen}
                     onClose={() => setIsSessionsPopupOpen(false)}
                     onSelectSession={handleSelectSession}
+                    onRefreshExternalSessions={refreshNativeCursorSessions}
                     externalSessions={nativeCursorSessions}
                     externalSessionLoading={nativeCursorSessionsLoading}
                     externalSessionError={nativeCursorSessionsError}
