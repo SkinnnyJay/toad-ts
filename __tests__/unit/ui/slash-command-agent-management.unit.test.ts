@@ -234,6 +234,54 @@ describe("slash command agent management", () => {
     expect(appendSystemMessage).toHaveBeenCalledWith(SLASH_COMMAND_MESSAGE.CLOUD_AUTH_REQUIRED);
   });
 
+  const expectCloudAuthGuidance = async (
+    command: string,
+    overrides: Partial<SlashCommandDeps>
+  ): Promise<void> => {
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      ...overrides,
+    });
+
+    expect(runSlashCommand(command, deps)).toBe(true);
+    await vi.waitFor(() => {
+      expect(appendSystemMessage.mock.calls.length).toBeGreaterThan(1);
+    });
+    expect(appendSystemMessage).toHaveBeenCalledWith(SLASH_COMMAND_MESSAGE.CLOUD_AUTH_REQUIRED);
+  };
+
+  it("shows auth guidance when cloud list fails with unauthorized error", async () => {
+    await expectCloudAuthGuidance("/cloud list", {
+      listCloudAgentItems: vi.fn(async () => {
+        throw new Error("Request failed with status 401");
+      }),
+    });
+  });
+
+  it("shows auth guidance when cloud status fails with unauthorized error", async () => {
+    await expectCloudAuthGuidance("/cloud status agent-1", {
+      getCloudAgentItem: vi.fn(async () => {
+        throw new Error("Request failed with status 401");
+      }),
+    });
+  });
+
+  it("shows auth guidance when cloud stop fails with unauthorized error", async () => {
+    await expectCloudAuthGuidance("/cloud stop agent-1", {
+      stopCloudAgentItem: vi.fn(async () => {
+        throw new Error("Request failed with status 401");
+      }),
+    });
+  });
+
+  it("shows auth guidance when cloud follow-up fails with unauthorized error", async () => {
+    await expectCloudAuthGuidance("/cloud followup agent-1 continue", {
+      followupCloudAgentItem: vi.fn(async () => {
+        throw new Error("Request failed with status 401");
+      }),
+    });
+  });
+
   it("shows unsupported message for cloud command on non-cursor harness", () => {
     const { deps, appendSystemMessage } = createDeps({
       activeHarnessId: HARNESS_DEFAULT.CLAUDE_CLI_ID,
