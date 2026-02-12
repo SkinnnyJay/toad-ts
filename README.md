@@ -145,6 +145,31 @@ export CURSOR_API_KEY=...
 TOADSTOOL can also negotiate authentication via `cursor-agent login` and supports streamed
 tool/thinking updates plus hook IPC integration.
 
+### Harness file overrides (`.toadstool/harnesses.json`)
+
+Project-level and user-level harness files can override command/runtime details per harness:
+
+```json
+{
+  "defaultHarness": "cursor-cli",
+  "harnesses": {
+    "cursor-cli": {
+      "name": "Cursor CLI",
+      "command": "cursor-agent",
+      "args": ["--output-format", "stream-json"],
+      "cursor": {
+        "model": "gpt-5",
+        "mode": "agent",
+        "force": false,
+        "sandbox": true,
+        "browser": false,
+        "approveMcps": true
+      }
+    }
+  }
+}
+```
+
 ## Cross-Tool Compatibility
 
 TOADSTOOL automatically loads configurations from:
