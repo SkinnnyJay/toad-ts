@@ -7,6 +7,7 @@ import { CURSOR_AUTH_GUIDANCE } from "@/constants/cursor-auth-guidance";
 import { ENV_KEY } from "@/constants/env-keys";
 import { ERROR_CODE } from "@/constants/error-codes";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
+import { HARNESS_INSTALL_GUIDANCE } from "@/constants/harness-install-guidance";
 import { RENDER_STAGE, type RenderStage } from "@/constants/render-stage";
 import { VIEW } from "@/constants/views";
 import { loadMcpConfig } from "@/core/mcp-config-loader";
@@ -72,13 +73,28 @@ export const formatHarnessError = (
         return undefined;
     }
   };
+  const installHintForHarness = (harnessId: string | undefined): string | undefined => {
+    switch (harnessId) {
+      case HARNESS_DEFAULT.CLAUDE_CLI_ID:
+        return HARNESS_INSTALL_GUIDANCE[HARNESS_DEFAULT.CLAUDE_CLI_ID];
+      case HARNESS_DEFAULT.GEMINI_CLI_ID:
+        return HARNESS_INSTALL_GUIDANCE[HARNESS_DEFAULT.GEMINI_CLI_ID];
+      case HARNESS_DEFAULT.CODEX_CLI_ID:
+        return HARNESS_INSTALL_GUIDANCE[HARNESS_DEFAULT.CODEX_CLI_ID];
+      case HARNESS_DEFAULT.CURSOR_CLI_ID:
+        return HARNESS_INSTALL_GUIDANCE[HARNESS_DEFAULT.CURSOR_CLI_ID];
+      default:
+        return undefined;
+    }
+  };
   if (isErrnoException(error)) {
     if (error.code === ERROR_CODE.ENOENT) {
       const cmd = context.command ?? defaultCommandForHarness(context.harnessId);
       const commandEnvKey = commandEnvKeyForHarness(context.harnessId);
+      const installHint = installHintForHarness(context.harnessId);
       const commandHint = commandEnvKey
-        ? `Install it or update ${commandEnvKey}.`
-        : "Install it or update harness command configuration.";
+        ? `${installHint ?? "Install it."} Or update ${commandEnvKey}.`
+        : `${installHint ?? "Install it."} Or update harness command configuration.`;
       return `Command '${cmd}' not found for ${context.agentName ?? "agent"}. ${commandHint}`;
     }
     if (error.code === ERROR_CODE.EACCES) {

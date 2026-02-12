@@ -28,6 +28,7 @@ describe("useHarnessConnection", () => {
       expect(result).toContain("Command 'claude' not found");
       expect(result).toContain("Claude CLI");
       expect(result).toContain(ENV_KEY.TOADSTOOL_CLAUDE_COMMAND);
+      expect(result).toContain("Install Claude Code ACP");
     });
 
     it("uses harness-specific command env hint for cursor ENOENT", () => {
@@ -40,6 +41,7 @@ describe("useHarnessConnection", () => {
 
       expect(result).toContain("Command 'cursor-agent' not found");
       expect(result).toContain(ENV_KEY.TOADSTOOL_CURSOR_COMMAND);
+      expect(result).toContain("Install Cursor CLI");
     });
 
     it("uses harness-specific command env hint for codex ENOENT", () => {
@@ -52,6 +54,7 @@ describe("useHarnessConnection", () => {
 
       expect(result).toContain("Command 'codex' not found");
       expect(result).toContain(ENV_KEY.TOADSTOOL_CODEX_COMMAND);
+      expect(result).toContain("Install Codex CLI");
     });
 
     it("uses harness-specific command env hint for gemini ENOENT", () => {
@@ -64,6 +67,7 @@ describe("useHarnessConnection", () => {
 
       expect(result).toContain("Command 'gemini' not found");
       expect(result).toContain(ENV_KEY.TOADSTOOL_GEMINI_COMMAND);
+      expect(result).toContain("Install Gemini CLI");
     });
 
     it("formats EACCES error with command context", () => {
