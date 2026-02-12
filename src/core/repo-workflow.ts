@@ -127,7 +127,7 @@ async function getPrChecksStatus(cwd: string): Promise<"pass" | "fail" | "pendin
   }
 }
 
-function deriveStatus(
+export function deriveRepoWorkflowStatus(
   pr: PullRequestStatus | null,
   isDirty: boolean,
   isAhead: boolean,
@@ -179,7 +179,7 @@ export async function getRepoWorkflowInfo(cwd?: string): Promise<RepoWorkflowInf
   const isAhead = ahead > 0;
   const isBehind = behind > 0;
 
-  const status = deriveStatus(pr, isDirty, isAhead, hasMergeConflicts, checksStatus);
+  const status = deriveRepoWorkflowStatus(pr, isDirty, isAhead, hasMergeConflicts, checksStatus);
   const action = REPO_WORKFLOW_ACTION[status];
 
   let owner = "unknown";

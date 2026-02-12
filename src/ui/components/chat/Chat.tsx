@@ -14,6 +14,7 @@ import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { PERMISSION_PATTERN } from "@/constants/permission-patterns";
 import { PERMISSION } from "@/constants/permissions";
 import { PLAN_STATUS } from "@/constants/plan-status";
+import { getRepoWorkflowSkillPrompt } from "@/constants/repo-workflow-skill-prompts";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
@@ -318,6 +319,12 @@ export const Chat = memo(
       if (skill?.content?.trim()) {
         handleSubmit(skill.content.trim());
       } else {
+        const fallbackPrompt = getRepoWorkflowSkillPrompt(queuedBreadcrumbSkill);
+        if (fallbackPrompt) {
+          appendSystemMessage(`Running workflow action: ${queuedBreadcrumbSkill}`);
+          handleSubmit(fallbackPrompt);
+          return;
+        }
         appendSystemMessage(`Skill not found: ${queuedBreadcrumbSkill}`);
       }
     }, [
