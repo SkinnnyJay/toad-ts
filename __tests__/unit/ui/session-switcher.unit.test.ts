@@ -48,6 +48,31 @@ describe("switchToSessionWithFallback", () => {
     expect(setSessionId).toHaveBeenCalledWith(targetSessionId);
   });
 
+  it("hydrates existing session metadata from native seed when missing", () => {
+    const targetSessionId = SessionIdSchema.parse("session-existing");
+    const existingSession = createSession("session-existing");
+    const upsertSession = vi.fn();
+    const setCurrentSession = vi.fn();
+
+    switchToSessionWithFallback({
+      targetSessionId,
+      getSession: () => existingSession,
+      upsertSession,
+      setCurrentSession,
+      seedSession: {
+        model: "gpt-5-thinking",
+      },
+    });
+
+    expect(upsertSession).toHaveBeenCalledWith({
+      session: expect.objectContaining({
+        id: targetSessionId,
+        metadata: { mcpServers: [], model: "gpt-5-thinking" },
+      }),
+    });
+    expect(setCurrentSession).toHaveBeenCalledWith(targetSessionId);
+  });
+
   it("creates placeholder sessions when target session is missing", () => {
     const targetSessionId = SessionIdSchema.parse("session-native-123456");
     const upsertSession = vi.fn();

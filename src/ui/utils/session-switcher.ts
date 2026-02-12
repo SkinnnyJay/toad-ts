@@ -41,6 +41,17 @@ const toTimestamp = (value: string | undefined, fallback: number): number => {
   return parsed;
 };
 
+const toSeedTimestamp = (value: string | undefined): number | undefined => {
+  if (!value) {
+    return undefined;
+  }
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) {
+    return undefined;
+  }
+  return parsed;
+};
+
 const toSeedTitle = (
   seedTitle: string | undefined,
   agentName: string | undefined,
@@ -51,6 +62,59 @@ const toSeedTitle = (
     return trimmedSeedTitle;
   }
   return buildSessionTitle(agentName, sessionId);
+};
+
+const toMergedSessionWithSeed = (
+  session: Session,
+  seedSession: SessionSwitchSeed | undefined
+): Session | undefined => {
+  if (!seedSession) {
+    return undefined;
+  }
+  const seededTitle = seedSession.title?.trim();
+  const seededModel = seedSession.model?.trim();
+  const seededCreatedAt = toSeedTimestamp(seedSession.createdAt);
+
+  let changed = false;
+  const title = session.title?.trim() ? session.title : seededTitle;
+  if (title !== session.title) {
+    changed = true;
+  }
+
+  const createdAt =
+    seededCreatedAt !== undefined
+      ? Math.min(session.createdAt, seededCreatedAt)
+      : session.createdAt;
+  if (createdAt !== session.createdAt) {
+    changed = true;
+  }
+  const updatedAt = Math.max(session.updatedAt, createdAt);
+  if (updatedAt !== session.updatedAt) {
+    changed = true;
+  }
+
+  const existingModel = session.metadata?.model;
+  const model = existingModel ?? (seededModel && seededModel.length > 0 ? seededModel : undefined);
+  if (model !== existingModel) {
+    changed = true;
+  }
+  if (!changed) {
+    return undefined;
+  }
+
+  const metadataBase = {
+    ...(session.metadata ?? { mcpServers: [] }),
+    mcpServers: session.metadata?.mcpServers ?? [],
+  };
+  const metadata = model ? { ...metadataBase, model } : metadataBase;
+
+  return {
+    ...session,
+    title,
+    createdAt,
+    updatedAt,
+    metadata,
+  };
 };
 
 export const switchToSessionWithFallback = ({
@@ -85,6 +149,11 @@ export const switchToSessionWithFallback = ({
         },
       },
     });
+  } else {
+    const mergedSession = toMergedSessionWithSeed(existingSession, seedSession);
+    if (mergedSession) {
+      upsertSession({ session: mergedSession });
+    }
   }
 
   setCurrentSession(targetSessionId);
