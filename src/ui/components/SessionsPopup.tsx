@@ -7,6 +7,7 @@ import { toNormalizedAgentManagementSessions } from "@/core/agent-management/ses
 import { useAppStore } from "@/store/app-store";
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
+import { truncateMiddle } from "@/ui/utils/truncate-middle";
 import type { SelectOption } from "@opentui/core";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
@@ -28,14 +29,6 @@ interface SessionEntry {
   searchText: string;
   description: string;
 }
-
-const truncateMiddle = (value: string, max: number): string => {
-  if (value.length <= max) {
-    return value;
-  }
-  const half = Math.floor((max - 3) / 2);
-  return `${value.slice(0, half)}...${value.slice(-half)}`;
-};
 
 const toNativeSessionLabel = (session: AgentManagementSession): string => {
   const shortId = session.id.slice(0, LIMIT.ID_TRUNCATE_LENGTH);

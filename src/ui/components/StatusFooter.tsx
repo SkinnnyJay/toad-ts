@@ -4,6 +4,7 @@ import { COLOR } from "@/constants/colors";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
 import type { ConnectionStatus, SessionId, SessionMode } from "@/types/domain";
 import { ContextProgress } from "@/ui/components/ContextProgress";
+import { truncateMiddle } from "@/ui/utils/truncate-middle";
 import { TextAttributes } from "@opentui/core";
 import type { ReactNode } from "react";
 
@@ -33,12 +34,6 @@ const globalShortcuts = [
   { key: "Cmd+F", label: "Focus Files" },
   { key: "/help", label: "Panel Help" },
 ];
-
-const truncateMiddle = (value: string, max: number): string => {
-  if (value.length <= max) return value;
-  const half = Math.floor((max - 3) / 2);
-  return `${value.slice(0, half)}...${value.slice(-half)}`;
-};
 
 const toWorkspaceLabel = (workspacePath?: string): string | undefined => {
   if (!workspacePath || workspacePath.trim().length === 0) {
