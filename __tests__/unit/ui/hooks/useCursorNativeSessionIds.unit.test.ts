@@ -19,6 +19,22 @@ interface NativeSessionTestClient {
   runAgentCommand?: (args: string[]) => Promise<AgentManagementCommandResult>;
 }
 
+interface Deferred<T> {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+}
+
+const createDeferred = <T>(): Deferred<T> => {
+  let resolveFn: ((value: T) => void) | undefined;
+  const promise = new Promise<T>((resolve) => {
+    resolveFn = resolve;
+  });
+  if (!resolveFn) {
+    throw new Error("Failed to initialize deferred promise resolver");
+  }
+  return { promise, resolve: resolveFn };
+};
+
 const createIdleClient = (): NativeSessionTestClient => ({
   runAgentCommand: undefined,
 });
@@ -279,6 +295,51 @@ describe("useCursorNativeSessionIds", () => {
     expect(lastFrame()).toContain("ids:0");
     expect(lastFrame()).toContain("loading:false");
     expect(lastFrame()).toContain("permission denied");
+    unmount();
+  });
+
+  it("ignores stale in-flight list results after disabling", async () => {
+    const staleSessionId = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174999");
+    const deferred = createDeferred<AgentManagementCommandResult>();
+    const runAgentCommand = vi.fn(() => deferred.promise);
+    const client: NativeSessionTestClient = { runAgentCommand };
+
+    function TestComponent({ enabled }: { enabled: boolean }) {
+      const result = useCursorNativeSessionIds({
+        enabled,
+        client,
+      });
+      return React.createElement(
+        "text",
+        null,
+        `ids:${result.sessionIds.join(",")} loading:${String(result.loading)} error:${result.error ?? "none"}`
+      );
+    }
+
+    const { lastFrame, rerender, unmount } = renderInk(
+      React.createElement(TestComponent, { enabled: true })
+    );
+    await flushMicrotasks();
+    expect(lastFrame()).toContain("loading:true");
+
+    rerender(React.createElement(TestComponent, { enabled: false }));
+    await flushMicrotasks();
+    expect(lastFrame()).toContain("ids:");
+    expect(lastFrame()).toContain("loading:false");
+    expect(lastFrame()).toContain("error:none");
+
+    deferred.resolve({
+      stdout: staleSessionId,
+      stderr: "",
+      exitCode: 0,
+    });
+    await flushMicrotasks();
+
+    const frame = lastFrame();
+    expect(runAgentCommand).toHaveBeenCalledTimes(1);
+    expect(frame).not.toContain(staleSessionId);
+    expect(frame).toContain("loading:false");
+    expect(frame).toContain("error:none");
     unmount();
   });
 

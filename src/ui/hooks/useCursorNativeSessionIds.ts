@@ -6,7 +6,7 @@ import type {
   AgentManagementSession,
 } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const toErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
@@ -86,6 +86,15 @@ export function useCursorNativeSessionIds(
   const [sessions, setSessions] = useState<AgentManagementSession[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestSequenceRef = useRef(0);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   const resetState = useCallback(() => {
     setSessions((current) => (current.length === 0 ? current : []));
     setLoading((current) => (current ? false : current));
@@ -93,8 +102,15 @@ export function useCursorNativeSessionIds(
   }, []);
 
   const refresh = useCallback(async () => {
+    requestSequenceRef.current += 1;
+    const requestSequence = requestSequenceRef.current;
+    const canCommitRequest = (): boolean => {
+      return mountedRef.current && requestSequenceRef.current === requestSequence;
+    };
     if (!enabled || !client) {
-      resetState();
+      if (canCommitRequest()) {
+        resetState();
+      }
       return;
     }
     setLoading(true);
@@ -102,21 +118,34 @@ export function useCursorNativeSessionIds(
     try {
       if (client.listAgentSessions) {
         const listedSessions = await client.listAgentSessions();
+        if (!canCommitRequest()) {
+          return;
+        }
         setSessions(toSortedUniqueValidatedSessions(listedSessions));
         return;
       }
       if (!client.runAgentCommand) {
-        resetState();
+        if (canCommitRequest()) {
+          resetState();
+        }
         return;
       }
       const result = await client.runAgentCommand([AGENT_MANAGEMENT_COMMAND.LIST]);
+      if (!canCommitRequest()) {
+        return;
+      }
       const parsed = toUniqueSessionsFromCommandResult(result);
       setSessions(parsed);
     } catch (error) {
+      if (!canCommitRequest()) {
+        return;
+      }
       setSessions([]);
       setError(toErrorMessage(error));
     } finally {
-      setLoading(false);
+      if (canCommitRequest()) {
+        setLoading(false);
+      }
     }
   }, [client, enabled, resetState]);
 
