@@ -4,6 +4,7 @@ import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import type { SlashCommandDeps } from "@/ui/components/chat/slash-command-runner";
 import {
   appendStatusAuthGuidance,
+  isStatusAuthFailureResult,
   toStatusAuthState,
 } from "@/ui/components/chat/slash-command-status-auth";
 import { describe, expect, it, vi } from "vitest";
@@ -75,6 +76,35 @@ describe("slash-command-status-auth", () => {
       expect(appendSystemMessage).toHaveBeenCalledWith(
         SLASH_COMMAND_MESSAGE.AUTH_REQUIRED_LOGIN_HINT
       );
+    });
+  });
+
+  describe("isStatusAuthFailureResult", () => {
+    it("returns true for auth-related failures in stdout or stderr", () => {
+      expect(
+        isStatusAuthFailureResult({
+          stdout: "not authenticated",
+          stderr: "",
+          exitCode: 1,
+        })
+      ).toBe(true);
+      expect(
+        isStatusAuthFailureResult({
+          stdout: "",
+          stderr: "Request failed with status 401",
+          exitCode: 1,
+        })
+      ).toBe(true);
+    });
+
+    it("returns false for non-auth failure output", () => {
+      expect(
+        isStatusAuthFailureResult({
+          stdout: "",
+          stderr: "network timeout",
+          exitCode: 1,
+        })
+      ).toBe(false);
     });
   });
 });

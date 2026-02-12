@@ -662,6 +662,24 @@ describe("slash command agent management", () => {
     );
   });
 
+  it("shows auth guidance for /agent failures with auth-required output", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "not authenticated",
+      exitCode: 1,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand("/agent status", deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(appendSystemMessage).toHaveBeenCalledWith(CURSOR_AUTH_GUIDANCE.LOGIN_REQUIRED);
+  });
+
   it("reports fallback exit code when /agent failure has no output", async () => {
     const runAgentCommand = vi.fn(async () => ({
       stdout: "",
@@ -707,6 +725,26 @@ describe("slash command agent management", () => {
     expect(appendSystemMessage).toHaveBeenCalledWith(
       expect.stringContaining("Agent status (Cursor CLI):")
     );
+  });
+
+  it("shows auth guidance when /status command exits non-zero with auth failure output", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "not authenticated",
+      exitCode: 1,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      activeAgentName: "Cursor CLI",
+      connectionStatus: "connected",
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.STATUS, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(appendSystemMessage).toHaveBeenCalledWith(CURSOR_AUTH_GUIDANCE.LOGIN_REQUIRED);
   });
 
   it("shows auth guidance when cloud count fails during /status", async () => {

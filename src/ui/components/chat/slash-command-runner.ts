@@ -51,6 +51,7 @@ import {
   runShareCommand,
   runUnshareCommand,
 } from "./slash-command-actions";
+import { handleAgentCommand } from "./slash-command-agent";
 import {
   handleRedoCommand,
   handleRewindCommand,
@@ -66,7 +67,6 @@ import {
 import { handleExportSlashCommand, handleImportSlashCommand } from "./slash-command-export-import";
 import {
   handleAddDirCommand,
-  handleAgentCommand,
   handleCloudCommand,
   handleConfigCommand,
   handleInitCommand,
