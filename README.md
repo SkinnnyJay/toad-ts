@@ -208,6 +208,7 @@ export CURSOR_API_KEY=...
 - Supports management commands through slash commands:
   - `/status`, `/login`, `/logout`, `/models`, `/model`, `/mcp`, `/agent`, `/cloud`
   - connect-time auth failures now show explicit guidance to run `cursor-agent login` (or set `CURSOR_API_KEY`)
+  - connect-time missing-binary errors now include harness-specific install hints plus `TOADSTOOL_*_COMMAND` override guidance
   - `/mcp` (no subcommand) opens an interactive MCP server panel with enable/disable/refresh actions
     - panel also supports tool discovery (`Ctrl+T`) via `mcp list-tools <server-id>`
   - `/mcp list-tools <server-id>` now renders a parsed tool preview in chat output
