@@ -2,6 +2,7 @@ import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { PassThrough } from "node:stream";
+import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { ENV_KEY } from "@/constants/env-keys";
 import { CursorCliConnection } from "@/core/cursor/cursor-cli-connection";
 import { EventEmitter } from "eventemitter3";
@@ -176,5 +177,27 @@ describe("CursorCliConnection", () => {
 
     expect(calls[0]?.args).toContain("--api-key");
     expect(calls[0]?.args).toContain("api-key-123");
+  });
+
+  it("keeps command spawn p95 under target threshold", async () => {
+    const fixture = readFixture("__tests__/fixtures/cursor/status-output.txt");
+    const scenarios = Array.from({ length: CURSOR_LIMIT.SPAWN_PERF_SAMPLE_SIZE }, () => ({
+      stdout: fixture,
+      exitCode: 0,
+    }));
+    const { spawnFn } = createSpawnFn(scenarios);
+    const connection = new CursorCliConnection({ spawnFn, command: "cursor-agent" });
+    const latenciesMs: number[] = [];
+
+    for (let index = 0; index < CURSOR_LIMIT.SPAWN_PERF_SAMPLE_SIZE; index += 1) {
+      const start = Date.now();
+      await connection.verifyAuth();
+      latenciesMs.push(Date.now() - start);
+    }
+
+    const sorted = [...latenciesMs].sort((left, right) => left - right);
+    const p95Index = Math.max(0, Math.ceil(sorted.length * 0.95) - 1);
+    const p95 = sorted[p95Index] ?? 0;
+    expect(p95).toBeLessThanOrEqual(CURSOR_LIMIT.SPAWN_P95_TARGET_MS);
   });
 });
