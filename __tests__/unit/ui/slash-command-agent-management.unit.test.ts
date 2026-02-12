@@ -164,6 +164,52 @@ describe("slash command agent management", () => {
     expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("Available models"));
   });
 
+  it("normalizes blank active session model before hydrating /models defaults", async () => {
+    const sessionId = SessionIdSchema.parse("session-model-blank");
+    const session: Session = {
+      id: sessionId,
+      title: "Model session",
+      messageIds: [],
+      createdAt: 1,
+      updatedAt: 1,
+      mode: SESSION_MODE.AUTO,
+      metadata: {
+        mcpServers: [],
+        model: "   ",
+      },
+    };
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "auto - Auto (default)\nfast - Fast Model",
+      stderr: "",
+      exitCode: 0,
+    }));
+    const upsertSession = vi.fn();
+    const { deps } = createDeps({
+      sessionId,
+      getSession: () => session,
+      upsertSession,
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.MODELS, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(upsertSession).toHaveBeenCalledWith({
+      session: expect.objectContaining({
+        id: sessionId,
+        metadata: expect.objectContaining({
+          model: "auto",
+          availableModels: [
+            { modelId: "auto", name: "Auto" },
+            { modelId: "fast", name: "Fast Model" },
+          ],
+        }),
+      }),
+    });
+  });
+
   it("reports /models command failures from native management command", async () => {
     const runAgentCommand = vi.fn(async () => ({
       stdout: "",

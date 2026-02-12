@@ -115,6 +115,15 @@ export interface SlashCommandDeps {
   connectionStatus?: string;
   now?: () => number;
 }
+
+const toNormalizedOptionalString = (value: string | undefined): string | undefined => {
+  const normalized = value?.trim();
+  if (!normalized) {
+    return undefined;
+  }
+  return normalized;
+};
+
 export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean => {
   if (!value.startsWith("/")) return false;
   const parts = value.trim().split(/\s+/);
@@ -322,7 +331,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       const modelId = parts.slice(1).join(" ").trim();
       if (!modelId) {
         const session = deps.sessionId ? deps.getSession(deps.sessionId) : undefined;
-        const currentModel = session?.metadata?.model;
+        const currentModel = toNormalizedOptionalString(session?.metadata?.model);
         const availableModels = session?.metadata?.availableModels ?? [];
         if (availableModels.length > 0) {
           deps.appendSystemMessage(formatModelListMessage(availableModels, currentModel));
@@ -367,7 +376,8 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
             if (deps.sessionId) {
               const activeSession = deps.getSession(deps.sessionId);
               if (activeSession) {
-                const model = activeSession.metadata?.model ?? parsedCurrentModel;
+                const model =
+                  toNormalizedOptionalString(activeSession.metadata?.model) ?? parsedCurrentModel;
                 const metadataBase = {
                   ...(activeSession.metadata ?? { mcpServers: [] }),
                   mcpServers: activeSession.metadata?.mcpServers ?? [],
