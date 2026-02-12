@@ -15,7 +15,14 @@ import {
 import type { CursorStreamEvent } from "@/types/cursor-cli.types";
 import { EnvManager } from "@/utils/env/env.utils";
 import { EventEmitter } from "eventemitter3";
-import { parseCursorModelsOutput, parseCursorStatusOutput } from "./cursor-command-parsers";
+import {
+  type CursorAboutInfo,
+  type CursorMcpServerStatus,
+  parseCursorAboutOutput,
+  parseCursorMcpListOutput,
+  parseCursorModelsOutput,
+  parseCursorStatusOutput,
+} from "./cursor-command-parsers";
 import { CursorStreamParser, type CursorStreamParserOptions } from "./cursor-stream-parser";
 
 const CURSOR_CLI_ARG = {
@@ -34,7 +41,10 @@ const CURSOR_CLI_ARG = {
   API_KEY: "--api-key",
   VERSION: "--version",
   STATUS: "status",
+  ABOUT: "about",
   MODELS: "models",
+  MCP: "mcp",
+  MCP_LIST: "list",
   LIST_SESSIONS: "ls",
   CREATE_CHAT: "create-chat",
 } as const;
@@ -196,6 +206,16 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
       .map((line) => this.parseSessionLine(line))
       .filter((session): session is CliAgentSession => session !== null);
     return sessions;
+  }
+
+  public async about(): Promise<CursorAboutInfo> {
+    const result = await this.runCommand([CURSOR_CLI_ARG.ABOUT]);
+    return parseCursorAboutOutput(result.stdout);
+  }
+
+  public async listMcpServers(): Promise<CursorMcpServerStatus[]> {
+    const result = await this.runCommand([CURSOR_CLI_ARG.MCP, CURSOR_CLI_ARG.MCP_LIST]);
+    return parseCursorMcpListOutput(result.stdout);
   }
 
   public async runPrompt(

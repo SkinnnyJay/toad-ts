@@ -140,6 +140,29 @@ describe("CursorCliConnection", () => {
     expect(status.email).toBe("netwearcdz@gmail.com");
   });
 
+  it("parses about output through native about command", async () => {
+    const fixture = readFixture("__tests__/fixtures/cursor/about-output.txt");
+    const { spawnFn, calls } = createSpawnFn([{ stdout: fixture, exitCode: 0 }]);
+    const connection = new CursorCliConnection({ spawnFn, command: "cursor-agent" });
+
+    const about = await connection.about();
+
+    expect(about.cliVersion).toBe("2026.01.28-fd13201");
+    expect(calls[0]?.args).toEqual(["about"]);
+  });
+
+  it("parses mcp list output through native mcp list command", async () => {
+    const fixture = readFixture("__tests__/fixtures/cursor/mcp-list-output.txt");
+    const { spawnFn, calls } = createSpawnFn([{ stdout: fixture, exitCode: 0 }]);
+    const connection = new CursorCliConnection({ spawnFn, command: "cursor-agent" });
+
+    const servers = await connection.listMcpServers();
+
+    expect(servers).toHaveLength(3);
+    expect(servers[0]?.name).toBe("playwright");
+    expect(calls[0]?.args).toEqual(["mcp", "list"]);
+  });
+
   it("returns empty sessions list for TTY-only ls output", async () => {
     const fixture = readFixture("__tests__/fixtures/cursor/ls-output.txt");
     const { spawnFn } = createSpawnFn([{ stdout: fixture, exitCode: 0 }]);
