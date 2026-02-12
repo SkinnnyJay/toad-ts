@@ -1,7 +1,10 @@
 import {
   MCP_SERVER_STATUS,
+  formatMcpToolPreview,
   parseMcpServerListCommandResult,
   parseMcpServerListOutput,
+  parseMcpServerToolsCommandResult,
+  parseMcpServerToolsOutput,
   toMcpServersFromSession,
 } from "@/ui/utils/mcp-server-list";
 import { describe, expect, it } from "vitest";
@@ -68,5 +71,40 @@ describe("mcp-server-list", () => {
     });
 
     expect(parsed).toEqual([]);
+  });
+
+  it("parses MCP server tools output and drops header/noise lines", () => {
+    const parsed = parseMcpServerToolsOutput(
+      ["Tools:", "read_file - Reads a file", "write_file", "[warn] stale cache"].join("\n")
+    );
+
+    expect(parsed).toEqual(["read_file", "write_file"]);
+  });
+
+  it("parses mcp list-tools command with stderr fallback and empty guards", () => {
+    const parsedWithFallback = parseMcpServerToolsCommandResult(
+      {
+        stdout: "[warn] unable to write cache",
+        stderr: "list_files\ndelete_file",
+        exitCode: 0,
+      },
+      "filesystem"
+    );
+    expect(parsedWithFallback).toEqual(["list_files", "delete_file"]);
+
+    const parsedEmpty = parseMcpServerToolsCommandResult(
+      {
+        stdout: "No tools",
+        stderr: "stale_tool",
+        exitCode: 0,
+      },
+      "filesystem"
+    );
+    expect(parsedEmpty).toEqual([]);
+  });
+
+  it("formats tool preview with overflow suffix", () => {
+    const preview = formatMcpToolPreview(["a", "b", "c", "d", "e", "f", "g", "h", "i"]);
+    expect(preview).toBe("a, b, c, d, e, f, g, h … +1 more");
   });
 });

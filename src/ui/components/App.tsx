@@ -12,6 +12,7 @@ import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { DISCOVERY_SUBPATH } from "@/constants/discovery-subpaths";
 import { FOCUS_TARGET } from "@/constants/focus-target";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
+import { MCP_MANAGEMENT_SUBCOMMAND } from "@/constants/mcp-management-subcommands";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-marks";
 import { PERSISTENCE_WRITE_MODE } from "@/constants/persistence-write-modes";
@@ -85,6 +86,7 @@ import { applyThemeColors } from "@/ui/theme/theme-definitions";
 import {
   type McpServerListItem,
   parseMcpServerListCommandResult,
+  parseMcpServerToolsCommandResult,
   toMcpServersFromSession,
 } from "@/ui/utils/mcp-server-list";
 import { withSessionAvailableModels, withSessionModel } from "@/ui/utils/session-model-metadata";
@@ -94,11 +96,6 @@ import { playCompletionSound } from "@/utils/sound/completion-sound.utils";
 import { TextAttributes } from "@opentui/core";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-
-const MCP_MANAGEMENT_SUBCOMMAND = {
-  ENABLE: "enable",
-  DISABLE: "disable",
-} as const;
 
 export function App(): ReactNode {
   const [view, setView] = useState<View>(VIEW.AGENT_SELECT);
@@ -533,7 +530,7 @@ export function App(): ReactNode {
     try {
       const result = await client.runAgentCommand([
         AGENT_MANAGEMENT_COMMAND.MCP,
-        AGENT_MANAGEMENT_COMMAND.LIST,
+        MCP_MANAGEMENT_SUBCOMMAND.LIST,
       ]);
       const parsedServers = parseMcpServerListCommandResult(result);
       setMcpServers(parsedServers.length > 0 ? parsedServers : configuredServers);
@@ -578,6 +575,21 @@ export function App(): ReactNode {
       await handleRefreshMcpServers();
     },
     [client?.runAgentCommand, handleRefreshMcpServers]
+  );
+
+  const handleListMcpServerTools = useCallback(
+    async (serverId: string): Promise<string[]> => {
+      if (!client?.runAgentCommand) {
+        throw new Error("MCP command is not available for the active provider.");
+      }
+      const result = await client.runAgentCommand([
+        AGENT_MANAGEMENT_COMMAND.MCP,
+        MCP_MANAGEMENT_SUBCOMMAND.LIST_TOOLS,
+        serverId,
+      ]);
+      return parseMcpServerToolsCommandResult(result, serverId);
+    },
+    [client?.runAgentCommand]
   );
 
   const breadcrumbPlacement = appConfig.ui.breadcrumb.placement;
@@ -872,6 +884,7 @@ export function App(): ReactNode {
                     onRefresh={handleRefreshMcpServers}
                     onEnableServer={handleEnableMcpServer}
                     onDisableServer={handleDisableMcpServer}
+                    onListServerTools={handleListMcpServerTools}
                   />
                 ) : isThemesOpen ? (
                   <ThemesModal isOpen={isThemesOpen} onClose={() => setIsThemesOpen(false)} />

@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
+import { MCP_MANAGEMENT_SUBCOMMAND } from "@/constants/mcp-management-subcommands";
 import { SESSION_MODE } from "@/constants/session-modes";
 import {
   SLASH_COMMAND_MESSAGE,
@@ -27,7 +28,6 @@ const MANAGEMENT_COMMAND = {
   SETUP_TOKEN: "setup-token",
   MODELS: AGENT_MANAGEMENT_COMMAND.MODELS,
   MCP: AGENT_MANAGEMENT_COMMAND.MCP,
-  LIST: "list",
 } as const;
 
 const PREVIEW_LINE_LIMIT = 8;
@@ -473,7 +473,7 @@ export const handleMcpCommand = (parts: string[], deps: SlashCommandDeps): void 
       ? [MANAGEMENT_COMMAND.MCP, ...subcommand]
       : deps.activeHarnessId === HARNESS_DEFAULT.GEMINI_CLI_ID
         ? [MANAGEMENT_COMMAND.MCP]
-        : [MANAGEMENT_COMMAND.MCP, MANAGEMENT_COMMAND.LIST];
+        : [MANAGEMENT_COMMAND.MCP, MCP_MANAGEMENT_SUBCOMMAND.LIST];
 
   deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.MCP_STARTING);
   void deps

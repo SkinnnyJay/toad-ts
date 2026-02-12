@@ -1,4 +1,5 @@
 import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
+import { MCP_MANAGEMENT_SUBCOMMAND } from "@/constants/mcp-management-subcommands";
 import {
   parseStdoutWithCombinedFallback,
   toCommandFailureMessage,
@@ -21,6 +22,8 @@ export interface McpServerListItem {
   enabled: boolean | null;
 }
 
+const TOOL_PREVIEW_LIMIT = 8;
+
 const MCP_SERVER_LIST = {
   HEADER_ID: "id",
   HEADER_NAME: "name",
@@ -28,7 +31,8 @@ const MCP_SERVER_LIST = {
   HEADER_STATUS: "status",
   LINE_PREFIX_PATTERN: /^(?:[-*•]\s*)?(?:\[\d+\]\s*)?/,
   STATUS_PATTERN: /^([A-Za-z0-9._:/-]+)(?:\s*[:|-]\s*|\s+)\(?([A-Za-z-]+)\)?(?:\s|$)/,
-  NOISE_PATTERN: /^(?:\[[a-z0-9_ -]+\]\s*)?(?:warning|warn|error|info|debug)\b[:\s-]/i,
+  NOISE_PATTERN:
+    /^(?:\[(?:warn|warning|error|info|debug)[^\]]*\]\s*|(?:warning|warn|error|info|debug)\b[:\s-])/i,
   EXPLICIT_EMPTY_PATTERN: /\b(?:no\s+mcp\s+servers?|0\s+servers?|no\s+servers?\s+configured)\b/i,
 } as const;
 
@@ -41,7 +45,8 @@ const MCP_STATUS_TOKEN = {
   DISCONNECTED: "disconnected",
 } as const;
 
-const MCP_SERVER_LIST_COMMAND_FAILED = `Failed to run \`${AGENT_MANAGEMENT_COMMAND.MCP} ${AGENT_MANAGEMENT_COMMAND.LIST}\`.`;
+const MCP_SERVER_LIST_COMMAND_FAILED = `Failed to run \`${AGENT_MANAGEMENT_COMMAND.MCP} ${MCP_MANAGEMENT_SUBCOMMAND.LIST}\`.`;
+const MCP_SERVER_TOOLS_COMMAND_FAILED_PREFIX = `Failed to run \`${AGENT_MANAGEMENT_COMMAND.MCP} ${MCP_MANAGEMENT_SUBCOMMAND.LIST_TOOLS}\` for`;
 
 const HEADER_TOKENS: readonly string[] = [
   MCP_SERVER_LIST.HEADER_ID,
@@ -201,4 +206,100 @@ export const parseMcpServerListCommandResult = (
     return [];
   }
   return parsed;
+};
+
+const MCP_SERVER_TOOLS = {
+  NOISE_PATTERN: MCP_SERVER_LIST.NOISE_PATTERN,
+  HEADER_PATTERN: /^tools?\s*:?$/i,
+  EXPLICIT_EMPTY_PATTERN: /\b(?:no\s+tools?|0\s+tools?)\b/i,
+  LINE_PREFIX_PATTERN: /^(?:[-*•]\s*)?(?:\[\d+\]\s*)?/,
+} as const;
+
+const toMcpToolNameFromLine = (line: string): string | null => {
+  const normalizedLine = line.trim().replace(MCP_SERVER_TOOLS.LINE_PREFIX_PATTERN, "");
+  if (normalizedLine.length === 0) {
+    return null;
+  }
+  if (MCP_SERVER_TOOLS.NOISE_PATTERN.test(normalizedLine)) {
+    return null;
+  }
+  if (MCP_SERVER_TOOLS.EXPLICIT_EMPTY_PATTERN.test(normalizedLine)) {
+    return null;
+  }
+  if (MCP_SERVER_TOOLS.HEADER_PATTERN.test(normalizedLine)) {
+    return null;
+  }
+  if (normalizedLine.includes(":")) {
+    const [firstToken] = normalizedLine.split(":", 1);
+    const candidate = firstToken?.trim();
+    if (!candidate || candidate.includes(" ")) {
+      return null;
+    }
+    return candidate;
+  }
+  const [token] = normalizedLine.split(/\s+/, 1);
+  if (!token) {
+    return null;
+  }
+  if (token.includes("=")) {
+    return null;
+  }
+  return token;
+};
+
+const toUniqueMcpTools = (tools: string[]): string[] => {
+  const unique = new Set<string>();
+  for (const tool of tools) {
+    unique.add(tool);
+  }
+  return [...unique];
+};
+
+export const parseMcpServerToolsOutput = (output: string): string[] => {
+  const tools = output
+    .split("\n")
+    .map((line) => toMcpToolNameFromLine(line))
+    .filter((tool): tool is string => Boolean(tool));
+  return toUniqueMcpTools(tools);
+};
+
+export const parseMcpServerToolsCommandResult = (
+  result: AgentManagementCommandResult,
+  serverId: string
+): string[] => {
+  if (result.exitCode !== 0) {
+    throw new Error(
+      toCommandFailureMessage(result, `${MCP_SERVER_TOOLS_COMMAND_FAILED_PREFIX} ${serverId}.`)
+    );
+  }
+  const parsed = parseStdoutWithCombinedFallback({
+    result,
+    parse: parseMcpServerToolsOutput,
+    shouldAcceptParsed: (tools) => tools.length > 0,
+    shouldFallbackWhenStdoutPresent: (stdout, toolsFromStdout) => {
+      if (MCP_SERVER_TOOLS.EXPLICIT_EMPTY_PATTERN.test(stdout)) {
+        return false;
+      }
+      return toolsFromStdout.length === 0;
+    },
+  });
+  if (parsed.length > 0) {
+    return parsed;
+  }
+  if (
+    MCP_SERVER_TOOLS.EXPLICIT_EMPTY_PATTERN.test(result.stdout) ||
+    MCP_SERVER_TOOLS.EXPLICIT_EMPTY_PATTERN.test(result.stderr)
+  ) {
+    return [];
+  }
+  return parsed;
+};
+
+export const formatMcpToolPreview = (tools: string[]): string => {
+  if (tools.length === 0) {
+    return "No tools available.";
+  }
+  const preview = tools.slice(0, TOOL_PREVIEW_LIMIT);
+  const suffix = tools.length > preview.length ? ` … +${tools.length - preview.length} more` : "";
+  return `${preview.join(", ")}${suffix}`;
 };

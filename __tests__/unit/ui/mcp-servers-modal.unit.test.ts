@@ -66,4 +66,25 @@ describe("McpServersModal", () => {
     await waitFor(() => onDisableServer.mock.calls.length === 1);
     expect(onDisableServer).toHaveBeenCalledWith("github");
   });
+
+  it("lists selected MCP server tools with Ctrl+T", async () => {
+    const onListServerTools = vi.fn(async () => ["read_file", "write_file"]);
+    const { lastFrame } = renderInk(
+      React.createElement(
+        TruncationProvider,
+        {},
+        React.createElement(McpServersModal, {
+          isOpen: true,
+          servers: [{ id: "github", status: "enabled", enabled: true }],
+          onClose: () => {},
+          onListServerTools,
+        })
+      )
+    );
+
+    keyboardRuntime.emit("t", { ctrl: true });
+    await waitFor(() => onListServerTools.mock.calls.length === 1);
+    expect(onListServerTools).toHaveBeenCalledWith("github");
+    await waitFor(() => lastFrame().includes("Tools (2): read_file, write_file"));
+  });
 });

@@ -22,6 +22,7 @@ export const KEY_NAME = {
   S: "s",
   B: "b",
   D: "d",
+  T: "t",
   H: "h",
   J: "j",
   K: "k",

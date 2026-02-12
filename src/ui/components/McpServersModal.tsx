@@ -2,7 +2,7 @@ import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { KEY_NAME } from "@/constants/key-names";
 import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
-import type { McpServerListItem } from "@/ui/utils/mcp-server-list";
+import { type McpServerListItem, formatMcpToolPreview } from "@/ui/utils/mcp-server-list";
 import type { SelectOption } from "@opentui/core";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
@@ -24,6 +24,7 @@ interface McpServersModalProps {
   onRefresh?: () => Promise<void> | void;
   onEnableServer?: (serverId: string) => Promise<void> | void;
   onDisableServer?: (serverId: string) => Promise<void> | void;
+  onListServerTools?: (serverId: string) => Promise<string[]>;
 }
 
 export function McpServersModal({
@@ -35,6 +36,7 @@ export function McpServersModal({
   onRefresh,
   onEnableServer,
   onDisableServer,
+  onListServerTools,
 }: McpServersModalProps): ReactNode {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isBusy, setIsBusy] = useState(false);
@@ -128,6 +130,24 @@ export function McpServersModal({
         await onDisableServer(selectedServer.id);
         setStatusMessage(`Disabled MCP server ${selectedServer.id}.`);
       }, MCP_SERVERS_MODAL_MESSAGE.DISABLE_UNAVAILABLE);
+      return;
+    }
+    if (key.ctrl && key.name === KEY_NAME.T) {
+      key.preventDefault();
+      key.stopPropagation();
+      if (!onListServerTools) {
+        setStatusMessage("MCP tool list action is not available.");
+        return;
+      }
+      void runAction(async () => {
+        setStatusMessage(`Fetching tools for ${selectedServer.id}…`);
+        const tools = await onListServerTools(selectedServer.id);
+        if (tools.length === 0) {
+          setStatusMessage(`No tools found for ${selectedServer.id}.`);
+          return;
+        }
+        setStatusMessage(`Tools (${tools.length}): ${formatMcpToolPreview(tools)}`);
+      }, "MCP tool list action is not available.");
     }
   });
 
@@ -176,7 +196,7 @@ export function McpServersModal({
       ) : null}
       <box marginTop={1} paddingTop={1} borderStyle="single" border={["top"]}>
         <text attributes={TextAttributes.DIM}>
-          ↑/↓ select | Ctrl+E enable | Ctrl+D disable | Ctrl+R refresh
+          ↑/↓ select | Ctrl+E enable | Ctrl+D disable | Ctrl+T tools | Ctrl+R refresh
         </text>
       </box>
     </box>
