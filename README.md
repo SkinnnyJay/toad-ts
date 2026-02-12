@@ -120,12 +120,30 @@ TOADSTOOL loads configuration from multiple sources (in precedence order):
   },
   "compatibility": {
     "claude": true,
-    "cursor": true,
+    "cursor": false,
     "opencode": true,
     "gemini": true
   }
 }
 ```
+
+### Cursor CLI (beta)
+
+Cursor support is available behind a feature flag and disabled by default.
+
+```bash
+# Enable Cursor harness registration
+export TOADSTOOL_CURSOR_CLI_ENABLED=true
+
+# Optional: override binary path/name (default: cursor-agent)
+export TOADSTOOL_CURSOR_COMMAND=cursor-agent
+
+# Optional: authenticate with API key instead of browser login
+export CURSOR_API_KEY=...
+```
+
+TOADSTOOL can also negotiate authentication via `cursor-agent login` and supports streamed
+tool/thinking updates plus hook IPC integration.
 
 ## Cross-Tool Compatibility
 
@@ -162,14 +180,15 @@ Skills, commands, agents, hooks, and rules from all tools are merged automatical
 ## Slash Commands
 
 ```
-/add-dir   /agents    /clear     /compact   /config
-/connect   /context   /copy      /cost      /debug
-/details   /doctor    /editor    /export    /help
-/hooks     /import    /init      /login     /memory
-/mode      /models    /new       /permissions /plan
-/progress  /rename    /review    /rewind    /security-review
-/sessions  /settings  /share     /stats     /status
-/themes    /thinking  /undo      /unshare   /redo
+/add-dir   /agent     /agents    /clear     /commands
+/compact   /config    /connect   /context   /copy
+/cost      /debug     /details   /doctor    /editor
+/export    /help      /hooks     /import    /init
+/login     /logout    /mcp       /memory    /mode
+/models    /new       /permissions /plan    /progress
+/redo      /rename    /review    /rewind    /security-review
+/sessions  /settings  /share     /skills    /stats
+/status    /themes    /thinking  /undo      /unshare
 /vim
 ```
 
