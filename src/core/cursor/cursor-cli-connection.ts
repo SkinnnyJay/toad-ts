@@ -115,7 +115,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
   private readonly command: string;
   private readonly args: string[];
   private readonly cwd?: string;
-  private readonly env: NodeJS.ProcessEnv;
+  private env: NodeJS.ProcessEnv;
   private readonly spawnFn: CursorSpawnFunction;
   private readonly parserOptions: CursorStreamParserOptions;
 
@@ -145,6 +145,13 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
 
   public getLastSessionId(): string | undefined {
     return this.latestSessionId;
+  }
+
+  public setEnv(overrides: Record<string, string>): void {
+    this.env = {
+      ...this.env,
+      ...overrides,
+    };
   }
 
   public async disconnect(): Promise<void> {
