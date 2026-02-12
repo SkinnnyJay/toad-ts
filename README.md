@@ -207,6 +207,7 @@ export CURSOR_API_KEY=...
 - Renders hook-based file edits in the inline diff tool UI
 - Supports management commands through slash commands:
   - `/status`, `/login`, `/logout`, `/models`, `/model`, `/mcp`, `/agent`, `/cloud`
+  - connect-time auth failures now show explicit guidance to run `cursor-agent login` (or set `CURSOR_API_KEY`)
   - `/mcp` (no subcommand) opens an interactive MCP server panel with enable/disable/refresh actions
     - panel also supports tool discovery (`Ctrl+T`) via `mcp list-tools <server-id>`
   - `/mcp list-tools <server-id>` now renders a parsed tool preview in chat output
