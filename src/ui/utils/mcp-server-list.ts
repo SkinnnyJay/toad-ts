@@ -1,5 +1,8 @@
 import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
-import { toCommandFailureMessage } from "@/core/agent-management/command-result-utils";
+import {
+  parseStdoutWithCombinedFallback,
+  toCommandFailureMessage,
+} from "@/core/agent-management/command-result-utils";
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type { Session } from "@/types/domain";
 
@@ -25,6 +28,8 @@ const MCP_SERVER_LIST = {
   HEADER_STATUS: "status",
   LINE_PREFIX_PATTERN: /^(?:[-*•]\s*)?(?:\[\d+\]\s*)?/,
   STATUS_PATTERN: /^([A-Za-z0-9._:/-]+)(?:\s*[:|-]\s*|\s+)\(?([A-Za-z-]+)\)?(?:\s|$)/,
+  NOISE_PATTERN: /^(?:\[[a-z0-9_ -]+\]\s*)?(?:warning|warn|error|info|debug)\b[:\s-]/i,
+  EXPLICIT_EMPTY_PATTERN: /\b(?:no\s+mcp\s+servers?|0\s+servers?|no\s+servers?\s+configured)\b/i,
 } as const;
 
 const MCP_STATUS_TOKEN = {
@@ -86,6 +91,12 @@ const toMcpServerFromLine = (line: string): McpServerListItem | null => {
   if (normalizedLine.length === 0) {
     return null;
   }
+  if (MCP_SERVER_LIST.EXPLICIT_EMPTY_PATTERN.test(normalizedLine)) {
+    return null;
+  }
+  if (MCP_SERVER_LIST.NOISE_PATTERN.test(normalizedLine)) {
+    return null;
+  }
 
   const [firstToken] = normalizedLine.split(/\s+/, 1);
   const normalizedFirstToken = firstToken?.toLowerCase();
@@ -95,6 +106,9 @@ const toMcpServerFromLine = (line: string): McpServerListItem | null => {
 
   const statusMatch = normalizedLine.match(MCP_SERVER_LIST.STATUS_PATTERN);
   if (!statusMatch) {
+    if (/\s/.test(normalizedLine)) {
+      return null;
+    }
     return {
       id: normalizedLine,
       status: MCP_SERVER_STATUS.UNKNOWN,
@@ -166,5 +180,25 @@ export const parseMcpServerListCommandResult = (
   if (result.exitCode !== 0) {
     throw new Error(toCommandFailureMessage(result, MCP_SERVER_LIST_COMMAND_FAILED));
   }
-  return parseMcpServerListOutput(result.stdout);
+  const parsed = parseStdoutWithCombinedFallback({
+    result,
+    parse: parseMcpServerListOutput,
+    shouldAcceptParsed: (servers) => servers.length > 0,
+    shouldFallbackWhenStdoutPresent: (stdout, serversFromStdout) => {
+      if (MCP_SERVER_LIST.EXPLICIT_EMPTY_PATTERN.test(stdout)) {
+        return false;
+      }
+      return serversFromStdout.length === 0;
+    },
+  });
+  if (parsed.length > 0) {
+    return parsed;
+  }
+  if (
+    MCP_SERVER_LIST.EXPLICIT_EMPTY_PATTERN.test(result.stdout) ||
+    MCP_SERVER_LIST.EXPLICIT_EMPTY_PATTERN.test(result.stderr)
+  ) {
+    return [];
+  }
+  return parsed;
 };

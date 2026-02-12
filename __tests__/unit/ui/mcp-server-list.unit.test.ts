@@ -49,4 +49,24 @@ describe("mcp-server-list", () => {
       })
     ).toThrow("permission denied");
   });
+
+  it("falls back to stderr output when stdout has warning noise", () => {
+    const parsed = parseMcpServerListCommandResult({
+      stdout: "[warn] using fallback channel",
+      stderr: "github enabled",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual([{ id: "github", status: MCP_SERVER_STATUS.ENABLED, enabled: true }]);
+  });
+
+  it("preserves explicit empty stdout status over stale stderr entries", () => {
+    const parsed = parseMcpServerListCommandResult({
+      stdout: "No MCP servers configured.",
+      stderr: "legacy enabled",
+      exitCode: 0,
+    });
+
+    expect(parsed).toEqual([]);
+  });
 });
