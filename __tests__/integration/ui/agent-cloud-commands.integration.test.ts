@@ -309,4 +309,100 @@ describe("agent cloud commands integration", () => {
     expect(lines).toContain("Stopped cloud agent: cloud-agent-stop");
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/agents/cloud-agent-stop/stop");
   });
+
+  it("returns followup usage message when prompt is missing", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["cloud", "followup", "cloud-agent-missing"]
+    );
+
+    expect(lines).toEqual(["Usage: /agent cloud followup <agentId> <prompt>"]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns conversation usage message when agent id is missing", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["cloud", "conversation"]
+    );
+
+    expect(lines).toEqual(["Usage: /agent cloud conversation <agentId>"]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns stop usage message when agent id is missing", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["cloud", "stop"]
+    );
+
+    expect(lines).toEqual(["Provide an agent id to stop."]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns cloud usage message for unknown cloud subcommands", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["cloud", "unknown"]
+    );
+
+    expect(lines[0]).toContain("Usage: /agent cloud list [limit] [cursor]");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });
