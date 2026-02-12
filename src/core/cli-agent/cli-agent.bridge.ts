@@ -3,15 +3,19 @@ import { PERMISSION } from "@/constants/permissions";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import { TOOL_KIND } from "@/constants/tool-kinds";
-import type { StreamEvent } from "@/types/cli-agent.types";
+import { STREAM_EVENT_TYPE, type StreamEvent } from "@/types/cli-agent.types";
 import type { SessionNotification } from "@agentclientprotocol/sdk";
 import type { RequestPermissionRequest } from "@agentclientprotocol/sdk";
 import { EventEmitter } from "eventemitter3";
 
 const isTextualStreamEvent = (
   event: StreamEvent
-): event is Extract<StreamEvent, { type: "text_delta" | "thinking_delta" }> => {
-  return event.type === "text_delta" || event.type === "thinking_delta";
+): event is
+  | Extract<StreamEvent, { type: typeof STREAM_EVENT_TYPE.TEXT_DELTA }>
+  | Extract<StreamEvent, { type: typeof STREAM_EVENT_TYPE.THINKING_DELTA }> => {
+  return (
+    event.type === STREAM_EVENT_TYPE.TEXT_DELTA || event.type === STREAM_EVENT_TYPE.THINKING_DELTA
+  );
 };
 
 const mapToolStatusToSessionStatus = (
@@ -78,7 +82,7 @@ export class CliAgentBridge extends EventEmitter<CliAgentBridgeEvents> {
   public handleEvent(event: StreamEvent): void {
     const sessionId = event.sessionId;
     if (!sessionId) {
-      if (event.type === "error") {
+      if (event.type === STREAM_EVENT_TYPE.ERROR) {
         this.emit("error", new Error(event.message));
       }
       return;
@@ -101,7 +105,7 @@ export class CliAgentBridge extends EventEmitter<CliAgentBridgeEvents> {
       return;
     }
 
-    if (event.type === "tool_start") {
+    if (event.type === STREAM_EVENT_TYPE.TOOL_START) {
       this.toolNameByCallId.set(event.toolCallId, event.name);
       this.emit("sessionUpdate", {
         sessionId,
@@ -116,7 +120,7 @@ export class CliAgentBridge extends EventEmitter<CliAgentBridgeEvents> {
       return;
     }
 
-    if (event.type === "tool_complete") {
+    if (event.type === STREAM_EVENT_TYPE.TOOL_COMPLETE) {
       const title = this.toolNameByCallId.get(event.toolCallId) ?? FALLBACK_TOOL_NAME;
       this.emit("sessionUpdate", {
         sessionId,
@@ -132,12 +136,12 @@ export class CliAgentBridge extends EventEmitter<CliAgentBridgeEvents> {
       return;
     }
 
-    if (event.type === "permission_request") {
+    if (event.type === STREAM_EVENT_TYPE.PERMISSION_REQUEST) {
       this.emit("permissionRequest", buildPermissionRequest(sessionId, event));
       return;
     }
 
-    if (event.type === "error") {
+    if (event.type === STREAM_EVENT_TYPE.ERROR) {
       this.emit("error", new Error(event.message));
     }
   }
