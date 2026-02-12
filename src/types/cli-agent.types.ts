@@ -139,6 +139,81 @@ export const CliAgentCapabilitiesSchema = z
   .strict();
 export type CliAgentCapabilities = z.infer<typeof CliAgentCapabilitiesSchema>;
 
+export const CliAgentLoginResultSchema = z
+  .object({
+    supported: z.boolean().default(true),
+    authenticated: z.boolean().optional(),
+    requiresBrowser: z.boolean().optional(),
+    requiredEnvVar: z.string().min(1).optional(),
+    command: z.string().min(1).optional(),
+    message: z.string().optional(),
+  })
+  .strict();
+export type CliAgentLoginResult = z.infer<typeof CliAgentLoginResultSchema>;
+
+export const CliAgentLogoutResultSchema = z
+  .object({
+    supported: z.boolean().default(true),
+    loggedOut: z.boolean().optional(),
+    command: z.string().min(1).optional(),
+    message: z.string().optional(),
+  })
+  .strict();
+export type CliAgentLogoutResult = z.infer<typeof CliAgentLogoutResultSchema>;
+
+export const CliAgentStatusResultSchema = z
+  .object({
+    supported: z.boolean().default(true),
+    authenticated: z.boolean().optional(),
+    method: z
+      .enum([
+        CLI_AGENT_AUTH_METHOD.API_KEY,
+        CLI_AGENT_AUTH_METHOD.BROWSER_LOGIN,
+        CLI_AGENT_AUTH_METHOD.OAUTH,
+        CLI_AGENT_AUTH_METHOD.NONE,
+      ])
+      .optional(),
+    email: z.string().email().optional(),
+    version: z.string().optional(),
+    model: z.string().optional(),
+    details: z.record(z.string()).optional(),
+    message: z.string().optional(),
+  })
+  .strict();
+export type CliAgentStatusResult = z.infer<typeof CliAgentStatusResultSchema>;
+
+export const CliAgentAboutResultSchema = z
+  .object({
+    supported: z.boolean().default(true),
+    version: z.string().optional(),
+    model: z.string().optional(),
+    os: z.string().optional(),
+    shell: z.string().optional(),
+    userEmail: z.string().email().optional(),
+    details: z.record(z.string()).optional(),
+    message: z.string().optional(),
+  })
+  .strict();
+export type CliAgentAboutResult = z.infer<typeof CliAgentAboutResultSchema>;
+
+export const CliAgentMcpServerSchema = z
+  .object({
+    name: z.string().min(1),
+    status: z.string().min(1),
+    reason: z.string().optional(),
+  })
+  .strict();
+export type CliAgentMcpServer = z.infer<typeof CliAgentMcpServerSchema>;
+
+export const CliAgentMcpListResultSchema = z
+  .object({
+    supported: z.boolean().default(true),
+    servers: z.array(CliAgentMcpServerSchema).default([]),
+    message: z.string().optional(),
+  })
+  .strict();
+export type CliAgentMcpListResult = z.infer<typeof CliAgentMcpListResultSchema>;
+
 const StreamEventBaseSchema = z
   .object({
     sessionId: z.string().min(1).optional(),

@@ -4,14 +4,19 @@ import {
   CLI_AGENT_AUTH_METHOD,
   CLI_AGENT_MODE,
   CLI_AGENT_SANDBOX_MODE,
+  CliAgentAboutResultSchema,
   CliAgentAuthStatusSchema,
   CliAgentCapabilitiesSchema,
   CliAgentInstallInfoSchema,
+  CliAgentLoginResultSchema,
+  CliAgentLogoutResultSchema,
+  CliAgentMcpListResultSchema,
   CliAgentModelSchema,
   CliAgentModelsResponseSchema,
   CliAgentPromptInputSchema,
   CliAgentPromptResultSchema,
   CliAgentSessionSchema,
+  CliAgentStatusResultSchema,
   STREAM_EVENT_TYPE,
   StreamErrorEventSchema,
   StreamEventSchema,
@@ -92,6 +97,45 @@ describe("cli-agent types", () => {
     expect(promptInput.sandbox).toBe(CLI_AGENT_SANDBOX_MODE.ENABLED);
     expect(promptResult.toolCallCount).toBe(2);
     expect(capabilities.cloud).toBe(true);
+  });
+
+  it("parses management command result schemas", () => {
+    const loginResult = CliAgentLoginResultSchema.parse({
+      supported: true,
+      requiresBrowser: true,
+      command: "cursor-agent login",
+      message: "Opens browser",
+    });
+    const logoutResult = CliAgentLogoutResultSchema.parse({
+      supported: false,
+      message: "logout not supported",
+    });
+    const statusResult = CliAgentStatusResultSchema.parse({
+      supported: true,
+      authenticated: true,
+      method: CLI_AGENT_AUTH_METHOD.API_KEY,
+      email: "dev@example.com",
+      version: "1.0.0",
+      model: "gpt-5",
+      details: { shell: "zsh" },
+    });
+    const aboutResult = CliAgentAboutResultSchema.parse({
+      supported: true,
+      version: "1.0.0",
+      os: "linux",
+      shell: "bash",
+      userEmail: "dev@example.com",
+    });
+    const mcpListResult = CliAgentMcpListResultSchema.parse({
+      supported: true,
+      servers: [{ name: "filesystem", status: "connected" }],
+    });
+
+    expect(loginResult.requiresBrowser).toBe(true);
+    expect(logoutResult.supported).toBe(false);
+    expect(statusResult.authenticated).toBe(true);
+    expect(aboutResult.userEmail).toBe("dev@example.com");
+    expect(mcpListResult.servers[0]?.name).toBe("filesystem");
   });
 
   it("parses all stream event variants", () => {
