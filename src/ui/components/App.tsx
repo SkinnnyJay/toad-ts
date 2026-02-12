@@ -11,7 +11,6 @@ import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { DISCOVERY_SUBPATH } from "@/constants/discovery-subpaths";
 import { FOCUS_TARGET } from "@/constants/focus-target";
-import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-marks";
 import { PERSISTENCE_WRITE_MODE } from "@/constants/persistence-write-modes";
@@ -55,6 +54,7 @@ import { Sidebar } from "@/ui/components/Sidebar";
 import { SkillsCommandsModal } from "@/ui/components/SkillsCommandsModal";
 import { StatusFooter } from "@/ui/components/StatusFooter";
 import { ThemesModal } from "@/ui/components/ThemesModal";
+import { shouldPollCursorCloudAgentCount } from "@/ui/components/cloud-status.utils";
 import {
   useAppConfig,
   useAppKeyboardShortcuts,
@@ -360,7 +360,7 @@ export function App(): ReactNode {
 
   useEffect(() => {
     let disposed = false;
-    if (selectedAgent?.harnessId !== HARNESS_DEFAULT.CURSOR_CLI_ID) {
+    if (!shouldPollCursorCloudAgentCount(selectedAgent?.harnessId, connectionStatus)) {
       setCloudAgentCount(undefined);
       return;
     }
@@ -388,12 +388,12 @@ export function App(): ReactNode {
     void syncCloudAgentCount();
     const intervalId = setInterval(() => {
       void syncCloudAgentCount();
-    }, CURSOR_LIMIT.CLOUD_POLL_INTERVAL_MS);
+    }, CURSOR_LIMIT.CLOUD_STATUS_BAR_POLL_INTERVAL_MS);
     return () => {
       disposed = true;
       clearInterval(intervalId);
     };
-  }, [selectedAgent?.harnessId]);
+  }, [connectionStatus, selectedAgent?.harnessId]);
 
   useHookManager({
     hooks: appConfig.hooks,
