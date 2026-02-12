@@ -1,3 +1,4 @@
+import { TOOL_APPROVAL_RECENT_CALLS_DISPLAY } from "@/config/limits";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import type { ToolCallId } from "@/types/domain";
 import type { ToolCall } from "@/ui/hooks/useToolCalls";
@@ -20,8 +21,6 @@ export interface UseToolApprovalsResult {
   activeCalls: ToolCall[];
   recentCalls: ToolCall[];
 }
-
-const RECENT_CALLS_DISPLAY = 5;
 
 /**
  * Hook to manage tool call approvals and denials.
@@ -98,7 +97,7 @@ export function useToolApprovals({
             t.status === TOOL_CALL_STATUS.FAILED ||
             t.status === TOOL_CALL_STATUS.DENIED
         )
-        .slice(-RECENT_CALLS_DISPLAY),
+        .slice(-TOOL_APPROVAL_RECENT_CALLS_DISPLAY),
     [toolCalls]
   );
 

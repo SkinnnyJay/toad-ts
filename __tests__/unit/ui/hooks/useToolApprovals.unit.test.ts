@@ -1,3 +1,4 @@
+import { TOOL_APPROVAL_RECENT_CALLS_DISPLAY } from "@/config/limits";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import { ToolCallIdSchema } from "@/types/domain";
 import type { ToolCall } from "@/ui/hooks/useToolCalls";
@@ -111,7 +112,6 @@ describe("useToolApprovals", () => {
     });
 
     it("limits to recent 5 calls", () => {
-      const RECENT_CALLS_DISPLAY = 5;
       const tools: ToolCall[] = Array.from({ length: 10 }, (_, i) =>
         createToolCall(`tool-${i}`, TOOL_CALL_STATUS.SUCCEEDED)
       );
@@ -123,9 +123,9 @@ describe("useToolApprovals", () => {
             t.status === TOOL_CALL_STATUS.FAILED ||
             t.status === TOOL_CALL_STATUS.DENIED
         )
-        .slice(-RECENT_CALLS_DISPLAY);
+        .slice(-TOOL_APPROVAL_RECENT_CALLS_DISPLAY);
 
-      expect(recentCalls).toHaveLength(5);
+      expect(recentCalls).toHaveLength(TOOL_APPROVAL_RECENT_CALLS_DISPLAY);
     });
   });
 
