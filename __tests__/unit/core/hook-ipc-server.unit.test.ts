@@ -193,6 +193,45 @@ describe("CursorHookIpcServer", () => {
     }
   });
 
+  it("rejects unsupported methods with a 405 response", async () => {
+    const server = new CursorHookIpcServer({
+      transport: CURSOR_HOOK_IPC_TRANSPORT.HTTP,
+    });
+
+    try {
+      const address = await server.start();
+      const response = await fetch(address.url ?? "", {
+        method: "GET",
+      });
+      const body = (await response.json()) as Record<string, unknown>;
+
+      expect(response.status).toBe(405);
+      expect(body.error).toBe("Only POST requests are supported.");
+    } finally {
+      await server.stop();
+    }
+  });
+
+  it("rejects unknown hook IPC paths with a 404 response", async () => {
+    const server = new CursorHookIpcServer({
+      transport: CURSOR_HOOK_IPC_TRANSPORT.HTTP,
+    });
+
+    try {
+      const address = await server.start();
+      const incorrectPathUrl = (address.url ?? "").replace("/hook", "/unknown");
+      const response = await postJson(
+        incorrectPathUrl,
+        baseHookPayload(CURSOR_HOOK_EVENT.SESSION_START)
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe("Unknown hook IPC path.");
+    } finally {
+      await server.stop();
+    }
+  });
+
   it("rejects oversized payloads with a 413 response", async () => {
     const server = new CursorHookIpcServer({
       transport: CURSOR_HOOK_IPC_TRANSPORT.HTTP,
