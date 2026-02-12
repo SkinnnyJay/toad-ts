@@ -36,6 +36,7 @@ import type {
 } from "@/types/agent-management.types";
 import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
 import { PlanIdSchema, SessionIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
+import { toErrorMessage } from "@/ui/utils/auth-error-matcher";
 import type { CloudDispatchContext } from "@/ui/utils/cloud-dispatch-context";
 import {
   toNormalizedOptionalString,
@@ -140,6 +141,8 @@ export interface SlashCommandDeps {
   connectionStatus?: string;
   now?: () => number;
 }
+
+const toRuntimeErrorMessage = (error: unknown): string => toErrorMessage(error) ?? String(error);
 
 export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean => {
   if (!value.startsWith("/")) return false;
@@ -269,9 +272,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
           })
           .catch((error) => {
             deps.appendSystemMessage(
-              `${SLASH_COMMAND_MESSAGE.SESSIONS_NOT_AVAILABLE} ${
-                error instanceof Error ? error.message : String(error)
-              }`
+              `${SLASH_COMMAND_MESSAGE.SESSIONS_NOT_AVAILABLE} ${toRuntimeErrorMessage(error)}`
             );
           });
       } else if (deps.runAgentCommand) {
@@ -283,9 +284,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
           })
           .catch((error) => {
             deps.appendSystemMessage(
-              `${SLASH_COMMAND_MESSAGE.SESSIONS_NOT_AVAILABLE} ${
-                error instanceof Error ? error.message : String(error)
-              }`
+              `${SLASH_COMMAND_MESSAGE.SESSIONS_NOT_AVAILABLE} ${toRuntimeErrorMessage(error)}`
             );
           });
       }
@@ -305,9 +304,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
           }
         })
         .catch((error) => {
-          deps.appendSystemMessage(
-            formatSessionCreateFailedMessage(error instanceof Error ? error.message : String(error))
-          );
+          deps.appendSystemMessage(formatSessionCreateFailedMessage(toRuntimeErrorMessage(error)));
         });
       return true;
     }
@@ -347,9 +344,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
             deps.appendSystemMessage(formatModeUpdatedMessage(parsed.data));
           })
           .catch((error) => {
-            deps.appendSystemMessage(
-              `Failed to update mode: ${error instanceof Error ? error.message : String(error)}`
-            );
+            deps.appendSystemMessage(`Failed to update mode: ${toRuntimeErrorMessage(error)}`);
           });
         return true;
       }
@@ -380,9 +375,6 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         void deps
           .runAgentCommand([AGENT_MANAGEMENT_COMMAND.MODELS])
           .then(async (result) => {
-            const toErrorMessage = (error: unknown): string => {
-              return error instanceof Error ? error.message : String(error);
-            };
             const options = await (async (): Promise<SessionModelOptions> => {
               try {
                 return toSessionModelOptionsFromCommandResult(result);
@@ -394,7 +386,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
                   return await deps.listCloudModels();
                 } catch (cloudError) {
                   throw new Error(
-                    `${toErrorMessage(commandError)} | ${toErrorMessage(cloudError)}`
+                    `${toRuntimeErrorMessage(commandError)} | ${toRuntimeErrorMessage(cloudError)}`
                   );
                 }
               }
@@ -424,9 +416,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
           })
           .catch((error) => {
             deps.appendSystemMessage(
-              `${SLASH_COMMAND_MESSAGE.MODELS_NOT_AVAILABLE} ${
-                error instanceof Error ? error.message : String(error)
-              }`
+              `${SLASH_COMMAND_MESSAGE.MODELS_NOT_AVAILABLE} ${toRuntimeErrorMessage(error)}`
             );
           });
         return true;
@@ -439,9 +429,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         .setSessionModel(modelId)
         .then(() => deps.appendSystemMessage(formatModelUpdatedMessage(modelId)))
         .catch((error) =>
-          deps.appendSystemMessage(
-            formatModelUpdateFailedMessage(error instanceof Error ? error.message : String(error))
-          )
+          deps.appendSystemMessage(formatModelUpdateFailedMessage(toRuntimeErrorMessage(error)))
         );
       return true;
     }

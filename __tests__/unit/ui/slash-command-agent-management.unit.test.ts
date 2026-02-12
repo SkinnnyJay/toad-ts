@@ -1095,6 +1095,27 @@ describe("slash command agent management", () => {
     );
   });
 
+  it("uses object error messages for /sessions list runtime failures", async () => {
+    const listAgentSessions = vi.fn(async () => {
+      throw { message: "socket disconnected" };
+    });
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      listAgentSessions,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.SESSIONS, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("Session listing is not available")
+    );
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("socket disconnected")
+    );
+  });
+
   it("switches to provided session id via /sessions <id>", () => {
     const switchToSession = vi.fn(() => true);
     const { deps, appendSystemMessage } = createDeps({
