@@ -29,6 +29,15 @@ interface SessionEntry {
   description: string;
 }
 
+const toNativeSessionLabel = (session: AgentManagementSession): string => {
+  const shortId = session.id.slice(0, LIMIT.ID_TRUNCATE_LENGTH);
+  const nativeTitle = session.title?.trim();
+  if (!nativeTitle) {
+    return `Native: ${shortId}`;
+  }
+  return `Native: ${shortId} · ${nativeTitle}`;
+};
+
 export function SessionsPopup({
   isOpen,
   onClose,
@@ -77,7 +86,6 @@ export function SessionsPopup({
       if (localIds.has(sessionId)) {
         continue;
       }
-      const shortId = session.id.slice(0, LIMIT.ID_TRUNCATE_LENGTH);
       const details: string[] = [];
       if (session.title) {
         details.push(session.title);
@@ -94,7 +102,7 @@ export function SessionsPopup({
       const suffix = details.length > 0 ? ` · ${details.join(" · ")}` : "";
       externalEntries.push({
         id: sessionId,
-        title: `Native: ${shortId}`,
+        title: toNativeSessionLabel(session),
         searchText: `${session.id} ${session.title ?? ""} ${session.createdAt ?? ""} ${
           session.model ?? ""
         } ${session.messageCount ?? ""} cursor`,

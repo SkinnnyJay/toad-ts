@@ -189,6 +189,7 @@ describe("UI Modals", () => {
       );
 
       expect(lastFrame()).toContain("Native: 123e4567");
+      expect(lastFrame()).toContain("Native title");
       stdin.write("gpt-5");
       expect(lastFrame()).toContain("Filter: gpt-5");
       expect(lastFrame()).toContain("Native: 123e4567");
