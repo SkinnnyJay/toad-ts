@@ -1,5 +1,9 @@
 # Scratchpad Journal
 
+## 2026-02-12 (PLAN3 Competitive Inspiration Addendum)
+- Added Addendum F to PLAN3 with Claude Code + OpenCode inspired tasks (CC-1–CC-10, OC-1–OC-10).
+- Updated PLAN3 header dates and last-updated marker.
+
 ## 2026-02-10 (Phase 0: PLAN2 Cursor CLI prerequisites)
 - Branch: `feature/cursor-cli-harness`.
 - Fixture paths: `__tests__/fixtures/cursor/ndjson/` (hello-response.ndjson, hello-stderr.txt, tool-use-response.ndjson, tool-use-stderr.txt), `__tests__/fixtures/cursor/status-output.txt`, `__tests__/fixtures/cursor/models-output.txt`, `__tests__/fixtures/cursor/ls-output.txt`. Directories `hooks/` and `cloud-api/` created with `.gitkeep`.
