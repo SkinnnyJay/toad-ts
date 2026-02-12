@@ -104,6 +104,7 @@ export interface CursorCliHarnessAdapterOptions {
   args?: string[];
   cwd?: string;
   env?: NodeJS.ProcessEnv;
+  autoResolveHookPermissions?: boolean;
 }
 
 export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRuntime {
@@ -116,6 +117,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
   private readonly coreHarness: CliHarnessAdapter;
   private readonly cwd: string;
   private readonly env: NodeJS.ProcessEnv;
+  private readonly autoResolveHookPermissions: boolean;
   private hookAddress: CursorHookIpcAddress | null = null;
   private hookInstallation: CursorHookInstallation | null = null;
   private signalHandlersInstalled = false;
@@ -126,6 +128,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
     super();
     this.cwd = options.cwd ?? process.cwd();
     this.env = { ...EnvManager.getInstance().getSnapshot(), ...options.env };
+    this.autoResolveHookPermissions = options.autoResolveHookPermissions ?? true;
     this.connection =
       options.connection ??
       new CursorCliConnection({
@@ -440,10 +443,12 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
       ],
     });
 
-    this.hookServer.resolvePermissionRequest?.(request.requestId, {
-      decision: CURSOR_HOOK_DECISION.ALLOW,
-      reason: "Auto-approved by TOADSTOOL runtime.",
-    });
+    if (this.autoResolveHookPermissions) {
+      this.hookServer.resolvePermissionRequest?.(request.requestId, {
+        decision: CURSOR_HOOK_DECISION.ALLOW,
+        reason: "Auto-approved by TOADSTOOL runtime.",
+      });
+    }
   }
 
   private resolveHookToolCallId(sessionId: string, key: string): string {

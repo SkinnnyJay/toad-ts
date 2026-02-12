@@ -362,6 +362,49 @@ describe("CursorCliHarnessAdapter", () => {
     await harness.disconnect();
   });
 
+  it("allows disabling automatic hook permission resolution", async () => {
+    const connection = new FakeCursorConnection();
+    const hookServer = new FakeHookServer();
+
+    const harness = new CursorCliHarnessAdapter({
+      connection,
+      hookServer,
+      installHooksFn: async () => ({
+        paths: {
+          hooksFilePath: "/tmp/hooks.json",
+          toadstoolHooksDir: "/tmp/.toadstool/hooks",
+          nodeShimPath: "/tmp/.toadstool/hooks/toadstool-hook.mjs",
+          bashShimPath: "/tmp/.toadstool/hooks/toadstool-hook.sh",
+        },
+        previousHooksRaw: null,
+        generatedCommand: "/tmp/.toadstool/hooks/toadstool-hook.mjs",
+        generatedConfig: {
+          version: 1,
+          hooks: {},
+        },
+      }),
+      cleanupHooksFn: async () => {},
+      env: {},
+      autoResolveHookPermissions: false,
+    });
+
+    await harness.connect();
+
+    hookServer.emit("permissionRequest", {
+      requestId: "permission-shell-manual-1",
+      responseField: "permission",
+      event: {
+        conversation_id: sessionId,
+        hook_event_name: CURSOR_HOOK_EVENT.BEFORE_SHELL_EXECUTION,
+        command: "npm run test",
+        workspace_roots: ["/workspace"],
+      },
+    });
+
+    expect(hookServer.resolvedPermissions).toEqual([]);
+    await harness.disconnect();
+  });
+
   it("fails connect when installation or auth is missing", async () => {
     const connection = new FakeCursorConnection();
     connection.verifyInstallation = async () => ({ installed: false });
