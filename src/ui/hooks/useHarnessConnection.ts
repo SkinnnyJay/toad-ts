@@ -3,6 +3,7 @@ import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
+import { CURSOR_AUTH_GUIDANCE } from "@/constants/cursor-auth-guidance";
 import { ENV_KEY } from "@/constants/env-keys";
 import { ERROR_CODE } from "@/constants/error-codes";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
@@ -26,6 +27,9 @@ const isErrnoException = (error: unknown): error is NodeJS.ErrnoException => {
   return typeof error === "object" && error !== null && "code" in error;
 };
 
+const CURSOR_AUTH_ERROR_PATTERN =
+  /(not authenticated|unauthorized|forbidden|status 401|status 403|authentication required)/i;
+
 /**
  * Formats harness errors into user-friendly messages.
  */
@@ -34,6 +38,14 @@ export const formatHarnessError = (
   context: { agentName?: string; command?: string; harnessId?: string }
 ): string => {
   const message = error instanceof Error ? error.message : String(error);
+  if (
+    context.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID &&
+    (message === CURSOR_AUTH_GUIDANCE.LOGIN_REQUIRED ||
+      message.includes(ENV_KEY.CURSOR_API_KEY) ||
+      CURSOR_AUTH_ERROR_PATTERN.test(message))
+  ) {
+    return CURSOR_AUTH_GUIDANCE.LOGIN_REQUIRED;
+  }
   const defaultCommandForHarness = (harnessId: string | undefined): string => {
     switch (harnessId) {
       case HARNESS_DEFAULT.GEMINI_CLI_ID:

@@ -1,5 +1,6 @@
 import { LIMIT } from "@/config/limits";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
+import { CURSOR_AUTH_GUIDANCE } from "@/constants/cursor-auth-guidance";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { RENDER_STAGE } from "@/constants/render-stage";
@@ -97,6 +98,39 @@ describe("useHarnessConnection", () => {
       const result = formatHarnessError(error, { agentName: "Test Agent" });
 
       expect(result).toBe("Unable to connect to Test Agent: Connection timeout");
+    });
+
+    it("maps cursor auth-required message to login guidance", () => {
+      const error = new Error("Request failed with status 401");
+      const result = formatHarnessError(error, {
+        agentName: "Cursor CLI",
+        command: "cursor-agent",
+        harnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      });
+
+      expect(result).toBe(CURSOR_AUTH_GUIDANCE.LOGIN_REQUIRED);
+    });
+
+    it("maps cursor CURSOR_API_KEY auth errors to login guidance", () => {
+      const error = new Error("Cursor cloud API requires CURSOR_API_KEY.");
+      const result = formatHarnessError(error, {
+        agentName: "Cursor CLI",
+        command: "cursor-agent",
+        harnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      });
+
+      expect(result).toBe(CURSOR_AUTH_GUIDANCE.LOGIN_REQUIRED);
+    });
+
+    it("does not remap auth wording for non-cursor harnesses", () => {
+      const error = new Error("Request failed with status 401");
+      const result = formatHarnessError(error, {
+        agentName: "Claude CLI",
+        command: "claude",
+        harnessId: HARNESS_DEFAULT.CLAUDE_CLI_ID,
+      });
+
+      expect(result).toBe("Unable to connect to Claude CLI: Request failed with status 401");
     });
 
     it("formats generic error without agent name", () => {

@@ -1,5 +1,6 @@
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { CURSOR_AUTH_GUIDANCE } from "@/constants/cursor-auth-guidance";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
@@ -89,8 +90,7 @@ type InstallHooksFn = (
 ) => Promise<CursorHookInstallation>;
 type CleanupHooksFn = (installation: CursorHookInstallation) => Promise<void>;
 
-const CURSOR_AUTH_REQUIRED_ERROR =
-  "Cursor CLI is not authenticated. Run `cursor-agent login` or set CURSOR_API_KEY.";
+const CURSOR_AUTH_REQUIRED_ERROR = CURSOR_AUTH_GUIDANCE.LOGIN_REQUIRED;
 
 export type CursorCliHarnessAdapterEvents = HarnessRuntimeEvents;
 
