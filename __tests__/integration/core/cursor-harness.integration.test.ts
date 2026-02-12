@@ -76,6 +76,30 @@ class StreamingFakeConnection extends CursorCliConnection {
   public override async disconnect(): Promise<void> {}
 }
 
+class SlowStreamingFakeConnection extends StreamingFakeConnection {
+  public releasePrompt: (() => void) | null = null;
+
+  public override async runPrompt(input: {
+    message: string;
+    sessionId?: string;
+    model?: string;
+    force: boolean;
+    streaming: boolean;
+  }) {
+    this.promptCalls.push(input);
+    await new Promise<void>((resolve) => {
+      this.releasePrompt = resolve;
+    });
+    return {
+      events: [],
+      sessionId: input.sessionId ?? this.createChatId,
+      resultText: "",
+      stderr: "",
+      exitCode: 0,
+    };
+  }
+}
+
 class FakeHookServer extends HookIpcServer {
   public started = false;
   public stopped = false;
@@ -254,5 +278,34 @@ describe("Cursor harness integration", () => {
         prompt: [{ type: "text", text: "retry" }],
       })
     ).resolves.toMatchObject({ stopReason: "end_turn" });
+  });
+
+  it("gracefully disconnects while prompt is in-flight", async () => {
+    const sessionId = setupSession({ sessionId: "session-created" });
+    const connection = new SlowStreamingFakeConnection();
+    const hookServer = new FakeHookServer();
+    const hooksGenerator = new FakeHooksGenerator();
+    const harness = new CursorCliHarnessAdapter({
+      connection,
+      hookIpcServer: hookServer,
+      hooksConfigGenerator: hooksGenerator,
+    });
+    await harness.connect();
+
+    const promptPromise = harness.prompt({
+      sessionId,
+      prompt: [{ type: "text", text: "wait" }],
+    });
+    if (!connection.releasePrompt) {
+      throw new Error("Prompt gate was not initialized");
+    }
+
+    await harness.disconnect();
+    connection.releasePrompt();
+
+    await expect(promptPromise).resolves.toMatchObject({ stopReason: "end_turn" });
+    expect(harness.connectionStatus).toBe(CONNECTION_STATUS.DISCONNECTED);
+    expect(hookServer.stopped).toBe(true);
+    expect(hooksGenerator.restored).toBe(true);
   });
 });
