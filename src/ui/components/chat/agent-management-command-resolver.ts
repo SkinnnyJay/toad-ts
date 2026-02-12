@@ -37,10 +37,7 @@ export const hasCapability = (
   if (!harness) {
     return false;
   }
-  const supported = HARNESS_MANAGEMENT_CAPABILITIES[harness.id];
-  if (!supported) {
-    return false;
-  }
+  const supported = HARNESS_MANAGEMENT_CAPABILITIES[harness.id] ?? [];
   return supported.includes(capability);
 };
 
