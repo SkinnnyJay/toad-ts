@@ -41,6 +41,30 @@ describe("useHarnessConnection", () => {
       expect(result).toContain(ENV_KEY.TOADSTOOL_CURSOR_COMMAND);
     });
 
+    it("uses harness-specific command env hint for codex ENOENT", () => {
+      const error = Object.assign(new Error("spawn codex ENOENT"), { code: "ENOENT" });
+      const result = formatHarnessError(error, {
+        agentName: "Codex CLI",
+        command: "codex",
+        harnessId: HARNESS_DEFAULT.CODEX_CLI_ID,
+      });
+
+      expect(result).toContain("Command 'codex' not found");
+      expect(result).toContain(ENV_KEY.TOADSTOOL_CODEX_COMMAND);
+    });
+
+    it("uses harness-specific command env hint for gemini ENOENT", () => {
+      const error = Object.assign(new Error("spawn gemini ENOENT"), { code: "ENOENT" });
+      const result = formatHarnessError(error, {
+        agentName: "Gemini CLI",
+        command: "gemini",
+        harnessId: HARNESS_DEFAULT.GEMINI_CLI_ID,
+      });
+
+      expect(result).toContain("Command 'gemini' not found");
+      expect(result).toContain(ENV_KEY.TOADSTOOL_GEMINI_COMMAND);
+    });
+
     it("formats EACCES error with command context", () => {
       const error = Object.assign(new Error("permission denied"), { code: "EACCES" });
       const result = formatHarnessError(error, {
