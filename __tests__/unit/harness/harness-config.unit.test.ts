@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { CLI_AGENT_MODE } from "@/types/cli-agent.types";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { loadHarnessConfig } from "@/harness/harnessConfig";
@@ -198,5 +199,52 @@ describe("harnessConfig", () => {
         homedir: userRoot,
       })
     ).rejects.toThrow();
+  });
+
+  it("merges cursor harness options and expands cursor model env values", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "cursor",
+      harnesses: {
+        cursor: {
+          name: "Cursor",
+          command: "cursor-agent",
+          cursor: {
+            model: "$CURSOR_MODEL",
+            mode: CLI_AGENT_MODE.AGENT,
+            force: false,
+          },
+        },
+      },
+    });
+
+    await writeHarnessFile(userRoot, {
+      harnesses: {
+        cursor: {
+          cursor: {
+            mode: CLI_AGENT_MODE.PLAN,
+            force: true,
+            browser: true,
+          },
+        },
+      },
+    });
+
+    const result = await loadHarnessConfig({
+      projectRoot,
+      homedir: userRoot,
+      env: {
+        CURSOR_MODEL: "gpt-5",
+      },
+    });
+
+    expect(result.harness.cursor).toEqual({
+      model: "gpt-5",
+      mode: CLI_AGENT_MODE.PLAN,
+      force: true,
+      browser: true,
+    });
   });
 });
