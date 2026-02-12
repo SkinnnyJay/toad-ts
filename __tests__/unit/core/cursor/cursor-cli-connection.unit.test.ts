@@ -5,6 +5,7 @@ import { PassThrough } from "node:stream";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { ENV_KEY } from "@/constants/env-keys";
 import { CursorCliConnection } from "@/core/cursor/cursor-cli-connection";
+import { CLI_AGENT_MODE, CLI_AGENT_SANDBOX_MODE } from "@/types/cli-agent.types";
 import { EventEmitter } from "eventemitter3";
 import { describe, expect, it } from "vitest";
 
@@ -177,6 +178,37 @@ describe("CursorCliConnection", () => {
 
     expect(calls[0]?.args).toContain("--api-key");
     expect(calls[0]?.args).toContain("api-key-123");
+  });
+
+  it("passes prompt execution flags for mode/workspace/sandbox/browser/mcp approvals", async () => {
+    const fixture = readFixture("__tests__/fixtures/cursor/ndjson/hello-response.ndjson");
+    const { spawnFn, calls } = createSpawnFn([{ stdout: fixture, exitCode: 0 }]);
+    const connection = new CursorCliConnection({
+      spawnFn,
+      command: "cursor-agent",
+    });
+
+    await connection.runPrompt({
+      message: "hello",
+      mode: CLI_AGENT_MODE.PLAN,
+      workspacePath: "/workspace/repo",
+      force: true,
+      sandbox: CLI_AGENT_SANDBOX_MODE.ENABLED,
+      browser: true,
+      approveMcps: true,
+      streaming: true,
+    });
+
+    const args = calls[0]?.args ?? [];
+    expect(args).toContain("--mode");
+    expect(args).toContain(CLI_AGENT_MODE.PLAN);
+    expect(args).toContain("--workspace");
+    expect(args).toContain("/workspace/repo");
+    expect(args).toContain("--force");
+    expect(args).toContain("--sandbox");
+    expect(args).toContain(CLI_AGENT_SANDBOX_MODE.ENABLED);
+    expect(args).toContain("--browser");
+    expect(args).toContain("--approve-mcps");
   });
 
   it("reuses latest session id via --resume on follow-up prompts", async () => {

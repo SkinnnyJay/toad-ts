@@ -2,6 +2,7 @@ import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { ENV_KEY } from "@/constants/env-keys";
 import { PERMISSION } from "@/constants/permissions";
+import { SESSION_MODE } from "@/constants/session-modes";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { TOOL_KIND } from "@/constants/tool-kinds";
 import { CursorCliConnection } from "@/core/cursor/cursor-cli-connection";
@@ -10,14 +11,25 @@ import { CursorToAcpTranslator } from "@/core/cursor/cursor-to-acp-translator";
 import type { HookIpcEndpoint, HookIpcServerHandlers } from "@/core/cursor/hook-ipc-server";
 import { HookIpcServer } from "@/core/cursor/hook-ipc-server";
 import { HooksConfigGenerator } from "@/core/cursor/hooks-config-generator";
-import { harnessConfigSchema } from "@/harness/harnessConfig";
+import { type HarnessConfig, harnessConfigSchema } from "@/harness/harnessConfig";
 import { setRulesState } from "@/rules/rules-service";
+import { CLI_AGENT_MODE, CLI_AGENT_SANDBOX_MODE } from "@/types/cli-agent.types";
 import { describe, expect, it } from "vitest";
 
 class FakeConnection extends CursorCliConnection {
   public installStatus = { installed: true, binaryName: "cursor-agent" };
   public authStatus = { authenticated: true };
-  public promptCalls: Array<{ message: string; sessionId?: string; model?: string }> = [];
+  public promptCalls: Array<{
+    message: string;
+    sessionId?: string;
+    model?: string;
+    mode?: string;
+    sandbox?: string;
+    browser?: boolean;
+    approveMcps?: boolean;
+    workspacePath?: string;
+    force?: boolean;
+  }> = [];
   public envUpdates: Array<Record<string, string>> = [];
   public deferredPrompt: Promise<void> | null = null;
 
@@ -46,7 +58,17 @@ class FakeConnection extends CursorCliConnection {
     return "session-123";
   }
 
-  public override async runPrompt(input: { message: string; sessionId?: string; model?: string }) {
+  public override async runPrompt(input: {
+    message: string;
+    sessionId?: string;
+    model?: string;
+    mode?: string;
+    sandbox?: string;
+    browser?: boolean;
+    approveMcps?: boolean;
+    workspacePath?: string;
+    force?: boolean;
+  }) {
     this.promptCalls.push(input);
     if (this.deferredPrompt) {
       await this.deferredPrompt;
@@ -119,23 +141,25 @@ class FakeTranslator extends CursorToAcpTranslator {
   }
 }
 
-const createHarness = () => {
+const createHarness = (configOverrides: Partial<HarnessConfig> = {}) => {
   const connection = new FakeConnection();
   const hookServer = new FakeHookServer();
   const hooksGenerator = new FakeHooksGenerator();
   const translator = new FakeTranslator();
+  const config = harnessConfigSchema.parse({
+    id: "cursor-cli",
+    name: "Cursor CLI",
+    command: "cursor-agent",
+    args: [],
+    env: {},
+    ...configOverrides,
+  });
   const harness = new CursorCliHarnessAdapter({
     connection,
     hookIpcServer: hookServer,
     hooksConfigGenerator: hooksGenerator,
     translator,
-    config: harnessConfigSchema.parse({
-      id: "cursor-cli",
-      name: "Cursor CLI",
-      command: "cursor-agent",
-      args: [],
-      env: {},
-    }),
+    config,
   });
   return { harness, connection, hookServer, hooksGenerator };
 };
@@ -180,6 +204,47 @@ describe("CursorCliHarnessAdapter", () => {
     });
 
     expect(connection.promptCalls[0]?.model).toBe("gpt-5.2");
+  });
+
+  it("maps session mode updates to cursor CLI modes", async () => {
+    const { harness, connection } = createHarness();
+    await harness.connect();
+    await harness.setSessionMode({ sessionId: "session-1", modeId: SESSION_MODE.READ_ONLY });
+    await harness.prompt({
+      sessionId: "session-1",
+      prompt: [{ type: "text", text: "plan before editing" }],
+    });
+
+    expect(connection.promptCalls[0]?.mode).toBe(CLI_AGENT_MODE.ASK);
+  });
+
+  it("applies cursor prompt defaults from harness config", async () => {
+    const { harness, connection } = createHarness({
+      cwd: "/workspace/repo",
+      cursor: {
+        model: "gpt-5",
+        mode: CLI_AGENT_MODE.PLAN,
+        force: true,
+        sandbox: true,
+        browser: true,
+        approveMcps: true,
+      },
+    });
+    await harness.connect();
+    await harness.prompt({
+      sessionId: "session-1",
+      prompt: [{ type: "text", text: "hello" }],
+    });
+
+    expect(connection.promptCalls[0]).toMatchObject({
+      model: "gpt-5",
+      mode: CLI_AGENT_MODE.PLAN,
+      force: true,
+      sandbox: CLI_AGENT_SANDBOX_MODE.ENABLED,
+      browser: true,
+      approveMcps: true,
+      workspacePath: "/workspace/repo",
+    });
   });
 
   it("guards against concurrent prompts", async () => {

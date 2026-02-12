@@ -22,7 +22,18 @@ class StreamingFakeConnection extends CursorCliConnection {
   public installStatus = { installed: true, binaryName: "cursor-agent" };
   public authStatus = { authenticated: true };
   public createChatId = "session-created";
-  public promptCalls: Array<{ message: string; sessionId?: string; model?: string }> = [];
+  public promptCalls: Array<{
+    message: string;
+    sessionId?: string;
+    model?: string;
+    mode?: string;
+    sandbox?: string;
+    browser?: boolean;
+    approveMcps?: boolean;
+    workspacePath?: string;
+    force: boolean;
+    streaming: boolean;
+  }> = [];
   public streamEvents = readFileSync(
     path.join(process.cwd(), "__tests__/fixtures/cursor/ndjson/tool-use-response.ndjson"),
     "utf8"
@@ -58,6 +69,11 @@ class StreamingFakeConnection extends CursorCliConnection {
     message: string;
     sessionId?: string;
     model?: string;
+    mode?: string;
+    sandbox?: string;
+    browser?: boolean;
+    approveMcps?: boolean;
+    workspacePath?: string;
     force: boolean;
     streaming: boolean;
   }) {
@@ -87,6 +103,11 @@ class SlowStreamingFakeConnection extends StreamingFakeConnection {
     message: string;
     sessionId?: string;
     model?: string;
+    mode?: string;
+    sandbox?: string;
+    browser?: boolean;
+    approveMcps?: boolean;
+    workspacePath?: string;
     force: boolean;
     streaming: boolean;
   }) {

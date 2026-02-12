@@ -28,6 +28,9 @@ const CURSOR_CLI_ARG = {
   MODE: "--mode",
   WORKSPACE: "--workspace",
   FORCE: "--force",
+  SANDBOX: "--sandbox",
+  BROWSER: "--browser",
+  APPROVE_MCPS: "--approve-mcps",
   API_KEY: "--api-key",
   VERSION: "--version",
   STATUS: "status",
@@ -278,6 +281,15 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
     }
     if (input.force) {
       args.push(CURSOR_CLI_ARG.FORCE);
+    }
+    if (input.sandbox) {
+      args.push(CURSOR_CLI_ARG.SANDBOX, input.sandbox);
+    }
+    if (input.browser) {
+      args.push(CURSOR_CLI_ARG.BROWSER);
+    }
+    if (input.approveMcps) {
+      args.push(CURSOR_CLI_ARG.APPROVE_MCPS);
     }
 
     const apiKey = apiKeyOverride ?? this.env[ENV_KEY.CURSOR_API_KEY];

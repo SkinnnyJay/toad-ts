@@ -4,6 +4,7 @@ import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { PERMISSION, type Permission } from "@/constants/permissions";
+import { SESSION_MODE } from "@/constants/session-modes";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { TOOL_KIND, type ToolKind } from "@/constants/tool-kinds";
 import { CliAgentBase } from "@/core/cli-agent/cli-agent.base";
@@ -19,6 +20,12 @@ import type {
 } from "@/harness/harnessAdapter";
 import { type HarnessConfig, harnessConfigSchema } from "@/harness/harnessConfig";
 import { getRulesState } from "@/rules/rules-service";
+import {
+  CLI_AGENT_MODE,
+  CLI_AGENT_SANDBOX_MODE,
+  type CliAgentMode,
+  type CliAgentSandboxMode,
+} from "@/types/cli-agent.types";
 import type { CursorHookInput } from "@/types/cursor-hooks.types";
 import type {
   AuthenticateRequest,
@@ -48,31 +55,78 @@ export interface CursorCliHarnessAdapterOptions {
   config?: HarnessConfig;
 }
 
+const SESSION_MODE_TO_CLI_MODE: Record<string, CliAgentMode> = {
+  [SESSION_MODE.AUTO]: CLI_AGENT_MODE.AGENT,
+  [SESSION_MODE.FULL_ACCESS]: CLI_AGENT_MODE.AGENT,
+  [SESSION_MODE.READ_ONLY]: CLI_AGENT_MODE.ASK,
+} as const;
+
+interface CursorPromptDefaults {
+  model?: string;
+  mode?: CliAgentMode;
+  force: boolean;
+  sandbox?: CliAgentSandboxMode;
+  browser?: boolean;
+  approveMcps?: boolean;
+  workspacePath?: string;
+}
+
+const toSandboxMode = (enabled: boolean | undefined): CliAgentSandboxMode | undefined => {
+  if (enabled === undefined) {
+    return undefined;
+  }
+  return enabled ? CLI_AGENT_SANDBOX_MODE.ENABLED : CLI_AGENT_SANDBOX_MODE.DISABLED;
+};
+
+const resolveCliMode = (mode: string): CliAgentMode | undefined => {
+  if (
+    mode === CLI_AGENT_MODE.AGENT ||
+    mode === CLI_AGENT_MODE.PLAN ||
+    mode === CLI_AGENT_MODE.ASK
+  ) {
+    return mode;
+  }
+  return SESSION_MODE_TO_CLI_MODE[mode];
+};
+
 export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRuntime {
   private readonly connection: CursorCliConnection;
   private readonly translator: CursorToAcpTranslator;
   private readonly hookIpcServer: HookIpcServer;
   private readonly hooksConfigGenerator: HooksConfigGenerator;
   private readonly sessionModelById = new Map<string, string>();
+  private readonly sessionModeById = new Map<string, CliAgentMode>();
+  private readonly promptDefaults: CursorPromptDefaults;
   private restoreHooks: (() => Promise<void>) | null = null;
 
   public constructor(options: CursorCliHarnessAdapterOptions = {}) {
     super();
+    const config = options.config;
+    const cursorConfig = config?.cursor;
     this.connection =
       options.connection ??
       new CursorCliConnection({
-        command: options.config?.command,
-        args: options.config?.args,
-        cwd: options.config?.cwd,
-        env: options.config?.env,
+        command: config?.command,
+        args: config?.args,
+        cwd: config?.cwd,
+        env: config?.env,
       });
     this.translator = options.translator ?? new CursorToAcpTranslator();
     this.hookIpcServer = options.hookIpcServer ?? new HookIpcServer();
     this.hooksConfigGenerator =
       options.hooksConfigGenerator ??
       new HooksConfigGenerator({
-        projectRoot: options.config?.cwd ?? process.cwd(),
+        projectRoot: config?.cwd ?? process.cwd(),
       });
+    this.promptDefaults = {
+      model: cursorConfig?.model,
+      mode: cursorConfig?.mode,
+      force: cursorConfig?.force ?? false,
+      sandbox: toSandboxMode(cursorConfig?.sandbox),
+      browser: cursorConfig?.browser,
+      approveMcps: cursorConfig?.approveMcps,
+      workspacePath: config?.cwd ?? process.cwd(),
+    };
 
     this.connection.on("streamEvent", (event) => this.translator.handleEvent(event));
     this.connection.on("parseError", ({ reason }) => {
@@ -146,7 +200,13 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
     return { sessionId };
   }
 
-  public async setSessionMode(_params: SetSessionModeRequest): Promise<SetSessionModeResponse> {
+  public async setSessionMode(params: SetSessionModeRequest): Promise<SetSessionModeResponse> {
+    const resolvedMode = resolveCliMode(params.modeId);
+    if (resolvedMode) {
+      this.sessionModeById.set(params.sessionId, resolvedMode);
+      return {};
+    }
+    this.sessionModeById.delete(params.sessionId);
     return {};
   }
 
@@ -158,12 +218,18 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
   public async prompt(params: PromptRequest): Promise<PromptResponse> {
     return this.withPromptGuard(async () => {
       const promptText = this.extractPromptText(params);
-      const model = this.sessionModelById.get(params.sessionId);
+      const model = this.sessionModelById.get(params.sessionId) ?? this.promptDefaults.model;
+      const mode = this.sessionModeById.get(params.sessionId) ?? this.promptDefaults.mode;
       const result = await this.connection.runPrompt({
         message: promptText,
         sessionId: params.sessionId,
         model,
-        force: false,
+        mode,
+        sandbox: this.promptDefaults.sandbox,
+        browser: this.promptDefaults.browser,
+        approveMcps: this.promptDefaults.approveMcps,
+        workspacePath: this.promptDefaults.workspacePath,
+        force: this.promptDefaults.force,
         streaming: true,
       });
       if (result.sessionId && result.sessionId !== params.sessionId) {

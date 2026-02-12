@@ -15,6 +15,11 @@ export const CLI_AGENT_MODE = {
   ASK: "ask",
 } as const;
 
+export const CLI_AGENT_SANDBOX_MODE = {
+  ENABLED: "enabled",
+  DISABLED: "disabled",
+} as const;
+
 export const STREAM_EVENT_TYPE = {
   TEXT_DELTA: "text_delta",
   THINKING_DELTA: "thinking_delta",
@@ -28,6 +33,8 @@ export const STREAM_EVENT_TYPE = {
 
 export type CliAgentAuthMethod = (typeof CLI_AGENT_AUTH_METHOD)[keyof typeof CLI_AGENT_AUTH_METHOD];
 export type CliAgentMode = (typeof CLI_AGENT_MODE)[keyof typeof CLI_AGENT_MODE];
+export type CliAgentSandboxMode =
+  (typeof CLI_AGENT_SANDBOX_MODE)[keyof typeof CLI_AGENT_SANDBOX_MODE];
 export type StreamEventType = (typeof STREAM_EVENT_TYPE)[keyof typeof STREAM_EVENT_TYPE];
 
 export const CliAgentInstallInfoSchema = z
@@ -97,6 +104,9 @@ export const CliAgentPromptInputSchema = z
     sessionId: z.string().min(1).optional(),
     model: z.string().min(1).optional(),
     mode: z.enum([CLI_AGENT_MODE.AGENT, CLI_AGENT_MODE.PLAN, CLI_AGENT_MODE.ASK]).optional(),
+    sandbox: z.enum([CLI_AGENT_SANDBOX_MODE.ENABLED, CLI_AGENT_SANDBOX_MODE.DISABLED]).optional(),
+    browser: z.boolean().optional(),
+    approveMcps: z.boolean().optional(),
     workspacePath: z.string().min(1).optional(),
     force: z.boolean().default(false),
     streaming: z.boolean().default(true),

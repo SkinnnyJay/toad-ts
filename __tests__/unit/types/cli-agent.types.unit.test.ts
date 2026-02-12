@@ -3,6 +3,7 @@ import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
 import {
   CLI_AGENT_AUTH_METHOD,
   CLI_AGENT_MODE,
+  CLI_AGENT_SANDBOX_MODE,
   CliAgentAuthStatusSchema,
   CliAgentCapabilitiesSchema,
   CliAgentInstallInfoSchema,
@@ -59,6 +60,9 @@ describe("cli-agent types", () => {
       sessionId: session.id,
       model: model.id,
       mode: CLI_AGENT_MODE.ASK,
+      sandbox: CLI_AGENT_SANDBOX_MODE.ENABLED,
+      browser: true,
+      approveMcps: true,
       workspacePath: "/workspace",
       force: false,
       streaming: true,
@@ -85,6 +89,7 @@ describe("cli-agent types", () => {
     expect(authStatus.method).toBe(CLI_AGENT_AUTH_METHOD.BROWSER_LOGIN);
     expect(models.models.length).toBe(1);
     expect(promptInput.mode).toBe(CLI_AGENT_MODE.ASK);
+    expect(promptInput.sandbox).toBe(CLI_AGENT_SANDBOX_MODE.ENABLED);
     expect(promptResult.toolCallCount).toBe(2);
     expect(capabilities.cloud).toBe(true);
   });
