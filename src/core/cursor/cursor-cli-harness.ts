@@ -43,7 +43,7 @@ import type { AgentManagementCommandResult } from "@/types/agent-management.type
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import type { CursorHookInput } from "@/types/cursor-hooks.types";
 import { CURSOR_HOOK_DECISION } from "@/types/cursor-hooks.types";
-import { EnvManager } from "@/utils/env/env.utils";
+import { EnvManager, parseBooleanEnvValue } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import type {
   AuthenticateRequest,
@@ -280,6 +280,10 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
     return this.coreHarness.setSessionModel(params);
   }
 
+  isAutoResolveHookPermissionsEnabled(): boolean {
+    return this.autoResolveHookPermissions;
+  }
+
   private installSignalHandlers(): void {
     if (this.signalHandlersInstalled) {
       return;
@@ -500,11 +504,16 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
 
 export const createCursorCliHarnessRuntime = (config: HarnessConfig): HarnessRuntime => {
   const env = { ...EnvManager.getInstance().getSnapshot(), ...config.env };
+  const autoResolveHookPermissions = parseBooleanEnvValue(
+    env[ENV_KEY.TOADSTOOL_CURSOR_AUTO_APPROVE_HOOKS] ?? "true",
+    true
+  );
   return new CursorCliHarnessAdapter({
     command: config.command,
     args: config.args,
     cwd: config.cwd,
     env,
+    autoResolveHookPermissions,
   });
 };
 

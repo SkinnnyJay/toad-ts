@@ -6,13 +6,18 @@ import { CURSOR_STREAM_TYPE } from "../../../src/constants/cursor-event-types";
 import { CURSOR_HOOK_EVENT } from "../../../src/constants/cursor-hook-events";
 import { CURSOR_HOOK_IPC_TRANSPORT } from "../../../src/constants/cursor-hook-ipc";
 import { ENV_KEY } from "../../../src/constants/env-keys";
+import { HARNESS_DEFAULT } from "../../../src/constants/harness-defaults";
 import { SESSION_UPDATE_TYPE } from "../../../src/constants/session-update-types";
 import type {
   CursorPromptRequest,
   CursorPromptResult,
 } from "../../../src/core/cursor/cursor-cli-connection";
-import { CursorCliHarnessAdapter } from "../../../src/core/cursor/cursor-cli-harness";
+import {
+  CursorCliHarnessAdapter,
+  createCursorCliHarnessRuntime,
+} from "../../../src/core/cursor/cursor-cli-harness";
 import type { CursorHookPermissionRequest } from "../../../src/core/cursor/hook-ipc-server";
+import type { HarnessConfig } from "../../../src/harness/harnessConfig";
 import type { CursorHookInput } from "../../../src/types/cursor-hooks.types";
 
 const sessionId = "14855632-18d5-44a3-ab27-5c93e95a8011";
@@ -543,5 +548,24 @@ describe("CursorCliHarnessAdapter", () => {
     expect(harness.connectionStatus).toBe(CONNECTION_STATUS.DISCONNECTED);
     expect(connection.disconnectCalls).toBe(1);
     expect(hookServer.stopCalls).toBe(1);
+  });
+
+  it("reads hook auto-approval setting from runtime env", () => {
+    const runtime = createCursorCliHarnessRuntime({
+      id: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      name: HARNESS_DEFAULT.CURSOR_CLI_NAME,
+      command: HARNESS_DEFAULT.CURSOR_COMMAND,
+      args: [],
+      env: {
+        [ENV_KEY.TOADSTOOL_CURSOR_AUTO_APPROVE_HOOKS]: "false",
+      },
+      cwd: "/workspace",
+    } satisfies HarnessConfig);
+
+    expect(runtime).toBeInstanceOf(CursorCliHarnessAdapter);
+    if (!(runtime instanceof CursorCliHarnessAdapter)) {
+      throw new Error("Expected CursorCliHarnessAdapter runtime instance.");
+    }
+    expect(runtime.isAutoResolveHookPermissionsEnabled()).toBe(false);
   });
 });
