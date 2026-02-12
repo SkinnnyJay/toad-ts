@@ -20,7 +20,6 @@ import { RENDER_STAGE } from "@/constants/render-stage";
 import { SESSION_MODE, getNextSessionMode } from "@/constants/session-modes";
 import { formatModeUpdatedMessage } from "@/constants/slash-command-messages";
 import { VIEW, type View } from "@/constants/views";
-import { parseModelsCommandResult } from "@/core/agent-management/models-command-result";
 import { claudeCliHarnessAdapter } from "@/core/claude-cli-harness";
 import { codexCliHarnessAdapter } from "@/core/codex-cli-harness";
 import {
@@ -29,6 +28,7 @@ import {
   loadCommands,
   loadSkills,
 } from "@/core/cross-tool";
+import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
 import { cursorCliHarnessAdapter } from "@/core/cursor/cursor-cli-harness";
 import { geminiCliHarnessAdapter } from "@/core/gemini-cli-harness";
 import { mockHarnessAdapter } from "@/core/mock-harness";
@@ -80,6 +80,7 @@ import { useRepoWorkflow } from "@/ui/hooks/useRepoWorkflow";
 import { ThemeProvider } from "@/ui/theme/theme-context";
 import { applyThemeColors } from "@/ui/theme/theme-definitions";
 import { withSessionAvailableModels, withSessionModel } from "@/ui/utils/session-model-metadata";
+import { resolveSessionModelOptions } from "@/ui/utils/session-model-refresh";
 import { Env, EnvManager } from "@/utils/env/env.utils";
 import { playCompletionSound } from "@/utils/sound/completion-sound.utils";
 import { TextAttributes } from "@opentui/core";
@@ -372,27 +373,39 @@ export function App(): ReactNode {
   );
 
   const handleRefreshSessionModels = useCallback(async () => {
-    if (!activeSessionId || !client?.runAgentCommand) {
-      throw new Error("Model listing is not available for the active provider.");
+    if (!activeSessionId) {
+      throw new Error("No active session selected.");
     }
-    const result = await client.runAgentCommand([AGENT_MANAGEMENT_COMMAND.MODELS]);
-    const parsed = parseModelsCommandResult(result);
-    const parsedDefaultModel = parsed.models.find((model) => model.isDefault)?.id;
-    const availableModels = parsed.models.map((model) => ({
-      modelId: model.id,
-      name: model.name,
-    }));
+    const runAgentCommand = client?.runAgentCommand;
+    const options = await resolveSessionModelOptions({
+      runCommand: runAgentCommand
+        ? async () => runAgentCommand([AGENT_MANAGEMENT_COMMAND.MODELS])
+        : undefined,
+      runCloud:
+        selectedAgent?.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID
+          ? async () => {
+              const cloudClient = new CursorCloudAgentClient();
+              return cloudClient.listModels();
+            }
+          : undefined,
+    });
     const session = getSession(activeSessionId);
     if (!session) {
       return;
     }
     upsertSession({
       session: withSessionAvailableModels(session, {
-        availableModels,
-        fallbackModelId: parsedDefaultModel,
+        availableModels: options.availableModels,
+        fallbackModelId: options.defaultModelId,
       }),
     });
-  }, [activeSessionId, client, getSession, upsertSession]);
+  }, [
+    activeSessionId,
+    client?.runAgentCommand,
+    getSession,
+    selectedAgent?.harnessId,
+    upsertSession,
+  ]);
 
   const breadcrumbPlacement = appConfig.ui.breadcrumb.placement;
   const breadcrumbVisible = breadcrumbPlacement !== BREADCRUMB_PLACEMENT.HIDDEN;
