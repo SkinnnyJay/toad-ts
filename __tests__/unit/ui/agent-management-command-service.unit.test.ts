@@ -41,6 +41,107 @@ describe("agent-management-command-service", () => {
     expect(lines.some((line) => line.includes("Agent: Cursor"))).toBe(true);
   });
 
+  it("routes /agent status to status command flow", async () => {
+    const execaMock = await getExecaMock();
+    const statusOutput = readFileSync(
+      path.join(process.cwd(), "__tests__/fixtures/cursor/status-output.txt"),
+      "utf8"
+    );
+    execaMock.mockResolvedValue({
+      stdout: statusOutput,
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["status"]
+    );
+
+    expect(lines[0]).toContain("Authenticated:");
+  });
+
+  it("routes /agent models to models command flow", async () => {
+    const execaMock = await getExecaMock();
+    const modelsOutput = readFileSync(
+      path.join(process.cwd(), "__tests__/fixtures/cursor/models-output.txt"),
+      "utf8"
+    );
+    execaMock.mockResolvedValue({
+      stdout: modelsOutput,
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["models"]
+    );
+
+    expect(lines.some((line) => line.includes("opus-4.6-thinking"))).toBe(true);
+  });
+
+  it("routes /agent login to login command flow", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["login"]
+    );
+
+    expect(lines[0]).toContain("cursor-agent");
+    expect(lines[0]).toContain("login");
+  });
+
+  it("returns unsupported /agent subcommand guidance", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["unknown-subcommand"]
+    );
+
+    expect(lines[0]).toContain("Unsupported /agent subcommand");
+  });
+
   it("parses cursor model output from native command", async () => {
     const execaMock = await getExecaMock();
     const modelsOutput = readFileSync(

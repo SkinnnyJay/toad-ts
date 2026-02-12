@@ -220,7 +220,11 @@ Skills, commands, agents, hooks, and rules from all tools are merged automatical
 
 Cloud workflows are available through `/agent` when Cursor compatibility is enabled:
 
+- `/agent status`
 - `/agent about`
+- `/agent login`
+- `/agent logout`
+- `/agent models`
 - `/agent cloud list [limit] [cursor]`
 - `/agent cloud launch <prompt>`
 - `/agent cloud followup <agentId> <prompt>`

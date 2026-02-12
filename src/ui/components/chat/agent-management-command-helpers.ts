@@ -19,6 +19,10 @@ export const AGENT_SUBCOMMAND = {
   CLOUD: "cloud",
   MCP: "mcp",
   ABOUT: "about",
+  LOGIN: "login",
+  LOGOUT: "logout",
+  STATUS: "status",
+  MODELS: "models",
 } as const;
 
 export const CLOUD_DEFAULT_LIST_LIMIT = 10;
@@ -45,6 +49,11 @@ export const HARNESS_MESSAGE = {
   NO_ACTIVE_HARNESS: "No active harness selected.",
   NOT_SUPPORTED: "is not supported for the active harness.",
   GEMINI_LOGIN: "Gemini CLI uses environment-based auth. Set GOOGLE_API_KEY or GEMINI_API_KEY.",
+} as const;
+
+export const AGENT_MESSAGE = {
+  UNSUPPORTED_SUBCOMMAND:
+    "Unsupported /agent subcommand. Use /agent status|about|login|logout|models|mcp|cloud.",
 } as const;
 
 export const toErrorMessage = (error: unknown): string => {

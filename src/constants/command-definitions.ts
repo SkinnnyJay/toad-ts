@@ -20,7 +20,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
     name: SLASH_COMMAND.AGENT,
     description: "Manage active agent and cloud workflows",
-    args: "[about|cloud <list|launch|followup|conversation|stop>|mcp ...]",
+    args: "[status|about|login|logout|models|mcp ...|cloud <list|launch|followup|conversation|stop>]",
     category: "provider",
   },
   { name: SLASH_COMMAND.AGENTS, description: "Open agent discovery panel", category: "agents" },

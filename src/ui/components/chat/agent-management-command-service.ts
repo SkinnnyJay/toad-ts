@@ -10,6 +10,7 @@ import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { Session } from "@/types/domain";
 import { execa } from "execa";
 import {
+  AGENT_MESSAGE,
   AGENT_SUBCOMMAND,
   CLOUD_AGENT_MESSAGE,
   CLOUD_AGENT_SUBCOMMAND,
@@ -260,6 +261,21 @@ const runCloudAgentCommand = async (
   }
 };
 
+const resolveAgentRootCommand = (subcommand: string | undefined): string | undefined => {
+  switch (subcommand) {
+    case AGENT_SUBCOMMAND.LOGIN:
+      return AGENT_MANAGEMENT_COMMAND.LOGIN;
+    case AGENT_SUBCOMMAND.LOGOUT:
+      return AGENT_MANAGEMENT_COMMAND.LOGOUT;
+    case AGENT_SUBCOMMAND.STATUS:
+      return AGENT_MANAGEMENT_COMMAND.STATUS;
+    case AGENT_SUBCOMMAND.MODELS:
+      return AGENT_MANAGEMENT_COMMAND.MODELS;
+    default:
+      return undefined;
+  }
+};
+
 export const runAgentCommand = async (
   command: string,
   context: AgentManagementContext,
@@ -268,6 +284,9 @@ export const runAgentCommand = async (
   const harness = context.activeHarness;
   switch (command) {
     case AGENT_MANAGEMENT_COMMAND.AGENT:
+      if (args.length === 0) {
+        return mapStatusLines(context);
+      }
       if (args[0] === AGENT_SUBCOMMAND.CLOUD) {
         return runCloudAgentCommand(context, args.slice(1));
       }
@@ -293,7 +312,13 @@ export const runAgentCommand = async (
         }
         return [result.stdout || COMMAND_RESULT_EMPTY];
       }
-      return mapStatusLines(context);
+      {
+        const delegatedCommand = resolveAgentRootCommand(args[0]);
+        if (delegatedCommand) {
+          return runAgentCommand(delegatedCommand, context, args.slice(1));
+        }
+      }
+      return [AGENT_MESSAGE.UNSUPPORTED_SUBCOMMAND];
     case AGENT_MANAGEMENT_COMMAND.MCP:
       return runMcpCommand(context, args);
     case AGENT_MANAGEMENT_COMMAND.LOGIN:
