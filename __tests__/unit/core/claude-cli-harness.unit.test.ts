@@ -243,4 +243,57 @@ describe("ClaudeCliHarnessAdapter", () => {
     expect(connection.attemptCount).toBe(1);
     vi.useRealTimers();
   });
+
+  it("rejects concurrent prompt calls while a prompt is in progress", async () => {
+    const { clientStream, agentStream, clientToAgent, agentToClient } = createStreamPair();
+    let releasePrompt: (() => void) | undefined;
+    const promptRelease = new Promise<void>((resolve) => {
+      releasePrompt = resolve;
+    });
+
+    const agentConnection = new AgentSideConnection((conn) => {
+      const agent: Agent = {
+        initialize: async () => ({ protocolVersion: PROTOCOL_VERSION }),
+        authenticate: async () => ({}),
+        cancel: async () => {},
+        newSession: async () => ({ sessionId: "session-guard" }),
+        prompt: async (params) => {
+          await conn.sessionUpdate({
+            sessionId: params.sessionId,
+            update: {
+              sessionUpdate: SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK,
+              content: { type: CONTENT_BLOCK_TYPE.TEXT, text: "waiting" },
+            },
+          });
+          await promptRelease;
+          return { stopReason: "end_turn" };
+        },
+      };
+      return agent;
+    }, agentStream);
+
+    const adapter = new ClaudeCliHarnessAdapter({ connection: new FakeConnection(clientStream) });
+
+    await adapter.connect();
+    const session = await adapter.newSession({ cwd: ".", mcpServers: [] });
+    const firstPrompt = adapter.prompt({
+      sessionId: session.sessionId,
+      prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "first" }],
+    });
+
+    await expect(
+      adapter.prompt({
+        sessionId: session.sessionId,
+        prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "second" }],
+      })
+    ).rejects.toThrow("Prompt already in progress for this harness instance.");
+
+    releasePrompt?.();
+    await expect(firstPrompt).resolves.toEqual({ stopReason: "end_turn" });
+
+    expect(agentConnection).toBeDefined();
+    await adapter.disconnect();
+    clientToAgent.end();
+    agentToClient.end();
+  });
 });
