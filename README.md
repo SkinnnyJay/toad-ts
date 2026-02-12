@@ -206,7 +206,12 @@ export CURSOR_API_KEY=...
 - Installs hook shims for permission/context/thought/file-edit lifecycle events
 - Renders hook-based file edits in the inline diff tool UI
 - Supports management commands through slash commands:
-  - `/status`, `/login`, `/logout`, `/models`, `/model`, `/mcp`, `/agent`
+  - `/status`, `/login`, `/logout`, `/models`, `/model`, `/mcp`, `/agent`, `/cloud`
+  - `/cloud` supports list/status/stop/follow-up actions for Cursor cloud agents:
+    - `/cloud list`
+    - `/cloud status <agent-id>`
+    - `/cloud stop <agent-id>`
+    - `/cloud followup <agent-id> <prompt>`
   - Settings modal now includes a **Model** tab for active sessions:
     - browse cached model options
     - press `Enter` to switch the active model
