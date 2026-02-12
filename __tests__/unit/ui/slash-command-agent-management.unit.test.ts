@@ -163,6 +163,39 @@ describe("slash command agent management", () => {
     );
   });
 
+  it("dispatches a new cloud agent prompt", async () => {
+    const sessionId = SessionIdSchema.parse("cloud-dispatch-session");
+    const launchCloudAgentItem = vi.fn(async () => ({ id: "agent-3", status: "queued" }));
+    const { deps, appendSystemMessage } = createDeps({
+      sessionId,
+      getSession: () =>
+        ({
+          id: sessionId,
+          title: "Cloud dispatch session",
+          messageIds: [],
+          createdAt: 1,
+          updatedAt: 1,
+          mode: SESSION_MODE.AUTO,
+          metadata: { mcpServers: [], model: "auto" },
+        }) satisfies Session,
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      launchCloudAgentItem,
+    });
+
+    expect(runSlashCommand("/cloud dispatch investigate flaky CI", deps)).toBe(true);
+    await vi.waitFor(() => {
+      expect(appendSystemMessage.mock.calls.length).toBeGreaterThan(1);
+    });
+
+    expect(launchCloudAgentItem).toHaveBeenCalledWith({
+      prompt: "investigate flaky CI",
+      model: "auto",
+    });
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("Cloud agent started: agent-3 (queued).")
+    );
+  });
+
   it("shows unsupported message for cloud command on non-cursor harness", () => {
     const { deps, appendSystemMessage } = createDeps({
       activeHarnessId: HARNESS_DEFAULT.CLAUDE_CLI_ID,

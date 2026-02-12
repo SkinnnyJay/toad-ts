@@ -1,6 +1,5 @@
 import { existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
-
 import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
 import { CLOUD_SUBCOMMAND } from "@/constants/cloud-subcommands";
 import { ENV_KEY } from "@/constants/env-keys";
@@ -36,9 +35,8 @@ const MANAGEMENT_COMMAND = {
 const PREVIEW_LINE_LIMIT = 8;
 const CLOUD_LIST_LIMIT = 20;
 
-const isCursorCloudSupported = (deps: SlashCommandDeps): boolean => {
-  return deps.activeHarnessId === HARNESS_DEFAULT.CURSOR_CLI_ID;
-};
+const isCursorCloudSupported = (deps: SlashCommandDeps): boolean =>
+  deps.activeHarnessId === HARNESS_DEFAULT.CURSOR_CLI_ID;
 
 const buildOutputPreview = (stdout: string, stderr: string): string => {
   const combined = `${stdout}\n${stderr}`
@@ -306,6 +304,32 @@ export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): voi
         .catch((error) => {
           deps.appendSystemMessage(
             `Cloud follow-up failed: ${error instanceof Error ? error.message : String(error)}`
+          );
+        });
+      return;
+    }
+    case CLOUD_SUBCOMMAND.DISPATCH: {
+      const prompt = parts.slice(2).join(" ").trim();
+      if (!prompt) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_USAGE);
+        return;
+      }
+      if (!deps.launchCloudAgentItem) {
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_DISPATCH_NOT_AVAILABLE);
+        return;
+      }
+      const model = deps.sessionId
+        ? deps.getSession(deps.sessionId)?.metadata?.model?.trim()
+        : undefined;
+      deps.appendSystemMessage("Dispatching cloud prompt…");
+      void deps
+        .launchCloudAgentItem({ prompt, ...(model ? { model } : {}) })
+        .then((agent) => {
+          deps.appendSystemMessage(`Cloud agent started: ${agent.id} (${agent.status}).`);
+        })
+        .catch((error) => {
+          deps.appendSystemMessage(
+            `Cloud dispatch failed: ${error instanceof Error ? error.message : String(error)}`
           );
         });
       return;

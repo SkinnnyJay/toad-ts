@@ -128,6 +128,12 @@ export interface SlashCommandDeps {
   getCloudAgentItem?: (agentId: string) => Promise<{ id: string; status: string; model?: string }>;
   stopCloudAgentItem?: (agentId: string) => Promise<{ id: string }>;
   followupCloudAgentItem?: (agentId: string, prompt: string) => Promise<{ id: string }>;
+  launchCloudAgentItem?: (params: {
+    prompt: string;
+    model?: string;
+    repository?: string;
+    branch?: string;
+  }) => Promise<{ id: string; status: string }>;
   toggleVimMode?: () => boolean;
   connectionStatus?: string;
   now?: () => number;

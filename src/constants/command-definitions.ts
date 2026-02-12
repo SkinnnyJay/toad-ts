@@ -23,7 +23,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
     name: SLASH_COMMAND.CLOUD,
     description: "Manage Cursor cloud agents",
-    args: "[list|status|stop|followup] [args...]",
+    args: "[list|status|stop|followup|dispatch] [args...]",
     category: "provider",
     agents: [HARNESS_DEFAULT.CURSOR_CLI_ID],
   },

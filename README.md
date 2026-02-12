@@ -216,6 +216,7 @@ export CURSOR_API_KEY=...
     - `/cloud status <agent-id>`
     - `/cloud stop <agent-id>`
     - `/cloud followup <agent-id> <prompt>`
+    - `/cloud dispatch <prompt>` launches a new cloud agent run from slash input
   - Settings modal now includes a **Model** tab for active sessions:
     - browse cached model options
     - press `Enter` to switch the active model

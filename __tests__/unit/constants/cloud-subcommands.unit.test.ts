@@ -8,6 +8,7 @@ describe("cloud subcommands constants", () => {
       STATUS: "status",
       STOP: "stop",
       FOLLOWUP: "followup",
+      DISPATCH: "dispatch",
     });
   });
 });

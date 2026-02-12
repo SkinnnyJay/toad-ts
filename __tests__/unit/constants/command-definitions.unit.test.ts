@@ -13,6 +13,7 @@ describe("command definitions", () => {
       expect.objectContaining({
         name: SLASH_COMMAND.CLOUD,
         category: "provider",
+        args: "[list|status|stop|followup|dispatch] [args...]",
         agents: [HARNESS_DEFAULT.CURSOR_CLI_ID],
       })
     );

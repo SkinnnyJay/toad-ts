@@ -451,6 +451,10 @@ export const useSlashCommandHandler = ({
                 return cloudClient.addFollowup(agentId, { prompt });
               }
             : undefined,
+        launchCloudAgentItem:
+          agent?.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID
+            ? async (params) => new CursorCloudAgentClient().launchAgent(params)
+            : undefined,
         connectionStatus,
         getContextAttachments,
         setContextAttachments,
