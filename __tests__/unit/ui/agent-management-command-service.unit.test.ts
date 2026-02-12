@@ -67,6 +67,21 @@ describe("agent-management-command-service", () => {
     expect(lines.some((line) => line.includes("opus-4.6-thinking"))).toBe(true);
   });
 
+  it("returns not-supported message when models command is unavailable", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "codex-cli",
+      name: "Codex CLI",
+      command: "codex",
+      args: [],
+      env: {},
+    });
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.MODELS, {
+      activeHarness: harness,
+    });
+
+    expect(lines[0]).toContain("models is not supported");
+  });
+
   it("returns login guidance command for active harness", async () => {
     const harness = harnessConfigSchema.parse({
       id: "cursor-cli",
@@ -80,6 +95,51 @@ describe("agent-management-command-service", () => {
     });
 
     expect(lines[0]).toContain("cursor-agent --foo login");
+  });
+
+  it("returns env guidance when gemini login is requested", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "gemini-cli",
+      name: "Gemini CLI",
+      command: "gemini",
+      args: [],
+      env: {},
+    });
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.LOGIN, {
+      activeHarness: harness,
+    });
+
+    expect(lines[0]).toContain("GOOGLE_API_KEY");
+  });
+
+  it("returns not-supported message when logout is unavailable", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "claude-cli",
+      name: "Claude CLI",
+      command: "claude-code-acp",
+      args: [],
+      env: {},
+    });
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.LOGOUT, {
+      activeHarness: harness,
+    });
+
+    expect(lines[0]).toContain("logout is not supported");
+  });
+
+  it("returns not-supported message when status command is unavailable", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "claude-cli",
+      name: "Claude CLI",
+      command: "claude-code-acp",
+      args: [],
+      env: {},
+    });
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.STATUS, {
+      activeHarness: harness,
+    });
+
+    expect(lines[0]).toContain("status is not supported");
   });
 
   it("parses cursor about output through /agent about", async () => {
@@ -162,6 +222,21 @@ describe("agent-management-command-service", () => {
     });
 
     expect(lines[0]).toContain("filesystem");
+  });
+
+  it("returns not-supported message when mcp command is unavailable for harness", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "codex-cli",
+      name: "Codex CLI",
+      command: "codex",
+      args: [],
+      env: {},
+    });
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.MCP, {
+      activeHarness: harness,
+    });
+
+    expect(lines[0]).toContain("mcp is not supported");
   });
 
   it("runs native MCP list for active cursor harness", async () => {

@@ -1,5 +1,11 @@
 import { LIMIT } from "@/config/limits";
-import { AGENT_MANAGEMENT_COMMAND, HARNESS_ID } from "@/constants/agent-management-commands";
+import {
+  AGENT_MANAGEMENT_CAPABILITY,
+  AGENT_MANAGEMENT_COMMAND,
+  type AgentManagementCapability,
+  HARNESS_ID,
+  HARNESS_MANAGEMENT_CAPABILITIES,
+} from "@/constants/agent-management-commands";
 import { ENV_KEY } from "@/constants/env-keys";
 import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
 import {
@@ -77,6 +83,12 @@ const AGENT_SUBCOMMAND = {
   ABOUT: "about",
 } as const;
 
+const HARNESS_MESSAGE = {
+  NO_ACTIVE_HARNESS: "No active harness selected.",
+  NOT_SUPPORTED: "is not supported for the active harness.",
+  GEMINI_LOGIN: "Gemini CLI uses environment-based auth. Set GOOGLE_API_KEY or GEMINI_API_KEY.",
+} as const;
+
 const toErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
     return error.message;
@@ -106,6 +118,27 @@ const parseCloudListArgs = (
 };
 
 const isCursorHarness = (harness: HarnessConfig): boolean => harness.id === HARNESS_ID.CURSOR_CLI;
+
+const hasCapability = (
+  harness: HarnessConfig | undefined,
+  capability: AgentManagementCapability
+): boolean => {
+  if (!harness) {
+    return false;
+  }
+  const supported = HARNESS_MANAGEMENT_CAPABILITIES[harness.id];
+  if (!supported) {
+    return false;
+  }
+  return supported.includes(capability);
+};
+
+const unsupportedCapabilityMessage = (
+  harness: HarnessConfig,
+  capability: AgentManagementCapability
+): string => {
+  return `${capability} ${HARNESS_MESSAGE.NOT_SUPPORTED} (${harness.name})`;
+};
 
 const runHarnessCommand = async (
   harness: HarnessConfig,
@@ -220,6 +253,9 @@ const runMcpCommand = async (
   const harness = context.activeHarness;
   if (!harness) {
     return mapMcpLines(context.session);
+  }
+  if (!hasCapability(harness, AGENT_MANAGEMENT_CAPABILITY.MCP)) {
+    return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.MCP)];
   }
 
   const [subcommand = MCP_SUBCOMMAND.LIST, ...subArgs] = args;
@@ -375,7 +411,10 @@ export const runAgentCommand = async (
       }
       if (args[0] === AGENT_SUBCOMMAND.ABOUT) {
         if (!harness) {
-          return ["No active harness selected."];
+          return [HARNESS_MESSAGE.NO_ACTIVE_HARNESS];
+        }
+        if (!hasCapability(harness, AGENT_MANAGEMENT_CAPABILITY.ABOUT)) {
+          return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.ABOUT)];
         }
         const result = await runHarnessCommand(harness, [AGENT_MANAGEMENT_COMMAND.ABOUT]);
         if (result.exitCode !== 0) {
@@ -391,12 +430,21 @@ export const runAgentCommand = async (
       return runMcpCommand(context, args);
     case AGENT_MANAGEMENT_COMMAND.LOGIN:
       if (!harness) {
-        return ["No active harness selected."];
+        return [HARNESS_MESSAGE.NO_ACTIVE_HARNESS];
+      }
+      if (!hasCapability(harness, AGENT_MANAGEMENT_CAPABILITY.LOGIN)) {
+        if (harness.id === HARNESS_ID.GEMINI_CLI) {
+          return [HARNESS_MESSAGE.GEMINI_LOGIN];
+        }
+        return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.LOGIN)];
       }
       return [`Run \`${harness.command} ${harness.args.join(" ")} login\` in a terminal.`];
     case AGENT_MANAGEMENT_COMMAND.LOGOUT:
       if (!harness) {
-        return ["No active harness selected."];
+        return [HARNESS_MESSAGE.NO_ACTIVE_HARNESS];
+      }
+      if (!hasCapability(harness, AGENT_MANAGEMENT_CAPABILITY.LOGOUT)) {
+        return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.LOGOUT)];
       }
       {
         const result = await runHarnessCommand(harness, [AGENT_MANAGEMENT_COMMAND.LOGOUT]);
@@ -410,7 +458,10 @@ export const runAgentCommand = async (
       }
     case AGENT_MANAGEMENT_COMMAND.ABOUT:
       if (!harness) {
-        return ["No active harness selected."];
+        return [HARNESS_MESSAGE.NO_ACTIVE_HARNESS];
+      }
+      if (!hasCapability(harness, AGENT_MANAGEMENT_CAPABILITY.ABOUT)) {
+        return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.ABOUT)];
       }
       {
         const result = await runHarnessCommand(harness, [AGENT_MANAGEMENT_COMMAND.ABOUT]);
@@ -425,6 +476,9 @@ export const runAgentCommand = async (
     case AGENT_MANAGEMENT_COMMAND.STATUS:
       if (!harness) {
         return mapStatusLines(context);
+      }
+      if (!hasCapability(harness, AGENT_MANAGEMENT_CAPABILITY.STATUS)) {
+        return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.STATUS)];
       }
       {
         const result = await runHarnessCommand(harness, [AGENT_MANAGEMENT_COMMAND.STATUS]);
@@ -443,6 +497,9 @@ export const runAgentCommand = async (
           return ["No models available for current session."];
         }
         return availableModels.map((model) => `- ${model.modelId}`);
+      }
+      if (!hasCapability(harness, AGENT_MANAGEMENT_CAPABILITY.MODELS)) {
+        return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.MODELS)];
       }
       {
         const result = await runHarnessCommand(harness, [AGENT_MANAGEMENT_COMMAND.MODELS]);
