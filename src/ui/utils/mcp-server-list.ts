@@ -67,6 +67,13 @@ const DISABLED_STATUS_TOKENS: readonly string[] = [
   MCP_STATUS_TOKEN.DISCONNECTED,
 ];
 
+const MCP_SERVER_STATUS_RANK: Record<McpServerStatus, number> = {
+  [MCP_SERVER_STATUS.ENABLED]: 0,
+  [MCP_SERVER_STATUS.CONFIGURED]: 1,
+  [MCP_SERVER_STATUS.DISABLED]: 2,
+  [MCP_SERVER_STATUS.UNKNOWN]: 3,
+};
+
 const toCanonicalStatus = (statusToken: string): McpServerStatus => {
   if (ENABLED_STATUS_TOKENS.includes(statusToken)) {
     return MCP_SERVER_STATUS.ENABLED;
@@ -152,18 +159,32 @@ const toUniqueMcpServers = (servers: McpServerListItem[]): McpServerListItem[] =
   return [...mergedById.values()];
 };
 
+export const sortMcpServersForDisplay = (
+  servers: readonly McpServerListItem[]
+): McpServerListItem[] => {
+  return [...servers].sort((first, second) => {
+    const rankDiff = MCP_SERVER_STATUS_RANK[first.status] - MCP_SERVER_STATUS_RANK[second.status];
+    if (rankDiff !== 0) {
+      return rankDiff;
+    }
+    return first.id.localeCompare(second.id);
+  });
+};
+
 export const toMcpServersFromSession = (session?: Session): McpServerListItem[] => {
   if (!session?.metadata?.mcpServers) {
     return [];
   }
-  return toUniqueMcpServers(
-    session.metadata.mcpServers.map((server) => {
-      return {
-        id: server.name,
-        status: MCP_SERVER_STATUS.CONFIGURED,
-        enabled: null,
-      };
-    })
+  return sortMcpServersForDisplay(
+    toUniqueMcpServers(
+      session.metadata.mcpServers.map((server) => {
+        return {
+          id: server.name,
+          status: MCP_SERVER_STATUS.CONFIGURED,
+          enabled: null,
+        };
+      })
+    )
   );
 };
 
@@ -176,7 +197,7 @@ export const parseMcpServerListOutput = (output: string): McpServerListItem[] =>
       parsedServers.push(parsed);
     }
   }
-  return toUniqueMcpServers(parsedServers);
+  return sortMcpServersForDisplay(toUniqueMcpServers(parsedServers));
 };
 
 export const parseMcpServerListCommandResult = (

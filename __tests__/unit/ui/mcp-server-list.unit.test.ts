@@ -5,6 +5,7 @@ import {
   parseMcpServerListOutput,
   parseMcpServerToolsCommandResult,
   parseMcpServerToolsOutput,
+  sortMcpServersForDisplay,
   toMcpServersFromSession,
 } from "@/ui/utils/mcp-server-list";
 import { describe, expect, it } from "vitest";
@@ -38,8 +39,8 @@ describe("mcp-server-list", () => {
     });
 
     expect(parsed).toEqual([
-      { id: "github", status: MCP_SERVER_STATUS.CONFIGURED, enabled: null },
       { id: "filesystem", status: MCP_SERVER_STATUS.CONFIGURED, enabled: null },
+      { id: "github", status: MCP_SERVER_STATUS.CONFIGURED, enabled: null },
     ]);
   });
 
@@ -106,5 +107,16 @@ describe("mcp-server-list", () => {
   it("formats tool preview with overflow suffix", () => {
     const preview = formatMcpToolPreview(["a", "b", "c", "d", "e", "f", "g", "h", "i"]);
     expect(preview).toBe("a, b, c, d, e, f, g, h … +1 more");
+  });
+
+  it("sorts MCP servers by status rank then id", () => {
+    const sorted = sortMcpServersForDisplay([
+      { id: "zeta", status: MCP_SERVER_STATUS.UNKNOWN, enabled: null },
+      { id: "beta", status: MCP_SERVER_STATUS.CONFIGURED, enabled: null },
+      { id: "alpha", status: MCP_SERVER_STATUS.ENABLED, enabled: true },
+      { id: "gamma", status: MCP_SERVER_STATUS.DISABLED, enabled: false },
+    ]);
+
+    expect(sorted.map((server) => server.id)).toEqual(["alpha", "beta", "gamma", "zeta"]);
   });
 });
