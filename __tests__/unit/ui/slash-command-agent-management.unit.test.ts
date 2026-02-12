@@ -180,6 +180,10 @@ describe("slash command agent management", () => {
         }) satisfies Session,
       activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
       launchCloudAgentItem,
+      cloudDispatchContext: {
+        repository: "owner/repo",
+        branch: "feature/cloud-dispatch",
+      },
     });
 
     expect(runSlashCommand("/cloud dispatch investigate flaky CI", deps)).toBe(true);
@@ -190,6 +194,8 @@ describe("slash command agent management", () => {
     expect(launchCloudAgentItem).toHaveBeenCalledWith({
       prompt: "investigate flaky CI",
       model: "auto",
+      repository: "owner/repo",
+      branch: "feature/cloud-dispatch",
     });
     expect(appendSystemMessage).toHaveBeenCalledWith(
       expect.stringContaining("Cloud agent started: agent-3 (queued).")

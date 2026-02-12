@@ -36,6 +36,7 @@ import type {
 } from "@/types/agent-management.types";
 import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
 import { PlanIdSchema, SessionIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
+import type { CloudDispatchContext } from "@/ui/utils/cloud-dispatch-context";
 import {
   toNormalizedOptionalString,
   withSessionAvailableModels,
@@ -134,6 +135,7 @@ export interface SlashCommandDeps {
     repository?: string;
     branch?: string;
   }) => Promise<{ id: string; status: string }>;
+  cloudDispatchContext?: CloudDispatchContext;
   toggleVimMode?: () => boolean;
   connectionStatus?: string;
   now?: () => number;

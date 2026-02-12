@@ -21,6 +21,7 @@ import type { AgentManagementCommandResult } from "@/types/agent-management.type
 import { sortCloudAgentItemsByRecency } from "@/ui/utils/cloud-agent-list";
 import { formatMcpToolPreview, parseMcpServerToolsCommandResult } from "@/ui/utils/mcp-server-list";
 import { EnvManager } from "@/utils/env/env.utils";
+import { handleCloudDispatchSubcommand } from "./slash-command-cloud-dispatch";
 import type { SlashCommandDeps } from "./slash-command-runner";
 
 const MANAGEMENT_COMMAND = {
@@ -31,13 +32,10 @@ const MANAGEMENT_COMMAND = {
   MODELS: AGENT_MANAGEMENT_COMMAND.MODELS,
   MCP: AGENT_MANAGEMENT_COMMAND.MCP,
 } as const;
-
 const PREVIEW_LINE_LIMIT = 8;
 const CLOUD_LIST_LIMIT = 20;
-
 const isCursorCloudSupported = (deps: SlashCommandDeps): boolean =>
   deps.activeHarnessId === HARNESS_DEFAULT.CURSOR_CLI_ID;
-
 const buildOutputPreview = (stdout: string, stderr: string): string => {
   const combined = `${stdout}\n${stderr}`
     .split(/\r?\n/)
@@ -46,7 +44,6 @@ const buildOutputPreview = (stdout: string, stderr: string): string => {
     .slice(0, PREVIEW_LINE_LIMIT);
   return combined.join("\n");
 };
-
 const buildCommandResultMessage = (title: string, result: AgentManagementCommandResult): string => {
   const preview = buildOutputPreview(result.stdout, result.stderr);
   if (preview.length === 0) {
@@ -61,17 +58,15 @@ const buildCommandFailureMessage = (result: AgentManagementCommandResult): strin
   if (failureMessage === fallbackMessage) {
     return `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} (exit ${result.exitCode})`;
   }
-  const preview = buildOutputPreview(failureMessage, "");
-  return `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${preview}`;
+  return `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${buildOutputPreview(failureMessage, "")}`;
 };
 
-const appendAgentCommandRuntimeError = (deps: SlashCommandDeps, error: unknown): void => {
+const appendAgentCommandRuntimeError = (deps: SlashCommandDeps, error: unknown): void =>
   deps.appendSystemMessage(
     `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${
       error instanceof Error ? error.message : String(error)
     }`
   );
-};
 
 const resolveStatusArgs = (harnessId: string | undefined): string[] | null => {
   switch (harnessId) {
@@ -309,34 +304,12 @@ export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): voi
       return;
     }
     case CLOUD_SUBCOMMAND.DISPATCH: {
-      const prompt = parts.slice(2).join(" ").trim();
-      if (!prompt) {
-        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_USAGE);
-        return;
-      }
-      if (!deps.launchCloudAgentItem) {
-        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_DISPATCH_NOT_AVAILABLE);
-        return;
-      }
-      const model = deps.sessionId
-        ? deps.getSession(deps.sessionId)?.metadata?.model?.trim()
-        : undefined;
-      deps.appendSystemMessage("Dispatching cloud prompt…");
-      void deps
-        .launchCloudAgentItem({ prompt, ...(model ? { model } : {}) })
-        .then((agent) => {
-          deps.appendSystemMessage(`Cloud agent started: ${agent.id} (${agent.status}).`);
-        })
-        .catch((error) => {
-          deps.appendSystemMessage(
-            `Cloud dispatch failed: ${error instanceof Error ? error.message : String(error)}`
-          );
-        });
+      handleCloudDispatchSubcommand(parts, deps);
       return;
     }
-    default: {
+    default:
       deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_USAGE);
-    }
+      return;
   }
 };
 

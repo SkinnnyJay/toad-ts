@@ -22,6 +22,7 @@ import { CursorCloudAgentSchema } from "@/types/cursor-cloud.types";
 import type { Message, Session, SessionId } from "@/types/domain";
 import { SessionModeSchema } from "@/types/domain";
 import { toCloudAgentListItems } from "@/ui/utils/cloud-agent-list";
+import type { CloudDispatchContext } from "@/ui/utils/cloud-dispatch-context";
 import { withSessionModel } from "@/ui/utils/session-model-metadata";
 import { toSessionModelOptionsFromCloudResponse } from "@/ui/utils/session-model-refresh";
 import { type SessionSwitchSeed, switchToSessionWithFallback } from "@/ui/utils/session-switcher";
@@ -61,6 +62,7 @@ export interface SlashCommandHandlerOptions {
   agents?: AgentInfo[];
   subAgentRunner?: SubAgentRunner;
   harnesses?: Record<string, HarnessConfig>;
+  cloudDispatchContext?: CloudDispatchContext;
   now?: () => number;
 }
 
@@ -88,6 +90,7 @@ export const useSlashCommandHandler = ({
   agents = [],
   subAgentRunner,
   harnesses,
+  cloudDispatchContext,
   now,
 }: SlashCommandHandlerOptions): ((value: string) => boolean) => {
   const renderer = useRenderer();
@@ -448,6 +451,7 @@ export const useSlashCommandHandler = ({
           agent?.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID
             ? async (params) => new CursorCloudAgentClient().launchAgent(params)
             : undefined,
+        cloudDispatchContext,
         connectionStatus,
         getContextAttachments,
         setContextAttachments,
@@ -497,6 +501,7 @@ export const useSlashCommandHandler = ({
       setContextAttachments,
       restoreSessionSnapshot,
       harnesses,
+      cloudDispatchContext,
       now,
     ]
   );

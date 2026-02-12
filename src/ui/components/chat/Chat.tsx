@@ -266,6 +266,7 @@ export const Chat = memo(
       agents,
       subAgentRunner,
       checkpointManager,
+      cloudDispatchContext,
     });
 
     const shellCompletion = useMemo(
