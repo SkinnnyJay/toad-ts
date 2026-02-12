@@ -192,14 +192,28 @@ export class ClaudeCliHarnessAdapter extends CliAgentBase implements HarnessRunt
     if (!this.client.setSessionMode) {
       return {};
     }
-    return this.client.setSessionMode(params);
+    try {
+      return await this.client.setSessionMode(params);
+    } catch (error) {
+      if (isMethodNotFoundError(error)) {
+        return {};
+      }
+      throw error;
+    }
   }
 
   async setSessionModel(params: SetSessionModelRequest): Promise<SetSessionModelResponse> {
     if (!this.client.setSessionModel) {
       return {};
     }
-    return this.client.setSessionModel(params);
+    try {
+      return await this.client.setSessionModel(params);
+    } catch (error) {
+      if (isMethodNotFoundError(error)) {
+        return {};
+      }
+      throw error;
+    }
   }
 
   async authenticate(params: AuthenticateRequest): Promise<AuthenticateResponse> {
@@ -244,3 +258,10 @@ export const claudeCliHarnessAdapter: HarnessAdapter = {
 
 const isErrnoException = (error: unknown): error is NodeJS.ErrnoException =>
   typeof error === "object" && error !== null && "code" in error;
+
+const isMethodNotFoundError = (error: unknown): error is { code: number } =>
+  typeof error === "object" &&
+  error !== null &&
+  "code" in error &&
+  typeof (error as { code: unknown }).code === "number" &&
+  (error as { code: number }).code === -32601;

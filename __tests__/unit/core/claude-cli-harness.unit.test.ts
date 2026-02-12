@@ -1,6 +1,7 @@
 import { PassThrough, Readable, Writable } from "node:stream";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { SESSION_MODE } from "@/constants/session-modes";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { EnvManager } from "@/utils/env/env.utils";
 import {
@@ -290,6 +291,45 @@ describe("ClaudeCliHarnessAdapter", () => {
 
     releasePrompt?.();
     await expect(firstPrompt).resolves.toEqual({ stopReason: "end_turn" });
+
+    expect(agentConnection).toBeDefined();
+    await adapter.disconnect();
+    clientToAgent.end();
+    agentToClient.end();
+  });
+
+  it("passes session mode/model updates through when agent supports them", async () => {
+    const { clientStream, agentStream, clientToAgent, agentToClient } = createStreamPair();
+    const setSessionModeSpy = vi.fn(async () => ({}));
+
+    const agentConnection = new AgentSideConnection((_conn) => {
+      const agent: Agent = {
+        initialize: async () => ({ protocolVersion: PROTOCOL_VERSION }),
+        authenticate: async () => ({}),
+        cancel: async () => {},
+        newSession: async () => ({ sessionId: "session-mode-model" }),
+        prompt: async () => ({ stopReason: "end_turn" }),
+        setSessionMode: setSessionModeSpy,
+      };
+      return agent;
+    }, agentStream);
+
+    const adapter = new ClaudeCliHarnessAdapter({ connection: new FakeConnection(clientStream) });
+
+    await adapter.connect();
+    await adapter.initialize();
+
+    await expect(
+      adapter.setSessionMode({ sessionId: "session-mode-model", modeId: SESSION_MODE.AUTO })
+    ).resolves.toEqual({});
+    await expect(
+      adapter.setSessionModel({ sessionId: "session-mode-model", modelId: "sonnet" })
+    ).resolves.toEqual({});
+
+    expect(setSessionModeSpy).toHaveBeenCalledWith({
+      sessionId: "session-mode-model",
+      modeId: SESSION_MODE.AUTO,
+    });
 
     expect(agentConnection).toBeDefined();
     await adapter.disconnect();
