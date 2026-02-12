@@ -196,6 +196,7 @@ Optional overrides:
 ```bash
 export TOADSTOOL_CURSOR_COMMAND=cursor-agent
 export TOADSTOOL_CURSOR_ARGS="--output-format stream-json --stream-partial-output"
+export TOADSTOOL_CURSOR_AUTO_APPROVE_HOOKS=true
 export CURSOR_API_KEY=...
 ```
 
@@ -206,6 +207,10 @@ export CURSOR_API_KEY=...
 - Renders hook-based file edits in the inline diff tool UI
 - Supports management commands through slash commands:
   - `/status`, `/login`, `/logout`, `/models`, `/model`, `/mcp`, `/agent`
+  - Settings modal now includes a **Model** tab for active sessions:
+    - browse cached model options
+    - press `Enter` to switch the active model
+    - press `Ctrl+R` to refresh model options from `cursor-agent models`
   - `/sessions <id>` to switch/resume a known Cursor session id
   - `Ctrl+S` session picker now includes native Cursor session ids from `cursor-agent ls`
   - `/sessions` native list output includes session metadata (title/created timestamp/model/message count) when available
