@@ -50,7 +50,15 @@ const CLOUD_AGENT_MESSAGE = {
   MISSING_AGENT_ID: "Provide an agent id to stop.",
   MISSING_FOLLOWUP: "Usage: /agent cloud followup <agentId> <prompt>",
   MISSING_CONVERSATION: "Usage: /agent cloud conversation <agentId>",
+  PENDING_STATUS: "Status check pending.",
 } as const;
+
+const toErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+};
 
 const isCursorHarness = (harness: HarnessConfig): boolean => harness.id === HARNESS_ID.CURSOR_CLI;
 
@@ -175,13 +183,20 @@ const runCloudAgentCommand = async (
         prompt,
         model: context.session?.metadata?.model,
       });
-      const agent = await cloudClient.waitForAgentStatus(launchResponse.agent.id);
-      const conversation = await cloudClient.getConversation(launchResponse.agent.id);
-      return [
-        `Dispatched cloud agent: ${launchResponse.agent.id}`,
-        `Status: ${agent.status ?? "unknown"}`,
-        `Conversation messages: ${conversation.messages.length}`,
-      ];
+      try {
+        const agent = await cloudClient.waitForAgentStatus(launchResponse.agent.id);
+        const conversation = await cloudClient.getConversation(launchResponse.agent.id);
+        return [
+          `Dispatched cloud agent: ${launchResponse.agent.id}`,
+          `Status: ${agent.status ?? "unknown"}`,
+          `Conversation messages: ${conversation.messages.length}`,
+        ];
+      } catch (error) {
+        return [
+          `Dispatched cloud agent: ${launchResponse.agent.id}`,
+          `${CLOUD_AGENT_MESSAGE.PENDING_STATUS} ${toErrorMessage(error)}`,
+        ];
+      }
     }
     case CLOUD_AGENT_SUBCOMMAND.STOP: {
       const agentId = subArgs[0]?.trim();

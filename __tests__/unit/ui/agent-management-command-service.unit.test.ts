@@ -189,6 +189,42 @@ describe("agent-management-command-service", () => {
     expect(lines.some((line) => line.includes("Conversation messages: 1"))).toBe(true);
   });
 
+  it("returns pending status when cloud launch polling fails", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+    const cloudClient = {
+      listAgents: vi.fn(),
+      launchAgent: vi.fn(async () => ({
+        agent: { id: "cloud-agent-9", status: "queued" },
+      })),
+      waitForAgentStatus: vi.fn(async () => {
+        throw new Error("Timed out waiting for cloud agent cloud-agent-9.");
+      }),
+      stopAgent: vi.fn(),
+      followupAgent: vi.fn(),
+      getConversation: vi.fn(),
+    };
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+        cloudClient,
+      },
+      ["cloud", "launch", "Run", "full", "checks"]
+    );
+
+    expect(cloudClient.waitForAgentStatus).toHaveBeenCalledWith("cloud-agent-9");
+    expect(cloudClient.getConversation).not.toHaveBeenCalled();
+    expect(lines[0]).toContain("cloud-agent-9");
+    expect(lines[1]).toContain("Status check pending.");
+  });
+
   it("sends follow-up prompts to cloud agents", async () => {
     const harness = harnessConfigSchema.parse({
       id: "cursor-cli",
