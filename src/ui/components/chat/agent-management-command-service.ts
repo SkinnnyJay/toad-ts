@@ -332,12 +332,13 @@ export const runAgentCommand = async (
         if (isCursorHarness(harness)) {
           return mapCursorAboutLines(result.stdout);
         }
-        const version = parseAboutVersionForHarness(harness, result.stdout);
+        const aboutOutput = result.stdout || result.stderr;
+        const version = parseAboutVersionForHarness(harness, aboutOutput);
         return formatAboutResult(
           {
             supported: true,
             version,
-            message: !version ? result.stdout || COMMAND_RESULT_EMPTY : undefined,
+            message: !version ? aboutOutput || COMMAND_RESULT_EMPTY : undefined,
           },
           harness.name
         );
@@ -419,12 +420,13 @@ export const runAgentCommand = async (
         if (isCursorHarness(harness)) {
           return mapCursorAboutLines(result.stdout);
         }
-        const version = parseAboutVersionForHarness(harness, result.stdout);
+        const aboutOutput = result.stdout || result.stderr;
+        const version = parseAboutVersionForHarness(harness, aboutOutput);
         return formatAboutResult(
           {
             supported: true,
             version,
-            message: !version ? result.stdout || COMMAND_RESULT_EMPTY : undefined,
+            message: !version ? aboutOutput || COMMAND_RESULT_EMPTY : undefined,
           },
           harness.name
         );

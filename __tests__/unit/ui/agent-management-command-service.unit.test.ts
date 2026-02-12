@@ -474,6 +474,28 @@ describe("agent-management-command-service", () => {
     expect(args).toEqual(["--version"]);
   });
 
+  it("uses stderr fallback when non-cursor about has no stdout", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "",
+      stderr: "codex 0.1.0",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "codex-cli",
+      name: "Codex CLI",
+      command: "codex",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.ABOUT, {
+      activeHarness: harness,
+    });
+
+    expect(lines[0]).toContain("codex 0.1.0");
+  });
+
   it("shows configured MCP servers for current session", async () => {
     const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.MCP, {
       session: {

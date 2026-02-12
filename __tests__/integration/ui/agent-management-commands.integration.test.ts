@@ -134,6 +134,32 @@ describe("agent management commands integration", () => {
     );
   });
 
+  it("falls back to stderr for non-cursor about output", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "",
+      stderr: "codex 0.1.0",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "codex-cli",
+      name: "Codex CLI",
+      command: "codex",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["about"]
+    );
+
+    expect(lines[0]).toBe("Version: codex 0.1.0");
+  });
+
   it("formats claude /agent about via version parser wrapper", async () => {
     const execaMock = await getExecaMock();
     execaMock.mockResolvedValue({
