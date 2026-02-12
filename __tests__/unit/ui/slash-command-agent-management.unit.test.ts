@@ -538,6 +538,34 @@ describe("slash command agent management", () => {
     expect(appendSystemMessage).toHaveBeenCalledWith("Switched to session: resumed-session-id");
   });
 
+  it("hydrates /sessions <id> from command fallback when list runtime is unavailable", async () => {
+    const switchToSession = vi.fn(() => true);
+    const runAgentCommand = vi.fn(async () => ({
+      stdout:
+        "resumed-session-id Recovered title model: gpt-5 messages: 14 createdAt=2026-02-11T18:30:00Z",
+      stderr: "",
+      exitCode: 0,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      switchToSession,
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand("/sessions resumed-session-id", deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runAgentCommand).toHaveBeenCalledWith(["ls"]);
+    expect(switchToSession).toHaveBeenNthCalledWith(1, "resumed-session-id");
+    expect(switchToSession).toHaveBeenNthCalledWith(2, "resumed-session-id", {
+      title: "Recovered title",
+      createdAt: "2026-02-11T18:30:00.000Z",
+      model: "gpt-5",
+    });
+    expect(appendSystemMessage).toHaveBeenCalledWith("Switched to session: resumed-session-id");
+  });
+
   it("reports when /sessions <id> fails to switch sessions", () => {
     const switchToSession = vi.fn(() => false);
     const { deps, appendSystemMessage } = createDeps({

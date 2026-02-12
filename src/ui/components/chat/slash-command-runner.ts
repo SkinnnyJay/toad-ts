@@ -189,20 +189,30 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         const switched = deps.switchToSession(parsedSessionId);
         if (switched) {
           deps.appendSystemMessage(formatSessionSwitchedMessage(targetSessionId));
+          const hydrateSwitchFromSessions = (sessions: AgentManagementSession[]): void => {
+            const seed = sessions.find((session) => session.id === targetSessionId);
+            if (!seed) {
+              return;
+            }
+            deps.switchToSession?.(parsedSessionId, {
+              title: seed.title,
+              createdAt: seed.createdAt,
+              model: seed.model,
+            });
+          };
           if (deps.activeHarnessId === HARNESS_DEFAULT.CURSOR_CLI_ID && deps.listAgentSessions) {
             void deps
               .listAgentSessions()
-              .then((sessions) => {
-                const seed = sessions.find((session) => session.id === targetSessionId);
-                if (!seed) {
-                  return;
-                }
-                deps.switchToSession?.(parsedSessionId, {
-                  title: seed.title,
-                  createdAt: seed.createdAt,
-                  model: seed.model,
-                });
-              })
+              .then((sessions) => hydrateSwitchFromSessions(sessions))
+              .catch(() => undefined);
+          } else if (
+            deps.activeHarnessId === HARNESS_DEFAULT.CURSOR_CLI_ID &&
+            deps.runAgentCommand
+          ) {
+            void deps
+              .runAgentCommand([AGENT_MANAGEMENT_COMMAND.LIST])
+              .then((result) => parseAgentManagementSessionsFromCommandResult(result))
+              .then((sessions) => hydrateSwitchFromSessions(sessions))
               .catch(() => undefined);
           }
         } else {
