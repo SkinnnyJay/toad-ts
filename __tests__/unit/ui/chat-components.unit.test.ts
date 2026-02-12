@@ -1,5 +1,6 @@
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
+import { getRepoWorkflowSkillPrompt } from "@/constants/repo-workflow-skill-prompts";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import React from "react";
@@ -52,6 +53,30 @@ describe("Chat", () => {
 
     expect(promptSpy).not.toHaveBeenCalled();
     expect(lastFrame()).toContain("read-only");
+  });
+
+  it("runs workflow fallback prompt for queued breadcrumb skill", async () => {
+    const sessionId = setupSession({ sessionId: "s-breadcrumb-action" });
+    const promptSpy = vi.fn(async () => ({ stopReason: "end_turn" }));
+    const expectedPrompt = getRepoWorkflowSkillPrompt("fix-ci");
+
+    const ChatHarness = (): React.ReactElement => {
+      const [queuedSkill, setQueuedSkill] = React.useState<string | null>("fix-ci");
+      return React.createElement(Chat, {
+        sessionId,
+        agent: createMockAgent("agent-1", "Agent"),
+        client: { prompt: promptSpy } as unknown as { prompt: typeof promptSpy },
+        queuedBreadcrumbSkill: queuedSkill,
+        onConsumeQueuedBreadcrumbSkill: () => setQueuedSkill(null),
+      });
+    };
+
+    renderInk(React.createElement(ChatHarness));
+
+    await waitFor(() => promptSpy.mock.calls.length > 0);
+    const promptPayload = promptSpy.mock.calls[0]?.[0];
+    const promptText = promptPayload?.prompt?.[0]?.text;
+    expect(promptText).toBe(expectedPrompt);
   });
 
   it("handles /help slash command", async () => {
