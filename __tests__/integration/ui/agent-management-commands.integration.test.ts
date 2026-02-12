@@ -134,6 +134,51 @@ describe("agent management commands integration", () => {
     );
   });
 
+  it("formats claude /agent about via version parser wrapper", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "claude 3.1.0",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "claude-cli",
+      name: "Claude CLI",
+      command: "claude-code-acp",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      { activeHarness: harness },
+      ["about"]
+    );
+
+    expect(lines[0]).toBe("Version: claude 3.1.0");
+  });
+
+  it("maps claude status from env without native command calls", async () => {
+    const execaMock = await getExecaMock();
+    const harness = harnessConfigSchema.parse({
+      id: "claude-cli",
+      name: "Claude CLI",
+      command: "claude-code-acp",
+      args: [],
+      env: {
+        ANTHROPIC_API_KEY: "anthropic-key",
+      },
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.STATUS, {
+      activeHarness: harness,
+    });
+
+    expect(lines).toContain("Authenticated: yes");
+    expect(lines).toContain("Method: api_key");
+    expect(execaMock).not.toHaveBeenCalled();
+  });
+
   it("parses codex status from login status output", async () => {
     const execaMock = await getExecaMock();
     execaMock.mockResolvedValue({
@@ -231,6 +276,39 @@ describe("agent management commands integration", () => {
       AGENT_MANAGEMENT_COMMAND.AGENT,
       { activeHarness: harness },
       ["mcp", "list"]
+    );
+
+    expect(lines.some((line) => line.includes("context7"))).toBe(true);
+    expect(execaMock).toHaveBeenCalledWith(
+      "cursor-agent",
+      ["mcp", "list"],
+      expect.objectContaining({ reject: false })
+    );
+  });
+
+  it("routes /agent mcp to default list behavior", async () => {
+    const execaMock = await getExecaMock();
+    const mcpOutput = readFileSync(
+      path.join(process.cwd(), "__tests__/fixtures/cursor/mcp-list-output.txt"),
+      "utf8"
+    );
+    execaMock.mockResolvedValue({
+      stdout: mcpOutput,
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      { activeHarness: harness },
+      ["mcp"]
     );
 
     expect(lines.some((line) => line.includes("context7"))).toBe(true);
