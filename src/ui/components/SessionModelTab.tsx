@@ -1,6 +1,7 @@
 import { COLOR } from "@/constants/colors";
 import { KEY_NAME } from "@/constants/key-names";
 import type { ModelInfo } from "@/types/domain";
+import { toNormalizedOptionalString } from "@/ui/utils/session-model-metadata";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
@@ -12,14 +13,6 @@ interface SessionModelTabProps {
   onSelectModel?: (modelId: string) => Promise<void>;
   onRefreshModels?: () => Promise<void>;
 }
-
-const toNormalizedOptionalString = (value: string | undefined): string | undefined => {
-  const normalized = value?.trim();
-  if (!normalized) {
-    return undefined;
-  }
-  return normalized;
-};
 
 export function SessionModelTab({
   isActive,
