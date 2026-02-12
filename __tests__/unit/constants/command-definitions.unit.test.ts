@@ -11,5 +11,6 @@ describe("command definitions", () => {
     expect(hasCommand(SLASH_COMMAND.AGENT)).toBe(true);
     expect(hasCommand(SLASH_COMMAND.LOGOUT)).toBe(true);
     expect(hasCommand(SLASH_COMMAND.MCP)).toBe(true);
+    expect(hasCommand(SLASH_COMMAND.MODEL)).toBe(true);
   });
 });

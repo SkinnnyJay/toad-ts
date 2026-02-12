@@ -91,6 +91,7 @@ describe("useSlashCommands", () => {
       expect(SLASH_COMMAND.MEMORY).toBe("/memory");
       expect(SLASH_COMMAND.MCP).toBe("/mcp");
       expect(SLASH_COMMAND.MODE).toBe("/mode");
+      expect(SLASH_COMMAND.MODEL).toBe("/model");
       expect(SLASH_COMMAND.MODELS).toBe("/models");
       expect(SLASH_COMMAND.NEW).toBe("/new");
       expect(SLASH_COMMAND.CLEAR).toBe("/clear");

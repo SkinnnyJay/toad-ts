@@ -210,7 +210,8 @@ Skills, commands, agents, hooks, and rules from all tools are merged automatical
 /cost      /debug     /details   /doctor    /editor
 /export    /help      /hooks     /import    /init
 /login     /logout    /mcp       /memory    /mode
-/models    /new       /permissions /plan    /progress
+/model     /models    /new       /permissions /plan
+/progress
 /redo      /rename    /review    /rewind    /security-review
 /sessions  /settings  /share     /skills    /stats
 /status    /themes    /thinking  /undo      /unshare

@@ -95,6 +95,12 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     category: "session",
   },
   {
+    name: SLASH_COMMAND.MODEL,
+    description: "Set model (alias for /models <id>)",
+    args: "<modelId>",
+    category: "provider",
+  },
+  {
     name: SLASH_COMMAND.MODELS,
     description: "Show or set model",
     args: "<modelId>",

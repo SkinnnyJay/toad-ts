@@ -220,6 +220,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       deps.appendSystemMessage(formatModeUpdatedMessage(parsed.data));
       return true;
     }
+    case SLASH_COMMAND.MODEL:
     case SLASH_COMMAND.MODELS: {
       const modelId = parts.slice(1).join(" ").trim();
       if (!modelId) {

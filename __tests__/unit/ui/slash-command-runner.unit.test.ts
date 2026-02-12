@@ -1,4 +1,5 @@
 import { SESSION_MODE } from "@/constants/session-modes";
+import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { harnessConfigSchema } from "@/harness/harnessConfig";
 import { AgentIdSchema, SessionIdSchema } from "@/types/domain";
@@ -105,5 +106,13 @@ describe("slash-command-runner", () => {
       return args.includes("mcp") && args.includes("enable") && args.includes("github");
     });
     expect(calledWithEnable).toBe(true);
+  });
+
+  it("handles /model alias command", () => {
+    const appendSystemMessage = vi.fn();
+    const handled = runSlashCommand("/model gpt-5", createDeps(appendSystemMessage));
+
+    expect(handled).toBe(true);
+    expect(appendSystemMessage).toHaveBeenCalledWith(SLASH_COMMAND_MESSAGE.NO_ACTIVE_CLIENT);
   });
 });
