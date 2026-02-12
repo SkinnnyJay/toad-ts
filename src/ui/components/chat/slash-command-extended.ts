@@ -2,6 +2,7 @@ import { existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
+import { CLOUD_SUBCOMMAND } from "@/constants/cloud-subcommands";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { MCP_MANAGEMENT_SUBCOMMAND } from "@/constants/mcp-management-subcommands";
@@ -34,13 +35,6 @@ const MANAGEMENT_COMMAND = {
 
 const PREVIEW_LINE_LIMIT = 8;
 const CLOUD_LIST_LIMIT = 20;
-
-const CLOUD_SUBCOMMAND = {
-  LIST: "list",
-  STATUS: "status",
-  STOP: "stop",
-  FOLLOWUP: "followup",
-} as const;
 
 const isCursorCloudSupported = (deps: SlashCommandDeps): boolean => {
   return deps.activeHarnessId === HARNESS_DEFAULT.CURSOR_CLI_ID;
