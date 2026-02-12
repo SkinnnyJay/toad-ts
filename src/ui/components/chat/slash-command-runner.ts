@@ -190,7 +190,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         if (switched) {
           deps.appendSystemMessage(formatSessionSwitchedMessage(targetSessionId));
           const hydrateSwitchFromSessions = (sessions: AgentManagementSession[]): void => {
-            const seed = sessions.find((session) => session.id === targetSessionId);
+            const seed = sessions.find((session) => session.id.trim() === targetSessionId);
             if (!seed) {
               return;
             }

@@ -560,6 +560,32 @@ describe("slash command agent management", () => {
     expect(appendSystemMessage).toHaveBeenCalledWith("Switched to session: resumed-session-id");
   });
 
+  it("hydrates /sessions <id> when native list id includes surrounding whitespace", async () => {
+    const switchToSession = vi.fn(() => true);
+    const listAgentSessions = vi.fn(async () => [
+      {
+        id: "  resumed-session-id  ",
+        title: "Recovered title",
+        model: "gpt-5",
+      },
+    ]);
+    const { deps } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      switchToSession,
+      listAgentSessions,
+    });
+
+    expect(runSlashCommand("/sessions resumed-session-id", deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(switchToSession).toHaveBeenNthCalledWith(1, "resumed-session-id");
+    expect(switchToSession).toHaveBeenNthCalledWith(2, "resumed-session-id", {
+      title: "Recovered title",
+      model: "gpt-5",
+    });
+  });
+
   it("hydrates /sessions <id> from command fallback when list runtime is unavailable", async () => {
     const switchToSession = vi.fn(() => true);
     const runAgentCommand = vi.fn(async () => ({
