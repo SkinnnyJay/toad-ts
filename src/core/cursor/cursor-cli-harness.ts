@@ -11,12 +11,19 @@
  * @see PLAN2.md — "Milestone 7: Cursor CLI Harness Adapter"
  */
 
-import { nanoid } from "nanoid";
-import { EventEmitter } from "eventemitter3";
-import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
+import { EventEmitter } from "eventemitter3";
+import { nanoid } from "nanoid";
 // AgentPort is the contract we implement via HarnessRuntime
 
+import {
+  CursorCliConnection,
+  type CursorCliConnectionOptions,
+} from "@/core/cursor/cursor-cli-connection";
+import { CursorToAcpTranslator } from "@/core/cursor/cursor-to-acp-translator";
+import { HookIpcServer, type HookIpcServerOptions } from "@/core/cursor/hook-ipc-server";
+import { HooksConfigGenerator } from "@/core/cursor/hooks-config-generator";
 import type {
   HarnessAdapter,
   HarnessRuntime,
@@ -24,18 +31,6 @@ import type {
 } from "@/harness/harnessAdapter";
 import { type HarnessConfig, harnessConfigSchema } from "@/harness/harnessConfig";
 import type { ConnectionStatus } from "@/types/domain";
-import {
-  CursorCliConnection,
-  type CursorCliConnectionOptions,
-} from "@/core/cursor/cursor-cli-connection";
-import { CursorToAcpTranslator } from "@/core/cursor/cursor-to-acp-translator";
-import {
-  HookIpcServer,
-  type HookIpcServerOptions,
-} from "@/core/cursor/hook-ipc-server";
-import {
-  HooksConfigGenerator,
-} from "@/core/cursor/hooks-config-generator";
 
 import type { CliAgentPromptInput } from "@/types/cli-agent.types";
 import { EnvManager } from "@/utils/env/env.utils";
@@ -194,9 +189,7 @@ export class CursorCliHarnessAdapter
     logger.info("Cursor CLI harness disconnected");
   }
 
-  async initialize(
-    _params?: Partial<InitializeRequest>,
-  ): Promise<InitializeResponse> {
+  async initialize(_params?: Partial<InitializeRequest>): Promise<InitializeResponse> {
     // Query available models
     try {
       const modelsResponse = await this.connection.listModels();
@@ -293,9 +286,7 @@ export class CursorCliHarnessAdapter
       childProcess.on("exit", (code) => {
         // If we didn't get a result event, the process may have crashed
         if (code !== 0 && code !== null) {
-          reject(
-            new Error(`cursor-agent exited with code ${code}`),
-          );
+          reject(new Error(`cursor-agent exited with code ${code}`));
         }
       });
 
@@ -305,9 +296,7 @@ export class CursorCliHarnessAdapter
     });
   }
 
-  async authenticate(
-    _params: AuthenticateRequest,
-  ): Promise<AuthenticateResponse> {
+  async authenticate(_params: AuthenticateRequest): Promise<AuthenticateResponse> {
     const authStatus = await this.connection.verifyAuth();
     if (authStatus.authenticated) {
       return {
@@ -329,7 +318,7 @@ export class CursorCliHarnessAdapter
 
   async setSessionMode(params: SetSessionModeRequest): Promise<SetSessionModeResponse> {
     const validModes = ["agent", "plan", "ask"];
-    const requestedMode = (params as unknown as Record<string, string>)["mode"];
+    const requestedMode = (params as unknown as Record<string, string>).mode;
     if (requestedMode && validModes.includes(requestedMode)) {
       this.currentMode = requestedMode as "agent" | "plan" | "ask";
     }
@@ -337,7 +326,7 @@ export class CursorCliHarnessAdapter
   }
 
   async setSessionModel(params: SetSessionModelRequest): Promise<SetSessionModelResponse> {
-    const requestedModel = (params as unknown as Record<string, string>)["model"];
+    const requestedModel = (params as unknown as Record<string, string>).model;
     if (requestedModel) {
       this.currentModel = requestedModel;
     }
@@ -404,7 +393,7 @@ export class CursorCliHarnessAdapter
   private extractPromptText(params: PromptRequest): string {
     // Extract text from the ACP PromptRequest format
     const request = params as unknown as Record<string, unknown>;
-    const content = request["content"];
+    const content = request.content;
 
     if (typeof content === "string") return content;
 
@@ -415,18 +404,18 @@ export class CursorCliHarnessAdapter
             typeof block === "object" &&
             block !== null &&
             "text" in block &&
-            typeof (block as Record<string, unknown>)["text"] === "string",
+            typeof (block as Record<string, unknown>).text === "string"
         )
         .map((block) => block.text)
         .join("\n");
     }
 
     // Fallback: try prompt field
-    const prompt = request["prompt"];
+    const prompt = request.prompt;
     if (typeof prompt === "string") return prompt;
 
     // Last resort: try message field
-    const message = request["message"];
+    const message = request.message;
     if (typeof message === "string") return message;
 
     return String(content ?? "");

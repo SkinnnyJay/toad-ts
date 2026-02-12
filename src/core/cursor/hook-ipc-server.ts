@@ -13,46 +13,41 @@
  * @see PLAN2.md — "Milestone 5: Hook IPC Server (Channel 2)"
  */
 
-import { createServer, type Server, type Socket } from "node:net";
+import { existsSync, unlinkSync } from "node:fs";
+import { type Server, type Socket, createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { unlinkSync, existsSync } from "node:fs";
-import { EventEmitter } from "eventemitter3";
-import {
-  CURSOR_HOOK_EVENT,
-  type CursorHookEvent,
-} from "@/constants/cursor-hook-events";
+import { CURSOR_HOOK_EVENT, type CursorHookEvent } from "@/constants/cursor-hook-events";
 import type {
-  CursorHookBaseInput,
-  CursorPreToolUseInput,
-  CursorPreToolUseOutput,
-  CursorSessionStartInput,
-  CursorSessionStartOutput,
-  CursorBeforeShellExecutionInput,
-  CursorBeforeShellExecutionOutput,
-  CursorStopInput,
-  CursorStopOutput,
   CursorAfterAgentThoughtInput,
   CursorAfterFileEditInput,
   CursorBeforeMCPExecutionInput,
   CursorBeforeMCPExecutionOutput,
   CursorBeforeReadFileInput,
   CursorBeforeReadFileOutput,
+  CursorBeforeShellExecutionInput,
+  CursorBeforeShellExecutionOutput,
+  CursorHookBaseInput,
+  CursorHookOutput,
+  CursorPreToolUseInput,
+  CursorPreToolUseOutput,
+  CursorSessionStartInput,
+  CursorSessionStartOutput,
+  CursorStopInput,
+  CursorStopOutput,
   CursorSubagentStartInput,
   CursorSubagentStartOutput,
-  CursorHookOutput,
 } from "@/types/cursor-hooks.types";
-import {
-  CursorHookBaseInputSchema,
-} from "@/types/cursor-hooks.types";
+import { CursorHookBaseInputSchema } from "@/types/cursor-hooks.types";
 import { createClassLogger } from "@/utils/logging/logger.utils";
+import { EventEmitter } from "eventemitter3";
 
 const logger = createClassLogger("HookIpcServer");
 
 // ── Types ────────────────────────────────────────────────────
 
 export type HookHandler<TInput = CursorHookBaseInput, TOutput = CursorHookOutput> = (
-  input: TInput,
+  input: TInput
 ) => Promise<TOutput> | TOutput;
 
 export interface HookIpcServerOptions {
@@ -82,7 +77,10 @@ export interface HookIpcServerEvents {
   /** Thinking/reasoning text from agent */
   agentThought: (thought: string) => void;
   /** File edit details for diff display */
-  fileEdit: (edit: { path: string; edits: Array<{ oldString: string; newString: string }> }) => void;
+  fileEdit: (edit: {
+    path: string;
+    edits: Array<{ oldString: string; newString: string }>;
+  }) => void;
   /** Server started */
   listening: (socketPath: string) => void;
   /** Server error */
@@ -103,9 +101,7 @@ export class HookIpcServer extends EventEmitter<HookIpcServerEvents> {
   constructor(options: HookIpcServerOptions = {}) {
     super();
     this.options = options;
-    this.socketPath =
-      options.socketPath ??
-      join(tmpdir(), `toadstool-hooks-${process.pid}.sock`);
+    this.socketPath = options.socketPath ?? join(tmpdir(), `toadstool-hooks-${process.pid}.sock`);
 
     // Register default handlers
     this.registerDefaultHandlers();
@@ -138,7 +134,7 @@ export class HookIpcServer extends EventEmitter<HookIpcServerEvents> {
 
     return new Promise<void>((resolve, reject) => {
       this.server = createServer({ allowHalfOpen: true }, (socket) =>
-        this.handleConnection(socket),
+        this.handleConnection(socket)
       );
 
       this.server.on("error", (error) => {
@@ -193,7 +189,7 @@ export class HookIpcServer extends EventEmitter<HookIpcServerEvents> {
    */
   registerHandler<TInput = CursorHookBaseInput, TOutput = CursorHookOutput>(
     eventName: CursorHookEvent,
-    handler: HookHandler<TInput, TOutput>,
+    handler: HookHandler<TInput, TOutput>
   ): void {
     this.handlers.set(eventName, handler as unknown as HookHandler);
   }
@@ -283,79 +279,70 @@ export class HookIpcServer extends EventEmitter<HookIpcServerEvents> {
     // sessionStart → inject context and env vars
     this.registerHandler<CursorSessionStartInput, CursorSessionStartOutput>(
       CURSOR_HOOK_EVENT.SESSION_START,
-      (input) => this.handleSessionStart(input),
+      (input) => this.handleSessionStart(input)
     );
 
     // preToolUse → emit permission request
     this.registerHandler<CursorPreToolUseInput, CursorPreToolUseOutput>(
       CURSOR_HOOK_EVENT.PRE_TOOL_USE,
-      (input) => this.handlePreToolUse(input),
+      (input) => this.handlePreToolUse(input)
     );
 
     // beforeShellExecution → emit permission request
     this.registerHandler<CursorBeforeShellExecutionInput, CursorBeforeShellExecutionOutput>(
       CURSOR_HOOK_EVENT.BEFORE_SHELL_EXECUTION,
-      (input) => this.handleBeforeShellExecution(input),
+      (input) => this.handleBeforeShellExecution(input)
     );
 
     // beforeMCPExecution → emit permission request (fail-closed)
     this.registerHandler<CursorBeforeMCPExecutionInput, CursorBeforeMCPExecutionOutput>(
       CURSOR_HOOK_EVENT.BEFORE_MCP_EXECUTION,
-      (input) => this.handleBeforeMCPExecution(input),
+      (input) => this.handleBeforeMCPExecution(input)
     );
 
     // beforeReadFile → emit permission request (fail-closed)
     this.registerHandler<CursorBeforeReadFileInput, CursorBeforeReadFileOutput>(
       CURSOR_HOOK_EVENT.BEFORE_READ_FILE,
-      () => ({ permission: "allow" }),
+      () => ({ permission: "allow" })
     );
 
     // subagentStart → emit permission request
     this.registerHandler<CursorSubagentStartInput, CursorSubagentStartOutput>(
       CURSOR_HOOK_EVENT.SUBAGENT_START,
-      () => ({ decision: "allow" }),
+      () => ({ decision: "allow" })
     );
 
     // afterAgentThought → emit thought for TUI display
-    this.registerHandler(
-      CURSOR_HOOK_EVENT.AFTER_AGENT_THOUGHT,
-      (input) => {
-        const typed = input as CursorAfterAgentThoughtInput;
-        if (typed.thought) {
-          this.emit("agentThought", typed.thought);
-        }
-        return {};
-      },
-    );
+    this.registerHandler(CURSOR_HOOK_EVENT.AFTER_AGENT_THOUGHT, (input) => {
+      const typed = input as CursorAfterAgentThoughtInput;
+      if (typed.thought) {
+        this.emit("agentThought", typed.thought);
+      }
+      return {};
+    });
 
     // afterFileEdit → emit edit details
-    this.registerHandler(
-      CURSOR_HOOK_EVENT.AFTER_FILE_EDIT,
-      (input) => {
-        const typed = input as CursorAfterFileEditInput;
-        if (typed.path && typed.edits) {
-          this.emit("fileEdit", {
-            path: typed.path,
-            edits: typed.edits.map((e) => ({
-              oldString: e.old_string,
-              newString: e.new_string,
-            })),
-          });
-        }
-        return {};
-      },
-    );
+    this.registerHandler(CURSOR_HOOK_EVENT.AFTER_FILE_EDIT, (input) => {
+      const typed = input as CursorAfterFileEditInput;
+      if (typed.path && typed.edits) {
+        this.emit("fileEdit", {
+          path: typed.path,
+          edits: typed.edits.map((e) => ({
+            oldString: e.old_string,
+            newString: e.new_string,
+          })),
+        });
+      }
+      return {};
+    });
 
     // stop → evaluate auto-continuation
-    this.registerHandler<CursorStopInput, CursorStopOutput>(
-      CURSOR_HOOK_EVENT.STOP,
-      (input) => this.handleStop(input),
+    this.registerHandler<CursorStopInput, CursorStopOutput>(CURSOR_HOOK_EVENT.STOP, (input) =>
+      this.handleStop(input)
     );
   }
 
-  private handleSessionStart(
-    _input: CursorSessionStartInput,
-  ): CursorSessionStartOutput {
+  private handleSessionStart(_input: CursorSessionStartInput): CursorSessionStartOutput {
     const response: CursorSessionStartOutput = {
       continue: true,
     };
@@ -371,9 +358,7 @@ export class HookIpcServer extends EventEmitter<HookIpcServerEvents> {
     return response;
   }
 
-  private async handlePreToolUse(
-    input: CursorPreToolUseInput,
-  ): Promise<CursorPreToolUseOutput> {
+  private async handlePreToolUse(input: CursorPreToolUseInput): Promise<CursorPreToolUseOutput> {
     const defaultPolicy = this.options.defaultPermissionPolicy ?? "allow";
 
     return new Promise<CursorPreToolUseOutput>((resolve) => {
@@ -398,7 +383,7 @@ export class HookIpcServer extends EventEmitter<HookIpcServerEvents> {
   }
 
   private async handleBeforeShellExecution(
-    input: CursorBeforeShellExecutionInput,
+    input: CursorBeforeShellExecutionInput
   ): Promise<CursorBeforeShellExecutionOutput> {
     const defaultPolicy = this.options.defaultPermissionPolicy ?? "allow";
 
@@ -423,7 +408,7 @@ export class HookIpcServer extends EventEmitter<HookIpcServerEvents> {
   }
 
   private async handleBeforeMCPExecution(
-    input: CursorBeforeMCPExecutionInput,
+    input: CursorBeforeMCPExecutionInput
   ): Promise<CursorBeforeMCPExecutionOutput> {
     // MCP is fail-closed — deny by default unless explicitly allowed
     return new Promise<CursorBeforeMCPExecutionOutput>((resolve) => {

@@ -10,11 +10,13 @@
  * @see PLAN2.md — "Milestone 4: Protocol Translator (Channel 1 → AgentPort)"
  */
 
-import { EventEmitter } from "eventemitter3";
-import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
+import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import type { AgentPortEvents } from "@/core/agent-port";
 import type { CursorStreamParser } from "@/core/cursor/cursor-stream-parser";
+import type { StreamEvent } from "@/types/cli-agent.types";
+import { STREAM_EVENT_TYPE } from "@/types/cli-agent.types";
 import type {
   CursorAssistantEvent,
   CursorResultEvent,
@@ -28,10 +30,8 @@ import {
   extractToolTypeKey,
   normalizeToolName,
 } from "@/types/cursor-cli.types";
-import type { StreamEvent } from "@/types/cli-agent.types";
-import { STREAM_EVENT_TYPE } from "@/types/cli-agent.types";
-import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { createClassLogger } from "@/utils/logging/logger.utils";
+import { EventEmitter } from "eventemitter3";
 
 const logger = createClassLogger("CursorToAcpTranslator");
 
@@ -83,8 +83,7 @@ export class CursorToAcpTranslator extends EventEmitter<CursorToAcpTranslatorEve
    */
   attach(parser: CursorStreamParser): () => void {
     const onSystemInit = (event: CursorSystemEvent) => this.handleSystemInit(event);
-    const onAssistantDelta = (event: CursorAssistantEvent) =>
-      this.handleAssistantDelta(event);
+    const onAssistantDelta = (event: CursorAssistantEvent) => this.handleAssistantDelta(event);
     const onAssistantComplete = (event: CursorAssistantEvent) =>
       this.handleAssistantComplete(event);
     const onToolCallStarted = (event: CursorToolCallStartedEvent) =>
@@ -208,12 +207,8 @@ export class CursorToAcpTranslator extends EventEmitter<CursorToAcpTranslatorEve
   private handleToolCallStarted(event: CursorToolCallStartedEvent): void {
     this.toolCallCount++;
     const toolTypeKey = extractToolTypeKey(event.tool_call);
-    const toolName = toolTypeKey
-      ? normalizeToolName(toolTypeKey, event.tool_call)
-      : "unknown";
-    const toolInput = toolTypeKey
-      ? extractToolInput(toolTypeKey, event.tool_call)
-      : {};
+    const toolName = toolTypeKey ? normalizeToolName(toolTypeKey, event.tool_call) : "unknown";
+    const toolInput = toolTypeKey ? extractToolInput(toolTypeKey, event.tool_call) : {};
 
     const sessionId = event.session_id;
 
@@ -245,9 +240,7 @@ export class CursorToAcpTranslator extends EventEmitter<CursorToAcpTranslatorEve
 
   private handleToolCallCompleted(event: CursorToolCallCompletedEvent): void {
     const toolTypeKey = extractToolTypeKey(event.tool_call);
-    const toolName = toolTypeKey
-      ? normalizeToolName(toolTypeKey, event.tool_call)
-      : "unknown";
+    const toolName = toolTypeKey ? normalizeToolName(toolTypeKey, event.tool_call) : "unknown";
     const { success, result: toolResult } = toolTypeKey
       ? extractToolResult(toolTypeKey, event.tool_call)
       : { success: false, result: {} };
@@ -312,7 +305,7 @@ export class CursorToAcpTranslator extends EventEmitter<CursorToAcpTranslatorEve
 
   private extractText(event: CursorAssistantEvent): string | null {
     const textBlocks = event.message.content.filter(
-      (block): block is { type: "text"; text: string } => block.type === "text",
+      (block): block is { type: "text"; text: string } => block.type === "text"
     );
     if (textBlocks.length === 0) return null;
     return textBlocks.map((b) => b.text).join("");

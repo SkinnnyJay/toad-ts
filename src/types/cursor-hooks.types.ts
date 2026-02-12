@@ -129,7 +129,9 @@ export const CursorBeforeShellExecutionOutputSchema = z.object({
   permission: z.enum(["allow", "deny", "ask"]),
   reason: z.string().optional(),
 });
-export type CursorBeforeShellExecutionOutput = z.infer<typeof CursorBeforeShellExecutionOutputSchema>;
+export type CursorBeforeShellExecutionOutput = z.infer<
+  typeof CursorBeforeShellExecutionOutputSchema
+>;
 
 // ── afterShellExecution ──────────────────────────────────────
 

@@ -1,14 +1,14 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, it, vi, beforeEach } from "vitest";
 import { CursorStreamParser, createStdoutHandler } from "@/core/cursor/cursor-stream-parser";
 import type {
-  CursorSystemEvent,
   CursorAssistantEvent,
-  CursorToolCallStartedEvent,
-  CursorToolCallCompletedEvent,
   CursorResultEvent,
+  CursorSystemEvent,
+  CursorToolCallCompletedEvent,
+  CursorToolCallStartedEvent,
 } from "@/types/cursor-cli.types";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 function loadNdjsonFixture(name: string): string {
   const path = resolve(__dirname, "../../../fixtures/cursor/ndjson", name);
@@ -27,22 +27,26 @@ describe("CursorStreamParser", () => {
       const events: CursorSystemEvent[] = [];
       parser.on("systemInit", (e) => events.push(e));
 
-      parser.feed('{"type":"system","subtype":"init","apiKeySource":"login","cwd":"/test","session_id":"abc","model":"gpt-5.2","permissionMode":"default"}\n');
+      parser.feed(
+        '{"type":"system","subtype":"init","apiKeySource":"login","cwd":"/test","session_id":"abc","model":"gpt-5.2","permissionMode":"default"}\n'
+      );
 
       expect(events).toHaveLength(1);
-      expect(events[0]!.session_id).toBe("abc");
-      expect(events[0]!.model).toBe("gpt-5.2");
+      expect(events[0]?.session_id).toBe("abc");
+      expect(events[0]?.model).toBe("gpt-5.2");
     });
 
     it("parses a result event", () => {
       const events: CursorResultEvent[] = [];
       parser.on("result", (e) => events.push(e));
 
-      parser.feed('{"type":"result","subtype":"success","duration_ms":5000,"is_error":false,"result":"Hello","session_id":"abc"}\n');
+      parser.feed(
+        '{"type":"result","subtype":"success","duration_ms":5000,"is_error":false,"result":"Hello","session_id":"abc"}\n'
+      );
 
       expect(events).toHaveLength(1);
-      expect(events[0]!.result).toBe("Hello");
-      expect(events[0]!.duration_ms).toBe(5000);
+      expect(events[0]?.result).toBe("Hello");
+      expect(events[0]?.duration_ms).toBe(5000);
     });
   });
 
@@ -65,11 +69,11 @@ describe("CursorStreamParser", () => {
       parser.flush();
 
       expect(systemEvents).toHaveLength(1);
-      expect(systemEvents[0]!.model).toBe("Claude 4.6 Opus (Thinking)");
+      expect(systemEvents[0]?.model).toBe("Claude 4.6 Opus (Thinking)");
       expect(deltaEvents.length).toBeGreaterThan(0);
       expect(completeEvents).toHaveLength(1);
       expect(resultEvents).toHaveLength(1);
-      expect(resultEvents[0]!.is_error).toBe(false);
+      expect(resultEvents[0]?.is_error).toBe(false);
 
       // Total events: 1 system + 1 user + N delta + 1 complete + 1 result
       expect(allEvents.length).toBeGreaterThanOrEqual(5);
@@ -119,7 +123,8 @@ describe("CursorStreamParser", () => {
       const events: CursorSystemEvent[] = [];
       parser.on("systemInit", (e) => events.push(e));
 
-      const fullLine = '{"type":"system","subtype":"init","apiKeySource":"login","cwd":"/test","session_id":"abc","model":"gpt-5","permissionMode":"default"}\n';
+      const fullLine =
+        '{"type":"system","subtype":"init","apiKeySource":"login","cwd":"/test","session_id":"abc","model":"gpt-5","permissionMode":"default"}\n';
       const splitPoint = Math.floor(fullLine.length / 2);
 
       parser.feed(fullLine.slice(0, splitPoint));
@@ -146,7 +151,9 @@ describe("CursorStreamParser", () => {
       parser.on("result", (e) => events.push(e));
 
       // Feed without trailing newline
-      parser.feed('{"type":"result","subtype":"success","duration_ms":100,"is_error":false,"result":"ok","session_id":"abc"}');
+      parser.feed(
+        '{"type":"result","subtype":"success","duration_ms":100,"is_error":false,"result":"ok","session_id":"abc"}'
+      );
       expect(events).toHaveLength(0);
 
       parser.flush();
@@ -162,7 +169,9 @@ describe("CursorStreamParser", () => {
       parser.on("event", (e) => events.push(e));
       parser.on("parseError", (e) => errors.push(e));
 
-      parser.feed('not valid json\n{"type":"result","subtype":"success","duration_ms":100,"is_error":false,"result":"ok","session_id":"abc"}\n');
+      parser.feed(
+        'not valid json\n{"type":"result","subtype":"success","duration_ms":100,"is_error":false,"result":"ok","session_id":"abc"}\n'
+      );
 
       expect(errors).toHaveLength(1);
       expect(events).toHaveLength(1);
@@ -180,7 +189,9 @@ describe("CursorStreamParser", () => {
       const events: unknown[] = [];
       parser.on("event", (e) => events.push(e));
 
-      parser.feed('\n\n  \n{"type":"result","subtype":"success","duration_ms":100,"is_error":false,"result":"ok","session_id":"abc"}\n\n');
+      parser.feed(
+        '\n\n  \n{"type":"result","subtype":"success","duration_ms":100,"is_error":false,"result":"ok","session_id":"abc"}\n\n'
+      );
       expect(events).toHaveLength(1);
     });
 
@@ -205,7 +216,9 @@ describe("CursorStreamParser", () => {
       parser.pause();
       expect(parser.isPaused).toBe(true);
 
-      parser.feed('{"type":"result","subtype":"success","duration_ms":100,"is_error":false,"result":"ok","session_id":"abc"}\n');
+      parser.feed(
+        '{"type":"result","subtype":"success","duration_ms":100,"is_error":false,"result":"ok","session_id":"abc"}\n'
+      );
       expect(events).toHaveLength(0);
       expect(parser.pausedLineCount).toBe(1);
     });
@@ -215,7 +228,9 @@ describe("CursorStreamParser", () => {
       parser.on("event", (e) => events.push(e));
 
       parser.pause();
-      parser.feed('{"type":"result","subtype":"success","duration_ms":100,"is_error":false,"result":"ok","session_id":"abc"}\n');
+      parser.feed(
+        '{"type":"result","subtype":"success","duration_ms":100,"is_error":false,"result":"ok","session_id":"abc"}\n'
+      );
       expect(events).toHaveLength(0);
 
       parser.resume();
@@ -236,10 +251,12 @@ describe("CursorStreamParser", () => {
 
       // Feed enough assistant text to exceed 50 bytes
       const longText = "A".repeat(60);
-      smallParser.feed(`{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"${longText}"}]},"session_id":"abc","timestamp_ms":1000}\n`);
+      smallParser.feed(
+        `{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"${longText}"}]},"session_id":"abc","timestamp_ms":1000}\n`
+      );
 
       expect(truncatedEvents).toHaveLength(1);
-      expect(truncatedEvents[0]!.limit).toBe(50);
+      expect(truncatedEvents[0]?.limit).toBe(50);
       expect(smallParser.isOutputTruncated).toBe(true);
     });
 
@@ -248,8 +265,12 @@ describe("CursorStreamParser", () => {
       const smallParser = new CursorStreamParser({ maxOutputSize: 10 });
       smallParser.on("outputTruncated", () => truncateCount++);
 
-      smallParser.feed(`{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Hello World"}]},"session_id":"abc","timestamp_ms":1}\n`);
-      smallParser.feed(`{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"More text here"}]},"session_id":"abc","timestamp_ms":2}\n`);
+      smallParser.feed(
+        `{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Hello World"}]},"session_id":"abc","timestamp_ms":1}\n`
+      );
+      smallParser.feed(
+        `{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"More text here"}]},"session_id":"abc","timestamp_ms":2}\n`
+      );
 
       expect(truncateCount).toBe(1);
     });
@@ -259,7 +280,9 @@ describe("CursorStreamParser", () => {
     it("clears all state", () => {
       const smallParser = new CursorStreamParser({ maxOutputSize: 10 });
 
-      smallParser.feed(`{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Hello World"}]},"session_id":"abc","timestamp_ms":1}\n`);
+      smallParser.feed(
+        `{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Hello World"}]},"session_id":"abc","timestamp_ms":1}\n`
+      );
       expect(smallParser.isOutputTruncated).toBe(true);
 
       smallParser.reset();
@@ -275,7 +298,11 @@ describe("CursorStreamParser", () => {
       parser.on("result", (e) => events.push(e));
 
       const handler = createStdoutHandler(parser);
-      handler(Buffer.from('{"type":"result","subtype":"success","duration_ms":100,"is_error":false,"result":"ok","session_id":"abc"}\n'));
+      handler(
+        Buffer.from(
+          '{"type":"result","subtype":"success","duration_ms":100,"is_error":false,"result":"ok","session_id":"abc"}\n'
+        )
+      );
 
       expect(events).toHaveLength(1);
     });
@@ -289,8 +316,12 @@ describe("CursorStreamParser", () => {
       parser.on("assistantDelta", (e) => deltas.push(e));
       parser.on("assistantComplete", (e) => completes.push(e));
 
-      parser.feed('{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Hi"}]},"session_id":"s1","timestamp_ms":1000}\n');
-      parser.feed('{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Hi there"}]},"session_id":"s1"}\n');
+      parser.feed(
+        '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Hi"}]},"session_id":"s1","timestamp_ms":1000}\n'
+      );
+      parser.feed(
+        '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Hi there"}]},"session_id":"s1"}\n'
+      );
 
       expect(deltas).toHaveLength(1);
       expect(completes).toHaveLength(1);

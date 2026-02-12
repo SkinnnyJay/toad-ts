@@ -8,11 +8,8 @@
  * @see __tests__/fixtures/cursor/ndjson/ for real captured output
  */
 
+import { CURSOR_EVENT_SUBTYPE, CURSOR_EVENT_TYPE } from "@/constants/cursor-event-types";
 import { z } from "zod";
-import {
-  CURSOR_EVENT_SUBTYPE,
-  CURSOR_EVENT_TYPE,
-} from "@/constants/cursor-event-types";
 
 // ── Content Block (shared by user/assistant messages) ────────
 
@@ -21,9 +18,7 @@ const CursorTextContentBlockSchema = z.object({
   text: z.string(),
 });
 
-const CursorContentBlockSchema = z.discriminatedUnion("type", [
-  CursorTextContentBlockSchema,
-]);
+const CursorContentBlockSchema = z.discriminatedUnion("type", [CursorTextContentBlockSchema]);
 
 const CursorMessageSchema = z.object({
   role: z.enum(["user", "assistant", "system"]),
@@ -134,12 +129,8 @@ export type CursorStreamEvent = z.infer<typeof CursorStreamEventSchema>;
  * Extract the tool type key from a tool_call payload.
  * Returns the first key that ends with "ToolCall" or "function", or undefined.
  */
-export function extractToolTypeKey(
-  toolCall: Record<string, unknown>,
-): string | undefined {
-  return Object.keys(toolCall).find(
-    (key) => key.endsWith("ToolCall") || key === "function",
-  );
+export function extractToolTypeKey(toolCall: Record<string, unknown>): string | undefined {
+  return Object.keys(toolCall).find((key) => key.endsWith("ToolCall") || key === "function");
 }
 
 /**
@@ -155,10 +146,7 @@ export function extractToolTypeKey(
  * "todoToolCall" → "todo"
  * "function" → uses function.name
  */
-export function normalizeToolName(
-  toolTypeKey: string,
-  toolCall: Record<string, unknown>,
-): string {
+export function normalizeToolName(toolTypeKey: string, toolCall: Record<string, unknown>): string {
   const TOOL_NAME_MAP: Record<string, string> = {
     readToolCall: "read_file",
     writeToolCall: "write_file",
@@ -172,9 +160,9 @@ export function normalizeToolName(
   };
 
   if (toolTypeKey === "function") {
-    const fn = toolCall["function"];
+    const fn = toolCall.function;
     if (fn && typeof fn === "object" && "name" in fn) {
-      return String((fn as Record<string, unknown>)["name"]);
+      return String((fn as Record<string, unknown>).name);
     }
     return "unknown_function";
   }
@@ -187,18 +175,18 @@ export function normalizeToolName(
  */
 export function extractToolInput(
   toolTypeKey: string,
-  toolCall: Record<string, unknown>,
+  toolCall: Record<string, unknown>
 ): Record<string, unknown> {
   const payload = toolCall[toolTypeKey];
   if (!payload || typeof payload !== "object") {
     return {};
   }
   const typed = payload as Record<string, unknown>;
-  if ("args" in typed && typeof typed["args"] === "object" && typed["args"] !== null) {
-    return typed["args"] as Record<string, unknown>;
+  if ("args" in typed && typeof typed.args === "object" && typed.args !== null) {
+    return typed.args as Record<string, unknown>;
   }
   if (toolTypeKey === "function" && "arguments" in typed) {
-    const rawArgs = typed["arguments"];
+    const rawArgs = typed.arguments;
     if (typeof rawArgs === "string") {
       try {
         return JSON.parse(rawArgs) as Record<string, unknown>;
@@ -218,19 +206,19 @@ export function extractToolInput(
  */
 export function extractToolResult(
   toolTypeKey: string,
-  toolCall: Record<string, unknown>,
+  toolCall: Record<string, unknown>
 ): { success: boolean; result: Record<string, unknown> } {
   const payload = toolCall[toolTypeKey];
   if (!payload || typeof payload !== "object") {
     return { success: false, result: {} };
   }
   const typed = payload as Record<string, unknown>;
-  if ("result" in typed && typeof typed["result"] === "object" && typed["result"] !== null) {
-    const resultObj = typed["result"] as Record<string, unknown>;
+  if ("result" in typed && typeof typed.result === "object" && typed.result !== null) {
+    const resultObj = typed.result as Record<string, unknown>;
     if ("success" in resultObj) {
       return {
         success: true,
-        result: (resultObj["success"] as Record<string, unknown>) ?? {},
+        result: (resultObj.success as Record<string, unknown>) ?? {},
       };
     }
     if ("rejected" in resultObj || "error" in resultObj) {

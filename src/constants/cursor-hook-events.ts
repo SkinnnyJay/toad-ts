@@ -46,8 +46,7 @@ export const CURSOR_HOOK_EVENT = {
   AFTER_AGENT_THOUGHT: "afterAgentThought",
 } as const;
 
-export type CursorHookEvent =
-  (typeof CURSOR_HOOK_EVENT)[keyof typeof CURSOR_HOOK_EVENT];
+export type CursorHookEvent = (typeof CURSOR_HOOK_EVENT)[keyof typeof CURSOR_HOOK_EVENT];
 
 /** Hook events that can block (return allow/deny decisions) */
 export const CURSOR_BLOCKING_HOOK_EVENTS = [
@@ -87,8 +86,7 @@ export const CURSOR_HOOK_DECISION = {
   DENY: "deny",
 } as const;
 
-export type CursorHookDecision =
-  (typeof CURSOR_HOOK_DECISION)[keyof typeof CURSOR_HOOK_DECISION];
+export type CursorHookDecision = (typeof CURSOR_HOOK_DECISION)[keyof typeof CURSOR_HOOK_DECISION];
 
 /** Shell permission values for beforeShellExecution */
 export const CURSOR_SHELL_PERMISSION = {
@@ -107,8 +105,7 @@ export const CURSOR_STOP_STATUS = {
   CANCELLED: "cancelled",
 } as const;
 
-export type CursorStopStatus =
-  (typeof CURSOR_STOP_STATUS)[keyof typeof CURSOR_STOP_STATUS];
+export type CursorStopStatus = (typeof CURSOR_STOP_STATUS)[keyof typeof CURSOR_STOP_STATUS];
 
 // Re-export for convenience
 export const {

@@ -1,14 +1,11 @@
+import type { ChildProcess } from "node:child_process";
 import { EventEmitter } from "node:events";
-import { type ChildProcess } from "node:child_process";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import {
-  CursorCliHarnessAdapter,
-  cursorCliHarnessAdapter,
-} from "@/core/cursor/cursor-cli-harness";
-import { CursorCliConnection } from "@/core/cursor/cursor-cli-connection";
-import { CursorStreamParser } from "@/core/cursor/cursor-stream-parser";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
+import type { CursorCliConnection } from "@/core/cursor/cursor-cli-connection";
+import { CursorCliHarnessAdapter, cursorCliHarnessAdapter } from "@/core/cursor/cursor-cli-harness";
+import { CursorStreamParser } from "@/core/cursor/cursor-stream-parser";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /** Creates a mock CursorCliConnection for testing */
 function createMockConnection(): CursorCliConnection {
@@ -161,11 +158,9 @@ describe("CursorCliHarnessAdapter", () => {
       await adapter.disconnect();
 
       expect(
-        (mockConnection as unknown as Record<string, unknown>).killActiveProcess,
+        (mockConnection as unknown as Record<string, unknown>).killActiveProcess
       ).toHaveBeenCalled();
-      expect(
-        (mockConnection as unknown as Record<string, unknown>).disconnect,
-      ).toHaveBeenCalled();
+      expect((mockConnection as unknown as Record<string, unknown>).disconnect).toHaveBeenCalled();
     });
   });
 
@@ -180,7 +175,7 @@ describe("CursorCliHarnessAdapter", () => {
       const result = await adapter.initialize();
 
       expect((result as unknown as Record<string, Record<string, string>>).serverInfo.name).toBe(
-        HARNESS_DEFAULT.CURSOR_CLI_NAME,
+        HARNESS_DEFAULT.CURSOR_CLI_NAME
       );
     });
   });
@@ -196,17 +191,15 @@ describe("CursorCliHarnessAdapter", () => {
       const session = await adapter.newSession({} as never);
 
       expect(
-        (mockConnection as unknown as Record<string, unknown>).createSession,
+        (mockConnection as unknown as Record<string, unknown>).createSession
       ).toHaveBeenCalled();
       expect((session as unknown as Record<string, string>).sessionId).toBe("test-session-123");
     });
 
     it("falls back to local ID when create-chat fails", async () => {
-      (mockConnection as unknown as Record<string, jest.Mock>).createSession = vi.fn(
-        async () => {
-          throw new Error("create-chat not available");
-        },
-      );
+      (mockConnection as unknown as Record<string, jest.Mock>).createSession = vi.fn(async () => {
+        throw new Error("create-chat not available");
+      });
 
       const adapter = new CursorCliHarnessAdapter({
         enableHooks: false,
@@ -239,8 +232,8 @@ describe("CursorCliHarnessAdapter", () => {
       } as never);
 
       const typed = response as unknown as Record<string, unknown>;
-      const content = typed["content"] as Array<Record<string, string>>;
-      expect(content[0]!["text"]).toBe("Hello!");
+      const content = typed.content as Array<Record<string, string>>;
+      expect(content[0]?.text).toBe("Hello!");
       expect(updates.length).toBeGreaterThan(0);
     });
 
@@ -290,7 +283,7 @@ describe("CursorCliHarnessAdapter", () => {
       await adapter.connect();
 
       await expect(
-        adapter.prompt({ content: [{ type: "text", text: "test" }] } as never),
+        adapter.prompt({ content: [{ type: "text", text: "test" }] } as never)
       ).rejects.toThrow("exited with code 1");
     });
   });
@@ -304,7 +297,7 @@ describe("CursorCliHarnessAdapter", () => {
 
       const result = await adapter.authenticate({} as never);
       const typed = result as unknown as Record<string, string>;
-      expect(typed["status"]).toBe("authenticated");
+      expect(typed.status).toBe("authenticated");
     });
   });
 
@@ -328,7 +321,7 @@ describe("CursorCliHarnessAdapter", () => {
 
       const result = await adapter.setSessionMode({ mode: "plan" } as never);
       const typed = result as unknown as Record<string, string>;
-      expect(typed["mode"]).toBe("plan");
+      expect(typed.mode).toBe("plan");
     });
 
     it("setSessionModel updates current model", async () => {
@@ -339,7 +332,7 @@ describe("CursorCliHarnessAdapter", () => {
 
       const result = await adapter.setSessionModel({ model: "gpt-5.2" } as never);
       const typed = result as unknown as Record<string, string>;
-      expect(typed["model"]).toBe("gpt-5.2");
+      expect(typed.model).toBe("gpt-5.2");
     });
   });
 

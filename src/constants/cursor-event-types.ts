@@ -28,8 +28,7 @@ export const CURSOR_EVENT_SUBTYPE = {
   SUCCESS: "success",
 } as const;
 
-export type CursorEventSubtype =
-  (typeof CURSOR_EVENT_SUBTYPE)[keyof typeof CURSOR_EVENT_SUBTYPE];
+export type CursorEventSubtype = (typeof CURSOR_EVENT_SUBTYPE)[keyof typeof CURSOR_EVENT_SUBTYPE];
 
 /** Known tool types found in NDJSON tool_call events */
 export const CURSOR_TOOL_TYPE = {
@@ -55,8 +54,7 @@ export const CURSOR_API_KEY_SOURCE = {
   ENV: "env",
 } as const;
 
-export type CursorApiKeySource =
-  (typeof CURSOR_API_KEY_SOURCE)[keyof typeof CURSOR_API_KEY_SOURCE];
+export type CursorApiKeySource = (typeof CURSOR_API_KEY_SOURCE)[keyof typeof CURSOR_API_KEY_SOURCE];
 
 /** Permission mode values from system.init */
 export const CURSOR_PERMISSION_MODE = {

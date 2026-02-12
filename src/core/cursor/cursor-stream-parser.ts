@@ -14,27 +14,24 @@
  * @see PLAN2.md — "Milestone 2: Cursor Stream Parser (Channel 1)"
  */
 
-import { EventEmitter } from "eventemitter3";
+import { CURSOR_EVENT_SUBTYPE, CURSOR_EVENT_TYPE } from "@/constants/cursor-event-types";
 import {
-  CURSOR_EVENT_SUBTYPE,
-  CURSOR_EVENT_TYPE,
-} from "@/constants/cursor-event-types";
-import {
-  CursorSystemEventSchema,
-  CursorUserEventSchema,
+  type CursorAssistantEvent,
   CursorAssistantEventSchema,
-  CursorToolCallStartedEventSchema,
-  CursorToolCallCompletedEventSchema,
+  type CursorResultEvent,
   CursorResultEventSchema,
   type CursorStreamEvent,
   type CursorSystemEvent,
-  type CursorUserEvent,
-  type CursorAssistantEvent,
-  type CursorToolCallStartedEvent,
+  CursorSystemEventSchema,
   type CursorToolCallCompletedEvent,
-  type CursorResultEvent,
+  CursorToolCallCompletedEventSchema,
+  type CursorToolCallStartedEvent,
+  CursorToolCallStartedEventSchema,
+  type CursorUserEvent,
+  CursorUserEventSchema,
 } from "@/types/cursor-cli.types";
 import { createClassLogger } from "@/utils/logging/logger.utils";
+import { EventEmitter } from "eventemitter3";
 
 const logger = createClassLogger("CursorStreamParser");
 
@@ -192,7 +189,7 @@ export class CursorStreamParser extends EventEmitter<CursorStreamParserEvents> {
       parsed = JSON.parse(line);
     } catch (error) {
       const parseError = new Error(
-        `Malformed JSON line: ${error instanceof Error ? error.message : String(error)}`,
+        `Malformed JSON line: ${error instanceof Error ? error.message : String(error)}`
       );
       logger.warn("Skipping malformed NDJSON line", { line: line.slice(0, 200) });
       this.emit("parseError", parseError, line);
@@ -206,7 +203,7 @@ export class CursorStreamParser extends EventEmitter<CursorStreamParserEvents> {
     }
 
     const obj = parsed as Record<string, unknown>;
-    const type = obj["type"];
+    const type = obj.type;
 
     switch (type) {
       case CURSOR_EVENT_TYPE.SYSTEM:
@@ -289,7 +286,7 @@ export class CursorStreamParser extends EventEmitter<CursorStreamParserEvents> {
   }
 
   private handleToolCallEvent(obj: Record<string, unknown>): void {
-    const subtype = obj["subtype"];
+    const subtype = obj.subtype;
 
     if (subtype === CURSOR_EVENT_SUBTYPE.STARTED) {
       const result = CursorToolCallStartedEventSchema.safeParse(obj);
@@ -304,7 +301,11 @@ export class CursorStreamParser extends EventEmitter<CursorStreamParserEvents> {
       const result = CursorToolCallCompletedEventSchema.safeParse(obj);
       if (!result.success) {
         logger.warn("Invalid tool_call.completed event", { errors: result.error.issues });
-        this.emit("parseError", new Error("Invalid tool_call.completed event"), JSON.stringify(obj));
+        this.emit(
+          "parseError",
+          new Error("Invalid tool_call.completed event"),
+          JSON.stringify(obj)
+        );
         return;
       }
       this.emit("event", result.data);
@@ -330,9 +331,7 @@ export class CursorStreamParser extends EventEmitter<CursorStreamParserEvents> {
  * Create a stdout data handler that feeds chunks into a CursorStreamParser.
  * Useful for piping directly from child_process.stdout.
  */
-export function createStdoutHandler(
-  parser: CursorStreamParser,
-): (chunk: Buffer) => void {
+export function createStdoutHandler(parser: CursorStreamParser): (chunk: Buffer) => void {
   return (chunk: Buffer) => {
     parser.feed(chunk);
   };

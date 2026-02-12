@@ -14,12 +14,18 @@
  * @see PLAN2.md — "Milestone 6: Hooks Config Generator + Scripts (Channel 2)"
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync, chmodSync } from "node:fs";
-import { join, dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import {
-  ALL_CURSOR_HOOK_EVENTS,
-} from "@/constants/cursor-hook-events";
+  chmodSync,
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { ALL_CURSOR_HOOK_EVENTS } from "@/constants/cursor-hook-events";
 import type { CursorHookEvent } from "@/constants/cursor-hook-events";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 
@@ -253,7 +259,7 @@ export class HooksConfigGenerator {
       const existingEntries = merged.hooks[eventName] ?? [];
       // Filter out any previous TOADSTOOL hooks (by checking for toadstool-hook in command)
       const userEntries = existingEntries.filter(
-        (entry) => !entry.command.includes("toadstool-hook"),
+        (entry) => !entry.command.includes("toadstool-hook")
       );
       const toadstoolEntries = entries ?? [];
       merged.hooks[eventName] = [...userEntries, ...toadstoolEntries];
@@ -265,7 +271,11 @@ export class HooksConfigGenerator {
   private getBundledScriptPath(): string {
     // Resolve relative to this module
     try {
-      return resolve(dirname(fileURLToPath(import.meta.url)), "hook-scripts", TOADSTOOL_HOOK_SCRIPT_NAME);
+      return resolve(
+        dirname(fileURLToPath(import.meta.url)),
+        "hook-scripts",
+        TOADSTOOL_HOOK_SCRIPT_NAME
+      );
     } catch {
       // Fallback for CJS or test environments
       return resolve(__dirname, "hook-scripts", TOADSTOOL_HOOK_SCRIPT_NAME);

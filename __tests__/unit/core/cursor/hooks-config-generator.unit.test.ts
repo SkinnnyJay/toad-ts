@@ -1,9 +1,9 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
-import { HooksConfigGenerator } from "@/core/cursor/hooks-config-generator";
 import { ALL_CURSOR_HOOK_EVENTS } from "@/constants/cursor-hook-events";
+import { HooksConfigGenerator } from "@/core/cursor/hooks-config-generator";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 function createTempDir(): string {
   const dir = join(tmpdir(), `toadstool-hooks-test-${Date.now()}`);
@@ -48,10 +48,10 @@ describe("HooksConfigGenerator", () => {
       const content = generator.generateHooksJsonContent("/path/to/shim.mjs");
 
       // preToolUse should have a timeout
-      const preToolUse = content.hooks["preToolUse"];
+      const preToolUse = content.hooks.preToolUse;
       expect(preToolUse).toBeDefined();
-      expect(preToolUse![0]!.timeout).toBeDefined();
-      expect(preToolUse![0]!.timeout).toBeGreaterThan(0);
+      expect(preToolUse?.[0]?.timeout).toBeDefined();
+      expect(preToolUse?.[0]?.timeout).toBeGreaterThan(0);
     });
 
     it("respects custom timeouts", () => {
@@ -62,7 +62,7 @@ describe("HooksConfigGenerator", () => {
       });
 
       const content = generator.generateHooksJsonContent("/path/to/shim.mjs");
-      expect(content.hooks["preToolUse"]![0]!.timeout).toBe(99);
+      expect(content.hooks.preToolUse?.[0]?.timeout).toBe(99);
     });
 
     it("generates only enabled hooks", () => {
@@ -74,9 +74,9 @@ describe("HooksConfigGenerator", () => {
 
       const content = generator.generateHooksJsonContent("/path/to/shim.mjs");
       expect(Object.keys(content.hooks)).toHaveLength(3);
-      expect(content.hooks["sessionStart"]).toBeDefined();
-      expect(content.hooks["preToolUse"]).toBeDefined();
-      expect(content.hooks["stop"]).toBeDefined();
+      expect(content.hooks.sessionStart).toBeDefined();
+      expect(content.hooks.preToolUse).toBeDefined();
+      expect(content.hooks.stop).toBeDefined();
     });
   });
 
@@ -114,7 +114,7 @@ describe("HooksConfigGenerator", () => {
       });
 
       const result = generator.install();
-      expect(result.env["TOADSTOOL_HOOK_SOCKET"]).toBe("/tmp/my-socket.sock");
+      expect(result.env.TOADSTOOL_HOOK_SOCKET).toBe("/tmp/my-socket.sock");
     });
 
     it("shim script references in hooks.json point to installed path", () => {
@@ -147,10 +147,7 @@ describe("HooksConfigGenerator", () => {
           afterFileEdit: [{ command: "my-edit-hook.sh" }],
         },
       };
-      writeFileSync(
-        join(cursorDir, "hooks.json"),
-        JSON.stringify(existingHooks),
-      );
+      writeFileSync(join(cursorDir, "hooks.json"), JSON.stringify(existingHooks));
 
       const generator = new HooksConfigGenerator({
         projectRoot: tempDir,
@@ -170,10 +167,7 @@ describe("HooksConfigGenerator", () => {
     it("creates backup of original hooks.json", () => {
       const cursorDir = join(tempDir, ".cursor");
       mkdirSync(cursorDir, { recursive: true });
-      writeFileSync(
-        join(cursorDir, "hooks.json"),
-        JSON.stringify({ version: 1, hooks: {} }),
-      );
+      writeFileSync(join(cursorDir, "hooks.json"), JSON.stringify({ version: 1, hooks: {} }));
 
       const generator = new HooksConfigGenerator({
         projectRoot: tempDir,

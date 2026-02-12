@@ -20,12 +20,7 @@ export const CliAgentInstallInfoSchema = z.object({
 });
 export type CliAgentInstallInfo = z.infer<typeof CliAgentInstallInfoSchema>;
 
-export const CliAgentAuthMethodSchema = z.enum([
-  "api_key",
-  "browser_login",
-  "oauth",
-  "none",
-]);
+export const CliAgentAuthMethodSchema = z.enum(["api_key", "browser_login", "oauth", "none"]);
 export type CliAgentAuthMethod = z.infer<typeof CliAgentAuthMethodSchema>;
 
 export const CliAgentAuthStatusSchema = z.object({
@@ -101,8 +96,7 @@ export const STREAM_EVENT_TYPE = {
   RESULT: "result",
 } as const;
 
-export type StreamEventType =
-  (typeof STREAM_EVENT_TYPE)[keyof typeof STREAM_EVENT_TYPE];
+export type StreamEventType = (typeof STREAM_EVENT_TYPE)[keyof typeof STREAM_EVENT_TYPE];
 
 export const StreamEventBaseSchema = z.object({
   type: z.string(),
@@ -181,7 +175,7 @@ export const FileEditEventSchema = StreamEventBaseSchema.extend({
     z.object({
       oldString: z.string(),
       newString: z.string(),
-    }),
+    })
   ),
 });
 export type FileEditEvent = z.infer<typeof FileEditEventSchema>;

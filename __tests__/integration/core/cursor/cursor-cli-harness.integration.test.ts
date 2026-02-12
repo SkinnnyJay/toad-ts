@@ -5,30 +5,27 @@
  * using real NDJSON fixtures. Also tests Hook IPC Server integration.
  */
 
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { createConnection } from "node:net";
+import type { ChildProcess } from "node:child_process";
 import { EventEmitter } from "node:events";
-import { type ChildProcess } from "node:child_process";
-import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { createConnection } from "node:net";
+import { tmpdir } from "node:os";
+import { resolve } from "node:path";
+import { join } from "node:path";
+import { CONNECTION_STATUS } from "@/constants/connection-status";
+import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
+import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
+import type { CursorCliConnection } from "@/core/cursor/cursor-cli-connection";
+import { CursorCliHarnessAdapter } from "@/core/cursor/cursor-cli-harness";
 import { CursorStreamParser } from "@/core/cursor/cursor-stream-parser";
 import { CursorToAcpTranslator } from "@/core/cursor/cursor-to-acp-translator";
-import { CursorCliConnection } from "@/core/cursor/cursor-cli-connection";
 import { HookIpcServer } from "@/core/cursor/hook-ipc-server";
 import { HooksConfigGenerator } from "@/core/cursor/hooks-config-generator";
-import { CursorCliHarnessAdapter } from "@/core/cursor/cursor-cli-harness";
-import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { STREAM_EVENT_TYPE } from "@/types/cli-agent.types";
-import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
-import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 function loadFixture(name: string): string {
-  return readFileSync(
-    resolve(__dirname, "../../../fixtures/cursor/ndjson", name),
-    "utf-8",
-  );
+  return readFileSync(resolve(__dirname, "../../../fixtures/cursor/ndjson", name), "utf-8");
 }
 
 function makeSocketPath(): string {
@@ -42,7 +39,9 @@ function sendToSocket(socketPath: string, data: unknown): Promise<string> {
       client.end();
     });
     let response = "";
-    client.on("data", (chunk) => { response += chunk.toString(); });
+    client.on("data", (chunk) => {
+      response += chunk.toString();
+    });
     client.on("end", () => resolve(response));
     client.on("error", reject);
   });
@@ -76,9 +75,7 @@ describe("Cursor CLI Harness Integration", () => {
       expect(sessionUpdates.length).toBeGreaterThan(0);
 
       // Verify stream events sequence
-      const eventTypes = streamEvents.map(
-        (e) => (e as Record<string, string>)["type"],
-      );
+      const eventTypes = streamEvents.map((e) => (e as Record<string, string>).type);
       expect(eventTypes).toContain(STREAM_EVENT_TYPE.SESSION_INIT);
       expect(eventTypes).toContain(STREAM_EVENT_TYPE.TEXT_DELTA);
       expect(eventTypes).toContain(STREAM_EVENT_TYPE.TEXT_COMPLETE);
@@ -87,9 +84,9 @@ describe("Cursor CLI Harness Integration", () => {
       // Verify prompt resolution
       expect(promptResults).toHaveLength(1);
       const result = promptResults[0] as Record<string, unknown>;
-      expect(result["text"]).toBeDefined();
-      expect(result["durationMs"]).toBeGreaterThan(0);
-      expect(result["isError"]).toBe(false);
+      expect(result.text).toBeDefined();
+      expect(result.durationMs).toBeGreaterThan(0);
+      expect(result.isError).toBe(false);
 
       // Verify session ID was captured
       expect(translator.sessionId).toBeDefined();
@@ -111,10 +108,10 @@ describe("Cursor CLI Harness Integration", () => {
 
       // Verify tool call events
       const toolStarts = streamEvents.filter(
-        (e) => (e as Record<string, string>)["type"] === STREAM_EVENT_TYPE.TOOL_START,
+        (e) => (e as Record<string, string>).type === STREAM_EVENT_TYPE.TOOL_START
       );
       const toolCompletes = streamEvents.filter(
-        (e) => (e as Record<string, string>)["type"] === STREAM_EVENT_TYPE.TOOL_COMPLETE,
+        (e) => (e as Record<string, string>).type === STREAM_EVENT_TYPE.TOOL_COMPLETE
       );
 
       expect(toolStarts.length).toBeGreaterThan(0);
@@ -126,8 +123,7 @@ describe("Cursor CLI Harness Integration", () => {
 
       // Verify session updates include tool call types
       const updateTypes = sessionUpdates.map(
-        (u) =>
-          (u as Record<string, Record<string, string>>)["update"]["sessionUpdate"],
+        (u) => (u as Record<string, Record<string, string>>).update.sessionUpdate
       );
       expect(updateTypes).toContain(SESSION_UPDATE_TYPE.TOOL_CALL);
       expect(updateTypes).toContain(SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE);
@@ -147,16 +143,14 @@ describe("Cursor CLI Harness Integration", () => {
       // Feed line by line (simulating real stdout chunks)
       for (const line of lines) {
         if (line.trim()) {
-          parser.feed(line + "\n");
+          parser.feed(`${line}\n`);
         }
       }
       parser.flush();
 
       // Should get the same result as feeding all at once
       expect(streamEvents.length).toBeGreaterThan(0);
-      const eventTypes = streamEvents.map(
-        (e) => (e as Record<string, string>)["type"],
-      );
+      const eventTypes = streamEvents.map((e) => (e as Record<string, string>).type);
       expect(eventTypes).toContain(STREAM_EVENT_TYPE.RESULT);
     });
   });
@@ -313,7 +307,7 @@ describe("Cursor CLI Harness Integration", () => {
         expect(existsSync(result.shimPath)).toBe(true);
 
         // Verify env vars
-        expect(result.env["TOADSTOOL_HOOK_SOCKET"]).toBe("/tmp/test.sock");
+        expect(result.env.TOADSTOOL_HOOK_SOCKET).toBe("/tmp/test.sock");
 
         // Cleanup
         generator.uninstall();
@@ -351,9 +345,8 @@ describe("Cursor CLI Harness Integration", () => {
         content: [{ type: "text", text: "Hello" }],
       } as never);
 
-      const responseText = (
-        response as unknown as Record<string, Array<Record<string, string>>>
-      )["content"][0]!["text"];
+      const responseText = (response as unknown as Record<string, Array<Record<string, string>>>)
+        .content[0]?.text;
       expect(responseText).toBe("Hello!");
       expect(updates.length).toBeGreaterThan(0);
 
@@ -372,7 +365,7 @@ describe("Cursor CLI Harness Integration", () => {
       await adapter.connect();
 
       await expect(
-        adapter.prompt({ content: [{ type: "text", text: "test" }] } as never),
+        adapter.prompt({ content: [{ type: "text", text: "test" }] } as never)
       ).rejects.toThrow("exited with code 1");
     });
   });
@@ -428,7 +421,7 @@ function createMockConnection(): CursorCliConnection {
           '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Hello!"}]},"session_id":"sess-1"}',
           '{"type":"result","subtype":"success","duration_ms":3000,"is_error":false,"result":"Hello!","session_id":"sess-1"}',
         ];
-        parser.feed(events.join("\n") + "\n");
+        parser.feed(`${events.join("\n")}\n`);
         (proc as unknown as EventEmitter).emit("exit", 0, null);
       }, 15);
 

@@ -15,24 +15,21 @@
 import { type ChildProcess, spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { delimiter, join } from "node:path";
-import { EventEmitter } from "eventemitter3";
-import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
-import { ENV_KEY } from "@/constants/env-keys";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
-import type { ConnectionStatus } from "@/types/domain";
+import { ENV_KEY } from "@/constants/env-keys";
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
+import { CursorStreamParser } from "@/core/cursor/cursor-stream-parser";
 import type {
-  CliAgentInstallInfo,
   CliAgentAuthStatus,
+  CliAgentInstallInfo,
   CliAgentModelsResponse,
   CliAgentPromptInput,
 } from "@/types/cli-agent.types";
-import {
-  parseCursorModelsOutput,
-  parseCursorStatusOutput,
-} from "@/types/cursor-cli.types";
-import { CursorStreamParser } from "@/core/cursor/cursor-stream-parser";
+import { parseCursorModelsOutput, parseCursorStatusOutput } from "@/types/cursor-cli.types";
+import type { ConnectionStatus } from "@/types/domain";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
+import { EventEmitter } from "eventemitter3";
 
 const logger = createClassLogger("CursorCliConnection");
 
@@ -86,10 +83,8 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
     const commandFromEnv = envDefaults[ENV_KEY.TOADSTOOL_CURSOR_COMMAND];
     const argsFromEnv = envDefaults[ENV_KEY.TOADSTOOL_CURSOR_ARGS];
 
-    this.command =
-      options.command ?? commandFromEnv ?? HARNESS_DEFAULT.CURSOR_COMMAND;
-    this.baseArgs = options.args ??
-      (argsFromEnv ? argsFromEnv.split(/\s+/).filter(Boolean) : []);
+    this.command = options.command ?? commandFromEnv ?? HARNESS_DEFAULT.CURSOR_COMMAND;
+    this.baseArgs = options.args ?? (argsFromEnv ? argsFromEnv.split(/\s+/).filter(Boolean) : []);
     this.cwd = options.cwd ?? process.cwd();
     this.env = this.buildEnv(options.env ?? envDefaults);
     this.spawnFn = options.spawnFn ?? spawn;
@@ -194,16 +189,14 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
       const installInfo = await this.verifyInstallation();
       if (!installInfo.installed) {
         throw new Error(
-          `Cursor CLI not found. Install with: ${installInfo.installCommand ?? "See https://cursor.com/install"}`,
+          `Cursor CLI not found. Install with: ${installInfo.installCommand ?? "See https://cursor.com/install"}`
         );
       }
       logger.info("Cursor CLI found", { version: installInfo.version });
 
       const authStatus = await this.verifyAuth();
       if (!authStatus.authenticated) {
-        throw new Error(
-          "Cursor CLI not authenticated. Run: cursor-agent login",
-        );
+        throw new Error("Cursor CLI not authenticated. Run: cursor-agent login");
       }
       logger.info("Cursor CLI authenticated", { email: authStatus.email });
 
@@ -401,10 +394,10 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
     // Add local node_modules/.bin to PATH for workspace tools
     const localBin = join(this.cwd, "node_modules", ".bin");
     if (existsSync(localBin)) {
-      const currentPath = env["PATH"] ?? "";
+      const currentPath = env.PATH ?? "";
       const segments = currentPath.split(delimiter).filter(Boolean);
       if (!segments.includes(localBin)) {
-        env["PATH"] = `${localBin}${delimiter}${currentPath}`;
+        env.PATH = `${localBin}${delimiter}${currentPath}`;
       }
     }
 
@@ -420,7 +413,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
    * Execute a one-shot command and return stdout/stderr.
    */
   private execCommand(
-    args: string[],
+    args: string[]
   ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
     return new Promise((resolve, reject) => {
       const child = this.spawnFn(this.command, args, {

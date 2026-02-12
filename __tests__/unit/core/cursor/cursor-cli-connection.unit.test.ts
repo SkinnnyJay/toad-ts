@@ -1,9 +1,9 @@
+import type { ChildProcess } from "node:child_process";
 import { EventEmitter } from "node:events";
-import { type ChildProcess } from "node:child_process";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CursorCliConnection } from "@/core/cursor/cursor-cli-connection";
 import { CursorStreamParser } from "@/core/cursor/cursor-stream-parser";
-import { CONNECTION_STATUS } from "@/constants/connection-status";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /** Creates a mock ChildProcess that behaves like a real one */
 function createMockProcess(options?: {
@@ -278,7 +278,7 @@ Tip: use --model <id> to switch.`,
 
       connection.spawnPrompt({ message: "test prompt" });
 
-      const proc = mockSpawn.mock.results[0]!.value;
+      const proc = mockSpawn.mock.results[0]?.value;
       expect((proc as Record<string, string[]>)._stdinChunks).toContain("test prompt");
     });
 
@@ -293,7 +293,7 @@ Tip: use --model <id> to switch.`,
         sessionId: "session-123",
       });
 
-      const args = mockSpawn.mock.calls[0]![1] as string[];
+      const args = mockSpawn.mock.calls[0]?.[1] as string[];
       expect(args).toContain("--resume");
       expect(args).toContain("session-123");
     });
@@ -309,7 +309,7 @@ Tip: use --model <id> to switch.`,
         model: "gpt-5.2",
       });
 
-      const args = mockSpawn.mock.calls[0]![1] as string[];
+      const args = mockSpawn.mock.calls[0]?.[1] as string[];
       expect(args).toContain("--model");
       expect(args).toContain("gpt-5.2");
     });
@@ -325,7 +325,7 @@ Tip: use --model <id> to switch.`,
         mode: "plan",
       });
 
-      const args = mockSpawn.mock.calls[0]![1] as string[];
+      const args = mockSpawn.mock.calls[0]?.[1] as string[];
       expect(args).toContain("--mode");
       expect(args).toContain("plan");
     });
@@ -341,7 +341,7 @@ Tip: use --model <id> to switch.`,
         force: true,
       });
 
-      const args = mockSpawn.mock.calls[0]![1] as string[];
+      const args = mockSpawn.mock.calls[0]?.[1] as string[];
       expect(args).toContain("--force");
     });
 
@@ -366,9 +366,7 @@ Tip: use --model <id> to switch.`,
       connection.spawnPrompt({ message: "first" });
       expect(connection.isPromptActive).toBe(true);
 
-      expect(() => connection.spawnPrompt({ message: "second" })).toThrow(
-        "already active",
-      );
+      expect(() => connection.spawnPrompt({ message: "second" })).toThrow("already active");
     });
   });
 

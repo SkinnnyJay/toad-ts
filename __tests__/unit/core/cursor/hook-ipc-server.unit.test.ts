@@ -1,18 +1,15 @@
-import { createConnection, type Socket as NetSocket } from "node:net";
+import { type Socket as NetSocket, createConnection } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it, afterEach, beforeEach } from "vitest";
-import { HookIpcServer } from "@/core/cursor/hook-ipc-server";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
+import { HookIpcServer } from "@/core/cursor/hook-ipc-server";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 function makeSocketPath(): string {
   return join(tmpdir(), `test-hook-${process.pid}-${Date.now()}.sock`);
 }
 
-function sendToSocket(
-  socketPath: string,
-  data: unknown,
-): Promise<string> {
+function sendToSocket(socketPath: string, data: unknown): Promise<string> {
   return new Promise((resolve, reject) => {
     const client = createConnection(socketPath, () => {
       client.write(JSON.stringify(data));
@@ -190,8 +187,8 @@ describe("HookIpcServer", () => {
       await sendToSocket(socketPath, input);
 
       expect(receivedRequest).toBeDefined();
-      expect(receivedRequest!["toolName"]).toBe("Shell");
-      expect(receivedRequest!["hookEvent"]).toBe(CURSOR_HOOK_EVENT.PRE_TOOL_USE);
+      expect(receivedRequest?.toolName).toBe("Shell");
+      expect(receivedRequest?.hookEvent).toBe(CURSOR_HOOK_EVENT.PRE_TOOL_USE);
     });
   });
 
@@ -230,14 +227,12 @@ describe("HookIpcServer", () => {
         ...baseHookInput,
         hook_event_name: "afterFileEdit",
         path: "/workspace/src/index.ts",
-        edits: [
-          { old_string: "const x = 1;", new_string: "const x = 2;" },
-        ],
+        edits: [{ old_string: "const x = 1;", new_string: "const x = 2;" }],
       };
 
       await sendToSocket(socketPath, input);
       expect(receivedEdit).toBeDefined();
-      expect(receivedEdit!["path"]).toBe("/workspace/src/index.ts");
+      expect(receivedEdit?.path).toBe("/workspace/src/index.ts");
     });
   });
 
@@ -292,7 +287,9 @@ describe("HookIpcServer", () => {
           client.end();
         });
         let resp = "";
-        client.on("data", (chunk) => { resp += chunk.toString(); });
+        client.on("data", (chunk) => {
+          resp += chunk.toString();
+        });
         client.on("end", () => resolve(resp));
         client.on("error", reject);
       });

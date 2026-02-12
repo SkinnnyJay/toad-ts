@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { CURSOR_CLOUD_AGENT_STATUS } from "@/constants/cursor-cloud-status";
 import {
   CURSOR_EVENT_SUBTYPE,
   CURSOR_EVENT_TYPE,
@@ -8,55 +8,53 @@ import {
 } from "@/constants/cursor-event-types";
 import {
   ALL_CURSOR_HOOK_EVENTS,
-  CURSOR_HOOK_EVENT,
   CURSOR_BLOCKING_HOOK_EVENTS,
+  CURSOR_HOOK_EVENT,
   CURSOR_OBSERVE_ONLY_HOOK_EVENTS,
 } from "@/constants/cursor-hook-events";
 import {
-  CURSOR_CLOUD_AGENT_STATUS,
-} from "@/constants/cursor-cloud-status";
-import {
-  CursorSystemEventSchema,
-  CursorUserEventSchema,
-  CursorAssistantEventSchema,
-  CursorToolCallStartedEventSchema,
-  CursorToolCallCompletedEventSchema,
-  CursorResultEventSchema,
-  CursorStreamEventSchema,
-  extractToolTypeKey,
-  normalizeToolName,
-  extractToolInput,
-  extractToolResult,
-  parseCursorModelsOutput,
-  parseCursorStatusOutput,
-  parseCursorAboutOutput,
-  parseCursorMcpListOutput,
-} from "@/types/cursor-cli.types";
-import {
-  CursorHookBaseInputSchema,
-  CursorSessionStartInputSchema,
-  CursorSessionStartOutputSchema,
-  CursorPreToolUseInputSchema,
-  CursorPreToolUseOutputSchema,
-  CursorBeforeShellExecutionInputSchema,
-  CursorBeforeShellExecutionOutputSchema,
-  CursorStopInputSchema,
-  CursorStopOutputSchema,
-  CursorAfterAgentThoughtInputSchema,
-  CursorAfterFileEditInputSchema,
-} from "@/types/cursor-hooks.types";
-import {
-  CliAgentInstallInfoSchema,
   CliAgentAuthStatusSchema,
+  CliAgentCapabilitiesSchema,
+  CliAgentInstallInfoSchema,
   CliAgentModelSchema,
   CliAgentModelsResponseSchema,
-  CliAgentSessionSchema,
   CliAgentPromptInputSchema,
   CliAgentPromptResultSchema,
-  CliAgentCapabilitiesSchema,
-  StreamEventSchema,
+  CliAgentSessionSchema,
   STREAM_EVENT_TYPE,
+  StreamEventSchema,
 } from "@/types/cli-agent.types";
+import {
+  CursorAssistantEventSchema,
+  CursorResultEventSchema,
+  CursorStreamEventSchema,
+  CursorSystemEventSchema,
+  CursorToolCallCompletedEventSchema,
+  CursorToolCallStartedEventSchema,
+  CursorUserEventSchema,
+  extractToolInput,
+  extractToolResult,
+  extractToolTypeKey,
+  normalizeToolName,
+  parseCursorAboutOutput,
+  parseCursorMcpListOutput,
+  parseCursorModelsOutput,
+  parseCursorStatusOutput,
+} from "@/types/cursor-cli.types";
+import {
+  CursorAfterAgentThoughtInputSchema,
+  CursorAfterFileEditInputSchema,
+  CursorBeforeShellExecutionInputSchema,
+  CursorBeforeShellExecutionOutputSchema,
+  CursorHookBaseInputSchema,
+  CursorPreToolUseInputSchema,
+  CursorPreToolUseOutputSchema,
+  CursorSessionStartInputSchema,
+  CursorSessionStartOutputSchema,
+  CursorStopInputSchema,
+  CursorStopOutputSchema,
+} from "@/types/cursor-hooks.types";
+import { describe, expect, it } from "vitest";
 
 // ── Fixture helpers ──────────────────────────────────────────
 
@@ -326,10 +324,10 @@ describe("Cursor Output Parsers", () => {
       const stdout = "gpt-5.2 - GPT-5.2\nsonnet-4.5 - Claude 4.5 Sonnet";
       const result = parseCursorModelsOutput(stdout);
       expect(result.models).toHaveLength(2);
-      expect(result.models[0]!.id).toBe("gpt-5.2");
-      expect(result.models[0]!.name).toBe("GPT-5.2");
-      expect(result.models[1]!.id).toBe("sonnet-4.5");
-      expect(result.models[1]!.name).toBe("Claude 4.5 Sonnet");
+      expect(result.models[0]?.id).toBe("gpt-5.2");
+      expect(result.models[0]?.name).toBe("GPT-5.2");
+      expect(result.models[1]?.id).toBe("sonnet-4.5");
+      expect(result.models[1]?.name).toBe("Claude 4.5 Sonnet");
     });
 
     it("handles empty output", () => {
@@ -364,8 +362,8 @@ OS                  darwin (arm64)
 User Email          test@example.com`;
       const result = parseCursorAboutOutput(stdout);
       expect(result["CLI Version"]).toBe("2026.01.28-fd13201");
-      expect(result["Model"]).toBe("Claude 4.6 Opus (Thinking)");
-      expect(result["OS"]).toBe("darwin (arm64)");
+      expect(result.Model).toBe("Claude 4.6 Opus (Thinking)");
+      expect(result.OS).toBe("darwin (arm64)");
       expect(result["User Email"]).toBe("test@example.com");
     });
 
@@ -382,12 +380,12 @@ github: not loaded (needs approval)
 context7: loaded`;
       const result = parseCursorMcpListOutput(stdout);
       expect(result).toHaveLength(3);
-      expect(result[0]!.name).toBe("playwright");
-      expect(result[0]!.status).toBe("not loaded");
-      expect(result[0]!.reason).toBe("needs approval");
-      expect(result[2]!.name).toBe("context7");
-      expect(result[2]!.status).toBe("loaded");
-      expect(result[2]!.reason).toBeUndefined();
+      expect(result[0]?.name).toBe("playwright");
+      expect(result[0]?.status).toBe("not loaded");
+      expect(result[0]?.reason).toBe("needs approval");
+      expect(result[2]?.name).toBe("context7");
+      expect(result[2]?.status).toBe("loaded");
+      expect(result[2]?.reason).toBeUndefined();
     });
 
     it("handles empty output", () => {
@@ -514,9 +512,7 @@ describe("Cursor Hook Schema Validation", () => {
       ...baseInput,
       hook_event_name: "afterFileEdit",
       path: "/workspace/src/index.ts",
-      edits: [
-        { old_string: "const x = 1;", new_string: "const x = 2;" },
-      ],
+      edits: [{ old_string: "const x = 1;", new_string: "const x = 2;" }],
     };
     const result = CursorAfterFileEditInputSchema.safeParse(input);
     expect(result.success).toBe(true);
@@ -637,13 +633,37 @@ describe("Generic CLI Agent Types", () => {
       { type: STREAM_EVENT_TYPE.SESSION_INIT, model: "gpt-5.2" },
       { type: STREAM_EVENT_TYPE.TEXT_DELTA, text: "Hi" },
       { type: STREAM_EVENT_TYPE.TEXT_COMPLETE, text: "Full text" },
-      { type: STREAM_EVENT_TYPE.TOOL_START, toolCallId: "t1", toolName: "read_file", toolInput: { path: "/a.txt" } },
-      { type: STREAM_EVENT_TYPE.TOOL_COMPLETE, toolCallId: "t1", toolName: "read_file", success: true },
-      { type: STREAM_EVENT_TYPE.TOOL_ERROR, toolCallId: "t1", toolName: "read_file", error: "not found" },
+      {
+        type: STREAM_EVENT_TYPE.TOOL_START,
+        toolCallId: "t1",
+        toolName: "read_file",
+        toolInput: { path: "/a.txt" },
+      },
+      {
+        type: STREAM_EVENT_TYPE.TOOL_COMPLETE,
+        toolCallId: "t1",
+        toolName: "read_file",
+        success: true,
+      },
+      {
+        type: STREAM_EVENT_TYPE.TOOL_ERROR,
+        toolCallId: "t1",
+        toolName: "read_file",
+        error: "not found",
+      },
       { type: STREAM_EVENT_TYPE.THINKING_DELTA, text: "Thinking..." },
       { type: STREAM_EVENT_TYPE.THINKING_COMPLETE, text: "Full thought" },
-      { type: STREAM_EVENT_TYPE.PERMISSION_REQUEST, toolName: "shell", toolInput: { command: "ls" }, requestId: "r1" },
-      { type: STREAM_EVENT_TYPE.FILE_EDIT, path: "/a.txt", edits: [{ oldString: "a", newString: "b" }] },
+      {
+        type: STREAM_EVENT_TYPE.PERMISSION_REQUEST,
+        toolName: "shell",
+        toolInput: { command: "ls" },
+        requestId: "r1",
+      },
+      {
+        type: STREAM_EVENT_TYPE.FILE_EDIT,
+        path: "/a.txt",
+        edits: [{ oldString: "a", newString: "b" }],
+      },
       { type: STREAM_EVENT_TYPE.ERROR, message: "Something failed" },
       { type: STREAM_EVENT_TYPE.RESULT, text: "Done", success: true },
     ];
