@@ -244,6 +244,7 @@ bun run build        # Build
 bun run test         # Run tests
 bun run typecheck    # Type checking
 bun run lint         # Lint
+bun run benchmark:startup # Core module startup smoke benchmark
 bun run benchmark:ui # Complex-session UI render/input p95 checks
 ```
 
