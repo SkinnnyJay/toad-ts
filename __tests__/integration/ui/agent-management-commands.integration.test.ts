@@ -134,6 +134,58 @@ describe("agent management commands integration", () => {
     );
   });
 
+  it("parses codex status from login status output", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "Authenticated as dev@example.com",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "codex-cli",
+      name: "Codex CLI",
+      command: "codex",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.STATUS, {
+      activeHarness: harness,
+    });
+
+    expect(lines).toContain("Authenticated: yes");
+    expect(lines).toContain("Email: dev@example.com");
+    expect(lines.some((line) => line.startsWith("Status: Authenticated as"))).toBe(true);
+    expect(execaMock).toHaveBeenCalledWith(
+      "codex",
+      ["login", "status"],
+      expect.objectContaining({ reject: false })
+    );
+  });
+
+  it("parses codex unauthenticated status from stderr", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "",
+      stderr: "Not logged in. Please login required.",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "codex-cli",
+      name: "Codex CLI",
+      command: "codex",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.STATUS, {
+      activeHarness: harness,
+    });
+
+    expect(lines).toContain("Authenticated: no");
+    expect(lines).toContain("Status: Not authenticated");
+  });
+
   it("formats claude MCP list output through command parser wrappers", async () => {
     const execaMock = await getExecaMock();
     execaMock.mockResolvedValue({
@@ -154,6 +206,39 @@ describe("agent management commands integration", () => {
     });
 
     expect(lines).toEqual(["- filesystem: connected", "- memory: disabled (missing token)"]);
+  });
+
+  it("routes /agent mcp list to cursor native MCP parser", async () => {
+    const execaMock = await getExecaMock();
+    const mcpOutput = readFileSync(
+      path.join(process.cwd(), "__tests__/fixtures/cursor/mcp-list-output.txt"),
+      "utf8"
+    );
+    execaMock.mockResolvedValue({
+      stdout: mcpOutput,
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      { activeHarness: harness },
+      ["mcp", "list"]
+    );
+
+    expect(lines.some((line) => line.includes("context7"))).toBe(true);
+    expect(execaMock).toHaveBeenCalledWith(
+      "cursor-agent",
+      ["mcp", "list"],
+      expect.objectContaining({ reject: false })
+    );
   });
 
   it("returns browser login guidance for cursor harness", async () => {
