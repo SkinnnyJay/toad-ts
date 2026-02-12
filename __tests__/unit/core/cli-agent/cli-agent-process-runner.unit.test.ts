@@ -10,12 +10,14 @@ interface SpawnScenario {
   exitCode?: number | null;
   signal?: NodeJS.Signals | null;
   error?: Error;
+  holdOpen?: boolean;
 }
 
 interface SpawnCall {
   command: string;
   args: string[];
   stdin: string;
+  envValue?: string;
 }
 
 const createMockChild = (
@@ -44,6 +46,9 @@ const createMockChild = (
   }) as unknown as ChildProcessWithoutNullStreams;
 
   setTimeout(() => {
+    if (scenario.holdOpen) {
+      return;
+    }
     if (scenario.error) {
       child.emit("error", scenario.error);
       return;
@@ -65,12 +70,21 @@ const createMockChild = (
 
 const createSpawnFn = (scenarios: SpawnScenario[]) => {
   const calls: SpawnCall[] = [];
-  const spawnFn = (command: string, args: string[]): ChildProcessWithoutNullStreams => {
+  const spawnFn = (
+    command: string,
+    args: string[],
+    options?: { env?: NodeJS.ProcessEnv }
+  ): ChildProcessWithoutNullStreams => {
     const scenario = scenarios.shift();
     if (!scenario) {
       throw new Error("No spawn scenario available");
     }
-    const call: SpawnCall = { command, args: [...args], stdin: "" };
+    const call: SpawnCall = {
+      command,
+      args: [...args],
+      stdin: "",
+      envValue: options?.env?.TEST_RUNNER_ENV,
+    };
     calls.push(call);
     return createMockChild(scenario, (stdin) => {
       call.stdin = stdin;
@@ -120,5 +134,35 @@ describe("CliAgentProcessRunner", () => {
     expect(stdoutChunks.join("")).toContain("chunk-1");
     expect(result.stderr).toBe("err");
     expect(result.exitCode).toBe(0);
+  });
+
+  it("times out long-running commands and triggers force-kill path", async () => {
+    const { spawnFn } = createSpawnFn([{ holdOpen: true }]);
+    const runner = new CliAgentProcessRunner({
+      command: "agent",
+      env: {},
+      spawnFn,
+      defaultCommandTimeoutMs: 1,
+      forceKillTimeoutMs: 1,
+      loggerName: "TestCliAgentProcessRunner",
+    });
+
+    await expect(runner.runCommand(["hang"])).rejects.toThrow("timed out");
+  });
+
+  it("applies env overrides to subsequent spawned commands", async () => {
+    const { spawnFn, calls } = createSpawnFn([{ stdout: "ok", exitCode: 0 }]);
+    const runner = new CliAgentProcessRunner({
+      command: "agent",
+      env: {},
+      spawnFn,
+      defaultCommandTimeoutMs: 50,
+      forceKillTimeoutMs: 10,
+      loggerName: "TestCliAgentProcessRunner",
+    });
+    runner.setEnv({ TEST_RUNNER_ENV: "on" });
+
+    await runner.runCommand(["status"]);
+    expect(calls[0]?.envValue).toBe("on");
   });
 });
