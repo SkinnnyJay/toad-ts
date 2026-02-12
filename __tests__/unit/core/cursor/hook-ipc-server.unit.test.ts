@@ -1,5 +1,6 @@
 import http from "node:http";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
+import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { PERMISSION } from "@/constants/permissions";
 import { type HookIpcEndpoint, HookIpcServer } from "@/core/cursor/hook-ipc-server";
 import { afterEach, describe, expect, it } from "vitest";
@@ -155,5 +156,28 @@ describe("HookIpcServer", () => {
       hook_event_name: CURSOR_HOOK_EVENT.PRE_TOOL_USE,
     });
     expect(response.decision).toBe(PERMISSION.ALLOW);
+  });
+
+  it("keeps hook roundtrip p95 under target", async () => {
+    server = new HookIpcServer();
+    const endpoint = await server.start();
+    const latenciesMs: number[] = [];
+
+    for (let i = 0; i < CURSOR_LIMIT.HOOK_PERF_SAMPLE_SIZE; i += 1) {
+      const start = Date.now();
+      await postJson(endpoint, {
+        conversation_id: `conv-${i}`,
+        generation_id: "gen-1",
+        model: "opus-4.6-thinking",
+        hook_event_name: CURSOR_HOOK_EVENT.PRE_TOOL_USE,
+      });
+      latenciesMs.push(Date.now() - start);
+    }
+
+    const sorted = [...latenciesMs].sort((a, b) => a - b);
+    const p95Index = Math.max(0, Math.ceil(sorted.length * 0.95) - 1);
+    const p95 = sorted[p95Index] ?? 0;
+
+    expect(p95).toBeLessThanOrEqual(CURSOR_LIMIT.HOOK_P95_TARGET_MS);
   });
 });
