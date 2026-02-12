@@ -6,6 +6,11 @@ import { keyboardRuntime, terminalRuntime } from "./utils/opentui-test-runtime";
 
 const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
 const ORIGINAL_WORK_SUBDIR = process.env.TOADSTOOL_WORK_SUBDIR;
+const ORIGINAL_REACT_ACT_ENVIRONMENT = globalThis.IS_REACT_ACT_ENVIRONMENT;
+
+declare global {
+  var IS_REACT_ACT_ENVIRONMENT: boolean | undefined;
+}
 
 const clearWorkSubdir = (): void => {
   process.env.TOADSTOOL_WORK_SUBDIR = "";
@@ -42,6 +47,7 @@ vi.mock("@opentui/core", () => {
 
 beforeEach(() => {
   clearWorkSubdir();
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true;
   EnvManager.resetInstance();
 });
 
@@ -78,6 +84,7 @@ afterEach(() => {
   } else {
     process.env.TOADSTOOL_WORK_SUBDIR = ORIGINAL_WORK_SUBDIR;
   }
+  globalThis.IS_REACT_ACT_ENVIRONMENT = ORIGINAL_REACT_ACT_ENVIRONMENT;
   EnvManager.resetInstance();
   if (typeof process.stdin.pause === "function") {
     process.stdin.pause();

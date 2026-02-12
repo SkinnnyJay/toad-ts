@@ -1,6 +1,7 @@
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { KEY_NAME } from "@/constants/key-names";
 import React from "react";
+import { act } from "react-test-renderer";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   AgentIdSchema,
@@ -102,7 +103,9 @@ describe("Chat UI performance budgets", () => {
     const inputLatenciesMs: number[] = [];
     for (let sampleIndex = 0; sampleIndex < UI_PERF.INPUT_SAMPLE_SIZE; sampleIndex += 1) {
       const start = performance.now();
-      keyboardRuntime.emit(KEY_NAME.PAGEUP);
+      act(() => {
+        keyboardRuntime.emit(KEY_NAME.PAGEUP);
+      });
       lastFrame();
       inputLatenciesMs.push(performance.now() - start);
     }
