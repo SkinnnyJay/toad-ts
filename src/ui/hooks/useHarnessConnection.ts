@@ -31,13 +31,43 @@ const isErrnoException = (error: unknown): error is NodeJS.ErrnoException => {
  */
 export const formatHarnessError = (
   error: unknown,
-  context: { agentName?: string; command?: string }
+  context: { agentName?: string; command?: string; harnessId?: string }
 ): string => {
   const message = error instanceof Error ? error.message : String(error);
+  const defaultCommandForHarness = (harnessId: string | undefined): string => {
+    switch (harnessId) {
+      case HARNESS_DEFAULT.GEMINI_CLI_ID:
+        return HARNESS_DEFAULT.GEMINI_COMMAND;
+      case HARNESS_DEFAULT.CODEX_CLI_ID:
+        return HARNESS_DEFAULT.CODEX_COMMAND;
+      case HARNESS_DEFAULT.CURSOR_CLI_ID:
+        return HARNESS_DEFAULT.CURSOR_COMMAND;
+      default:
+        return HARNESS_DEFAULT.CLAUDE_COMMAND;
+    }
+  };
+  const commandEnvKeyForHarness = (harnessId: string | undefined): string | undefined => {
+    switch (harnessId) {
+      case HARNESS_DEFAULT.CLAUDE_CLI_ID:
+        return ENV_KEY.TOADSTOOL_CLAUDE_COMMAND;
+      case HARNESS_DEFAULT.GEMINI_CLI_ID:
+        return ENV_KEY.TOADSTOOL_GEMINI_COMMAND;
+      case HARNESS_DEFAULT.CODEX_CLI_ID:
+        return ENV_KEY.TOADSTOOL_CODEX_COMMAND;
+      case HARNESS_DEFAULT.CURSOR_CLI_ID:
+        return ENV_KEY.TOADSTOOL_CURSOR_COMMAND;
+      default:
+        return undefined;
+    }
+  };
   if (isErrnoException(error)) {
     if (error.code === ERROR_CODE.ENOENT) {
-      const cmd = context.command ?? "claude-code-acp";
-      return `Command '${cmd}' not found for ${context.agentName ?? "agent"}. Install it or update TOADSTOOL_CLAUDE_COMMAND.`;
+      const cmd = context.command ?? defaultCommandForHarness(context.harnessId);
+      const commandEnvKey = commandEnvKeyForHarness(context.harnessId);
+      const commandHint = commandEnvKey
+        ? `Install it or update ${commandEnvKey}.`
+        : "Install it or update harness command configuration.";
+      return `Command '${cmd}' not found for ${context.agentName ?? "agent"}. ${commandHint}`;
     }
     if (error.code === ERROR_CODE.EACCES) {
       const cmd = context.command ?? "agent command";
@@ -135,6 +165,7 @@ export function useHarnessConnection({
       const message = formatHarnessError(error, {
         agentName: selectedAgent?.name ?? harnessConfig.name,
         command: harnessConfig.command,
+        harnessId: selectedAgent?.harnessId ?? harnessConfig.id,
       });
       setConnectionStatus(CONNECTION_STATUS.ERROR);
       onLoadErrorChange(message);
@@ -194,6 +225,7 @@ export function useHarnessConnection({
           const friendly = formatHarnessError(error, {
             agentName: selectedAgent?.name ?? harnessConfig.name,
             command: harnessConfig.command,
+            harnessId: selectedAgent?.harnessId ?? harnessConfig.id,
           });
           const retryNote =
             LIMIT.MAX_CONNECTION_RETRIES > 1
