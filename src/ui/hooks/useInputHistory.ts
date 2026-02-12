@@ -1,6 +1,5 @@
+import { INPUT_HISTORY_MAX_SIZE } from "@/config/limits";
 import { useCallback, useRef, useState } from "react";
-
-const MAX_HISTORY_SIZE = 200;
 
 /**
  * Input history with up/down navigation and reverse search (Ctrl+R).
@@ -8,6 +7,7 @@ const MAX_HISTORY_SIZE = 200;
 export const useInputHistory = () => {
   const history = useRef<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [historySize, setHistorySize] = useState(0);
   const [searchMode, setSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<string[]>([]);
@@ -18,9 +18,10 @@ export const useInputHistory = () => {
     // Deduplicate: don't add if same as last entry
     if (history.current[history.current.length - 1] === entry) return;
     history.current.push(entry);
-    if (history.current.length > MAX_HISTORY_SIZE) {
+    if (history.current.length > INPUT_HISTORY_MAX_SIZE) {
       history.current.shift();
     }
+    setHistorySize(history.current.length);
     setHistoryIndex(-1);
   }, []);
 
@@ -94,6 +95,6 @@ export const useInputHistory = () => {
     searchMode,
     searchQuery,
     searchResults,
-    historySize: history.current.length,
+    historySize,
   };
 };
