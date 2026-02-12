@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import {
   parseCursorAboutOutput,
+  parseCursorLoginOutput,
+  parseCursorLogoutOutput,
   parseCursorMcpListOutput,
   parseCursorModelsOutput,
   parseCursorStatusOutput,
@@ -68,5 +70,27 @@ describe("cursor-command-parsers", () => {
       name: "context7",
       status: "connected",
     });
+  });
+
+  it("parses login output with authenticated email", () => {
+    const parsed = parseCursorLoginOutput("Authenticated as dev@example.com", "");
+
+    expect(parsed.success).toBe(true);
+    expect(parsed.email).toBe("dev@example.com");
+  });
+
+  it("parses login output with browser hint", () => {
+    const parsed = parseCursorLoginOutput("Opening browser for login...", "");
+
+    expect(parsed.success).toBe(true);
+    expect(parsed.requiresBrowser).toBe(true);
+  });
+
+  it("parses logout output status", () => {
+    const success = parseCursorLogoutOutput("Logged out successfully", "");
+    const failure = parseCursorLogoutOutput("", "Not logged in");
+
+    expect(success.success).toBe(true);
+    expect(failure.success).toBe(false);
   });
 });

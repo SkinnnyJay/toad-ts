@@ -25,6 +25,9 @@ const CURSOR_ABOUT_KEY = {
 const CURSOR_REGEX = {
   MODEL_LINE: /^(\S+)\s+-\s+(.+?)(?:\s{2,}\((.+)\))?$/,
   AUTH_EMAIL: /Logged in as\s+([^\s]+)/,
+  LOGIN_EMAIL: /(Logged in as|Authenticated as)\s+([^\s]+)/i,
+  LOGIN_BROWSER_HINT: /(open|opening).+browser|https?:\/\/\S+/i,
+  LOGOUT_SUCCESS: /(logged out|logout completed|signed out)/i,
   ABOUT_LINE: /^(.+?)\s{2,}(.+)$/,
   MCP_LIST_LINE: /^([^:]+):\s*(.+?)(?:\s+\((.+)\))?$/,
 } as const;
@@ -89,6 +92,13 @@ export interface CursorMcpServerStatus {
   reason?: string;
 }
 
+export interface CursorAuthCommandResult {
+  success: boolean;
+  message: string;
+  email?: string;
+  requiresBrowser?: boolean;
+}
+
 export const parseCursorAboutOutput = (output: string): CursorAboutInfo => {
   const fields: Record<string, string> = {};
   for (const line of toLines(output)) {
@@ -135,6 +145,46 @@ export const parseCursorMcpListOutput = (output: string): CursorMcpServerStatus[
       };
     })
     .filter((entry): entry is CursorMcpServerStatus => entry !== null);
+};
+
+export const parseCursorLoginOutput = (stdout: string, stderr: string): CursorAuthCommandResult => {
+  const combined = `${stdout}\n${stderr}`;
+  const emailMatch = combined.match(CURSOR_REGEX.LOGIN_EMAIL);
+  if (emailMatch) {
+    return {
+      success: true,
+      email: emailMatch[2],
+      message: emailMatch[0],
+    };
+  }
+  if (CURSOR_REGEX.LOGIN_BROWSER_HINT.test(combined)) {
+    return {
+      success: true,
+      requiresBrowser: true,
+      message: toLines(combined)[0] ?? "Browser login started.",
+    };
+  }
+  return {
+    success: false,
+    message: toLines(combined)[0] ?? "No login output.",
+  };
+};
+
+export const parseCursorLogoutOutput = (
+  stdout: string,
+  stderr: string
+): CursorAuthCommandResult => {
+  const combined = `${stdout}\n${stderr}`;
+  if (CURSOR_REGEX.LOGOUT_SUCCESS.test(combined)) {
+    return {
+      success: true,
+      message: toLines(combined)[0] ?? "Logout completed.",
+    };
+  }
+  return {
+    success: false,
+    message: toLines(combined)[0] ?? "No logout output.",
+  };
 };
 
 const parseCursorModelLine = (line: string): CliAgentModel | null => {
