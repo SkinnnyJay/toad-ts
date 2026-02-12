@@ -1,7 +1,9 @@
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { ENV_KEY } from "@/constants/env-keys";
+import { PERMISSION } from "@/constants/permissions";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
+import { TOOL_KIND } from "@/constants/tool-kinds";
 import { CursorCliConnection } from "@/core/cursor/cursor-cli-connection";
 import { CursorCliHarnessAdapter } from "@/core/cursor/cursor-cli-harness";
 import { CursorToAcpTranslator } from "@/core/cursor/cursor-to-acp-translator";
@@ -9,6 +11,7 @@ import type { HookIpcEndpoint, HookIpcServerHandlers } from "@/core/cursor/hook-
 import { HookIpcServer } from "@/core/cursor/hook-ipc-server";
 import { HooksConfigGenerator } from "@/core/cursor/hooks-config-generator";
 import { harnessConfigSchema } from "@/harness/harnessConfig";
+import { setRulesState } from "@/rules/rules-service";
 import { describe, expect, it } from "vitest";
 
 class FakeConnection extends CursorCliConnection {
@@ -267,5 +270,34 @@ describe("CursorCliHarnessAdapter", () => {
     expect(
       updates.some((update) => update.updateType === SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE)
     ).toBe(true);
+  });
+
+  it("emits permission request events and applies tool-kind permission rules", async () => {
+    setRulesState({
+      rules: [],
+      permissions: {
+        [TOOL_KIND.EXECUTE]: PERMISSION.DENY,
+      },
+    });
+    const { harness, hookServer } = createHarness();
+    const requests: string[] = [];
+    harness.on("permissionRequest", (request) => {
+      requests.push(request.toolCall?.kind ?? "");
+    });
+    await harness.connect();
+
+    const shellResponse = await hookServer.handlers?.permissionRequest?.({
+      payload: {
+        conversation_id: "conv-1",
+        generation_id: "gen-1",
+        model: "opus",
+        hook_event_name: CURSOR_HOOK_EVENT.BEFORE_SHELL_EXECUTION,
+        command: "echo hello",
+      },
+    });
+
+    expect(requests).toContain(TOOL_KIND.EXECUTE);
+    expect(shellResponse).toMatchObject({ permission: PERMISSION.DENY });
+    setRulesState({ rules: [], permissions: {} });
   });
 });

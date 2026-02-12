@@ -3,8 +3,9 @@ import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
-import { PERMISSION } from "@/constants/permissions";
+import { PERMISSION, type Permission } from "@/constants/permissions";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
+import { TOOL_KIND, type ToolKind } from "@/constants/tool-kinds";
 import { CliAgentBase } from "@/core/cli-agent/cli-agent.base";
 import { createCliHarnessAdapter } from "@/core/cli-agent/create-cli-harness-adapter";
 import { CursorCliConnection } from "@/core/cursor/cursor-cli-connection";
@@ -28,6 +29,7 @@ import type {
   NewSessionResponse,
   PromptRequest,
   PromptResponse,
+  RequestPermissionRequest,
   SessionNotification,
   SetSessionModeRequest,
   SetSessionModeResponse,
@@ -97,7 +99,7 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
     }
 
     this.hookIpcServer.setHandlers({
-      permissionRequest: async () => ({ decision: PERMISSION.ALLOW }),
+      permissionRequest: async ({ payload }) => this.handleHookPermissionRequest(payload),
       contextInjection: async () => {
         const rules = getRulesState().rules;
         if (rules.length === 0) {
@@ -194,6 +196,144 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
 
   private resolveHookSessionId(payload: CursorHookInput): string {
     return payload.session_id ?? payload.conversation_id;
+  }
+
+  private async handleHookPermissionRequest(
+    payload: CursorHookInput
+  ): Promise<Record<string, unknown>> {
+    const decision = this.resolvePermissionDecision(payload);
+    this.emitPermissionRequest(payload);
+
+    if (
+      payload.hook_event_name === CURSOR_HOOK_EVENT.PRE_TOOL_USE ||
+      payload.hook_event_name === CURSOR_HOOK_EVENT.SUBAGENT_START
+    ) {
+      return { decision };
+    }
+
+    return { permission: decision };
+  }
+
+  private emitPermissionRequest(payload: CursorHookInput): void {
+    const request = this.toPermissionRequest(payload);
+    if (!request) {
+      return;
+    }
+    this.emit("permissionRequest", request);
+  }
+
+  private toPermissionRequest(payload: CursorHookInput): RequestPermissionRequest | null {
+    const sessionId = this.resolveHookSessionId(payload);
+    const toolCallId = payload.generation_id;
+    if (!toolCallId) {
+      return null;
+    }
+
+    return {
+      sessionId,
+      toolCall: {
+        toolCallId,
+        title: this.getPermissionTitle(payload),
+        kind: this.deriveToolKind(payload),
+        rawInput: this.toPermissionRawInput(payload),
+      },
+      options: [
+        { optionId: PERMISSION.ALLOW, kind: "allow_once", name: "Allow once" },
+        { optionId: PERMISSION.DENY, kind: "reject_once", name: "Reject once" },
+      ],
+    };
+  }
+
+  private toPermissionRawInput(payload: CursorHookInput): Record<string, unknown> {
+    const record = this.toRecord(payload);
+    if (!record) {
+      return {};
+    }
+    const eventName = record.hook_event_name;
+    const command = record.command;
+    const toolName = record.tool_name;
+    const filePath = record.path;
+    return {
+      hook_event_name: eventName,
+      ...(command !== undefined ? { command } : {}),
+      ...(toolName !== undefined ? { tool_name: toolName } : {}),
+      ...(filePath !== undefined ? { path: filePath } : {}),
+    };
+  }
+
+  private resolvePermissionDecision(payload: CursorHookInput): Permission {
+    const globalPermissions = getRulesState().permissions;
+    const toolKind = this.deriveToolKind(payload);
+    return globalPermissions[toolKind] ?? PERMISSION.ALLOW;
+  }
+
+  private getPermissionTitle(payload: CursorHookInput): string {
+    if (payload.hook_event_name === CURSOR_HOOK_EVENT.BEFORE_SHELL_EXECUTION) {
+      return this.getStringField(payload, "command") ?? payload.hook_event_name;
+    }
+    if (
+      payload.hook_event_name === CURSOR_HOOK_EVENT.PRE_TOOL_USE ||
+      payload.hook_event_name === CURSOR_HOOK_EVENT.BEFORE_MCP_EXECUTION
+    ) {
+      return this.getStringField(payload, "tool_name") ?? payload.hook_event_name;
+    }
+    if (payload.hook_event_name === CURSOR_HOOK_EVENT.BEFORE_READ_FILE) {
+      return this.getStringField(payload, "path") ?? payload.hook_event_name;
+    }
+    return payload.hook_event_name;
+  }
+
+  private deriveToolKind(payload: CursorHookInput): ToolKind {
+    switch (payload.hook_event_name) {
+      case CURSOR_HOOK_EVENT.BEFORE_READ_FILE:
+        return TOOL_KIND.READ;
+      case CURSOR_HOOK_EVENT.BEFORE_SHELL_EXECUTION:
+        return TOOL_KIND.EXECUTE;
+      case CURSOR_HOOK_EVENT.BEFORE_MCP_EXECUTION:
+        return TOOL_KIND.FETCH;
+      case CURSOR_HOOK_EVENT.SUBAGENT_START:
+        return TOOL_KIND.THINK;
+      case CURSOR_HOOK_EVENT.PRE_TOOL_USE:
+        return this.deriveToolKindFromName(this.getStringField(payload, "tool_name"));
+      default:
+        return TOOL_KIND.OTHER;
+    }
+  }
+
+  private deriveToolKindFromName(toolName: string | undefined): ToolKind {
+    if (!toolName) {
+      return TOOL_KIND.OTHER;
+    }
+    const normalized = toolName.toLowerCase();
+    if (normalized.includes("read")) {
+      return TOOL_KIND.READ;
+    }
+    if (
+      normalized.includes("edit") ||
+      normalized.includes("write") ||
+      normalized.includes("patch") ||
+      normalized.includes("replace")
+    ) {
+      return TOOL_KIND.EDIT;
+    }
+    if (
+      normalized.includes("search") ||
+      normalized.includes("grep") ||
+      normalized.includes("glob")
+    ) {
+      return TOOL_KIND.SEARCH;
+    }
+    if (
+      normalized.includes("shell") ||
+      normalized.includes("bash") ||
+      normalized.includes("exec")
+    ) {
+      return TOOL_KIND.EXECUTE;
+    }
+    if (normalized.includes("fetch") || normalized.includes("web")) {
+      return TOOL_KIND.FETCH;
+    }
+    return TOOL_KIND.OTHER;
   }
 
   private async handleAfterAgentThought(
