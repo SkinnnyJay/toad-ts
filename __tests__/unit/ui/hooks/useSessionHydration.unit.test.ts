@@ -2,7 +2,7 @@ import { UI } from "@/config/ui";
 import { RENDER_STAGE } from "@/constants/render-stage";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import { AgentIdSchema } from "@/types/domain";
-import { buildAgentOptions } from "@/ui/hooks/useSessionHydration";
+import { buildAgentOptions, filterHarnessConfigs } from "@/ui/hooks/useSessionHydration";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("useSessionHydration", () => {
@@ -74,6 +74,42 @@ describe("useSessionHydration", () => {
       const { infoMap } = buildAgentOptions(harnesses);
 
       expect(infoMap.get(AgentIdSchema.parse("simple-agent"))?.description).toBeUndefined();
+    });
+  });
+
+  describe("filterHarnessConfigs", () => {
+    it("filters harnesses by enabled ids", () => {
+      const harnesses: Record<string, HarnessConfig> = {
+        "claude-cli": {
+          id: "claude-cli",
+          name: "Claude CLI",
+          command: "claude",
+          args: [],
+        },
+        "cursor-cli": {
+          id: "cursor-cli",
+          name: "Cursor CLI",
+          command: "cursor-agent",
+          args: [],
+        },
+      };
+
+      const filtered = filterHarnessConfigs(harnesses, new Set(["claude-cli"]));
+      expect(Object.keys(filtered)).toEqual(["claude-cli"]);
+    });
+
+    it("returns original harnesses when filter removes everything", () => {
+      const harnesses: Record<string, HarnessConfig> = {
+        "cursor-cli": {
+          id: "cursor-cli",
+          name: "Cursor CLI",
+          command: "cursor-agent",
+          args: [],
+        },
+      };
+
+      const filtered = filterHarnessConfigs(harnesses, new Set(["claude-cli"]));
+      expect(Object.keys(filtered)).toEqual(["cursor-cli"]);
     });
   });
 

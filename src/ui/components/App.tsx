@@ -25,7 +25,7 @@ import {
   loadSkills,
 } from "@/core/cross-tool";
 import { SessionStream } from "@/core/session-stream";
-import { createHarnessRegistry } from "@/harness/harnessRegistryFactory";
+import { createHarnessAdapterList, createHarnessRegistry } from "@/harness/harnessRegistryFactory";
 import { useAppStore } from "@/store/app-store";
 import { useBackgroundTaskStore } from "@/store/background-task-store";
 import { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
@@ -105,6 +105,15 @@ export function App(): ReactNode {
     return new PersistenceManager(useAppStore, provider, { writeMode, batchDelay });
   }, [persistenceConfig]);
   const checkpointManager = useMemo(() => new CheckpointManager(useAppStore), []);
+  const { config: appConfig, updateConfig } = useAppConfig();
+  const enabledHarnessIds = useMemo(() => {
+    return new Set(
+      createHarnessAdapterList({
+        enableCursor: appConfig.compatibility.cursor,
+        includeMock: false,
+      }).map((adapter) => adapter.id)
+    );
+  }, [appConfig.compatibility.cursor]);
   const {
     isHydrated,
     hasHarnesses,
@@ -124,8 +133,8 @@ export function App(): ReactNode {
     persistenceManager,
     initialProgress: 5,
     initialStatusMessage: "Preparing…",
+    enabledHarnessIds,
   });
-  const { config: appConfig, updateConfig } = useAppConfig();
   const configDefaultAgentId = useMemo(() => {
     const candidate = appConfig.defaults?.agent;
     if (!candidate) {
