@@ -42,6 +42,8 @@ const CLOUD_AGENT_SUBCOMMAND = {
   CONVERSATION: "conversation",
 } as const;
 
+const CLOUD_DEFAULT_LIST_LIMIT = 10;
+
 const CLOUD_AGENT_MESSAGE = {
   CURSOR_ONLY: "Cloud commands require the active Cursor CLI harness.",
   USAGE:
@@ -68,14 +70,15 @@ const parseCloudListArgs = (
 } => {
   const [firstArg, secondArg] = args;
   const parsedLimit = Number.parseInt(firstArg ?? "", 10);
-  if (!Number.isNaN(parsedLimit) && parsedLimit > 0) {
+  const hasNumericPrefix = firstArg !== undefined && /^\d+$/.test(firstArg.trim());
+  if (hasNumericPrefix) {
     return {
-      limit: parsedLimit,
+      limit: parsedLimit > 0 ? parsedLimit : CLOUD_DEFAULT_LIST_LIMIT,
       cursor: secondArg?.trim() || undefined,
     };
   }
   return {
-    limit: 10,
+    limit: CLOUD_DEFAULT_LIST_LIMIT,
     cursor: firstArg?.trim() || undefined,
   };
 };

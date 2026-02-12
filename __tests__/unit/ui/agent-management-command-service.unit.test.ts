@@ -210,6 +210,40 @@ describe("agent-management-command-service", () => {
     });
   });
 
+  it("falls back to default cloud list limit for zero values", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+    const cloudClient = {
+      listAgents: vi.fn(async () => ({
+        items: [{ id: "cloud-agent-5", status: "running" }],
+      })),
+      launchAgent: vi.fn(),
+      waitForAgentStatus: vi.fn(),
+      stopAgent: vi.fn(),
+      followupAgent: vi.fn(),
+      getConversation: vi.fn(),
+    };
+
+    await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+        cloudClient,
+      },
+      ["cloud", "list", "0", "cursor-2"]
+    );
+
+    expect(cloudClient.listAgents).toHaveBeenCalledWith({
+      limit: 10,
+      cursor: "cursor-2",
+    });
+  });
+
   it("dispatches cloud agent launch via /agent cloud launch", async () => {
     const harness = harnessConfigSchema.parse({
       id: "cursor-cli",
