@@ -232,6 +232,28 @@ describe("CursorHookIpcServer", () => {
     }
   });
 
+  it("falls back to 500 when thrown statusCode is invalid", async () => {
+    const server = new CursorHookIpcServer({
+      transport: CURSOR_HOOK_IPC_TRANSPORT.HTTP,
+      additionalContextProvider: () => {
+        throw Object.assign(new Error("invalid status"), { statusCode: 42 });
+      },
+    });
+
+    try {
+      const address = await server.start();
+      const response = await postJson(
+        address.url ?? "",
+        baseHookPayload(CURSOR_HOOK_EVENT.SESSION_START)
+      );
+
+      expect(response.status).toBe(500);
+      expect(response.body.error).toBe("Hook IPC server error.");
+    } finally {
+      await server.stop();
+    }
+  });
+
   it("rejects oversized payloads with a 413 response", async () => {
     const server = new CursorHookIpcServer({
       transport: CURSOR_HOOK_IPC_TRANSPORT.HTTP,

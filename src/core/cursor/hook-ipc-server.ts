@@ -468,6 +468,14 @@ export class CursorHookIpcServer extends EventEmitter<CursorHookIpcServerEvents>
       return HTTP_STATUS.INTERNAL_SERVER_ERROR;
     }
     const statusCode = error.statusCode;
-    return typeof statusCode === "number" ? statusCode : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    if (
+      typeof statusCode !== "number" ||
+      !Number.isInteger(statusCode) ||
+      statusCode < 100 ||
+      statusCode > 599
+    ) {
+      return HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    }
+    return statusCode;
   }
 }
