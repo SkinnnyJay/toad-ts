@@ -383,7 +383,11 @@ export class CursorCliHarnessAdapter
       projectRoot: this.cwd,
       socketPath: this.hookServer.path,
     });
-    this.hooksGenerator.install();
+    const { env: hookEnv } = this.hooksGenerator.install();
+
+    // Inject TOADSTOOL_HOOK_SOCKET into the connection's spawn environment
+    // so the shim scripts can find the IPC server
+    this.connection.mergeEnv(hookEnv);
 
     logger.info("Hook server started and hooks installed", {
       socketPath: this.hookServer.path,

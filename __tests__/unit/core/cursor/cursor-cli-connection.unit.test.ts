@@ -371,6 +371,36 @@ Tip: use --model <id> to switch.`,
     });
   });
 
+  describe("mergeEnv", () => {
+    it("injects additional env vars into spawned processes", () => {
+      let capturedEnv: NodeJS.ProcessEnv | undefined;
+      const mockSpawn = vi.fn(
+        (_cmd: string, _args: string[], opts: { env?: NodeJS.ProcessEnv }) => {
+          capturedEnv = opts.env;
+          const proc = new EventEmitter() as unknown as ChildProcess;
+          Object.assign(proc, {
+            pid: 12345,
+            stdout: new EventEmitter(),
+            stderr: new EventEmitter(),
+            stdin: { write: vi.fn(), end: vi.fn() },
+            kill: vi.fn(),
+          });
+          return proc;
+        }
+      );
+
+      const connection = new CursorCliConnection({
+        spawnFn: mockSpawn as never,
+      });
+
+      connection.mergeEnv({ TOADSTOOL_HOOK_SOCKET: "/tmp/test.sock" });
+      connection.spawnPrompt({ message: "test" });
+
+      expect(capturedEnv).toBeDefined();
+      expect(capturedEnv?.TOADSTOOL_HOOK_SOCKET).toBe("/tmp/test.sock");
+    });
+  });
+
   describe("killActiveProcess", () => {
     it("kills the active process", () => {
       const killFn = vi.fn();

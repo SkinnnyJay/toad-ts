@@ -76,6 +76,8 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
   private currentSessionId: string | null = null;
   /** Whether the connection has been verified (binary + auth) */
   public isVerified = false;
+  /** Additional env vars merged at spawn time (e.g. TOADSTOOL_HOOK_SOCKET) */
+  private additionalEnv: Record<string, string> = {};
 
   constructor(options: CursorCliConnectionOptions = {}) {
     super();
@@ -101,6 +103,14 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
 
   get isPromptActive(): boolean {
     return this.activePrompt !== null;
+  }
+
+  /**
+   * Merge additional env vars into the spawn environment.
+   * Used to inject TOADSTOOL_HOOK_SOCKET after the IPC server starts.
+   */
+  mergeEnv(env: Record<string, string>): void {
+    Object.assign(this.additionalEnv, env);
   }
 
   // ── Lifecycle ──────────────────────────────────────────────
@@ -244,9 +254,10 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
       cwd: this.cwd,
     });
 
+    const spawnEnv = { ...this.env, ...this.additionalEnv };
     const child = this.spawnFn(this.command, args, {
       cwd: this.cwd,
-      env: this.env,
+      env: spawnEnv,
       stdio: ["pipe", "pipe", "pipe"],
       detached: false,
     });
