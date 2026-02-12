@@ -13,6 +13,11 @@ import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
 import { parseCursorMcpListOutput } from "@/core/cursor/cursor-command-parsers";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { Session } from "@/types/domain";
+import {
+  formatLoginResult,
+  formatMcpList,
+  formatStatusResult,
+} from "@/ui/formatters/agent-command-formatter";
 import { execa } from "execa";
 import {
   AGENT_MESSAGE,
@@ -161,19 +166,13 @@ const runMcpCommand = async (
     if (parsed.length === 0) {
       return [COMMAND_RESULT_EMPTY];
     }
-    return parsed.map((entry) => {
-      const reasonSuffix = entry.reason ? ` (${entry.reason})` : "";
-      return `- ${entry.name}: ${entry.status}${reasonSuffix}`;
-    });
+    return formatMcpList(parsed, harness.name);
   }
 
   if (subcommand === MCP_SUBCOMMAND.LIST) {
     const parsed = parseMcpListOutput(result.stdout);
     if (parsed.length > 0) {
-      return parsed.map((entry) => {
-        const reasonSuffix = entry.reason ? ` (${entry.reason})` : "";
-        return `- ${entry.name}: ${entry.status}${reasonSuffix}`;
-      });
+      return formatMcpList(parsed, harness.name);
     }
   }
 
@@ -348,10 +347,14 @@ export const runAgentCommand = async (
         return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.LOGIN)];
       }
       if (harness.id === HARNESS_ID.CURSOR_CLI || harness.id === HARNESS_ID.CODEX_CLI) {
-        return [
-          `Run \`${harness.command} ${harness.args.join(" ")} login\` in a terminal.`,
-          HARNESS_MESSAGE.LOGIN_OPENS_BROWSER,
-        ];
+        return formatLoginResult(
+          {
+            supported: true,
+            command: `${harness.command} ${harness.args.join(" ")} login`.trim(),
+            requiresBrowser: true,
+          },
+          harness.name
+        );
       }
       return [`Run \`${harness.command} ${harness.args.join(" ")} login\` in a terminal.`];
     case AGENT_MANAGEMENT_COMMAND.LOGOUT:
@@ -421,11 +424,12 @@ export const runAgentCommand = async (
         }
         if (harness.id === HARNESS_ID.CODEX_CLI) {
           const parsed = parseCodexLoginStatusOutput(result.stdout, result.stderr);
-          return [
-            `Authenticated: ${parsed.authenticated ? "yes" : "no"}`,
-            ...(parsed.email ? [`Email: ${parsed.email}`] : []),
-            `Status: ${parsed.message}`,
-          ];
+          return formatStatusResult({
+            supported: true,
+            authenticated: parsed.authenticated,
+            ...(parsed.email ? { email: parsed.email } : {}),
+            message: parsed.message,
+          });
         }
         return [result.stdout || result.stderr || "Status command produced no output."];
       }
