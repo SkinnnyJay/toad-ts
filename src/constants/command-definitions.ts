@@ -89,8 +89,13 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
     name: SLASH_COMMAND.MCP,
     description: "Run native MCP command for active provider",
-    args: "[list|enable|disable|login] [args...]",
+    args: "[list|enable|disable|list-tools|login] [args...]",
     category: "provider",
+    agents: [
+      HARNESS_DEFAULT.CLAUDE_CLI_ID,
+      HARNESS_DEFAULT.GEMINI_CLI_ID,
+      HARNESS_DEFAULT.CURSOR_CLI_ID,
+    ],
   },
   {
     name: SLASH_COMMAND.MODEL,
