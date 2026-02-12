@@ -46,6 +46,7 @@ export interface SlashCommandHandlerOptions {
   onOpenAgentSelect?: () => void;
   onOpenThemes?: () => void;
   onOpenCloudAgents?: () => void;
+  onOpenMcpServers?: () => void;
   onOpenContext?: () => void;
   onOpenHooks?: () => void;
   onOpenProgress?: () => void;
@@ -72,6 +73,7 @@ export const useSlashCommandHandler = ({
   onOpenAgentSelect,
   onOpenThemes,
   onOpenCloudAgents,
+  onOpenMcpServers,
   onOpenContext,
   onOpenHooks,
   onOpenProgress,
@@ -373,6 +375,7 @@ export const useSlashCommandHandler = ({
         openSettings: onOpenSettings,
         openThemes: onOpenThemes,
         openCloudAgents: onOpenCloudAgents,
+        openMcpPanel: onOpenMcpServers,
         openContext: onOpenContext,
         openHooks: onOpenHooks,
         openProgress: onOpenProgress,
@@ -475,6 +478,7 @@ export const useSlashCommandHandler = ({
       onOpenAgentSelect,
       onOpenThemes,
       onOpenCloudAgents,
+      onOpenMcpServers,
       onOpenContext,
       onOpenHooks,
       onOpenProgress,

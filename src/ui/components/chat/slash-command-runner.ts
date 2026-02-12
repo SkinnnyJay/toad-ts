@@ -103,6 +103,7 @@ export interface SlashCommandDeps {
   openSettings?: () => void;
   openThemes?: () => void;
   openCloudAgents?: () => void;
+  openMcpPanel?: () => void;
   openContext?: () => void;
   openHooks?: () => void;
   openProgress?: () => void;

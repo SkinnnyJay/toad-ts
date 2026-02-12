@@ -464,6 +464,10 @@ export const handleMcpCommand = (parts: string[], deps: SlashCommandDeps): void 
   }
 
   const subcommand = parts.slice(1);
+  if (subcommand.length === 0 && deps.openMcpPanel) {
+    deps.openMcpPanel();
+    return;
+  }
   const args =
     subcommand.length > 0
       ? [MANAGEMENT_COMMAND.MCP, ...subcommand]

@@ -54,6 +54,7 @@ import { ContextModal } from "@/ui/components/ContextModal";
 import { HelpModal } from "@/ui/components/HelpModal";
 import { HooksModal } from "@/ui/components/HooksModal";
 import { LoadingScreen } from "@/ui/components/LoadingScreen";
+import { McpServersModal } from "@/ui/components/McpServersModal";
 import { ProgressModal } from "@/ui/components/ProgressModal";
 import { RewindModal } from "@/ui/components/RewindModal";
 import { SessionsPopup } from "@/ui/components/SessionsPopup";
@@ -81,6 +82,11 @@ import { useAutoTitle } from "@/ui/hooks/useAutoTitle";
 import { useRepoWorkflow } from "@/ui/hooks/useRepoWorkflow";
 import { ThemeProvider } from "@/ui/theme/theme-context";
 import { applyThemeColors } from "@/ui/theme/theme-definitions";
+import {
+  type McpServerListItem,
+  parseMcpServerListCommandResult,
+  toMcpServersFromSession,
+} from "@/ui/utils/mcp-server-list";
 import { withSessionAvailableModels, withSessionModel } from "@/ui/utils/session-model-metadata";
 import { resolveSessionModelOptions } from "@/ui/utils/session-model-refresh";
 import { Env, EnvManager } from "@/utils/env/env.utils";
@@ -88,6 +94,11 @@ import { playCompletionSound } from "@/utils/sound/completion-sound.utils";
 import { TextAttributes } from "@opentui/core";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
+
+const MCP_MANAGEMENT_SUBCOMMAND = {
+  ENABLE: "enable",
+  DISABLE: "disable",
+} as const;
 
 export function App(): ReactNode {
   const [view, setView] = useState<View>(VIEW.AGENT_SELECT);
@@ -100,6 +111,10 @@ export function App(): ReactNode {
   const [cloudAgents, setCloudAgents] = useState<CloudAgentListItem[]>([]);
   const [cloudAgentsLoading, setCloudAgentsLoading] = useState(false);
   const [cloudAgentsError, setCloudAgentsError] = useState<string | null>(null);
+  const [isMcpServersOpen, setIsMcpServersOpen] = useState(false);
+  const [mcpServers, setMcpServers] = useState<McpServerListItem[]>([]);
+  const [mcpServersLoading, setMcpServersLoading] = useState(false);
+  const [mcpServersError, setMcpServersError] = useState<string | null>(null);
   const startupMeasured = useRef(false);
   const currentSessionId = useAppStore((state) => state.currentSessionId);
   const connectionStatus = useAppStore((state) => state.connectionStatus);
@@ -499,6 +514,72 @@ export function App(): ReactNode {
     [handleRefreshCloudAgents]
   );
 
+  const toSessionConfiguredMcpServers = useCallback((): McpServerListItem[] => {
+    if (!activeSessionId) {
+      return [];
+    }
+    return toMcpServersFromSession(getSession(activeSessionId));
+  }, [activeSessionId, getSession]);
+
+  const handleRefreshMcpServers = useCallback(async (): Promise<void> => {
+    const configuredServers = toSessionConfiguredMcpServers();
+    if (!client?.runAgentCommand) {
+      setMcpServers(configuredServers);
+      setMcpServersError("MCP command is not available for the active provider.");
+      return;
+    }
+    setMcpServersLoading(true);
+    setMcpServersError(null);
+    try {
+      const result = await client.runAgentCommand([
+        AGENT_MANAGEMENT_COMMAND.MCP,
+        AGENT_MANAGEMENT_COMMAND.LIST,
+      ]);
+      const parsedServers = parseMcpServerListCommandResult(result);
+      setMcpServers(parsedServers.length > 0 ? parsedServers : configuredServers);
+    } catch (error) {
+      setMcpServers(configuredServers);
+      setMcpServersError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setMcpServersLoading(false);
+    }
+  }, [client?.runAgentCommand, toSessionConfiguredMcpServers]);
+
+  const handleOpenMcpServers = useCallback(() => {
+    setIsMcpServersOpen(true);
+    void handleRefreshMcpServers();
+  }, [handleRefreshMcpServers]);
+
+  const handleEnableMcpServer = useCallback(
+    async (serverId: string): Promise<void> => {
+      if (!client?.runAgentCommand) {
+        throw new Error("MCP command is not available for the active provider.");
+      }
+      await client.runAgentCommand([
+        AGENT_MANAGEMENT_COMMAND.MCP,
+        MCP_MANAGEMENT_SUBCOMMAND.ENABLE,
+        serverId,
+      ]);
+      await handleRefreshMcpServers();
+    },
+    [client?.runAgentCommand, handleRefreshMcpServers]
+  );
+
+  const handleDisableMcpServer = useCallback(
+    async (serverId: string): Promise<void> => {
+      if (!client?.runAgentCommand) {
+        throw new Error("MCP command is not available for the active provider.");
+      }
+      await client.runAgentCommand([
+        AGENT_MANAGEMENT_COMMAND.MCP,
+        MCP_MANAGEMENT_SUBCOMMAND.DISABLE,
+        serverId,
+      ]);
+      await handleRefreshMcpServers();
+    },
+    [client?.runAgentCommand, handleRefreshMcpServers]
+  );
+
   const breadcrumbPlacement = appConfig.ui.breadcrumb.placement;
   const breadcrumbVisible = breadcrumbPlacement !== BREADCRUMB_PLACEMENT.HIDDEN;
   const workspacePath = process.cwd();
@@ -559,7 +640,12 @@ export function App(): ReactNode {
     onCyclePermissionMode: handleCyclePermissionMode,
     onRunBreadcrumbAction: handleRunBreadcrumbAction,
     hasOtherModalOpen:
-      isContextOpen || isHooksOpen || isProgressOpen || isAgentDiscoveryOpen || isCloudAgentsOpen,
+      isContextOpen ||
+      isHooksOpen ||
+      isProgressOpen ||
+      isAgentDiscoveryOpen ||
+      isCloudAgentsOpen ||
+      isMcpServersOpen,
   });
   const {
     sessions: nativeCursorSessions,
@@ -776,6 +862,17 @@ export function App(): ReactNode {
                     onStopAgent={handleStopCloudAgent}
                     onSendFollowup={handleFollowupCloudAgent}
                   />
+                ) : isMcpServersOpen ? (
+                  <McpServersModal
+                    isOpen={isMcpServersOpen}
+                    servers={mcpServers}
+                    loading={mcpServersLoading}
+                    error={mcpServersError}
+                    onClose={() => setIsMcpServersOpen(false)}
+                    onRefresh={handleRefreshMcpServers}
+                    onEnableServer={handleEnableMcpServer}
+                    onDisableServer={handleDisableMcpServer}
+                  />
                 ) : isThemesOpen ? (
                   <ThemesModal isOpen={isThemesOpen} onClose={() => setIsThemesOpen(false)} />
                 ) : isSkillsOpen ? (
@@ -815,6 +912,7 @@ export function App(): ReactNode {
                     onOpenSessions={() => setIsSessionsPopupOpen(true)}
                     onOpenThemes={() => setIsThemesOpen(true)}
                     onOpenCloudAgents={handleOpenCloudAgents}
+                    onOpenMcpServers={handleOpenMcpServers}
                     onOpenContext={() => setIsContextOpen(true)}
                     onOpenHooks={() => setIsHooksOpen(true)}
                     onOpenProgress={() => setIsProgressOpen(true)}

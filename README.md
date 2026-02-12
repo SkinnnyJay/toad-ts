@@ -207,6 +207,7 @@ export CURSOR_API_KEY=...
 - Renders hook-based file edits in the inline diff tool UI
 - Supports management commands through slash commands:
   - `/status`, `/login`, `/logout`, `/models`, `/model`, `/mcp`, `/agent`, `/cloud`
+  - `/mcp` (no subcommand) opens an interactive MCP server panel with enable/disable/refresh actions
   - `/cloud` supports list/status/stop/follow-up actions for Cursor cloud agents:
     - `/cloud` (no subcommand) opens an interactive cloud-agent panel (status, stop, follow-up, refresh)
     - `/cloud list`

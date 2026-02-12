@@ -192,6 +192,20 @@ describe("slash command agent management", () => {
     expect(runAgentCommand).toHaveBeenCalledWith(["mcp", "list"]);
   });
 
+  it("opens MCP panel when /mcp has no subcommand and panel callback exists", () => {
+    const openMcpPanel = vi.fn();
+    const runAgentCommand = vi.fn();
+    const { deps } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      openMcpPanel,
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand("/mcp", deps)).toBe(true);
+    expect(openMcpPanel).toHaveBeenCalledTimes(1);
+    expect(runAgentCommand).not.toHaveBeenCalled();
+  });
+
   it("delegates /mode updates to runtime setSessionMode when available", async () => {
     const sessionId = SessionIdSchema.parse("session-mode");
     const session: Session = {
