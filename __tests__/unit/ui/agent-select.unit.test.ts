@@ -26,4 +26,21 @@ describe("AgentSelect", () => {
     expect(frame).toContain("loading");
     expect(frame).toContain("error");
   });
+
+  it("uses sequential numbering when rendered with two columns", () => {
+    const { lastFrame } = renderInk(
+      React.createElement(AgentSelect, {
+        agents,
+        onSelect: () => {},
+      }),
+      {
+        width: 52,
+      }
+    );
+
+    const frame = lastFrame();
+    expect(frame).toContain("1. One");
+    expect(frame).toContain("2. Two");
+    expect(frame).toContain("3. Three");
+  });
 });

@@ -134,7 +134,7 @@ export function AgentSelect({
         {rows.map((row, rowIdx) => (
           <box key={row.map((a) => a.id).join("|") || `row-${rowIdx}`} flexDirection="row" gap={2}>
             {row.map((agent, colIdx) => {
-              const idx = rowIdx * 3 + colIdx;
+              const idx = rowIdx * cols + colIdx;
               const selected = idx === index;
               const { icon, color } = statusIcon(agent.status);
               return (
