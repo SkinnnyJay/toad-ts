@@ -102,4 +102,57 @@ describe("agent management commands integration", () => {
 
     expect(lines[0]).toContain("Unsupported /agent subcommand");
   });
+
+  it("formats non-cursor /agent about command via version output", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "codex 0.1.0",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "codex-cli",
+      name: "Codex CLI",
+      command: "codex",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["about"]
+    );
+
+    expect(lines[0]).toBe("Version: codex 0.1.0");
+    expect(execaMock).toHaveBeenCalledWith(
+      "codex",
+      ["--version"],
+      expect.objectContaining({ reject: false })
+    );
+  });
+
+  it("formats claude MCP list output through command parser wrappers", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "filesystem: connected\nmemory: disabled (missing token)",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "claude-cli",
+      name: "Claude CLI",
+      command: "claude-code-acp",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.MCP, {
+      activeHarness: harness,
+    });
+
+    expect(lines).toEqual(["- filesystem: connected", "- memory: disabled (missing token)"]);
+  });
 });
