@@ -6,10 +6,7 @@ import {
 } from "@/constants/agent-management-commands";
 import {
   parseClaudeMcpListOutput,
-  parseClaudeVersionOutput,
-  parseCliVersionOutput,
   parseCodexLoginStatusOutput,
-  parseGeminiVersionOutput,
   parseMcpListOutput,
 } from "@/core/cli-agent/agent-command-parsers";
 import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
@@ -47,6 +44,7 @@ import {
   mapCursorStatusLines,
   mapMcpLines,
   mapStatusLines,
+  parseAboutVersionForHarness,
   resolveNativeCommandArgs,
   unsupportedCapabilityMessage,
 } from "./agent-management-command-resolver";
@@ -296,19 +294,6 @@ const resolveAgentRootCommand = (subcommand: string | undefined): string | undef
     default:
       return undefined;
   }
-};
-
-const parseAboutVersionForHarness = (
-  harness: HarnessConfig,
-  stdout: string
-): string | undefined => {
-  if (harness.id === HARNESS_ID.CLAUDE_CLI) {
-    return parseClaudeVersionOutput(stdout);
-  }
-  if (harness.id === HARNESS_ID.GEMINI_CLI) {
-    return parseGeminiVersionOutput(stdout);
-  }
-  return parseCliVersionOutput(stdout);
 };
 
 export const runAgentCommand = async (

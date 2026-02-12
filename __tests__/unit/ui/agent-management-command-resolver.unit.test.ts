@@ -8,6 +8,7 @@ import {
   hasCapability,
   mapClaudeStatusLines,
   mapGeminiStatusLines,
+  parseAboutVersionForHarness,
   resolveNativeCommandArgs,
   unsupportedCapabilityMessage,
 } from "@/ui/components/chat/agent-management-command-resolver";
@@ -57,6 +58,9 @@ describe("agent-management-command-resolver", () => {
     expect(resolveNativeCommandArgs(geminiHarness, AGENT_MANAGEMENT_COMMAND.STATUS)).toEqual([
       "list-sessions",
     ]);
+    expect(parseAboutVersionForHarness(claudeHarness, "claude 3.0.0")).toBe("claude 3.0.0");
+    expect(parseAboutVersionForHarness(codexHarness, "codex 0.1.0")).toBe("codex 0.1.0");
+    expect(parseAboutVersionForHarness(geminiHarness, "gemini 2.2.0")).toBe("gemini 2.2.0");
   });
 
   it("reports capability support and unsupported messaging", () => {

@@ -6,6 +6,12 @@ import {
 } from "@/constants/agent-management-commands";
 import { ENV_KEY } from "@/constants/env-keys";
 import {
+  parseClaudeVersionOutput,
+  parseCliVersionOutput,
+  parseCodexVersionOutput,
+  parseGeminiVersionOutput,
+} from "@/core/cli-agent/agent-command-parsers";
+import {
   parseCursorAboutOutput,
   parseCursorModelsOutput,
   parseCursorStatusOutput,
@@ -57,6 +63,22 @@ export const resolveNativeCommandArgs = (
     return ["list-sessions"];
   }
   return [command, ...args];
+};
+
+export const parseAboutVersionForHarness = (
+  harness: HarnessConfig,
+  stdout: string
+): string | undefined => {
+  if (harness.id === HARNESS_ID.CLAUDE_CLI) {
+    return parseClaudeVersionOutput(stdout);
+  }
+  if (harness.id === HARNESS_ID.CODEX_CLI) {
+    return parseCodexVersionOutput(stdout);
+  }
+  if (harness.id === HARNESS_ID.GEMINI_CLI) {
+    return parseGeminiVersionOutput(stdout);
+  }
+  return parseCliVersionOutput(stdout);
 };
 
 export const getMergedHarnessEnv = (harness: HarnessConfig): NodeJS.ProcessEnv => {

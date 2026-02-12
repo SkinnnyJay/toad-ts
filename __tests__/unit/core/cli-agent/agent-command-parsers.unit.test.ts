@@ -3,6 +3,7 @@ import {
   parseClaudeVersionOutput,
   parseCliVersionOutput,
   parseCodexLoginStatusOutput,
+  parseCodexVersionOutput,
   parseGeminiListSessionsOutput,
   parseGeminiVersionOutput,
   parseMcpListOutput,
@@ -18,6 +19,7 @@ describe("agent-command-parsers", () => {
   it("parses claude and gemini version wrappers", () => {
     expect(parseClaudeVersionOutput("claude 3.0.0")).toBe("claude 3.0.0");
     expect(parseGeminiVersionOutput("\n gemini 2.2.0")).toBe("gemini 2.2.0");
+    expect(parseCodexVersionOutput("codex 0.1.0")).toBe("codex 0.1.0");
   });
 
   it("parses generic mcp list output lines", () => {

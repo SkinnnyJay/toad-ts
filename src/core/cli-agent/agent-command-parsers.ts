@@ -46,6 +46,10 @@ export const parseGeminiVersionOutput = (output: string): string | undefined => 
   return parseCliVersionOutput(output);
 };
 
+export const parseCodexVersionOutput = (output: string): string | undefined => {
+  return parseCliVersionOutput(output);
+};
+
 export const parseMcpListOutput = (output: string): ParsedMcpServerStatus[] => {
   return toLines(output)
     .map((line) => {
