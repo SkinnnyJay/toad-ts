@@ -1,6 +1,13 @@
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import type { HarnessRuntime, HarnessRuntimeEvents } from "@/harness/harnessAdapter";
+import type {
+  CliAgentAboutResult,
+  CliAgentLoginResult,
+  CliAgentLogoutResult,
+  CliAgentMcpListResult,
+  CliAgentStatusResult,
+} from "@/types/cli-agent.types";
 import type { ConnectionStatus } from "@/types/domain";
 import type {
   AuthenticateRequest,
@@ -55,6 +62,15 @@ export abstract class CliAgentBase
     return textBlock.text;
   }
 
+  protected unsupportedManagementCommand(
+    command: string
+  ): Pick<CliAgentLoginResult, "supported" | "message"> {
+    return {
+      supported: false,
+      message: `${command} is not supported by this harness.`,
+    };
+  }
+
   public abstract connect(): Promise<void>;
   public abstract disconnect(): Promise<void>;
   public abstract initialize(params?: Partial<InitializeRequest>): Promise<InitializeResponse>;
@@ -66,4 +82,38 @@ export abstract class CliAgentBase
   public abstract prompt(params: PromptRequest): Promise<PromptResponse>;
   public abstract authenticate(params: AuthenticateRequest): Promise<AuthenticateResponse>;
   public abstract sessionUpdate(params: SessionNotification): Promise<void>;
+
+  public async login(): Promise<CliAgentLoginResult> {
+    return this.unsupportedManagementCommand("login");
+  }
+
+  public async logout(): Promise<CliAgentLogoutResult> {
+    return this.unsupportedManagementCommand("logout");
+  }
+
+  public async status(): Promise<CliAgentStatusResult> {
+    return this.unsupportedManagementCommand("status");
+  }
+
+  public async about(): Promise<CliAgentAboutResult> {
+    return this.unsupportedManagementCommand("about");
+  }
+
+  public async models(): Promise<{
+    supported: boolean;
+    modelIds: string[];
+    message?: string;
+  }> {
+    return {
+      ...this.unsupportedManagementCommand("models"),
+      modelIds: [],
+    };
+  }
+
+  public async mcp(): Promise<CliAgentMcpListResult> {
+    return {
+      ...this.unsupportedManagementCommand("mcp"),
+      servers: [],
+    };
+  }
 }

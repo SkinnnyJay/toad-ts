@@ -15,7 +15,7 @@ import type {
   SetSessionModelRequest,
   SetSessionModelResponse,
 } from "@agentclientprotocol/sdk";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 class TestCliAgentHarness extends CliAgentBase {
   public async connect(): Promise<void> {
@@ -109,5 +109,25 @@ describe("CliAgentBase", () => {
       prompt: [{ type: "resource_link", resourceLink: { uri: "file:///tmp/a" } }],
     });
     expect(text).toBe("");
+  });
+
+  it("returns unsupported defaults for management commands", async () => {
+    const harness = new TestCliAgentHarness();
+
+    const login = await harness.login();
+    const logout = await harness.logout();
+    const status = await harness.status();
+    const about = await harness.about();
+    const models = await harness.models();
+    const mcp = await harness.mcp();
+
+    expect(login.supported).toBe(false);
+    expect(logout.supported).toBe(false);
+    expect(status.supported).toBe(false);
+    expect(about.supported).toBe(false);
+    expect(models.supported).toBe(false);
+    expect(models.modelIds).toEqual([]);
+    expect(mcp.supported).toBe(false);
+    expect(mcp.servers).toEqual([]);
   });
 });
