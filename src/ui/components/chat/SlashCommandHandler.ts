@@ -7,6 +7,7 @@ import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { ENCODING } from "@/constants/encodings";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
+import type { SessionMode } from "@/constants/session-modes";
 import { SLASH_COMMAND_MESSAGE } from "@/constants/slash-command-messages";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
@@ -19,6 +20,7 @@ import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import { CursorCloudAgentSchema } from "@/types/cursor-cloud.types";
 import type { Message, Session, SessionId } from "@/types/domain";
+import { SessionModeSchema } from "@/types/domain";
 import { withSessionModel } from "@/ui/utils/session-model-metadata";
 import { toSessionModelOptionsFromCloudResponse } from "@/ui/utils/session-model-refresh";
 import { type SessionSwitchSeed, switchToSessionWithFallback } from "@/ui/utils/session-switcher";
@@ -341,6 +343,17 @@ export const useSlashCommandHandler = ({
           const session = getSession(sessionId);
           if (session) {
             upsertSession({ session: withSessionModel(session, modelId) });
+          }
+        },
+        setSessionMode: async (modeId: SessionMode) => {
+          if (!client?.setSessionMode || !sessionId) {
+            throw new Error("Session mode switching not supported.");
+          }
+          const mode = SessionModeSchema.parse(modeId);
+          await client.setSessionMode({ sessionId, modeId: mode });
+          const session = getSession(sessionId);
+          if (session) {
+            upsertSession({ session: { ...session, mode } });
           }
         },
         toggleToolDetails: () => {

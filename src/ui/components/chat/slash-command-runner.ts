@@ -3,6 +3,7 @@ import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands"
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { REWIND_MODE } from "@/constants/rewind-modes";
+import type { SessionMode } from "@/constants/session-modes";
 import {
   SLASH_COMMAND_MESSAGE,
   formatAgentSessionListMessage,
@@ -95,6 +96,7 @@ export interface SlashCommandDeps {
   createSession?: (title?: string) => Promise<SessionId | null>;
   switchToSession?: (sessionId: SessionId, seedSession?: SessionSwitchSeed) => boolean;
   setSessionModel?: (modelId: string) => Promise<void>;
+  setSessionMode?: (modeId: SessionMode) => Promise<void>;
   toggleToolDetails?: () => boolean;
   toggleThinking?: () => boolean;
   openEditor?: (initialValue: string) => Promise<void>;
@@ -327,6 +329,19 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       const session = deps.getSession(deps.sessionId);
       if (!session) {
         deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_SESSION_TO_UPDATE);
+        return true;
+      }
+      if (deps.setSessionMode) {
+        void deps
+          .setSessionMode(parsed.data)
+          .then(() => {
+            deps.appendSystemMessage(formatModeUpdatedMessage(parsed.data));
+          })
+          .catch((error) => {
+            deps.appendSystemMessage(
+              `Failed to update mode: ${error instanceof Error ? error.message : String(error)}`
+            );
+          });
         return true;
       }
       deps.upsertSession({ session: { ...session, mode: parsed.data } });

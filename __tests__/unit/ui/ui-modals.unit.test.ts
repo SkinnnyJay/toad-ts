@@ -52,8 +52,9 @@ describe("UI Modals", () => {
       expect(lastFrame()).not.toContain("Settings");
     });
 
-    it("renders model settings tab, content, and refresh action", async () => {
+    it("renders mode and model settings tabs, plus model refresh action", async () => {
       const onRefreshModels = vi.fn(async () => undefined);
+      const onSelectMode = vi.fn(async () => undefined);
       const { lastFrame, stdin } = renderInk(
         React.createElement(
           TruncationProvider,
@@ -64,6 +65,8 @@ describe("UI Modals", () => {
             agents: [],
             keybinds: DEFAULT_APP_CONFIG.keybinds,
             onUpdateKeybinds: () => {},
+            currentMode: "auto",
+            onSelectMode,
             availableModels: [{ modelId: "auto", name: "Auto" }],
             currentModelId: "auto",
             onSelectModel: async () => undefined,
@@ -73,6 +76,13 @@ describe("UI Modals", () => {
       );
 
       expect(lastFrame()).toContain("Model");
+      stdin.write("\x1B[C");
+      await waitFor(() => lastFrame().includes("Session Mode"));
+      expect(lastFrame()).toContain("Session Mode");
+      stdin.write("\x1B[B");
+      stdin.write("\r");
+      await waitFor(() => onSelectMode.mock.calls.length === 1);
+      expect(onSelectMode).toHaveBeenCalledWith("read-only");
       stdin.write("\x1B[C");
       await waitFor(() => lastFrame().includes("Session Model"));
       expect(lastFrame()).toContain("Session Model");

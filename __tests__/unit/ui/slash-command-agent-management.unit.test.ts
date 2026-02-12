@@ -192,6 +192,33 @@ describe("slash command agent management", () => {
     expect(runAgentCommand).toHaveBeenCalledWith(["mcp", "list"]);
   });
 
+  it("delegates /mode updates to runtime setSessionMode when available", async () => {
+    const sessionId = SessionIdSchema.parse("session-mode");
+    const session: Session = {
+      id: sessionId,
+      title: "Mode session",
+      messageIds: [],
+      createdAt: 1,
+      updatedAt: 1,
+      mode: SESSION_MODE.AUTO,
+      metadata: { mcpServers: [] },
+    };
+    const setSessionMode = vi.fn(async () => undefined);
+    const { deps, appendSystemMessage } = createDeps({
+      sessionId,
+      getSession: () => session,
+      setSessionMode,
+    });
+
+    expect(runSlashCommand("/mode read-only", deps)).toBe(true);
+    await vi.waitFor(() => {
+      expect(setSessionMode.mock.calls.length).toBe(1);
+    });
+
+    expect(setSessionMode).toHaveBeenCalledWith(SESSION_MODE.READ_ONLY);
+    expect(appendSystemMessage).toHaveBeenCalledWith("Mode updated to read-only.");
+  });
+
   it("fetches native model list when /models has no active session", async () => {
     const runAgentCommand = vi.fn(async () => ({
       stdout: "auto - Auto\nopus-4.6-thinking - Claude 4.6 Opus (Thinking) (default)",

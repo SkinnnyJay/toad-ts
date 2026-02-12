@@ -17,7 +17,7 @@ import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-m
 import { PERSISTENCE_WRITE_MODE } from "@/constants/persistence-write-modes";
 import { PLAN_STATUS } from "@/constants/plan-status";
 import { RENDER_STAGE } from "@/constants/render-stage";
-import { SESSION_MODE, getNextSessionMode } from "@/constants/session-modes";
+import { SESSION_MODE, type SessionMode, getNextSessionMode } from "@/constants/session-modes";
 import { formatModeUpdatedMessage } from "@/constants/slash-command-messages";
 import { VIEW, type View } from "@/constants/views";
 import { claudeCliHarnessAdapter } from "@/core/claude-cli-harness";
@@ -378,6 +378,26 @@ export function App(): ReactNode {
     [activeSessionId, client, getSession, upsertSession]
   );
 
+  const handleSelectSessionMode = useCallback(
+    async (modeId: SessionMode) => {
+      if (!client?.setSessionMode || !activeSessionId) {
+        throw new Error("Session mode switching not supported.");
+      }
+      await client.setSessionMode({ sessionId: activeSessionId, modeId });
+      const session = getSession(activeSessionId);
+      if (!session) {
+        return;
+      }
+      upsertSession({
+        session: {
+          ...session,
+          mode: modeId,
+        },
+      });
+    },
+    [activeSessionId, client, getSession, upsertSession]
+  );
+
   const handleRefreshSessionModels = useCallback(async () => {
     if (!activeSessionId) {
       throw new Error("No active session selected.");
@@ -719,6 +739,8 @@ export function App(): ReactNode {
                     agents={agentOptions}
                     keybinds={appConfig.keybinds}
                     onUpdateKeybinds={handleUpdateKeybinds}
+                    currentMode={activeSession?.mode}
+                    onSelectMode={handleSelectSessionMode}
                     availableModels={activeSession?.metadata?.availableModels ?? []}
                     currentModelId={activeSession?.metadata?.model}
                     onSelectModel={handleSelectSessionModel}
