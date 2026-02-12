@@ -13,13 +13,19 @@ import {
 } from "@/core/cli-agent/agent-command-parsers";
 import {
   parseCursorAboutOutput,
+  parseCursorLogoutOutput,
   parseCursorModelsOutput,
   parseCursorStatusOutput,
 } from "@/core/cursor/cursor-command-parsers";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { Session } from "@/types/domain";
+import { formatLogoutResult } from "@/ui/formatters/agent-command-formatter";
 import { EnvManager } from "@/utils/env/env.utils";
-import { COMMAND_RESULT_EMPTY, HARNESS_MESSAGE } from "./agent-management-command-helpers";
+import {
+  COMMAND_RESULT_EMPTY,
+  HARNESS_MESSAGE,
+  toHarnessCommand,
+} from "./agent-management-command-helpers";
 
 export const isCursorHarness = (harness: HarnessConfig): boolean =>
   harness.id === HARNESS_ID.CURSOR_CLI;
@@ -125,6 +131,23 @@ export const mapCursorStatusLines = (stdout: string, stderr: string): string[] =
     `Method: ${auth.method ?? "none"}`,
     `Email: ${auth.email ?? "unknown"}`,
   ];
+};
+
+export const mapCursorLogoutLines = (
+  harness: HarnessConfig,
+  stdout: string,
+  stderr: string
+): string[] => {
+  const parsed = parseCursorLogoutOutput(stdout, stderr);
+  return formatLogoutResult(
+    {
+      supported: true,
+      loggedOut: parsed.success,
+      command: toHarnessCommand(harness.command, harness.args, AGENT_MANAGEMENT_COMMAND.LOGOUT),
+      message: parsed.message,
+    },
+    harness.name
+  );
 };
 
 export const mapClaudeStatusLines = (harness: HarnessConfig): string[] => {

@@ -349,6 +349,32 @@ describe("agent-management-command-service", () => {
     expect(lines[0]).toContain("logout is not supported");
   });
 
+  it("parses cursor logout output with structured formatter lines", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "Logged out successfully",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.LOGOUT, {
+      activeHarness: harness,
+    });
+
+    expect(lines).toEqual([
+      "Logged out: yes",
+      "Command: cursor-agent logout",
+      "Logged out successfully",
+    ]);
+  });
+
   it("derives claude status from environment auth", async () => {
     const harness = harnessConfigSchema.parse({
       id: "claude-cli",

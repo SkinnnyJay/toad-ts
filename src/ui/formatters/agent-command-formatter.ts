@@ -1,6 +1,7 @@
 import type {
   CliAgentAboutResult,
   CliAgentLoginResult,
+  CliAgentLogoutResult,
   CliAgentMcpServer,
   CliAgentModelsResult,
   CliAgentStatusResult,
@@ -50,6 +51,21 @@ export const formatStatusResult = (result: CliAgentStatusResult): string[] => {
     lines.push(`Status: ${result.message}`);
   }
   return lines.length > 0 ? lines : ["Status command produced no output."];
+};
+
+export const formatLogoutResult = (result: CliAgentLogoutResult, agentName: string): string[] => {
+  if (!result.supported) {
+    return [`${agentName}: logout is not supported.`];
+  }
+  const lines: string[] = [];
+  lines.push(`Logged out: ${result.loggedOut ? "yes" : "no"}`);
+  if (result.command) {
+    lines.push(`Command: ${result.command}`);
+  }
+  if (result.message) {
+    lines.push(result.message);
+  }
+  return lines;
 };
 
 export const formatMcpList = (servers: CliAgentMcpServer[], agentName: string): string[] => {

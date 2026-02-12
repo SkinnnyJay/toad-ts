@@ -33,6 +33,7 @@ import {
   MCP_SUBCOMMAND,
   parseCloudListArgs,
   toErrorMessage,
+  toHarnessCommand,
 } from "./agent-management-command-helpers";
 import {
   getMergedHarnessEnv,
@@ -40,6 +41,7 @@ import {
   isCursorHarness,
   mapClaudeStatusLines,
   mapCursorAboutLines,
+  mapCursorLogoutLines,
   mapCursorModelLines,
   mapCursorStatusLines,
   mapMcpLines,
@@ -363,13 +365,19 @@ export const runAgentCommand = async (
         return formatLoginResult(
           {
             supported: true,
-            command: `${harness.command} ${harness.args.join(" ")} login`.trim(),
+            command: toHarnessCommand(
+              harness.command,
+              harness.args,
+              AGENT_MANAGEMENT_COMMAND.LOGIN
+            ),
             requiresBrowser: true,
           },
           harness.name
         );
       }
-      return [`Run \`${harness.command} ${harness.args.join(" ")} login\` in a terminal.`];
+      return [
+        `Run \`${toHarnessCommand(harness.command, harness.args, AGENT_MANAGEMENT_COMMAND.LOGIN)}\` in a terminal.`,
+      ];
     case AGENT_MANAGEMENT_COMMAND.LOGOUT:
       if (!harness) {
         return [HARNESS_MESSAGE.NO_ACTIVE_HARNESS];
@@ -382,6 +390,9 @@ export const runAgentCommand = async (
           harness,
           resolveNativeCommandArgs(harness, AGENT_MANAGEMENT_COMMAND.LOGOUT)
         );
+        if (harness.id === HARNESS_ID.CURSOR_CLI) {
+          return mapCursorLogoutLines(harness, result.stdout, result.stderr);
+        }
         if (result.exitCode !== 0) {
           return [
             `Logout command failed for ${harness.name}.`,

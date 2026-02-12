@@ -2,6 +2,7 @@ import {
   CLOUD_DEFAULT_LIST_LIMIT,
   parseCloudListArgs,
   toErrorMessage,
+  toHarnessCommand,
 } from "@/ui/components/chat/agent-management-command-helpers";
 import { describe, expect, it } from "vitest";
 
@@ -30,5 +31,12 @@ describe("agent-management-command-helpers", () => {
   it("formats unknown and Error values for display", () => {
     expect(toErrorMessage(new Error("boom"))).toBe("boom");
     expect(toErrorMessage("plain-text")).toBe("plain-text");
+  });
+
+  it("builds harness command strings without double spaces", () => {
+    expect(toHarnessCommand("cursor-agent", [], "logout")).toBe("cursor-agent logout");
+    expect(toHarnessCommand("codex", ["--profile", "dev"], "login")).toBe(
+      "codex --profile dev login"
+    );
   });
 });

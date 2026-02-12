@@ -337,6 +337,32 @@ describe("agent management commands integration", () => {
     expect(lines[1]).toContain("browser");
   });
 
+  it("formats cursor logout command result", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "Logged out successfully",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.LOGOUT, {
+      activeHarness: harness,
+    });
+
+    expect(lines).toEqual([
+      "Logged out: yes",
+      "Command: cursor-agent logout",
+      "Logged out successfully",
+    ]);
+  });
+
   it("returns model fallback hint when listing unsupported for codex", async () => {
     const harness = harnessConfigSchema.parse({
       id: "codex-cli",

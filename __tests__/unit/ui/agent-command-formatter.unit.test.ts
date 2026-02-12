@@ -1,6 +1,7 @@
 import {
   formatAboutResult,
   formatLoginResult,
+  formatLogoutResult,
   formatMcpList,
   formatModelsResult,
   formatStatusResult,
@@ -53,6 +54,24 @@ describe("agent-command-formatter", () => {
     );
 
     expect(lines).toEqual(["- filesystem: connected", "- memory: disabled (missing token)"]);
+  });
+
+  it("formats logout result with stable message ordering", () => {
+    const lines = formatLogoutResult(
+      {
+        supported: true,
+        loggedOut: true,
+        command: "cursor-agent logout",
+        message: "Logged out successfully",
+      },
+      "Cursor CLI"
+    );
+
+    expect(lines).toEqual([
+      "Logged out: yes",
+      "Command: cursor-agent logout",
+      "Logged out successfully",
+    ]);
   });
 
   it("formats models results with active model footer", () => {

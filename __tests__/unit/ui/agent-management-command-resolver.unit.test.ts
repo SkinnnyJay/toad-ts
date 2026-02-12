@@ -7,6 +7,7 @@ import { harnessConfigSchema } from "@/harness/harnessConfig";
 import {
   hasCapability,
   mapClaudeStatusLines,
+  mapCursorLogoutLines,
   mapGeminiStatusLines,
   parseAboutVersionForHarness,
   resolveNativeCommandArgs,
@@ -103,6 +104,22 @@ describe("agent-management-command-resolver", () => {
       "Authenticated: yes",
       "Method: api_key",
       "Key source: GEMINI_API_KEY",
+    ]);
+  });
+
+  it("formats cursor logout parser output via resolver mapper", () => {
+    const cursorHarness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    expect(mapCursorLogoutLines(cursorHarness, "Logged out successfully", "")).toEqual([
+      "Logged out: yes",
+      "Command: cursor-agent logout",
+      "Logged out successfully",
     ]);
   });
 });

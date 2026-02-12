@@ -65,6 +65,14 @@ export const toErrorMessage = (error: unknown): string => {
   return String(error);
 };
 
+export const toHarnessCommand = (
+  harnessCommand: string,
+  harnessArgs: string[],
+  subcommand: string
+): string => {
+  return [harnessCommand, ...harnessArgs, subcommand].join(" ").trim();
+};
+
 export const parseCloudListArgs = (
   args: string[]
 ): {
