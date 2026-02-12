@@ -16,6 +16,7 @@ import { parseCursorMcpListOutput } from "@/core/cursor/cursor-command-parsers";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { Session } from "@/types/domain";
 import {
+  formatAboutResult,
   formatLoginResult,
   formatMcpList,
   formatModelsResult,
@@ -341,7 +342,14 @@ export const runAgentCommand = async (
           return mapCursorAboutLines(result.stdout);
         }
         const version = parseAboutVersionForHarness(harness, result.stdout);
-        return [version ? `Version: ${version}` : result.stdout || COMMAND_RESULT_EMPTY];
+        return formatAboutResult(
+          {
+            supported: true,
+            version,
+            message: !version ? result.stdout || COMMAND_RESULT_EMPTY : undefined,
+          },
+          harness.name
+        );
       }
       {
         const delegatedCommand = resolveAgentRootCommand(args[0]);
@@ -412,7 +420,14 @@ export const runAgentCommand = async (
           return mapCursorAboutLines(result.stdout);
         }
         const version = parseAboutVersionForHarness(harness, result.stdout);
-        return [version ? `Version: ${version}` : result.stdout || COMMAND_RESULT_EMPTY];
+        return formatAboutResult(
+          {
+            supported: true,
+            version,
+            message: !version ? result.stdout || COMMAND_RESULT_EMPTY : undefined,
+          },
+          harness.name
+        );
       }
     case AGENT_MANAGEMENT_COMMAND.STATUS:
       if (!harness) {

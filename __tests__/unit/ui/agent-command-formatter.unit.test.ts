@@ -1,4 +1,5 @@
 import {
+  formatAboutResult,
   formatLoginResult,
   formatMcpList,
   formatModelsResult,
@@ -65,5 +66,19 @@ describe("agent-command-formatter", () => {
     );
 
     expect(lines).toEqual(["- gpt-5", "- claude-sonnet-4", "Active model: gpt-5"]);
+  });
+
+  it("formats about results with structured output", () => {
+    const lines = formatAboutResult(
+      {
+        supported: true,
+        version: "1.2.3",
+        os: "linux",
+        shell: "bash",
+      },
+      "Codex CLI"
+    );
+
+    expect(lines).toEqual(["Version: 1.2.3", "OS: linux", "Shell: bash"]);
   });
 });

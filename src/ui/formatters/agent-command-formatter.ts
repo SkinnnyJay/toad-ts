@@ -1,4 +1,5 @@
 import type {
+  CliAgentAboutResult,
   CliAgentLoginResult,
   CliAgentMcpServer,
   CliAgentModelsResult,
@@ -76,4 +77,30 @@ export const formatModelsResult = (result: CliAgentModelsResult, agentName: stri
     lines.push(result.message);
   }
   return lines;
+};
+
+export const formatAboutResult = (result: CliAgentAboutResult, agentName: string): string[] => {
+  if (!result.supported) {
+    return [`${agentName}: about is not supported.`];
+  }
+  const lines: string[] = [];
+  if (result.version) {
+    lines.push(`Version: ${result.version}`);
+  }
+  if (result.model) {
+    lines.push(`Model: ${result.model}`);
+  }
+  if (result.os) {
+    lines.push(`OS: ${result.os}`);
+  }
+  if (result.shell) {
+    lines.push(`Shell: ${result.shell}`);
+  }
+  if (result.userEmail) {
+    lines.push(`User: ${result.userEmail}`);
+  }
+  if (result.message) {
+    lines.push(result.message);
+  }
+  return lines.length > 0 ? lines : [`No about output returned by ${agentName}.`];
 };
