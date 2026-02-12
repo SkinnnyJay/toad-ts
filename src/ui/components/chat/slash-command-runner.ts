@@ -17,6 +17,7 @@ import {
   formatSessionCreatedMessage,
   formatSessionListMessage,
   formatSessionRenamedMessage,
+  formatSessionSwitchFailedMessage,
   formatSessionSwitchedMessage,
   formatThinkingMessage,
   formatToolDetailsMessage,
@@ -187,7 +188,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         if (switched) {
           deps.appendSystemMessage(formatSessionSwitchedMessage(targetSessionId));
         } else {
-          deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_SESSION_TO_UPDATE);
+          deps.appendSystemMessage(formatSessionSwitchFailedMessage(targetSessionId));
         }
         return true;
       }

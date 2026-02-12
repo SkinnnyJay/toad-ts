@@ -506,6 +506,20 @@ describe("slash command agent management", () => {
     expect(appendSystemMessage).toHaveBeenCalledWith("Switched to session: resumed-session-id");
   });
 
+  it("reports when /sessions <id> fails to switch sessions", () => {
+    const switchToSession = vi.fn(() => false);
+    const { deps, appendSystemMessage } = createDeps({
+      switchToSession,
+    });
+
+    expect(runSlashCommand("/sessions resumed-session-id", deps)).toBe(true);
+
+    expect(switchToSession).toHaveBeenCalledWith("resumed-session-id");
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      "Unable to switch to session. resumed-session-id"
+    );
+  });
+
   it("reports unsupported session switching when handler is unavailable", () => {
     const { deps, appendSystemMessage } = createDeps();
 
