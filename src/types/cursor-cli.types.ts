@@ -10,10 +10,23 @@ const cursorTextContentBlockSchema = z
   })
   .passthrough();
 
+const cursorThinkingContentBlockSchema = z
+  .object({
+    // External Cursor protocol content block type.
+    type: z.literal(CONTENT_BLOCK_TYPE.THINKING),
+    text: z.string(),
+  })
+  .passthrough();
+
+const cursorContentBlockSchema = z.union([
+  cursorTextContentBlockSchema,
+  cursorThinkingContentBlockSchema,
+]);
+
 const cursorMessageSchema = z
   .object({
     role: z.string().min(1),
-    content: z.array(cursorTextContentBlockSchema),
+    content: z.array(cursorContentBlockSchema),
   })
   .passthrough();
 

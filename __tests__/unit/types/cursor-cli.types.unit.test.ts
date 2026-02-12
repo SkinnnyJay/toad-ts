@@ -71,4 +71,22 @@ describe("cursor-cli types", () => {
     });
     expect(parsed.success).toBe(false);
   });
+
+  it("parses assistant thinking content blocks", () => {
+    const parsed = cursorStreamEvent.parse({
+      type: "assistant",
+      session_id: "session-1",
+      message: {
+        role: "assistant",
+        content: [
+          {
+            type: "thinking",
+            text: "Need to inspect project files first.",
+          },
+        ],
+      },
+    });
+    expect(parsed.type).toBe("assistant");
+    expect(parsed.message.content[0]?.type).toBe("thinking");
+  });
 });

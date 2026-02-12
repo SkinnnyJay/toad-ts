@@ -98,4 +98,30 @@ describe("CursorToAcpTranslator", () => {
     expect(errors).toHaveLength(1);
     expect(errors[0]?.message).toContain("process crashed");
   });
+
+  it("maps assistant thinking blocks to thought chunks", () => {
+    const translator = new CursorToAcpTranslator();
+    const updates: SessionNotification[] = [];
+    translator.on("sessionUpdate", (update) => updates.push(update));
+
+    const event = cursorStreamEvent.parse({
+      type: "assistant",
+      session_id: "session-1",
+      message: {
+        role: "assistant",
+        content: [
+          {
+            type: "thinking",
+            text: "I should inspect the file tree first.",
+          },
+        ],
+      },
+    });
+
+    translator.handleEvent(event);
+
+    expect(updates).toHaveLength(1);
+    expect(updates[0]?.update.sessionUpdate).toBe(SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK);
+    expect(updates[0]?.update.content?.text).toContain("inspect the file tree");
+  });
 });

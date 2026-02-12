@@ -180,13 +180,18 @@ export class CursorToAcpTranslator extends EventEmitter<CursorToAcpTranslatorEve
       | typeof SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK
   ): void {
     for (const block of contentBlocks) {
-      if (block.type !== CONTENT_BLOCK_TYPE.TEXT) {
+      if (block.type !== CONTENT_BLOCK_TYPE.TEXT && block.type !== CONTENT_BLOCK_TYPE.THINKING) {
         continue;
       }
+      const updateType =
+        block.type === CONTENT_BLOCK_TYPE.THINKING &&
+        sessionUpdateType === SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK
+          ? SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK
+          : sessionUpdateType;
       const update: SessionNotification = {
         sessionId,
         update: {
-          sessionUpdate: sessionUpdateType,
+          sessionUpdate: updateType,
           content: {
             // ACP external content block type.
             type: CONTENT_BLOCK_TYPE.TEXT,
