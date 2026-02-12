@@ -285,7 +285,7 @@ export const runAgentCommand = async (
   switch (command) {
     case AGENT_MANAGEMENT_COMMAND.AGENT:
       if (args.length === 0) {
-        return mapStatusLines(context);
+        return runAgentCommand(AGENT_MANAGEMENT_COMMAND.STATUS, context);
       }
       if (args[0] === AGENT_SUBCOMMAND.CLOUD) {
         return runCloudAgentCommand(context, args.slice(1));

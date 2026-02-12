@@ -62,12 +62,19 @@ const createDeps = (appendSystemMessage: (text: string) => void): SlashCommandDe
 
 describe("slash-command-runner", () => {
   it("handles /agent command", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "Logged in as dev@example.com",
+      stderr: "",
+      exitCode: 0,
+    });
     const appendSystemMessage = vi.fn();
     const handled = runSlashCommand(SLASH_COMMAND.AGENT, createDeps(appendSystemMessage));
-    await Promise.resolve();
+    await vi.waitFor(() => {
+      expect(appendSystemMessage).toHaveBeenCalled();
+    });
 
     expect(handled).toBe(true);
-    expect(appendSystemMessage).toHaveBeenCalled();
   });
 
   it("handles /mcp command", async () => {

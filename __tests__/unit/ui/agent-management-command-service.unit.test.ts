@@ -41,6 +41,33 @@ describe("agent-management-command-service", () => {
     expect(lines.some((line) => line.includes("Agent: Cursor"))).toBe(true);
   });
 
+  it("defaults /agent to status flow for active harness", async () => {
+    const execaMock = await getExecaMock();
+    const statusOutput = readFileSync(
+      path.join(process.cwd(), "__tests__/fixtures/cursor/status-output.txt"),
+      "utf8"
+    );
+    execaMock.mockResolvedValue({
+      stdout: statusOutput,
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.AGENT, {
+      activeHarness: harness,
+    });
+
+    expect(lines[0]).toContain("Authenticated:");
+    expect(execaMock).toHaveBeenCalled();
+  });
+
   it("routes /agent status to status command flow", async () => {
     const execaMock = await getExecaMock();
     const statusOutput = readFileSync(
