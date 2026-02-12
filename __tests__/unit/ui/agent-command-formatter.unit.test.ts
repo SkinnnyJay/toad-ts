@@ -9,6 +9,15 @@ import {
 import { describe, expect, it } from "vitest";
 
 describe("agent-command-formatter", () => {
+  it("formats unsupported login and fallback-available login results", () => {
+    expect(formatLoginResult({ supported: false }, "Codex CLI")).toEqual([
+      "Codex CLI: login is not supported.",
+    ]);
+    expect(formatLoginResult({ supported: true }, "Codex CLI")).toEqual([
+      "Codex CLI: login is available.",
+    ]);
+  });
+
   it("formats login results with browser hint", () => {
     const lines = formatLoginResult(
       {
@@ -44,6 +53,11 @@ describe("agent-command-formatter", () => {
     ]);
   });
 
+  it("formats unsupported and empty status results", () => {
+    expect(formatStatusResult({ supported: false })).toEqual(["Status command is not supported."]);
+    expect(formatStatusResult({ supported: true })).toEqual(["Status command produced no output."]);
+  });
+
   it("formats mcp server rows with reason suffix", () => {
     const lines = formatMcpList(
       [
@@ -54,6 +68,10 @@ describe("agent-command-formatter", () => {
     );
 
     expect(lines).toEqual(["- filesystem: connected", "- memory: disabled (missing token)"]);
+  });
+
+  it("formats empty mcp server list results", () => {
+    expect(formatMcpList([], "Cursor CLI")).toEqual(["No MCP servers returned by Cursor CLI."]);
   });
 
   it("formats logout result with stable message ordering", () => {
@@ -87,6 +105,21 @@ describe("agent-command-formatter", () => {
     expect(lines).toEqual(["- gpt-5", "- claude-sonnet-4", "Active model: gpt-5"]);
   });
 
+  it("formats unsupported and empty models results", () => {
+    expect(formatModelsResult({ supported: false, models: [] }, "Codex CLI")).toEqual([
+      "Codex CLI: model listing is not supported.",
+    ]);
+    expect(formatModelsResult({ supported: true, models: [] }, "Codex CLI")).toEqual([
+      "No models returned by Codex CLI.",
+    ]);
+    expect(
+      formatModelsResult(
+        { supported: true, models: [], message: "Model list unavailable in non-interactive mode." },
+        "Codex CLI"
+      )
+    ).toEqual(["Model list unavailable in non-interactive mode."]);
+  });
+
   it("formats about results with structured output", () => {
     const lines = formatAboutResult(
       {
@@ -99,5 +132,20 @@ describe("agent-command-formatter", () => {
     );
 
     expect(lines).toEqual(["Version: 1.2.3", "OS: linux", "Shell: bash"]);
+  });
+
+  it("formats unsupported and empty about results", () => {
+    expect(formatAboutResult({ supported: false }, "Gemini CLI")).toEqual([
+      "Gemini CLI: about is not supported.",
+    ]);
+    expect(formatAboutResult({ supported: true }, "Gemini CLI")).toEqual([
+      "No about output returned by Gemini CLI.",
+    ]);
+  });
+
+  it("formats unsupported logout results", () => {
+    expect(formatLogoutResult({ supported: false, loggedOut: false }, "Gemini CLI")).toEqual([
+      "Gemini CLI: logout is not supported.",
+    ]);
   });
 });
