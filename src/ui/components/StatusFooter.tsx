@@ -16,6 +16,8 @@ export interface StatusFooterProps {
   sessionMode?: SessionMode;
   sessionId?: SessionId;
   agentName?: string;
+  modelName?: string;
+  cloudAgentCount?: number;
   workspacePath?: string;
   prStatus?: { url: string; reviewDecision: string };
 }
@@ -47,6 +49,8 @@ export function StatusFooter({
   sessionMode,
   sessionId,
   agentName,
+  modelName,
+  cloudAgentCount,
   workspacePath,
   prStatus,
 }: StatusFooterProps): ReactNode {
@@ -65,6 +69,9 @@ export function StatusFooter({
   const trimmedAgent = agentName
     ? truncateMiddle(agentName, LIMIT.STRING_TRUNCATE_LONG)
     : undefined;
+  const trimmedModel = modelName
+    ? truncateMiddle(modelName, LIMIT.STRING_TRUNCATE_LONG)
+    : undefined;
   const trimmedSession = sessionId
     ? truncateMiddle(sessionId, 2 * LIMIT.ID_TRUNCATE_LENGTH)
     : undefined;
@@ -78,8 +85,10 @@ export function StatusFooter({
   const statusParts = [
     connectionStatus ? `Link: ${connectionStatus}` : undefined,
     trimmedAgent ? `Agent: ${trimmedAgent}` : undefined,
+    trimmedModel ? `Model: ${trimmedModel}` : undefined,
     sessionMode ? `Mode: ${sessionMode}` : undefined,
     trimmedSession ? `Session: ${trimmedSession}` : undefined,
+    cloudAgentCount !== undefined ? `Cloud: ${cloudAgentCount}` : undefined,
     trimmedWorkspace ? `WS: ${trimmedWorkspace}` : undefined,
     prStatus?.reviewDecision ? `PR: ${prStatus.reviewDecision}` : undefined,
     trimmedPrUrl ? `PR URL: ${trimmedPrUrl}` : undefined,

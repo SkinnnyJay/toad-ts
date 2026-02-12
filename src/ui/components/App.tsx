@@ -8,8 +8,10 @@ import { BREADCRUMB_PLACEMENT } from "@/constants/breadcrumb-placement";
 import { COLOR } from "@/constants/colors";
 import { COMMAND_DEFINITIONS, filterSlashCommandsForAgent } from "@/constants/command-definitions";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { DISCOVERY_SUBPATH } from "@/constants/discovery-subpaths";
 import { FOCUS_TARGET } from "@/constants/focus-target";
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-marks";
 import { PERSISTENCE_WRITE_MODE } from "@/constants/persistence-write-modes";
@@ -24,6 +26,7 @@ import {
   loadCommands,
   loadSkills,
 } from "@/core/cross-tool";
+import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
 import { SessionStream } from "@/core/session-stream";
 import { createHarnessAdapterList, createHarnessRegistry } from "@/harness/harnessRegistryFactory";
 import { useAppStore } from "@/store/app-store";
@@ -76,6 +79,7 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useShallow } from "zustand/react/shallow";
 export function App(): ReactNode {
   const [view, setView] = useState<View>(VIEW.AGENT_SELECT);
+  const [cloudAgentCount, setCloudAgentCount] = useState<number | undefined>(undefined);
   const [queuedBreadcrumbSkill, setQueuedBreadcrumbSkill] = useState<string | null>(null);
   const [isContextOpen, setIsContextOpen] = useState(false);
   const [isHooksOpen, setIsHooksOpen] = useState(false);
@@ -353,6 +357,43 @@ export function App(): ReactNode {
       setQueuedBreadcrumbSkill(repoWorkflowInfo.action.skill);
     }
   }, [repoWorkflowInfo]);
+
+  useEffect(() => {
+    let disposed = false;
+    if (selectedAgent?.harnessId !== HARNESS_DEFAULT.CURSOR_CLI_ID) {
+      setCloudAgentCount(undefined);
+      return;
+    }
+    let cloudClient: CursorCloudAgentClient | undefined;
+    try {
+      cloudClient = new CursorCloudAgentClient();
+    } catch {
+      setCloudAgentCount(undefined);
+      return;
+    }
+
+    const syncCloudAgentCount = async (): Promise<void> => {
+      try {
+        const list = await cloudClient.listAgents({ limit: 10 });
+        if (!disposed) {
+          setCloudAgentCount(list.items.length);
+        }
+      } catch {
+        if (!disposed) {
+          setCloudAgentCount(undefined);
+        }
+      }
+    };
+
+    void syncCloudAgentCount();
+    const intervalId = setInterval(() => {
+      void syncCloudAgentCount();
+    }, CURSOR_LIMIT.CLOUD_POLL_INTERVAL_MS);
+    return () => {
+      disposed = true;
+      clearInterval(intervalId);
+    };
+  }, [selectedAgent?.harnessId]);
 
   useHookManager({
     hooks: appConfig.hooks,
@@ -649,6 +690,8 @@ export function App(): ReactNode {
                 sessionMode={activeSession?.mode}
                 sessionId={activeSessionId ?? undefined}
                 agentName={selectedAgent?.name}
+                modelName={activeSession?.metadata?.model}
+                cloudAgentCount={cloudAgentCount}
                 workspacePath={process.cwd()}
                 prStatus={
                   repoWorkflowInfo?.prUrl
