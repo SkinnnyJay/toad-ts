@@ -83,6 +83,7 @@ import { useAutoTitle } from "@/ui/hooks/useAutoTitle";
 import { useRepoWorkflow } from "@/ui/hooks/useRepoWorkflow";
 import { ThemeProvider } from "@/ui/theme/theme-context";
 import { applyThemeColors } from "@/ui/theme/theme-definitions";
+import { sortCloudAgentItemsByRecency } from "@/ui/utils/cloud-agent-list";
 import {
   type McpServerListItem,
   parseMcpServerListCommandResult,
@@ -466,7 +467,7 @@ export function App(): ReactNode {
           updatedAt: cloudAgent.updated_at,
         };
       });
-      setCloudAgents(mappedAgents);
+      setCloudAgents(sortCloudAgentItemsByRecency(mappedAgents));
     } catch (error) {
       setCloudAgentsError(error instanceof Error ? error.message : String(error));
     } finally {

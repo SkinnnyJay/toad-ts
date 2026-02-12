@@ -18,6 +18,7 @@ import { parseAuthStatusCommandResult } from "@/core/agent-management/auth-statu
 import { parseKeyValueLines } from "@/core/agent-management/cli-output-parser";
 import { toCommandFailureMessage } from "@/core/agent-management/command-result-utils";
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
+import { sortCloudAgentItemsByRecency } from "@/ui/utils/cloud-agent-list";
 import { EnvManager } from "@/utils/env/env.utils";
 import type { SlashCommandDeps } from "./slash-command-runner";
 
@@ -40,21 +41,8 @@ const CLOUD_SUBCOMMAND = {
   FOLLOWUP: "followup",
 } as const;
 
-const INVALID_TIMESTAMP = -1;
-
 const isCursorCloudSupported = (deps: SlashCommandDeps): boolean => {
   return deps.activeHarnessId === HARNESS_DEFAULT.CURSOR_CLI_ID;
-};
-
-const toSortableTimestamp = (value: string | undefined): number => {
-  if (!value) {
-    return INVALID_TIMESTAMP;
-  }
-  const timestamp = Date.parse(value);
-  if (Number.isNaN(timestamp)) {
-    return INVALID_TIMESTAMP;
-  }
-  return timestamp;
 };
 
 const buildOutputPreview = (stdout: string, stderr: string): string => {
@@ -236,14 +224,7 @@ export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): voi
             deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_NONE_ACTIVE);
             return;
           }
-          const sortedAgents = [...agents].sort((first, second) => {
-            const secondTimestamp = toSortableTimestamp(second.updatedAt);
-            const firstTimestamp = toSortableTimestamp(first.updatedAt);
-            if (secondTimestamp !== firstTimestamp) {
-              return secondTimestamp - firstTimestamp;
-            }
-            return first.id.localeCompare(second.id);
-          });
+          const sortedAgents = sortCloudAgentItemsByRecency(agents);
           const preview = sortedAgents
             .slice(0, CLOUD_LIST_LIMIT)
             .map(
