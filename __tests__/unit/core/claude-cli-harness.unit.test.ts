@@ -306,6 +306,7 @@ describe("ClaudeCliHarnessAdapter", () => {
   it("passes session mode/model updates through when agent supports them", async () => {
     const { clientStream, agentStream, clientToAgent, agentToClient } = createStreamPair();
     const setSessionModeSpy = vi.fn(async () => ({}));
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const agentConnection = new AgentSideConnection((_conn) => {
       const agent: Agent = {
@@ -321,25 +322,29 @@ describe("ClaudeCliHarnessAdapter", () => {
 
     const adapter = new ClaudeCliHarnessAdapter({ connection: new FakeConnection(clientStream) });
 
-    await adapter.connect();
-    await adapter.initialize();
+    try {
+      await adapter.connect();
+      await adapter.initialize();
 
-    await expect(
-      adapter.setSessionMode({ sessionId: "session-mode-model", modeId: SESSION_MODE.AUTO })
-    ).resolves.toEqual({});
-    await expect(
-      adapter.setSessionModel({ sessionId: "session-mode-model", modelId: "sonnet" })
-    ).resolves.toEqual({});
+      await expect(
+        adapter.setSessionMode({ sessionId: "session-mode-model", modeId: SESSION_MODE.AUTO })
+      ).resolves.toEqual({});
+      await expect(
+        adapter.setSessionModel({ sessionId: "session-mode-model", modelId: "sonnet" })
+      ).resolves.toEqual({});
 
-    expect(setSessionModeSpy).toHaveBeenCalledWith({
-      sessionId: "session-mode-model",
-      modeId: SESSION_MODE.AUTO,
-    });
+      expect(setSessionModeSpy).toHaveBeenCalledWith({
+        sessionId: "session-mode-model",
+        modeId: SESSION_MODE.AUTO,
+      });
 
-    expect(agentConnection).toBeDefined();
-    await adapter.disconnect();
-    clientToAgent.end();
-    agentToClient.end();
+      expect(agentConnection).toBeDefined();
+      await adapter.disconnect();
+      clientToAgent.end();
+      agentToClient.end();
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
   });
 
   it("exposes claude adapter metadata and runtime factory wiring", () => {
