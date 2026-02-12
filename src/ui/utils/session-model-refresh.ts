@@ -2,6 +2,7 @@ import { parseModelsCommandResult } from "@/core/agent-management/models-command
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type { CursorCloudModelsResponse } from "@/types/cursor-cloud.types";
 import type { ModelInfo } from "@/types/domain";
+import { toErrorMessage } from "@/ui/utils/auth-error-matcher";
 
 export interface SessionModelOptions {
   availableModels: ModelInfo[];
@@ -12,10 +13,6 @@ interface ResolveSessionModelOptionsParams {
   runCommand?: () => Promise<AgentManagementCommandResult>;
   runCloud?: () => Promise<CursorCloudModelsResponse>;
 }
-
-const toErrorMessage = (error: unknown): string => {
-  return error instanceof Error ? error.message : String(error);
-};
 
 export const toSessionModelOptionsFromCommandResult = (
   result: AgentManagementCommandResult
@@ -54,7 +51,7 @@ export const resolveSessionModelOptions = async ({
       const result = await runCommand();
       return toSessionModelOptionsFromCommandResult(result);
     } catch (error) {
-      errors.push(toErrorMessage(error));
+      errors.push(toErrorMessage(error) ?? String(error));
     }
   }
 
@@ -63,7 +60,7 @@ export const resolveSessionModelOptions = async ({
       const response = await runCloud();
       return toSessionModelOptionsFromCloudResponse(response);
     } catch (error) {
-      errors.push(toErrorMessage(error));
+      errors.push(toErrorMessage(error) ?? String(error));
     }
   }
 

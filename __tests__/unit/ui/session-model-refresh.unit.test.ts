@@ -69,4 +69,17 @@ describe("session-model-refresh", () => {
       })
     ).rejects.toThrow("Model listing failed: command failure | cloud failure");
   });
+
+  it("surfaces combined object/string errors when all listing strategies fail", async () => {
+    await expect(
+      resolveSessionModelOptions({
+        runCommand: async () => {
+          throw { message: "command object failure" };
+        },
+        runCloud: async () => {
+          throw "cloud string failure";
+        },
+      })
+    ).rejects.toThrow("Model listing failed: command object failure | cloud string failure");
+  });
 });
