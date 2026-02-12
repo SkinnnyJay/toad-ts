@@ -84,4 +84,26 @@ describe("slash-command-runner", () => {
 
     expect(handled).toBe(true);
   });
+
+  it("forwards /mcp subcommand arguments to native command", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "Enabled github MCP server",
+      stderr: "",
+      exitCode: 0,
+    });
+    const appendSystemMessage = vi.fn();
+    const handled = runSlashCommand("/mcp enable github", createDeps(appendSystemMessage));
+    await vi.waitFor(() => {
+      expect(appendSystemMessage).toHaveBeenCalled();
+    });
+
+    expect(handled).toBe(true);
+    expect(execaMock).toHaveBeenCalled();
+    const calledWithEnable = execaMock.mock.calls.some((call) => {
+      const args = (call[1] as string[] | undefined) ?? [];
+      return args.includes("mcp") && args.includes("enable") && args.includes("github");
+    });
+    expect(calledWithEnable).toBe(true);
+  });
 });

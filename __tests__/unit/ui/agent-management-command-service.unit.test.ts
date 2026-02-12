@@ -113,6 +113,32 @@ describe("agent-management-command-service", () => {
     expect(lines.some((line) => line.includes("User: netwearcdz@gmail.com"))).toBe(true);
   });
 
+  it("supports direct about management command", async () => {
+    const execaMock = await getExecaMock();
+    const aboutOutput = readFileSync(
+      path.join(process.cwd(), "__tests__/fixtures/cursor/about-output.txt"),
+      "utf8"
+    );
+    execaMock.mockResolvedValue({
+      stdout: aboutOutput,
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.ABOUT, {
+      activeHarness: harness,
+    });
+
+    expect(lines.some((line) => line.includes("Version: 2026.01.28-fd13201"))).toBe(true);
+  });
+
   it("shows configured MCP servers for current session", async () => {
     const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.MCP, {
       session: {
@@ -189,6 +215,72 @@ describe("agent-management-command-service", () => {
     );
 
     expect(lines[0]).toContain("Enabled github MCP server");
+  });
+
+  it("routes /agent mcp subcommands through native command execution", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "Enabled context7 MCP server",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["mcp", "enable", "context7"]
+    );
+
+    expect(lines[0]).toContain("Enabled context7 MCP server");
+  });
+
+  it("shows MCP usage when subcommand is invalid", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.MCP,
+      {
+        activeHarness: harness,
+      },
+      ["invalid-subcommand"]
+    );
+
+    expect(lines[0]).toContain("Usage: /mcp");
+  });
+
+  it("requires server id for MCP commands that target a server", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.MCP,
+      {
+        activeHarness: harness,
+      },
+      ["enable"]
+    );
+
+    expect(lines[0]).toContain("Provide an MCP server id.");
   });
 
   it("lists cloud agents through /agent cloud list", async () => {
