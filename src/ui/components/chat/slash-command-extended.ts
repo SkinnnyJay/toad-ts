@@ -145,7 +145,7 @@ export const handleStatusCommand = (deps: SlashCommandDeps): void => {
       })
       .catch((error) => {
         deps.appendSystemMessage(
-          `Cloud agents unavailable: ${error instanceof Error ? error.message : String(error)}`
+          resolveCloudCommandErrorMessage(error, "Cloud agents unavailable")
         );
       });
   }

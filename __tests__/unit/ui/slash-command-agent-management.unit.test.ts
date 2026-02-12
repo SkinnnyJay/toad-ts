@@ -708,6 +708,31 @@ describe("slash command agent management", () => {
     );
   });
 
+  it("shows auth guidance when cloud count fails during /status", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "Model: Auto\nOS: linux",
+      stderr: "",
+      exitCode: 0,
+    }));
+    const listCloudAgents = vi.fn(async () => {
+      throw new Error("Request failed with status 401");
+    });
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      activeAgentName: "Cursor CLI",
+      connectionStatus: "connected",
+      runAgentCommand,
+      listCloudAgents,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.STATUS, deps)).toBe(true);
+    await vi.waitFor(() => {
+      expect(appendSystemMessage.mock.calls.length).toBeGreaterThan(1);
+    });
+
+    expect(appendSystemMessage).toHaveBeenCalledWith(SLASH_COMMAND_MESSAGE.CLOUD_AUTH_REQUIRED);
+  });
+
   it("parses native status key-value output with equals separator", async () => {
     const runAgentCommand = vi.fn(async () => ({
       stdout: "Model = Auto\nOS=linux",
