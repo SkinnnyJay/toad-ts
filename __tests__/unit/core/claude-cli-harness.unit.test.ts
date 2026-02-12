@@ -381,4 +381,21 @@ describe("ClaudeCliHarnessAdapter", () => {
       adapter.setSessionMode({ sessionId: "session-mode-model", modeId: SESSION_MODE.AUTO })
     ).rejects.toBe(patchedError);
   });
+
+  it("rethrows non-method-not-found errors from setSessionModel", async () => {
+    const adapter = new ClaudeCliHarnessAdapter({
+      connection: new FakeConnection(createClientStream()),
+    });
+    const patchedError = { code: ERROR_CODE.AUTH_REQUIRED, message: "Auth required" };
+    const patchedClient = Reflect.get(adapter, "client") as {
+      setSessionModel: (params: { sessionId: string; modelId: string }) => Promise<unknown>;
+    };
+    patchedClient.setSessionModel = vi.fn(async () => {
+      throw patchedError;
+    });
+
+    await expect(
+      adapter.setSessionModel({ sessionId: "session-mode-model", modelId: "sonnet" })
+    ).rejects.toBe(patchedError);
+  });
 });

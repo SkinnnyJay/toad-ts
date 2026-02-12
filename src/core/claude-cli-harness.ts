@@ -248,8 +248,6 @@ export const createAcpCliHarnessRuntime = (config: HarnessConfig): HarnessRuntim
   });
 };
 
-export const createCliHarnessRuntime = createAcpCliHarnessRuntime;
-
 export const claudeCliHarnessAdapter: HarnessAdapter = createCliHarnessAdapter({
   id: HARNESS_DEFAULT.CLAUDE_CLI_ID,
   name: HARNESS_DEFAULT.CLAUDE_CLI_NAME,
