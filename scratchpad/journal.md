@@ -1,5 +1,17 @@
 # Scratchpad Journal
 
+## 2026-02-12 (PLAN2 Milestones M2a–M11: Cursor CLI Harness Implementation)
+- Branch: `cursor/project-plan-3-completion-9635`.
+- Implemented the full Cursor CLI harness adapter with three-channel architecture (NDJSON + Hooks IPC + Cloud API deferred).
+- **Phase B (M2a)**: Created 3 constant modules (`cursor-event-types.ts`, `cursor-hook-events.ts`, `cursor-cloud-status.ts`) and 3 Zod type modules (`cli-agent.types.ts`, `cursor-cli.types.ts`, `cursor-hooks.types.ts`) with 52 unit tests.
+- **Phase C (M2–M4)**: Built NDJSON stream parser with backpressure/size limits (19 tests), CLI connection manager with process lifecycle (21 tests), and Cursor-to-ACP protocol translator with tool result truncation (18 tests).
+- **Phase D (M5–M6)**: Built Unix socket Hook IPC Server for permission control/context injection (14 tests), hooks.json config generator with merge/backup/restore (13 tests), and Node.js hook shim script.
+- **Phase E (M7–M8)**: Built CursorCliHarnessAdapter implementing AgentPort (16 tests), registered in App.tsx and headless-server.ts, added env keys and .env.sample config.
+- **Phase F (M10–M11)**: 15 integration tests covering full NDJSON→AgentPort pipeline, hook IPC flows, multi-turn resume, model/mode selection, error handling, graceful shutdown.
+- **Post-completion fixes**: (1) Injected TOADSTOOL_HOOK_SOCKET env into spawned processes. (2) Added resolved guard to prevent hung promise on exit-without-result. (3) Fixed all lint warnings.
+- Final state: 17 commits, 173 tests passing, build succeeds, lint clean (21 files, 0 errors), typecheck clean (only pre-existing Prisma errors).
+- Deferred per plan: M2b (generic CLI agent abstraction), M9 (Cloud Agents API), MB1–MB4 (breadcrumb skills).
+
 ## 2026-02-10 (Phase 0: PLAN2 Cursor CLI prerequisites)
 - Branch: `feature/cursor-cli-harness`.
 - Fixture paths: `__tests__/fixtures/cursor/ndjson/` (hello-response.ndjson, hello-stderr.txt, tool-use-response.ndjson, tool-use-stderr.txt), `__tests__/fixtures/cursor/status-output.txt`, `__tests__/fixtures/cursor/models-output.txt`, `__tests__/fixtures/cursor/ls-output.txt`. Directories `hooks/` and `cloud-api/` created with `.gitkeep`.
