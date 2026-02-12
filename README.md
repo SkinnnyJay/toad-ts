@@ -210,6 +210,7 @@ export CURSOR_API_KEY=...
   - connect-time auth failures now show explicit guidance to run `cursor-agent login` (or set `CURSOR_API_KEY`)
   - connect-time missing-binary errors now include harness-specific install hints plus `TOADSTOOL_*_COMMAND` override guidance
   - `/status` now surfaces follow-up authentication guidance when native auth status reports unauthenticated
+    - guidance is harness-aware (Cursor: `cursor-agent login`, Gemini: `gemini auth`, otherwise `/login`)
   - `/agent ...` command failures with auth-required output now surface the same follow-up login guidance
   - `/mcp` (no subcommand) opens an interactive MCP server panel with enable/disable/refresh actions
     - panel also supports tool discovery (`Ctrl+T`) via `mcp list-tools <server-id>`
