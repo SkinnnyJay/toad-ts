@@ -40,7 +40,7 @@ import { getRepoInfo } from "@/utils/git/git-info.utils";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard, useRenderer } from "@opentui/react";
 import { type ReactNode, memo, useCallback, useEffect, useMemo, useState } from "react";
-import { useMessageSender } from "./MessageSender";
+import { type CloudDispatchContext, useMessageSender } from "./MessageSender";
 import { useSlashCommandHandler } from "./SlashCommandHandler";
 
 export interface ChatProps {
@@ -73,6 +73,7 @@ export interface ChatProps {
   queuedBreadcrumbSkill?: string | null;
   onConsumeQueuedBreadcrumbSkill?: () => void;
   hideRepoInHeader?: boolean;
+  cloudDispatchContext?: CloudDispatchContext;
 }
 
 export const Chat = memo(
@@ -105,6 +106,7 @@ export const Chat = memo(
     queuedBreadcrumbSkill = null,
     onConsumeQueuedBreadcrumbSkill,
     hideRepoInHeader = false,
+    cloudDispatchContext,
   }: ChatProps): ReactNode => {
     const appendMessage = useAppStore((state) => state.appendMessage);
     const setTodosForSession = useAppStore((state) => state.setTodosForSession);
@@ -301,6 +303,7 @@ export const Chat = memo(
         ? (targetAgent, prompt, parentSessionId) =>
             subAgentRunner.run({ agent: targetAgent, prompt, parentSessionId })
         : undefined,
+      cloudDispatchContext,
     });
 
     const handleCommandSelect = useCallback(

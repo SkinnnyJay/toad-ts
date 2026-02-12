@@ -76,6 +76,33 @@ describe("message sender cloud dispatch helpers", () => {
     expect(systemMessages.at(-1)).toContain("cloud-1");
   });
 
+  it("forwards repository and branch context to cloud dispatch launch", async () => {
+    const launchAgent = vi.fn(async () => ({ id: "cloud-2", status: "queued" }));
+
+    const handled = handleCloudDispatchInput({
+      input: "&open a fix PR",
+      sessionMode: SESSION_MODE.AUTO,
+      currentAgent: createCursorAgent(),
+      onResetInput: () => {},
+      appendSystemMessage: () => {},
+      setModeWarning: () => {},
+      cloudDispatchContext: {
+        repository: "owner/repo",
+        branch: "feature/cloud-dispatch",
+      },
+      createCloudClient: () => ({ launchAgent }),
+    });
+
+    expect(handled).toBe(true);
+    await flushMicrotasks();
+    expect(launchAgent).toHaveBeenCalledWith({
+      prompt: "open a fix PR",
+      model: "auto",
+      repository: "owner/repo",
+      branch: "feature/cloud-dispatch",
+    });
+  });
+
   it("maps missing API key errors to friendly message", async () => {
     const systemMessages: string[] = [];
     const result = handleCloudDispatchInput({

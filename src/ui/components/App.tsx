@@ -98,6 +98,8 @@ import { TextAttributes } from "@opentui/core";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 
+const UNKNOWN_REPO_OWNER = "unknown";
+
 export function App(): ReactNode {
   const [view, setView] = useState<View>(VIEW.AGENT_SELECT);
   const [queuedBreadcrumbSkill, setQueuedBreadcrumbSkill] = useState<string | null>(null);
@@ -606,6 +608,19 @@ export function App(): ReactNode {
         reviewDecision: repoWorkflowInfo.status,
       }
     : undefined;
+  const cloudDispatchContext = useMemo(() => {
+    if (!repoWorkflowInfo) {
+      return undefined;
+    }
+    const repository =
+      repoWorkflowInfo.owner === UNKNOWN_REPO_OWNER
+        ? repoWorkflowInfo.repoName
+        : `${repoWorkflowInfo.owner}/${repoWorkflowInfo.repoName}`;
+    return {
+      repository,
+      branch: repoWorkflowInfo.branch,
+    };
+  }, [repoWorkflowInfo]);
   const handleRunBreadcrumbAction = useCallback(() => {
     if (repoWorkflowInfo?.action?.skill) {
       setQueuedBreadcrumbSkill(repoWorkflowInfo.action.skill);
@@ -943,6 +958,7 @@ export function App(): ReactNode {
                     queuedBreadcrumbSkill={queuedBreadcrumbSkill}
                     onConsumeQueuedBreadcrumbSkill={() => setQueuedBreadcrumbSkill(null)}
                     hideRepoInHeader={breadcrumbVisible}
+                    cloudDispatchContext={cloudDispatchContext}
                   />
                 )}
               </box>

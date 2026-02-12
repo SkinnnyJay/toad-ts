@@ -43,6 +43,7 @@ export interface MessageSenderOptions {
     prompt: string,
     parentSessionId: SessionId
   ) => Promise<SessionId>;
+  cloudDispatchContext?: CloudDispatchContext;
 }
 
 export interface MessageSenderResult {
@@ -50,8 +51,18 @@ export interface MessageSenderResult {
   modeWarning: string | null;
 }
 
+export interface CloudDispatchContext {
+  repository?: string;
+  branch?: string;
+}
+
 interface CloudDispatchClientLike {
-  launchAgent: (params: { prompt: string; model?: string }) => Promise<{
+  launchAgent: (params: {
+    prompt: string;
+    model?: string;
+    repository?: string;
+    branch?: string;
+  }) => Promise<{
     id: string;
     status: string;
   }>;
@@ -65,6 +76,7 @@ export interface HandleCloudDispatchInputOptions {
   appendSystemMessage: (text: string) => void;
   setModeWarning: (warning: string | null) => void;
   createCloudClient?: () => CloudDispatchClientLike;
+  cloudDispatchContext?: CloudDispatchContext;
 }
 
 export const isCloudDispatchInput = (input: string): boolean =>
@@ -83,6 +95,16 @@ export const resolveCloudDispatchErrorMessage = (error: unknown): string => {
   }`;
 };
 
+const CLOUD_DISPATCH_UNKNOWN_CONTEXT_VALUE = "unknown";
+
+const toCloudDispatchContextValue = (value: string | undefined): string | undefined => {
+  const normalized = value?.trim();
+  if (!normalized || normalized.toLowerCase() === CLOUD_DISPATCH_UNKNOWN_CONTEXT_VALUE) {
+    return undefined;
+  }
+  return normalized;
+};
+
 export const handleCloudDispatchInput = ({
   input,
   sessionMode,
@@ -91,6 +113,7 @@ export const handleCloudDispatchInput = ({
   appendSystemMessage,
   setModeWarning,
   createCloudClient = () => new CursorCloudAgentClient(),
+  cloudDispatchContext,
 }: HandleCloudDispatchInputOptions): boolean => {
   if (!isCloudDispatchInput(input)) {
     return false;
@@ -122,9 +145,13 @@ export const handleCloudDispatchInput = ({
   void (async () => {
     try {
       const cloudClient = createCloudClient();
+      const repository = toCloudDispatchContextValue(cloudDispatchContext?.repository);
+      const branch = toCloudDispatchContextValue(cloudDispatchContext?.branch);
       const launchResult = await cloudClient.launchAgent({
         prompt: cloudPrompt,
         model: currentAgent.model,
+        ...(repository ? { repository } : {}),
+        ...(branch ? { branch } : {}),
       });
       appendSystemMessage(
         `${CHAT_MESSAGE.CLOUD_DISPATCH_STARTED} ${launchResult.id} (${launchResult.status})`
@@ -155,6 +182,7 @@ export const useMessageSender = ({
   shellCommandConfig,
   runInteractiveShell,
   runSubAgent,
+  cloudDispatchContext,
 }: MessageSenderOptions): MessageSenderResult => {
   const [modeWarning, setModeWarning] = useState<string | null>(null);
 
@@ -171,6 +199,7 @@ export const useMessageSender = ({
           onResetInput,
           appendSystemMessage,
           setModeWarning,
+          cloudDispatchContext,
         })
       ) {
         return;
@@ -380,6 +409,7 @@ export const useMessageSender = ({
       onResetInput,
       runInteractiveShell,
       runSubAgent,
+      cloudDispatchContext,
       shellCommandConfig,
       toolRuntime.context,
       toolRuntime.registry,
