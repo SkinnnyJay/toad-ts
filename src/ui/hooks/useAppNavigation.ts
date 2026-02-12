@@ -5,7 +5,7 @@ import { VIEW, type View } from "@/constants/views";
 import type { Session } from "@/types/domain";
 import type { SessionId } from "@/types/domain";
 import type { AgentOption } from "@/ui/components/AgentSelect";
-import { switchToSessionWithFallback } from "@/ui/utils/session-switcher";
+import { type SessionSwitchSeed, switchToSessionWithFallback } from "@/ui/utils/session-switcher";
 import { clearScreen } from "@/utils/terminal/clearScreen.utils";
 import { useCallback } from "react";
 
@@ -26,7 +26,7 @@ export interface UseAppNavigationOptions {
 }
 
 export interface UseAppNavigationResult {
-  handleSelectSession: (sessionId: SessionId) => void;
+  handleSelectSession: (sessionId: SessionId, seedSession?: SessionSwitchSeed) => void;
   handleAgentSelect: (agent: AgentOption) => void;
   handleAgentSwitchRequest: () => void;
   handleAgentSelectCancel: () => void;
@@ -49,7 +49,7 @@ export const useAppNavigation = ({
   selectAgent,
 }: UseAppNavigationOptions): UseAppNavigationResult => {
   const handleSelectSession = useCallback(
-    (selectedSessionId: SessionId) => {
+    (selectedSessionId: SessionId, seedSession?: SessionSwitchSeed) => {
       switchToSessionWithFallback({
         targetSessionId: selectedSessionId,
         getSession,
@@ -57,6 +57,7 @@ export const useAppNavigation = ({
         setCurrentSession,
         setSessionId,
         agent: selectedAgent ?? undefined,
+        seedSession,
       });
       if (view !== VIEW.CHAT) {
         setView(VIEW.CHAT);

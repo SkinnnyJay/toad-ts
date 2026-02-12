@@ -102,4 +102,36 @@ describe("switchToSessionWithFallback", () => {
       }),
     });
   });
+
+  it("uses native seed metadata when creating placeholder session", () => {
+    const targetSessionId = SessionIdSchema.parse("session-native-seed");
+    const upsertSession = vi.fn();
+    const setCurrentSession = vi.fn();
+
+    switchToSessionWithFallback({
+      targetSessionId,
+      getSession: () => undefined,
+      upsertSession,
+      setCurrentSession,
+      agent: createAgent(),
+      seedSession: {
+        title: "Recovered Native Session",
+        createdAt: "2026-02-11T18:30:00.000Z",
+        model: "gpt-5-thinking",
+      },
+      now: () => 7,
+    });
+
+    expect(upsertSession).toHaveBeenCalledWith({
+      session: expect.objectContaining({
+        id: targetSessionId,
+        title: "Recovered Native Session",
+        createdAt: Date.parse("2026-02-11T18:30:00.000Z"),
+        updatedAt: 7,
+        mode: SESSION_MODE.FULL_ACCESS,
+        metadata: { mcpServers: [], model: "gpt-5-thinking" },
+      }),
+    });
+    expect(setCurrentSession).toHaveBeenCalledWith(targetSessionId);
+  });
 });

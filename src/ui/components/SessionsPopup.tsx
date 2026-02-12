@@ -7,6 +7,7 @@ import { toNormalizedAgentManagementSessions } from "@/core/agent-management/ses
 import { useAppStore } from "@/store/app-store";
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
+import type { SessionSwitchSeed } from "@/ui/utils/session-switcher";
 import { truncateMiddle } from "@/ui/utils/truncate-middle";
 import type { SelectOption } from "@opentui/core";
 import { TextAttributes } from "@opentui/core";
@@ -17,7 +18,7 @@ import { useShallow } from "zustand/react/shallow";
 interface SessionsPopupProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectSession: (sessionId: SessionId) => void;
+  onSelectSession: (sessionId: SessionId, seedSession?: SessionSwitchSeed) => void;
   onRefreshExternalSessions?: () => Promise<void> | void;
   externalSessions?: AgentManagementSession[];
   externalSessionLoading?: boolean;
@@ -29,6 +30,7 @@ interface SessionEntry {
   title: string;
   searchText: string;
   description: string;
+  switchSeed?: SessionSwitchSeed;
 }
 
 const toNativeSessionLabel = (session: AgentManagementSession): string => {
@@ -126,6 +128,11 @@ export function SessionsPopup({
           session.model ?? ""
         } ${session.messageCount ?? ""} cursor`,
         description: `Native Cursor session (${session.id})${suffix}`,
+        switchSeed: {
+          title: session.title,
+          createdAt: session.createdAt,
+          model: session.model,
+        },
       });
     }
     return [...localEntries, ...externalEntries];
@@ -229,11 +236,12 @@ export function SessionsPopup({
           selectedIndex={selectedIndex}
           focused={true}
           onChange={(index) => setSelectedIndex(index)}
-          onSelect={(_index, option) => {
+          onSelect={(index, option) => {
             if (!option?.value) return;
             const parsed = SessionIdSchema.safeParse(option.value);
             if (!parsed.success) return;
-            onSelectSession(parsed.data);
+            const selectedSession = filteredSessions[index];
+            onSelectSession(parsed.data, selectedSession?.switchSeed);
             onClose();
           }}
           style={UI.FULL_WIDTH_STYLE}
