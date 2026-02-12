@@ -155,4 +155,39 @@ describe("agent management commands integration", () => {
 
     expect(lines).toEqual(["- filesystem: connected", "- memory: disabled (missing token)"]);
   });
+
+  it("returns browser login guidance for cursor harness", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.LOGIN, {
+      activeHarness: harness,
+    });
+
+    expect(lines[0]).toContain("cursor-agent");
+    expect(lines[0]).toContain("login");
+    expect(lines[1]).toContain("browser");
+  });
+
+  it("returns model fallback hint when listing unsupported for codex", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "codex-cli",
+      name: "Codex CLI",
+      command: "codex",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.MODELS, {
+      activeHarness: harness,
+    });
+
+    expect(lines[0]).toContain("models is not supported");
+    expect(lines[1]).toContain("/model <id>");
+  });
 });
