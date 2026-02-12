@@ -6,13 +6,11 @@ import {
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
-import { type CliAgentAuthStatus, CliAgentAuthStatusSchema } from "@/types/cli-agent.types";
+import type { CliAgentAuthStatus } from "@/types/cli-agent.types";
 import {
   type CliAgentInstallInfo,
   CliAgentInstallInfoSchema,
-  CliAgentModelSchema,
   type CliAgentModelsResponse,
-  CliAgentModelsResponseSchema,
   type CliAgentPromptInput,
   CliAgentPromptInputSchema,
   type CliAgentSession,
@@ -22,6 +20,7 @@ import type { CursorStreamEvent } from "@/types/cursor-cli.types";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { EventEmitter } from "eventemitter3";
+import { parseCursorModelsOutput, parseCursorStatusOutput } from "./cursor-command-parsers";
 import { CursorStreamParser, type CursorStreamParserOptions } from "./cursor-stream-parser";
 
 const CURSOR_CLI_ARG = {
@@ -42,15 +41,8 @@ const CURSOR_CLI_ARG = {
   CREATE_CHAT: "create-chat",
 } as const;
 
-const CURSOR_MODEL_TAG = {
-  CURRENT: "current",
-  DEFAULT: "default",
-} as const;
-
 const CURSOR_REGEX = {
-  MODEL_LINE: /^(\S+)\s+-\s+(.+?)(?:\s{2,}\((.+)\))?$/,
   CHAT_ID: /^[0-9a-fA-F-]{36}$/,
-  AUTH_EMAIL: /Logged in as\s+([^\s]+)/,
   WHITESPACE: /\s+/,
 } as const;
 
@@ -181,16 +173,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
 
   public async verifyAuth(): Promise<CliAgentAuthStatus> {
     const result = await this.runCommand([CURSOR_CLI_ARG.STATUS]);
-    const combined = `${result.stdout}\n${result.stderr}`;
-    const emailMatch = combined.match(CURSOR_REGEX.AUTH_EMAIL);
-    const envApiKey = this.env[ENV_KEY.CURSOR_API_KEY];
-    const authenticated = emailMatch !== null || Boolean(envApiKey);
-
-    return CliAgentAuthStatusSchema.parse({
-      authenticated,
-      method: emailMatch ? "browser_login" : envApiKey ? "api_key" : "none",
-      email: emailMatch?.[1],
-    });
+    return parseCursorStatusOutput(result.stdout, result.stderr, this.env[ENV_KEY.CURSOR_API_KEY]);
   }
 
   public async createChat(): Promise<string> {
@@ -204,21 +187,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
 
   public async listModels(): Promise<CliAgentModelsResponse> {
     const result = await this.runCommand([CURSOR_CLI_ARG.MODELS]);
-    const lines = toLines(result.stdout);
-    const models = lines
-      .filter((line) => !line.startsWith("Available models"))
-      .filter((line) => !line.startsWith("Tip:"))
-      .map((line) => this.parseModelLine(line))
-      .filter((model): model is NonNullable<typeof model> => model !== null);
-
-    const defaultModel = models.find((model) => model.isDefault)?.id;
-    const currentModel = models.find((model) => model.isCurrent)?.id;
-
-    return CliAgentModelsResponseSchema.parse({
-      models,
-      defaultModel,
-      currentModel,
-    });
+    return parseCursorModelsOutput(result.stdout);
   }
 
   public async listSessions(): Promise<CliAgentSession[]> {
@@ -303,35 +272,6 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
 
       child.stdin.write(`${payload.message}\n`);
       child.stdin.end();
-    });
-  }
-
-  private parseModelLine(line: string): ReturnType<typeof CliAgentModelSchema.parse> | null {
-    const match = line.match(CURSOR_REGEX.MODEL_LINE);
-    if (!match) {
-      return null;
-    }
-
-    const id = match[1];
-    const name = match[2];
-    const tagsRaw = match[3];
-    if (!id || !name) {
-      return null;
-    }
-
-    const tags = (tagsRaw ?? "")
-      .split(",")
-      .map((value) => value.trim().toLowerCase())
-      .filter((value) => value.length > 0);
-
-    const isCurrent = tags.includes(CURSOR_MODEL_TAG.CURRENT);
-    const isDefault = tags.includes(CURSOR_MODEL_TAG.DEFAULT);
-
-    return CliAgentModelSchema.parse({
-      id,
-      name,
-      isCurrent,
-      isDefault,
     });
   }
 

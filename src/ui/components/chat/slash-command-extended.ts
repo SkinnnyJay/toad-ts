@@ -1,17 +1,18 @@
 import { existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { ENV_KEY } from "@/constants/env-keys";
+import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
 import { SESSION_MODE } from "@/constants/session-modes";
 import {
   SLASH_COMMAND_MESSAGE,
   formatAddDirMessage,
+  formatDebugMessage,
   formatPermissionsMessage,
   formatReviewMessage,
   formatSecurityReviewMessage,
   formatStatusMessage,
 } from "@/constants/slash-command-messages";
-import { EnvManager } from "@/utils/env/env.utils";
+import { runAgentCommand } from "./agent-management-command-service";
 import type { SlashCommandDeps } from "./slash-command-runner";
 
 export const handleAddDirCommand = (parts: string[], deps: SlashCommandDeps): void => {
@@ -53,27 +54,51 @@ export const handlePermissionsCommand = (deps: SlashCommandDeps): void => {
   deps.appendSystemMessage(formatPermissionsMessage(lines));
 };
 
+const getActiveHarness = (deps: SlashCommandDeps) => {
+  if (!deps.activeHarnessId) {
+    return undefined;
+  }
+  return deps.harnesses?.[deps.activeHarnessId];
+};
+
+const runManagementCommand = (command: string, deps: SlashCommandDeps): void => {
+  void runAgentCommand(command, {
+    activeHarness: getActiveHarness(deps),
+    activeAgentName: deps.activeAgentName,
+    session: deps.sessionId ? deps.getSession(deps.sessionId) : undefined,
+    connectionStatus: deps.connectionStatus,
+  })
+    .then((lines) => deps.appendSystemMessage(formatStatusMessage(lines)))
+    .catch((error) =>
+      deps.appendSystemMessage(
+        formatDebugMessage([error instanceof Error ? error.message : String(error)])
+      )
+    );
+};
+
 export const handleStatusCommand = (deps: SlashCommandDeps): void => {
-  const session = deps.sessionId ? deps.getSession(deps.sessionId) : undefined;
-  const messages = deps.sessionId ? deps.getMessagesForSession(deps.sessionId) : [];
-  const env = EnvManager.getInstance().getSnapshot();
-  const lines = [
-    `Connection: ${deps.connectionStatus ?? "unknown"}`,
-    `Session: ${deps.sessionId ?? "none"}`,
-    `Agent: ${session?.agentId ?? "none"}`,
-    `Mode: ${session?.mode ?? "none"}`,
-    `Messages: ${messages.length}`,
-    `Model: ${session?.metadata?.model ?? "default"}`,
-    `Node: ${process.version}`,
-    `Platform: ${process.platform}`,
-    `Anthropic key: ${env[ENV_KEY.ANTHROPIC_API_KEY] ? "configured" : "not set"}`,
-    `OpenAI key: ${env[ENV_KEY.OPENAI_API_KEY] ? "configured" : "not set"}`,
-  ];
-  deps.appendSystemMessage(formatStatusMessage(lines));
+  runManagementCommand(AGENT_MANAGEMENT_COMMAND.STATUS, deps);
 };
 
 export const handleLoginCommand = (deps: SlashCommandDeps): void => {
-  deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.LOGIN_NOT_AVAILABLE);
+  deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.LOGIN_STARTING);
+  runManagementCommand(AGENT_MANAGEMENT_COMMAND.LOGIN, deps);
+};
+
+export const handleLogoutCommand = (deps: SlashCommandDeps): void => {
+  runManagementCommand(AGENT_MANAGEMENT_COMMAND.LOGOUT, deps);
+};
+
+export const handleMcpCommand = (deps: SlashCommandDeps): void => {
+  runManagementCommand(AGENT_MANAGEMENT_COMMAND.MCP, deps);
+};
+
+export const handleAgentCommand = (deps: SlashCommandDeps): void => {
+  runManagementCommand(AGENT_MANAGEMENT_COMMAND.AGENT, deps);
+};
+
+export const handleModelsListCommand = (deps: SlashCommandDeps): void => {
+  runManagementCommand(AGENT_MANAGEMENT_COMMAND.MODELS, deps);
 };
 
 export const handleConfigCommand = (deps: SlashCommandDeps): void => {

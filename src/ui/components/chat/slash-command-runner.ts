@@ -5,8 +5,6 @@ import {
   SLASH_COMMAND_MESSAGE,
   formatCompactionCompleteMessage,
   formatModeUpdatedMessage,
-  formatModelCurrentMessage,
-  formatModelListMessage,
   formatModelUpdateFailedMessage,
   formatModelUpdatedMessage,
   formatPlanCreatedMessage,
@@ -47,9 +45,13 @@ import {
 import { handleExportSlashCommand, handleImportSlashCommand } from "./slash-command-export-import";
 import {
   handleAddDirCommand,
+  handleAgentCommand,
   handleConfigCommand,
   handleInitCommand,
   handleLoginCommand,
+  handleLogoutCommand,
+  handleMcpCommand,
+  handleModelsListCommand,
   handlePermissionsCommand,
   handleReviewCommand,
   handleSecurityReviewCommand,
@@ -90,6 +92,8 @@ export interface SlashCommandDeps {
   runSummary?: (prompt: string, sessionId: SessionId) => Promise<SessionId | null>;
   checkpointManager?: CheckpointManager;
   harnesses?: Record<string, HarnessConfig>;
+  activeHarnessId?: string;
+  activeAgentName?: string;
   toggleVimMode?: () => boolean;
   connectionStatus?: string;
   now?: () => number;
@@ -120,6 +124,9 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     command === SLASH_COMMAND.IMPORT ||
     command === SLASH_COMMAND.INIT ||
     command === SLASH_COMMAND.LOGIN ||
+    command === SLASH_COMMAND.LOGOUT ||
+    command === SLASH_COMMAND.MCP ||
+    command === SLASH_COMMAND.AGENT ||
     command === SLASH_COMMAND.PERMISSIONS;
   if (!deps.sessionId && !allowsWithoutSession) {
     deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
@@ -216,16 +223,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     case SLASH_COMMAND.MODELS: {
       const modelId = parts.slice(1).join(" ").trim();
       if (!modelId) {
-        const session = deps.sessionId ? deps.getSession(deps.sessionId) : undefined;
-        const currentModel = session?.metadata?.model;
-        const availableModels = session?.metadata?.availableModels ?? [];
-        if (availableModels.length > 0) {
-          deps.appendSystemMessage(formatModelListMessage(availableModels, currentModel));
-        } else if (!currentModel) {
-          deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MODEL_CONFIGURED);
-        } else {
-          deps.appendSystemMessage(formatModelCurrentMessage(currentModel));
-        }
+        handleModelsListCommand(deps);
         return true;
       }
       if (!deps.setSessionModel) {
@@ -487,6 +485,18 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     }
     case SLASH_COMMAND.LOGIN: {
       handleLoginCommand(deps);
+      return true;
+    }
+    case SLASH_COMMAND.LOGOUT: {
+      handleLogoutCommand(deps);
+      return true;
+    }
+    case SLASH_COMMAND.MCP: {
+      handleMcpCommand(deps);
+      return true;
+    }
+    case SLASH_COMMAND.AGENT: {
+      handleAgentCommand(deps);
       return true;
     }
     case SLASH_COMMAND.CONFIG: {

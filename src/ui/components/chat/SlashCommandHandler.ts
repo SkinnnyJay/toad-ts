@@ -321,6 +321,8 @@ export const useSlashCommandHandler = ({
         runSummary,
         checkpointManager,
         harnesses,
+        activeHarnessId: agent?.harnessId,
+        activeAgentName: agent?.name,
         connectionStatus,
         getContextAttachments,
         setContextAttachments,

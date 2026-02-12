@@ -87,7 +87,9 @@ describe("useSlashCommands", () => {
       expect(SLASH_COMMAND.AGENTS).toBe("/agents");
       expect(SLASH_COMMAND.HOOKS).toBe("/hooks");
       expect(SLASH_COMMAND.DETAILS).toBe("/details");
+      expect(SLASH_COMMAND.AGENT).toBe("/agent");
       expect(SLASH_COMMAND.MEMORY).toBe("/memory");
+      expect(SLASH_COMMAND.MCP).toBe("/mcp");
       expect(SLASH_COMMAND.MODE).toBe("/mode");
       expect(SLASH_COMMAND.MODELS).toBe("/models");
       expect(SLASH_COMMAND.NEW).toBe("/new");
@@ -102,6 +104,7 @@ describe("useSlashCommands", () => {
       expect(SLASH_COMMAND.STATS).toBe("/stats");
       expect(SLASH_COMMAND.THEMES).toBe("/themes");
       expect(SLASH_COMMAND.THINKING).toBe("/thinking");
+      expect(SLASH_COMMAND.LOGOUT).toBe("/logout");
       expect(SLASH_COMMAND.VIM).toBe("/vim");
       expect(SLASH_COMMAND.UNDO).toBe("/undo");
       expect(SLASH_COMMAND.REDO).toBe("/redo");
