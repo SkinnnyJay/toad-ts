@@ -2,22 +2,38 @@ import { LIMIT } from "@/config/limits";
 import {
   AGENT_MANAGEMENT_CAPABILITY,
   AGENT_MANAGEMENT_COMMAND,
-  type AgentManagementCapability,
   HARNESS_ID,
-  HARNESS_MANAGEMENT_CAPABILITIES,
 } from "@/constants/agent-management-commands";
-import { ENV_KEY } from "@/constants/env-keys";
 import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
-import {
-  parseCursorAboutOutput,
-  parseCursorMcpListOutput,
-  parseCursorModelsOutput,
-  parseCursorStatusOutput,
-} from "@/core/cursor/cursor-command-parsers";
+import { parseCursorMcpListOutput } from "@/core/cursor/cursor-command-parsers";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { Session } from "@/types/domain";
-import { EnvManager } from "@/utils/env/env.utils";
 import { execa } from "execa";
+import {
+  AGENT_SUBCOMMAND,
+  CLOUD_AGENT_MESSAGE,
+  CLOUD_AGENT_SUBCOMMAND,
+  COMMAND_RESULT_EMPTY,
+  HARNESS_MESSAGE,
+  MCP_MESSAGE,
+  MCP_SUBCOMMAND,
+  parseCloudListArgs,
+  toErrorMessage,
+} from "./agent-management-command-helpers";
+import {
+  getMergedHarnessEnv,
+  hasCapability,
+  isCursorHarness,
+  mapClaudeStatusLines,
+  mapCursorAboutLines,
+  mapCursorModelLines,
+  mapCursorStatusLines,
+  mapGeminiStatusLines,
+  mapMcpLines,
+  mapStatusLines,
+  resolveNativeCommandArgs,
+  unsupportedCapabilityMessage,
+} from "./agent-management-command-resolver";
 
 export interface AgentManagementContext {
   activeHarness?: HarnessConfig;
@@ -41,113 +57,22 @@ interface HarnessCommandResult {
   exitCode: number;
 }
 
-const CLOUD_AGENT_SUBCOMMAND = {
-  ROOT: "cloud",
-  LIST: "list",
-  LAUNCH: "launch",
-  STOP: "stop",
-  FOLLOWUP: "followup",
-  CONVERSATION: "conversation",
-} as const;
-
-const CLOUD_DEFAULT_LIST_LIMIT = 10;
-const COMMAND_RESULT_EMPTY = "No output available.";
-
-const MCP_SUBCOMMAND = {
-  LIST: "list",
-  LIST_TOOLS: "list-tools",
-  ENABLE: "enable",
-  DISABLE: "disable",
-  LOGIN: "login",
-} as const;
-
-const CLOUD_AGENT_MESSAGE = {
-  CURSOR_ONLY: "Cloud commands require the active Cursor CLI harness.",
-  USAGE:
-    "Usage: /agent cloud list [limit] [cursor] | /agent cloud launch <prompt> | /agent cloud stop <agentId> | /agent cloud followup <agentId> <prompt> | /agent cloud conversation <agentId>",
-  MISSING_PROMPT: "Provide a prompt for cloud launch.",
-  MISSING_AGENT_ID: "Provide an agent id to stop.",
-  MISSING_FOLLOWUP: "Usage: /agent cloud followup <agentId> <prompt>",
-  MISSING_CONVERSATION: "Usage: /agent cloud conversation <agentId>",
-  PENDING_STATUS: "Status check pending.",
-} as const;
-
-const MCP_MESSAGE = {
-  USAGE: "Usage: /mcp [list|list-tools <id>|enable <id>|disable <id>|login <id>]",
-  MISSING_SERVER_ID: "Provide an MCP server id.",
-} as const;
-
-const AGENT_SUBCOMMAND = {
-  CLOUD: "cloud",
-  MCP: "mcp",
-  ABOUT: "about",
-} as const;
-
-const HARNESS_MESSAGE = {
-  NO_ACTIVE_HARNESS: "No active harness selected.",
-  NOT_SUPPORTED: "is not supported for the active harness.",
-  GEMINI_LOGIN: "Gemini CLI uses environment-based auth. Set GOOGLE_API_KEY or GEMINI_API_KEY.",
-} as const;
-
-const toErrorMessage = (error: unknown): string => {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return String(error);
-};
-
-const parseCloudListArgs = (
-  args: string[]
-): {
-  limit: number;
-  cursor: string | undefined;
-} => {
-  const [firstArg, secondArg] = args;
-  const parsedLimit = Number.parseInt(firstArg ?? "", 10);
-  const hasNumericPrefix = firstArg !== undefined && /^\d+$/.test(firstArg.trim());
-  if (hasNumericPrefix) {
-    return {
-      limit: parsedLimit > 0 ? parsedLimit : CLOUD_DEFAULT_LIST_LIMIT,
-      cursor: secondArg?.trim() || undefined,
-    };
-  }
-  return {
-    limit: CLOUD_DEFAULT_LIST_LIMIT,
-    cursor: firstArg?.trim() || undefined,
-  };
-};
-
-const isCursorHarness = (harness: HarnessConfig): boolean => harness.id === HARNESS_ID.CURSOR_CLI;
-
-const hasCapability = (
-  harness: HarnessConfig | undefined,
-  capability: AgentManagementCapability
-): boolean => {
-  if (!harness) {
-    return false;
-  }
-  const supported = HARNESS_MANAGEMENT_CAPABILITIES[harness.id];
-  if (!supported) {
-    return false;
-  }
-  return supported.includes(capability);
-};
-
-const unsupportedCapabilityMessage = (
-  harness: HarnessConfig,
-  capability: AgentManagementCapability
-): string => {
-  return `${capability} ${HARNESS_MESSAGE.NOT_SUPPORTED} (${harness.name})`;
+const MCP_SUPPORTED_SUBCOMMANDS_BY_HARNESS: Record<string, string[]> = {
+  [HARNESS_ID.CURSOR_CLI]: [
+    MCP_SUBCOMMAND.LIST,
+    MCP_SUBCOMMAND.LIST_TOOLS,
+    MCP_SUBCOMMAND.ENABLE,
+    MCP_SUBCOMMAND.DISABLE,
+    MCP_SUBCOMMAND.LOGIN,
+  ],
+  [HARNESS_ID.CLAUDE_CLI]: [MCP_SUBCOMMAND.LIST],
 };
 
 const runHarnessCommand = async (
   harness: HarnessConfig,
   args: string[]
 ): Promise<HarnessCommandResult> => {
-  const env = {
-    ...EnvManager.getInstance().getSnapshot(),
-    ...harness.env,
-  };
+  const env = getMergedHarnessEnv(harness);
   const result = await execa(harness.command, [...harness.args, ...args], {
     cwd: harness.cwd,
     env,
@@ -159,74 +84,6 @@ const runHarnessCommand = async (
     stderr: result.stderr,
     exitCode: result.exitCode ?? 1,
   };
-};
-
-const mapStatusLines = (context: AgentManagementContext): string[] => {
-  return [
-    `Connection: ${context.connectionStatus ?? "unknown"}`,
-    `Session: ${context.session?.id ?? "none"}`,
-    `Agent: ${context.activeAgentName ?? "none"}`,
-    `Harness: ${context.activeHarness?.id ?? "none"}`,
-    `Mode: ${context.session?.mode ?? "none"}`,
-    `Model: ${context.session?.metadata?.model ?? "default"}`,
-  ];
-};
-
-const mapMcpLines = (session: Session | undefined): string[] => {
-  const mcpServers = session?.metadata?.mcpServers ?? [];
-  if (mcpServers.length === 0) {
-    return ["No MCP servers configured for this session."];
-  }
-  return mcpServers.map((server, index) => {
-    if ("url" in server) {
-      return `${index + 1}. ${server.name} (${server.url})`;
-    }
-    return `${index + 1}. ${server.name} (${server.command})`;
-  });
-};
-
-const mapCursorStatusLines = (stdout: string, stderr: string): string[] => {
-  const env = EnvManager.getInstance().getSnapshot();
-  const auth = parseCursorStatusOutput(stdout, stderr, env[ENV_KEY.CURSOR_API_KEY]);
-  return [
-    `Authenticated: ${auth.authenticated ? "yes" : "no"}`,
-    `Method: ${auth.method ?? "none"}`,
-    `Email: ${auth.email ?? "unknown"}`,
-  ];
-};
-
-const mapCursorModelLines = (stdout: string): string[] => {
-  const models = parseCursorModelsOutput(stdout);
-  if (models.models.length === 0) {
-    return ["No models reported by cursor-agent."];
-  }
-  return models.models.map((model) => {
-    const tags = [
-      model.id === models.currentModel ? "current" : "",
-      model.id === models.defaultModel ? "default" : "",
-    ]
-      .filter((value) => value.length > 0)
-      .join(", ");
-    const tagSuffix = tags.length > 0 ? ` [${tags}]` : "";
-    return `- ${model.id}${tagSuffix}`;
-  });
-};
-
-const mapCursorAboutLines = (stdout: string): string[] => {
-  const about = parseCursorAboutOutput(stdout);
-  const prioritizedLines = [
-    about.cliVersion ? `Version: ${about.cliVersion}` : undefined,
-    about.model ? `Model: ${about.model}` : undefined,
-    about.os ? `OS: ${about.os}` : undefined,
-    about.terminal ? `Terminal: ${about.terminal}` : undefined,
-    about.shell ? `Shell: ${about.shell}` : undefined,
-    about.userEmail ? `User: ${about.userEmail}` : undefined,
-  ].filter((line): line is string => line !== undefined);
-  if (prioritizedLines.length > 0) {
-    return prioritizedLines;
-  }
-  const fallback = Object.entries(about.fields).map(([key, value]) => `${key}: ${value}`);
-  return fallback.length > 0 ? fallback : [COMMAND_RESULT_EMPTY];
 };
 
 const getCloudClient = (
@@ -279,7 +136,15 @@ const runMcpCommand = async (
     return [MCP_MESSAGE.USAGE];
   }
 
-  const commandArgs = [AGENT_MANAGEMENT_COMMAND.MCP, subcommand, ...subArgs];
+  const supportedSubcommands = MCP_SUPPORTED_SUBCOMMANDS_BY_HARNESS[harness.id] ?? [];
+  if (!supportedSubcommands.includes(subcommand)) {
+    return [`${MCP_MESSAGE.UNSUPPORTED_SUBCOMMAND} (${harness.name})`];
+  }
+
+  const commandArgs = resolveNativeCommandArgs(harness, AGENT_MANAGEMENT_COMMAND.MCP, [
+    subcommand,
+    ...subArgs,
+  ]);
   const result = await runHarnessCommand(harness, commandArgs);
   if (result.exitCode !== 0) {
     return [result.stderr || result.stdout || COMMAND_RESULT_EMPTY];
@@ -416,7 +281,10 @@ export const runAgentCommand = async (
         if (!hasCapability(harness, AGENT_MANAGEMENT_CAPABILITY.ABOUT)) {
           return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.ABOUT)];
         }
-        const result = await runHarnessCommand(harness, [AGENT_MANAGEMENT_COMMAND.ABOUT]);
+        const result = await runHarnessCommand(
+          harness,
+          resolveNativeCommandArgs(harness, AGENT_MANAGEMENT_COMMAND.ABOUT)
+        );
         if (result.exitCode !== 0) {
           return [result.stderr || result.stdout || COMMAND_RESULT_EMPTY];
         }
@@ -447,7 +315,10 @@ export const runAgentCommand = async (
         return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.LOGOUT)];
       }
       {
-        const result = await runHarnessCommand(harness, [AGENT_MANAGEMENT_COMMAND.LOGOUT]);
+        const result = await runHarnessCommand(
+          harness,
+          resolveNativeCommandArgs(harness, AGENT_MANAGEMENT_COMMAND.LOGOUT)
+        );
         if (result.exitCode !== 0) {
           return [
             `Logout command failed for ${harness.name}.`,
@@ -464,7 +335,10 @@ export const runAgentCommand = async (
         return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.ABOUT)];
       }
       {
-        const result = await runHarnessCommand(harness, [AGENT_MANAGEMENT_COMMAND.ABOUT]);
+        const result = await runHarnessCommand(
+          harness,
+          resolveNativeCommandArgs(harness, AGENT_MANAGEMENT_COMMAND.ABOUT)
+        );
         if (result.exitCode !== 0) {
           return [result.stderr || result.stdout || COMMAND_RESULT_EMPTY];
         }
@@ -480,8 +354,17 @@ export const runAgentCommand = async (
       if (!hasCapability(harness, AGENT_MANAGEMENT_CAPABILITY.STATUS)) {
         return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.STATUS)];
       }
+      if (harness.id === HARNESS_ID.CLAUDE_CLI) {
+        return mapClaudeStatusLines(harness);
+      }
+      if (harness.id === HARNESS_ID.GEMINI_CLI) {
+        return mapGeminiStatusLines(harness);
+      }
       {
-        const result = await runHarnessCommand(harness, [AGENT_MANAGEMENT_COMMAND.STATUS]);
+        const result = await runHarnessCommand(
+          harness,
+          resolveNativeCommandArgs(harness, AGENT_MANAGEMENT_COMMAND.STATUS)
+        );
         if (result.exitCode !== 0) {
           return mapStatusLines(context);
         }
@@ -502,7 +385,10 @@ export const runAgentCommand = async (
         return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.MODELS)];
       }
       {
-        const result = await runHarnessCommand(harness, [AGENT_MANAGEMENT_COMMAND.MODELS]);
+        const result = await runHarnessCommand(
+          harness,
+          resolveNativeCommandArgs(harness, AGENT_MANAGEMENT_COMMAND.MODELS)
+        );
         if (result.exitCode !== 0) {
           return [result.stderr || "Failed to list models."];
         }

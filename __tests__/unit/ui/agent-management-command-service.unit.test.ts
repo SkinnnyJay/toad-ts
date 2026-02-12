@@ -112,6 +112,49 @@ describe("agent-management-command-service", () => {
     expect(lines[0]).toContain("GOOGLE_API_KEY");
   });
 
+  it("runs codex status through login status command", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "Authenticated as coder@example.com",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "codex-cli",
+      name: "Codex CLI",
+      command: "codex",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.STATUS, {
+      activeHarness: harness,
+    });
+
+    expect(lines[0]).toContain("Authenticated as coder@example.com");
+    const args = execaMock.mock.calls[0]?.[1] as string[] | undefined;
+    expect(args).toEqual(["login", "status"]);
+  });
+
+  it("derives gemini status from GOOGLE_API_KEY env", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "gemini-cli",
+      name: "Gemini CLI",
+      command: "gemini",
+      args: [],
+      env: {
+        GOOGLE_API_KEY: "google-key",
+      },
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.STATUS, {
+      activeHarness: harness,
+    });
+
+    expect(lines[0]).toContain("Authenticated: yes");
+    expect(lines[2]).toContain("GOOGLE_API_KEY");
+  });
+
   it("returns not-supported message when logout is unavailable", async () => {
     const harness = harnessConfigSchema.parse({
       id: "claude-cli",
@@ -127,19 +170,22 @@ describe("agent-management-command-service", () => {
     expect(lines[0]).toContain("logout is not supported");
   });
 
-  it("returns not-supported message when status command is unavailable", async () => {
+  it("derives claude status from environment auth", async () => {
     const harness = harnessConfigSchema.parse({
       id: "claude-cli",
       name: "Claude CLI",
       command: "claude-code-acp",
       args: [],
-      env: {},
+      env: {
+        ANTHROPIC_API_KEY: "test-key",
+      },
     });
     const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.STATUS, {
       activeHarness: harness,
     });
 
-    expect(lines[0]).toContain("status is not supported");
+    expect(lines[0]).toContain("Authenticated: yes");
+    expect(lines[1]).toContain("Method: api_key");
   });
 
   it("parses cursor about output through /agent about", async () => {
@@ -199,6 +245,30 @@ describe("agent-management-command-service", () => {
     expect(lines.some((line) => line.includes("Version: 2026.01.28-fd13201"))).toBe(true);
   });
 
+  it("uses --version for non-cursor about commands", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "codex 0.1.0",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "codex-cli",
+      name: "Codex CLI",
+      command: "codex",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.ABOUT, {
+      activeHarness: harness,
+    });
+
+    expect(lines[0]).toContain("codex 0.1.0");
+    const args = execaMock.mock.calls[0]?.[1] as string[] | undefined;
+    expect(args).toEqual(["--version"]);
+  });
+
   it("shows configured MCP servers for current session", async () => {
     const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.MCP, {
       session: {
@@ -237,6 +307,25 @@ describe("agent-management-command-service", () => {
     });
 
     expect(lines[0]).toContain("mcp is not supported");
+  });
+
+  it("rejects unsupported MCP subcommands for claude harness", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "claude-cli",
+      name: "Claude CLI",
+      command: "claude-code-acp",
+      args: [],
+      env: {},
+    });
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.MCP,
+      {
+        activeHarness: harness,
+      },
+      ["enable", "github"]
+    );
+
+    expect(lines[0]).toContain("MCP subcommand is not supported");
   });
 
   it("runs native MCP list for active cursor harness", async () => {
