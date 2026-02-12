@@ -208,6 +208,7 @@ export CURSOR_API_KEY=...
 - Supports management commands through slash commands:
   - `/status`, `/login`, `/logout`, `/models`, `/model`, `/mcp`, `/agent`, `/cloud`
   - `/cloud` supports list/status/stop/follow-up actions for Cursor cloud agents:
+    - `/cloud` (no subcommand) opens an interactive cloud-agent panel (status, stop, follow-up, refresh)
     - `/cloud list`
     - `/cloud status <agent-id>`
     - `/cloud stop <agent-id>`
