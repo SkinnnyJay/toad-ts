@@ -3,7 +3,7 @@ import { KEY_NAME } from "@/constants/key-names";
 import type { ModelInfo } from "@/types/domain";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
 interface SessionModelTabProps {
   isActive: boolean;
@@ -32,6 +32,7 @@ export function SessionModelTab({
   const [statusMessage, setStatusMessage] = useState<string | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasAttemptedAutoRefresh, setHasAttemptedAutoRefresh] = useState(false);
   const normalizedCurrentModelId = toNormalizedOptionalString(currentModelId);
   const currentModelIndex = useMemo(
     () => availableModels.findIndex((model) => model.modelId === normalizedCurrentModelId),
@@ -50,30 +51,33 @@ export function SessionModelTab({
     setIndex((previousIndex) => Math.min(previousIndex, availableModels.length - 1));
   }, [availableModels.length, currentModelIndex]);
 
-  const handleSelectModel = async (modelId: string): Promise<void> => {
-    if (!onSelectModel) {
-      setStatusMessage("Model switching is not available for the active provider.");
-      return;
-    }
-    if (modelId === normalizedCurrentModelId) {
-      setStatusMessage(`Model ${modelId} is already active.`);
-      return;
-    }
-    setIsSaving(true);
-    setStatusMessage(`Switching model to ${modelId}…`);
-    try {
-      await onSelectModel(modelId);
-      setStatusMessage(`Updated session model to ${modelId}.`);
-    } catch (error) {
-      setStatusMessage(
-        `Failed to update model: ${error instanceof Error ? error.message : String(error)}`
-      );
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const handleSelectModel = useCallback(
+    async (modelId: string): Promise<void> => {
+      if (!onSelectModel) {
+        setStatusMessage("Model switching is not available for the active provider.");
+        return;
+      }
+      if (modelId === normalizedCurrentModelId) {
+        setStatusMessage(`Model ${modelId} is already active.`);
+        return;
+      }
+      setIsSaving(true);
+      setStatusMessage(`Switching model to ${modelId}…`);
+      try {
+        await onSelectModel(modelId);
+        setStatusMessage(`Updated session model to ${modelId}.`);
+      } catch (error) {
+        setStatusMessage(
+          `Failed to update model: ${error instanceof Error ? error.message : String(error)}`
+        );
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [normalizedCurrentModelId, onSelectModel]
+  );
 
-  const handleRefreshModels = async (): Promise<void> => {
+  const handleRefreshModels = useCallback(async (): Promise<void> => {
     if (!onRefreshModels) {
       setStatusMessage("Model refresh is not available for the active provider.");
       return;
@@ -90,7 +94,36 @@ export function SessionModelTab({
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [onRefreshModels]);
+
+  useEffect(() => {
+    if (availableModels.length > 0 && hasAttemptedAutoRefresh) {
+      setHasAttemptedAutoRefresh(false);
+    }
+  }, [availableModels.length, hasAttemptedAutoRefresh]);
+
+  useEffect(() => {
+    if (
+      !isActive ||
+      hasAttemptedAutoRefresh ||
+      availableModels.length > 0 ||
+      !onRefreshModels ||
+      isSaving ||
+      isRefreshing
+    ) {
+      return;
+    }
+    setHasAttemptedAutoRefresh(true);
+    void handleRefreshModels();
+  }, [
+    availableModels.length,
+    handleRefreshModels,
+    hasAttemptedAutoRefresh,
+    isActive,
+    isRefreshing,
+    isSaving,
+    onRefreshModels,
+  ]);
 
   useKeyboard((key) => {
     if (!isActive) {
@@ -147,7 +180,9 @@ export function SessionModelTab({
       {availableModels.length === 0 ? (
         <box flexDirection="column" gap={1} marginTop={1}>
           <text attributes={TextAttributes.DIM}>No models cached for this session yet.</text>
-          <text attributes={TextAttributes.DIM}>Run /models to fetch and cache model options.</text>
+          <text attributes={TextAttributes.DIM}>
+            TOADSTOOL will try to refresh automatically; press Ctrl+R to retry.
+          </text>
         </box>
       ) : (
         <box flexDirection="column" gap={0} marginTop={1}>

@@ -24,7 +24,7 @@ describe("SessionModelTab", () => {
 
     expect(lastFrame()).toContain("Session Model");
     expect(lastFrame()).toContain("No models cached for this session yet.");
-    expect(lastFrame()).toContain("Run /models to fetch and cache model options.");
+    expect(lastFrame()).toContain("TOADSTOOL will try to refresh automatically");
   });
 
   it("selects highlighted model with keyboard and enter", async () => {
@@ -72,5 +72,37 @@ describe("SessionModelTab", () => {
     await waitFor(() => onRefreshModels.mock.calls.length === 1);
     await waitFor(() => lastFrame().includes("Refreshed model list."));
     expect(lastFrame()).toContain("Refreshed model list.");
+  });
+
+  it("attempts one automatic refresh when no models are cached", async () => {
+    const onRefreshModels = vi.fn(async () => undefined);
+    const { rerender } = renderInk(
+      React.createElement(
+        TruncationProvider,
+        {},
+        React.createElement(SessionModelTab, {
+          isActive: true,
+          availableModels: [],
+          onRefreshModels,
+        })
+      )
+    );
+
+    await waitFor(() => onRefreshModels.mock.calls.length === 1);
+
+    rerender(
+      React.createElement(
+        TruncationProvider,
+        {},
+        React.createElement(SessionModelTab, {
+          isActive: true,
+          availableModels: [],
+          onRefreshModels,
+        })
+      )
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    expect(onRefreshModels).toHaveBeenCalledTimes(1);
   });
 });
