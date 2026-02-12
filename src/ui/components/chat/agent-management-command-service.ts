@@ -16,7 +16,10 @@ export interface AgentManagementContext {
   activeAgentName?: string;
   session?: Session;
   connectionStatus?: string;
-  cloudClient?: Pick<CursorCloudAgentClient, "listAgents" | "launchAgent" | "stopAgent">;
+  cloudClient?: Pick<
+    CursorCloudAgentClient,
+    "listAgents" | "launchAgent" | "stopAgent" | "followupAgent" | "getConversation"
+  >;
 }
 
 interface HarnessCommandResult {
@@ -30,13 +33,18 @@ const CLOUD_AGENT_SUBCOMMAND = {
   LIST: "list",
   LAUNCH: "launch",
   STOP: "stop",
+  FOLLOWUP: "followup",
+  CONVERSATION: "conversation",
 } as const;
 
 const CLOUD_AGENT_MESSAGE = {
   CURSOR_ONLY: "Cloud commands require the active Cursor CLI harness.",
-  USAGE: "Usage: /agent cloud list | /agent cloud launch <prompt> | /agent cloud stop <agentId>",
+  USAGE:
+    "Usage: /agent cloud list | /agent cloud launch <prompt> | /agent cloud stop <agentId> | /agent cloud followup <agentId> <prompt> | /agent cloud conversation <agentId>",
   MISSING_PROMPT: "Provide a prompt for cloud launch.",
   MISSING_AGENT_ID: "Provide an agent id to stop.",
+  MISSING_FOLLOWUP: "Usage: /agent cloud followup <agentId> <prompt>",
+  MISSING_CONVERSATION: "Usage: /agent cloud conversation <agentId>",
 } as const;
 
 const isCursorHarness = (harness: HarnessConfig): boolean => harness.id === HARNESS_ID.CURSOR_CLI;
@@ -115,7 +123,10 @@ const mapCursorModelLines = (stdout: string): string[] => {
 
 const getCloudClient = (
   context: AgentManagementContext
-): Pick<CursorCloudAgentClient, "listAgents" | "launchAgent" | "stopAgent"> => {
+): Pick<
+  CursorCloudAgentClient,
+  "listAgents" | "launchAgent" | "stopAgent" | "followupAgent" | "getConversation"
+> => {
   if (context.cloudClient) {
     return context.cloudClient;
   }
@@ -166,6 +177,33 @@ const runCloudAgentCommand = async (
       }
       await cloudClient.stopAgent(agentId);
       return [`Stopped cloud agent: ${agentId}`];
+    }
+    case CLOUD_AGENT_SUBCOMMAND.FOLLOWUP: {
+      const agentId = subArgs[0]?.trim();
+      const prompt = subArgs.slice(1).join(" ").trim();
+      if (!agentId || !prompt) {
+        return [CLOUD_AGENT_MESSAGE.MISSING_FOLLOWUP];
+      }
+      const response = await cloudClient.followupAgent(agentId, { prompt });
+      return [
+        `Follow-up sent to cloud agent: ${agentId}`,
+        `Status: ${response.status ?? "unknown"}`,
+      ];
+    }
+    case CLOUD_AGENT_SUBCOMMAND.CONVERSATION: {
+      const agentId = subArgs[0]?.trim();
+      if (!agentId) {
+        return [CLOUD_AGENT_MESSAGE.MISSING_CONVERSATION];
+      }
+      const conversation = await cloudClient.getConversation(agentId);
+      const messageCount = conversation.messages.length;
+      return [
+        `Cloud conversation: ${conversation.id}`,
+        `Messages: ${messageCount}`,
+        messageCount > 0
+          ? "Use cloud dashboard for detailed transcript rendering."
+          : "No conversation messages recorded yet.",
+      ];
     }
     default:
       return [CLOUD_AGENT_MESSAGE.USAGE];

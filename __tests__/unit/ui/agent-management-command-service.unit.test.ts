@@ -121,6 +121,8 @@ describe("agent-management-command-service", () => {
       })),
       launchAgent: vi.fn(),
       stopAgent: vi.fn(),
+      followupAgent: vi.fn(),
+      getConversation: vi.fn(),
     };
 
     const lines = await runAgentCommand(
@@ -150,6 +152,8 @@ describe("agent-management-command-service", () => {
         agent: { id: "cloud-agent-2", status: "queued" },
       })),
       stopAgent: vi.fn(),
+      followupAgent: vi.fn(),
+      getConversation: vi.fn(),
     };
 
     const lines = await runAgentCommand(
@@ -178,5 +182,69 @@ describe("agent-management-command-service", () => {
       model: "gpt-5",
     });
     expect(lines.some((line) => line.includes("cloud-agent-2"))).toBe(true);
+  });
+
+  it("sends follow-up prompts to cloud agents", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+    const cloudClient = {
+      listAgents: vi.fn(),
+      launchAgent: vi.fn(),
+      stopAgent: vi.fn(),
+      followupAgent: vi.fn(async () => ({ id: "cloud-agent-2", status: "running" })),
+      getConversation: vi.fn(),
+    };
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+        cloudClient,
+      },
+      ["cloud", "followup", "cloud-agent-2", "Please", "continue"]
+    );
+
+    expect(cloudClient.followupAgent).toHaveBeenCalledWith("cloud-agent-2", {
+      prompt: "Please continue",
+    });
+    expect(lines.some((line) => line.includes("Follow-up sent"))).toBe(true);
+  });
+
+  it("shows cloud conversation summary details", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+    const cloudClient = {
+      listAgents: vi.fn(),
+      launchAgent: vi.fn(),
+      stopAgent: vi.fn(),
+      followupAgent: vi.fn(),
+      getConversation: vi.fn(async () => ({
+        id: "conversation-1",
+        messages: [{ role: "user", content: "hello" }],
+      })),
+    };
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+        cloudClient,
+      },
+      ["cloud", "conversation", "cloud-agent-2"]
+    );
+
+    expect(cloudClient.getConversation).toHaveBeenCalledWith("cloud-agent-2");
+    expect(lines[0]).toContain("conversation-1");
+    expect(lines[1]).toContain("1");
   });
 });
