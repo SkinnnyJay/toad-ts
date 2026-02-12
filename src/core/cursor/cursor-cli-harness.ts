@@ -165,6 +165,8 @@ export class CursorCliHarnessAdapter
         message: promptText,
         sessionId: params.sessionId,
         model,
+        force: false,
+        streaming: true,
       });
       if (result.sessionId && result.sessionId !== params.sessionId) {
         this.emit("sessionUpdate", {

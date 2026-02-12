@@ -26,6 +26,7 @@ import {
   loadCommands,
   loadSkills,
 } from "@/core/cross-tool";
+import { cursorCliHarnessAdapter } from "@/core/cursor/cursor-cli-harness";
 import { geminiCliHarnessAdapter } from "@/core/gemini-cli-harness";
 import { mockHarnessAdapter } from "@/core/mock-harness";
 import { SessionStream } from "@/core/session-stream";
@@ -149,16 +150,14 @@ export function App(): ReactNode {
     onStatusMessageChange: setStatusMessage,
     onViewChange: setView,
   });
-  const harnessRegistry = useMemo(
-    () =>
-      new HarnessRegistry([
-        claudeCliHarnessAdapter,
-        geminiCliHarnessAdapter,
-        codexCliHarnessAdapter,
-        mockHarnessAdapter,
-      ]),
-    []
-  );
+  const harnessRegistry = useMemo(() => {
+    const adapters = [claudeCliHarnessAdapter, geminiCliHarnessAdapter, codexCliHarnessAdapter];
+    if (appConfig.compatibility.cursor) {
+      adapters.push(cursorCliHarnessAdapter);
+    }
+    adapters.push(mockHarnessAdapter);
+    return new HarnessRegistry(adapters);
+  }, [appConfig.compatibility.cursor]);
   const sessionStream = useMemo(() => new SessionStream(useAppStore.getState()), []);
   const subAgentRunner = useMemo(
     () =>
