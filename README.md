@@ -219,11 +219,17 @@ Skills, commands, agents, hooks, and rules from all tools are merged automatical
 
 Cloud workflows are available through `/agent` when Cursor compatibility is enabled:
 
+- `/agent about`
 - `/agent cloud list [limit] [cursor]`
 - `/agent cloud launch <prompt>`
 - `/agent cloud followup <agentId> <prompt>`
 - `/agent cloud conversation <agentId>`
 - `/agent cloud stop <agentId>`
+- `/agent mcp [list|list-tools <id>|enable <id>|disable <id>|login <id>]`
+
+Direct MCP management shortcut:
+
+- `/mcp [list|list-tools <id>|enable <id>|disable <id>|login <id>]`
 
 ## Development
 

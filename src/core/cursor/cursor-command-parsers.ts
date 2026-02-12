@@ -13,9 +13,20 @@ const CURSOR_MODEL_TAG = {
   DEFAULT: "default",
 } as const;
 
+const CURSOR_ABOUT_KEY = {
+  CLI_VERSION: "CLI Version",
+  MODEL: "Model",
+  OS: "OS",
+  TERMINAL: "Terminal",
+  SHELL: "Shell",
+  USER_EMAIL: "User Email",
+} as const;
+
 const CURSOR_REGEX = {
   MODEL_LINE: /^(\S+)\s+-\s+(.+?)(?:\s{2,}\((.+)\))?$/,
   AUTH_EMAIL: /Logged in as\s+([^\s]+)/,
+  ABOUT_LINE: /^(.+?)\s{2,}(.+)$/,
+  MCP_LIST_LINE: /^([^:]+):\s*(.+?)(?:\s+\((.+)\))?$/,
 } as const;
 
 const toLines = (value: string): string[] => {
@@ -60,6 +71,70 @@ export const parseCursorStatusOutput = (
         : CLI_AGENT_AUTH_METHOD.NONE,
     email: emailMatch?.[1],
   });
+};
+
+export interface CursorAboutInfo {
+  cliVersion?: string;
+  model?: string;
+  os?: string;
+  terminal?: string;
+  shell?: string;
+  userEmail?: string;
+  fields: Record<string, string>;
+}
+
+export interface CursorMcpServerStatus {
+  name: string;
+  status: string;
+  reason?: string;
+}
+
+export const parseCursorAboutOutput = (output: string): CursorAboutInfo => {
+  const fields: Record<string, string> = {};
+  for (const line of toLines(output)) {
+    const match = line.match(CURSOR_REGEX.ABOUT_LINE);
+    if (!match) {
+      continue;
+    }
+    const key = match[1]?.trim();
+    const value = match[2]?.trim();
+    if (!key || !value) {
+      continue;
+    }
+    fields[key] = value;
+  }
+
+  return {
+    cliVersion: fields[CURSOR_ABOUT_KEY.CLI_VERSION],
+    model: fields[CURSOR_ABOUT_KEY.MODEL],
+    os: fields[CURSOR_ABOUT_KEY.OS],
+    terminal: fields[CURSOR_ABOUT_KEY.TERMINAL],
+    shell: fields[CURSOR_ABOUT_KEY.SHELL],
+    userEmail: fields[CURSOR_ABOUT_KEY.USER_EMAIL],
+    fields,
+  };
+};
+
+export const parseCursorMcpListOutput = (output: string): CursorMcpServerStatus[] => {
+  return toLines(output)
+    .map((line) => {
+      const match = line.match(CURSOR_REGEX.MCP_LIST_LINE);
+      if (!match) {
+        return null;
+      }
+      const name = match[1]?.trim();
+      const status = match[2]?.trim();
+      const reason = match[3]?.trim();
+      if (!name || !status) {
+        return null;
+      }
+      return {
+        name,
+        status,
+        ...(reason ? { reason } : {}),
+      };
+    })
+    .filter((entry): entry is CursorMcpServerStatus => entry !== null);
 };
 
 const parseCursorModelLine = (line: string): CliAgentModel | null => {

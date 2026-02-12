@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import {
+  parseCursorAboutOutput,
+  parseCursorMcpListOutput,
   parseCursorModelsOutput,
   parseCursorStatusOutput,
 } from "@/core/cursor/cursor-command-parsers";
@@ -35,5 +37,36 @@ describe("cursor-command-parsers", () => {
     const parsed = parseCursorStatusOutput("No login output", "", "token-123");
     expect(parsed.authenticated).toBe(true);
     expect(parsed.method).toBe("api_key");
+  });
+
+  it("parses about output fixture into key fields", () => {
+    const output = readFileSync(
+      path.join(process.cwd(), "__tests__/fixtures/cursor/about-output.txt"),
+      "utf8"
+    );
+    const parsed = parseCursorAboutOutput(output);
+
+    expect(parsed.cliVersion).toBe("2026.01.28-fd13201");
+    expect(parsed.model).toBe("Claude 4.6 Opus (Thinking)");
+    expect(parsed.userEmail).toBe("netwearcdz@gmail.com");
+  });
+
+  it("parses mcp list output fixture into server statuses", () => {
+    const output = readFileSync(
+      path.join(process.cwd(), "__tests__/fixtures/cursor/mcp-list-output.txt"),
+      "utf8"
+    );
+    const parsed = parseCursorMcpListOutput(output);
+
+    expect(parsed).toHaveLength(3);
+    expect(parsed[0]).toMatchObject({
+      name: "playwright",
+      status: "not loaded",
+      reason: "needs approval",
+    });
+    expect(parsed[2]).toMatchObject({
+      name: "context7",
+      status: "connected",
+    });
   });
 });

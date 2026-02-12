@@ -5,6 +5,17 @@ import { AgentIdSchema, SessionIdSchema } from "@/types/domain";
 import { type SlashCommandDeps, runSlashCommand } from "@/ui/components/chat/slash-command-runner";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("execa", () => {
+  return {
+    execa: vi.fn(),
+  };
+});
+
+const getExecaMock = async () => {
+  const module = await import("execa");
+  return module.execa as unknown as ReturnType<typeof vi.fn>;
+};
+
 const createDeps = (appendSystemMessage: (text: string) => void): SlashCommandDeps => {
   const sessionId = SessionIdSchema.parse("session-1");
   return {
@@ -59,11 +70,18 @@ describe("slash-command-runner", () => {
   });
 
   it("handles /mcp command", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "filesystem: connected",
+      stderr: "",
+      exitCode: 0,
+    });
     const appendSystemMessage = vi.fn();
     const handled = runSlashCommand(SLASH_COMMAND.MCP, createDeps(appendSystemMessage));
-    await Promise.resolve();
+    await vi.waitFor(() => {
+      expect(appendSystemMessage).toHaveBeenCalled();
+    });
 
     expect(handled).toBe(true);
-    expect(appendSystemMessage).toHaveBeenCalled();
   });
 });

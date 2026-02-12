@@ -3,6 +3,8 @@ import { AGENT_MANAGEMENT_COMMAND, HARNESS_ID } from "@/constants/agent-manageme
 import { ENV_KEY } from "@/constants/env-keys";
 import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
 import {
+  parseCursorAboutOutput,
+  parseCursorMcpListOutput,
   parseCursorModelsOutput,
   parseCursorStatusOutput,
 } from "@/core/cursor/cursor-command-parsers";
@@ -43,6 +45,15 @@ const CLOUD_AGENT_SUBCOMMAND = {
 } as const;
 
 const CLOUD_DEFAULT_LIST_LIMIT = 10;
+const COMMAND_RESULT_EMPTY = "No output available.";
+
+const MCP_SUBCOMMAND = {
+  LIST: "list",
+  LIST_TOOLS: "list-tools",
+  ENABLE: "enable",
+  DISABLE: "disable",
+  LOGIN: "login",
+} as const;
 
 const CLOUD_AGENT_MESSAGE = {
   CURSOR_ONLY: "Cloud commands require the active Cursor CLI harness.",
@@ -53,6 +64,17 @@ const CLOUD_AGENT_MESSAGE = {
   MISSING_FOLLOWUP: "Usage: /agent cloud followup <agentId> <prompt>",
   MISSING_CONVERSATION: "Usage: /agent cloud conversation <agentId>",
   PENDING_STATUS: "Status check pending.",
+} as const;
+
+const MCP_MESSAGE = {
+  USAGE: "Usage: /mcp [list|list-tools <id>|enable <id>|disable <id>|login <id>]",
+  MISSING_SERVER_ID: "Provide an MCP server id.",
+} as const;
+
+const AGENT_SUBCOMMAND = {
+  CLOUD: "cloud",
+  MCP: "mcp",
+  ABOUT: "about",
 } as const;
 
 const toErrorMessage = (error: unknown): string => {
@@ -157,6 +179,23 @@ const mapCursorModelLines = (stdout: string): string[] => {
   });
 };
 
+const mapCursorAboutLines = (stdout: string): string[] => {
+  const about = parseCursorAboutOutput(stdout);
+  const prioritizedLines = [
+    about.cliVersion ? `Version: ${about.cliVersion}` : undefined,
+    about.model ? `Model: ${about.model}` : undefined,
+    about.os ? `OS: ${about.os}` : undefined,
+    about.terminal ? `Terminal: ${about.terminal}` : undefined,
+    about.shell ? `Shell: ${about.shell}` : undefined,
+    about.userEmail ? `User: ${about.userEmail}` : undefined,
+  ].filter((line): line is string => line !== undefined);
+  if (prioritizedLines.length > 0) {
+    return prioritizedLines;
+  }
+  const fallback = Object.entries(about.fields).map(([key, value]) => `${key}: ${value}`);
+  return fallback.length > 0 ? fallback : [COMMAND_RESULT_EMPTY];
+};
+
 const getCloudClient = (
   context: AgentManagementContext
 ): Pick<
@@ -172,6 +211,60 @@ const getCloudClient = (
     return context.cloudClient;
   }
   return new CursorCloudAgentClient();
+};
+
+const runMcpCommand = async (
+  context: AgentManagementContext,
+  args: string[]
+): Promise<string[]> => {
+  const harness = context.activeHarness;
+  if (!harness) {
+    return mapMcpLines(context.session);
+  }
+
+  const [subcommand = MCP_SUBCOMMAND.LIST, ...subArgs] = args;
+  const commandsRequiringServerId: string[] = [
+    MCP_SUBCOMMAND.LIST_TOOLS,
+    MCP_SUBCOMMAND.ENABLE,
+    MCP_SUBCOMMAND.DISABLE,
+    MCP_SUBCOMMAND.LOGIN,
+  ];
+  if (commandsRequiringServerId.includes(subcommand) && !subArgs[0]?.trim()) {
+    return [MCP_MESSAGE.MISSING_SERVER_ID];
+  }
+
+  if (
+    subcommand !== MCP_SUBCOMMAND.LIST &&
+    subcommand !== MCP_SUBCOMMAND.LIST_TOOLS &&
+    subcommand !== MCP_SUBCOMMAND.ENABLE &&
+    subcommand !== MCP_SUBCOMMAND.DISABLE &&
+    subcommand !== MCP_SUBCOMMAND.LOGIN
+  ) {
+    return [MCP_MESSAGE.USAGE];
+  }
+
+  const commandArgs = [AGENT_MANAGEMENT_COMMAND.MCP, subcommand, ...subArgs];
+  const result = await runHarnessCommand(harness, commandArgs);
+  if (result.exitCode !== 0) {
+    return [result.stderr || result.stdout || COMMAND_RESULT_EMPTY];
+  }
+
+  if (isCursorHarness(harness) && subcommand === MCP_SUBCOMMAND.LIST) {
+    const parsed = parseCursorMcpListOutput(result.stdout);
+    if (parsed.length === 0) {
+      return [COMMAND_RESULT_EMPTY];
+    }
+    return parsed.map((entry) => {
+      const reasonSuffix = entry.reason ? ` (${entry.reason})` : "";
+      return `- ${entry.name}: ${entry.status}${reasonSuffix}`;
+    });
+  }
+
+  const lines = result.stdout
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+  return lines.length > 0 ? lines : [COMMAND_RESULT_EMPTY];
 };
 
 const runCloudAgentCommand = async (
@@ -274,12 +367,28 @@ export const runAgentCommand = async (
   const harness = context.activeHarness;
   switch (command) {
     case AGENT_MANAGEMENT_COMMAND.AGENT:
-      if (args[0] === CLOUD_AGENT_SUBCOMMAND.ROOT) {
+      if (args[0] === AGENT_SUBCOMMAND.CLOUD) {
         return runCloudAgentCommand(context, args.slice(1));
+      }
+      if (args[0] === AGENT_SUBCOMMAND.MCP) {
+        return runMcpCommand(context, args.slice(1));
+      }
+      if (args[0] === AGENT_SUBCOMMAND.ABOUT) {
+        if (!harness) {
+          return ["No active harness selected."];
+        }
+        const result = await runHarnessCommand(harness, [AGENT_MANAGEMENT_COMMAND.ABOUT]);
+        if (result.exitCode !== 0) {
+          return [result.stderr || result.stdout || COMMAND_RESULT_EMPTY];
+        }
+        if (isCursorHarness(harness)) {
+          return mapCursorAboutLines(result.stdout);
+        }
+        return [result.stdout || COMMAND_RESULT_EMPTY];
       }
       return mapStatusLines(context);
     case AGENT_MANAGEMENT_COMMAND.MCP:
-      return mapMcpLines(context.session);
+      return runMcpCommand(context, args);
     case AGENT_MANAGEMENT_COMMAND.LOGIN:
       if (!harness) {
         return ["No active harness selected."];
@@ -294,10 +403,24 @@ export const runAgentCommand = async (
         if (result.exitCode !== 0) {
           return [
             `Logout command failed for ${harness.name}.`,
-            result.stderr || result.stdout || "No output available.",
+            result.stderr || result.stdout || COMMAND_RESULT_EMPTY,
           ];
         }
         return [result.stdout || "Logout completed."];
+      }
+    case AGENT_MANAGEMENT_COMMAND.ABOUT:
+      if (!harness) {
+        return ["No active harness selected."];
+      }
+      {
+        const result = await runHarnessCommand(harness, [AGENT_MANAGEMENT_COMMAND.ABOUT]);
+        if (result.exitCode !== 0) {
+          return [result.stderr || result.stdout || COMMAND_RESULT_EMPTY];
+        }
+        if (isCursorHarness(harness)) {
+          return mapCursorAboutLines(result.stdout);
+        }
+        return [result.stdout || COMMAND_RESULT_EMPTY];
       }
     case AGENT_MANAGEMENT_COMMAND.STATUS:
       if (!harness) {

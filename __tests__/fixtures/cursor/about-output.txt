@@ -1,0 +1,8 @@
+About Cursor CLI
+
+CLI Version         2026.01.28-fd13201
+Model               Claude 4.6 Opus (Thinking)
+OS                  darwin (arm64)
+Terminal            unknown
+Shell               zsh
+User Email          netwearcdz@gmail.com

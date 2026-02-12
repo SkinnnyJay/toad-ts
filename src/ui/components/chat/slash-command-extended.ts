@@ -97,8 +97,8 @@ export const handleLogoutCommand = (deps: SlashCommandDeps): void => {
   runManagementCommand(AGENT_MANAGEMENT_COMMAND.LOGOUT, deps);
 };
 
-export const handleMcpCommand = (deps: SlashCommandDeps): void => {
-  runManagementCommand(AGENT_MANAGEMENT_COMMAND.MCP, deps);
+export const handleMcpCommand = (parts: string[], deps: SlashCommandDeps): void => {
+  runManagementCommand(AGENT_MANAGEMENT_COMMAND.MCP, deps, parts.slice(1));
 };
 
 export const handleAgentCommand = (parts: string[], deps: SlashCommandDeps): void => {

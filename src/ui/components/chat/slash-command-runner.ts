@@ -492,7 +492,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       return true;
     }
     case SLASH_COMMAND.MCP: {
-      handleMcpCommand(deps);
+      handleMcpCommand(parts, deps);
       return true;
     }
     case SLASH_COMMAND.AGENT: {

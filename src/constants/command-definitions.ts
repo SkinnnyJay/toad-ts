@@ -20,7 +20,7 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   {
     name: SLASH_COMMAND.AGENT,
     description: "Manage active agent and cloud workflows",
-    args: "[cloud <list|launch|followup|conversation|stop> ...]",
+    args: "[about|cloud <list|launch|followup|conversation|stop>|mcp ...]",
     category: "provider",
   },
   { name: SLASH_COMMAND.AGENTS, description: "Open agent discovery panel", category: "agents" },
@@ -78,7 +78,8 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   },
   {
     name: SLASH_COMMAND.MCP,
-    description: "List MCP servers for the active session",
+    description: "Manage MCP servers for the active harness",
+    args: "[list|list-tools <id>|enable <id>|disable <id>|login <id>]",
     category: "provider",
   },
   {

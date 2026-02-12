@@ -82,6 +82,37 @@ describe("agent-management-command-service", () => {
     expect(lines[0]).toContain("cursor-agent --foo login");
   });
 
+  it("parses cursor about output through /agent about", async () => {
+    const execaMock = await getExecaMock();
+    const aboutOutput = readFileSync(
+      path.join(process.cwd(), "__tests__/fixtures/cursor/about-output.txt"),
+      "utf8"
+    );
+    execaMock.mockResolvedValue({
+      stdout: aboutOutput,
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+      },
+      ["about"]
+    );
+
+    expect(lines.some((line) => line.includes("Version: 2026.01.28-fd13201"))).toBe(true);
+    expect(lines.some((line) => line.includes("User: netwearcdz@gmail.com"))).toBe(true);
+  });
+
   it("shows configured MCP servers for current session", async () => {
     const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.MCP, {
       session: {
@@ -105,6 +136,59 @@ describe("agent-management-command-service", () => {
     });
 
     expect(lines[0]).toContain("filesystem");
+  });
+
+  it("runs native MCP list for active cursor harness", async () => {
+    const execaMock = await getExecaMock();
+    const mcpOutput = readFileSync(
+      path.join(process.cwd(), "__tests__/fixtures/cursor/mcp-list-output.txt"),
+      "utf8"
+    );
+    execaMock.mockResolvedValue({
+      stdout: mcpOutput,
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.MCP, {
+      activeHarness: harness,
+    });
+
+    expect(lines[0]).toContain("playwright");
+    expect(lines[0]).toContain("needs approval");
+  });
+
+  it("runs MCP enable through native harness command", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "Enabled github MCP server",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.MCP,
+      {
+        activeHarness: harness,
+      },
+      ["enable", "github"]
+    );
+
+    expect(lines[0]).toContain("Enabled github MCP server");
   });
 
   it("lists cloud agents through /agent cloud list", async () => {

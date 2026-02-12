@@ -2,6 +2,7 @@ export const AGENT_MANAGEMENT_COMMAND = {
   LOGIN: "login",
   LOGOUT: "logout",
   STATUS: "status",
+  ABOUT: "about",
   MODELS: "models",
   MCP: "mcp",
   AGENT: "agent",
