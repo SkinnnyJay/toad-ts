@@ -41,9 +41,21 @@ const CLOUD_SUBCOMMAND = {
 } as const;
 
 const CLOUD_USAGE = "Usage: /cloud [list|status <id>|stop <id>|followup <id> <prompt>]";
+const INVALID_TIMESTAMP = -1;
 
 const isCursorCloudSupported = (deps: SlashCommandDeps): boolean => {
   return deps.activeHarnessId === HARNESS_DEFAULT.CURSOR_CLI_ID;
+};
+
+const toSortableTimestamp = (value: string | undefined): number => {
+  if (!value) {
+    return INVALID_TIMESTAMP;
+  }
+  const timestamp = Date.parse(value);
+  if (Number.isNaN(timestamp)) {
+    return INVALID_TIMESTAMP;
+  }
+  return timestamp;
 };
 
 const toCloudUnsupportedMessage = (): string => {
@@ -224,9 +236,22 @@ export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): voi
             deps.appendSystemMessage("No active cloud agents.");
             return;
           }
-          const preview = agents
+          const sortedAgents = [...agents].sort((first, second) => {
+            const secondTimestamp = toSortableTimestamp(second.updatedAt);
+            const firstTimestamp = toSortableTimestamp(first.updatedAt);
+            if (secondTimestamp !== firstTimestamp) {
+              return secondTimestamp - firstTimestamp;
+            }
+            return first.id.localeCompare(second.id);
+          });
+          const preview = sortedAgents
             .slice(0, CLOUD_LIST_LIMIT)
-            .map((agent) => `${agent.id} (${agent.status}${agent.model ? `, ${agent.model}` : ""})`)
+            .map(
+              (agent) =>
+                `${agent.id} (${agent.status}${agent.model ? `, ${agent.model}` : ""}${
+                  agent.updatedAt ? `, updated ${agent.updatedAt}` : ""
+                })`
+            )
             .join("\n");
           deps.appendSystemMessage(`Cloud agents:\n${preview}`);
         })

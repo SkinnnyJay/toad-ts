@@ -401,6 +401,7 @@ export const useSlashCommandHandler = ({
                     id: cloudAgent.id,
                     status: cloudAgent.status,
                     model: cloudAgent.model,
+                    updatedAt: cloudAgent.updated_at,
                   };
                 });
               }

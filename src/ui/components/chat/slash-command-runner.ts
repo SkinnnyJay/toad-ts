@@ -118,7 +118,9 @@ export interface SlashCommandDeps {
   listAgentSessions?: () => Promise<AgentManagementSession[]>;
   listCloudAgents?: () => Promise<number>;
   listCloudModels?: () => Promise<SessionModelOptions>;
-  listCloudAgentItems?: () => Promise<Array<{ id: string; status: string; model?: string }>>;
+  listCloudAgentItems?: () => Promise<
+    Array<{ id: string; status: string; model?: string; updatedAt?: string }>
+  >;
   getCloudAgentItem?: (agentId: string) => Promise<{ id: string; status: string; model?: string }>;
   stopCloudAgentItem?: (agentId: string) => Promise<{ id: string }>;
   followupCloudAgentItem?: (agentId: string, prompt: string) => Promise<{ id: string }>;

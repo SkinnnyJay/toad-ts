@@ -55,8 +55,17 @@ describe("slash command agent management", () => {
 
   it("lists cloud agents for cursor harness", async () => {
     const listCloudAgentItems = vi.fn(async () => [
-      { id: "agent-1", status: "running", model: "auto" },
-      { id: "agent-2", status: "completed" },
+      {
+        id: "agent-1",
+        status: "running",
+        model: "auto",
+        updatedAt: "2026-02-10T10:00:00.000Z",
+      },
+      {
+        id: "agent-2",
+        status: "completed",
+        updatedAt: "2026-02-11T10:00:00.000Z",
+      },
     ]);
     const { deps, appendSystemMessage } = createDeps({
       activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
@@ -69,9 +78,16 @@ describe("slash command agent management", () => {
     });
 
     expect(listCloudAgentItems).toHaveBeenCalledTimes(1);
-    expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("Cloud agents:"));
-    expect(appendSystemMessage).toHaveBeenCalledWith(
-      expect.stringContaining("agent-1 (running, auto)")
+    const cloudAgentsMessage = appendSystemMessage.mock.calls.find((call) =>
+      call[0]?.includes("Cloud agents:")
+    )?.[0];
+    expect(cloudAgentsMessage).toBeDefined();
+    expect(cloudAgentsMessage).toContain("agent-2 (completed, updated 2026-02-11T10:00:00.000Z)");
+    expect(cloudAgentsMessage).toContain(
+      "agent-1 (running, auto, updated 2026-02-10T10:00:00.000Z)"
+    );
+    expect(cloudAgentsMessage?.indexOf("agent-2")).toBeLessThan(
+      cloudAgentsMessage?.indexOf("agent-1") ?? Number.POSITIVE_INFINITY
     );
   });
 
