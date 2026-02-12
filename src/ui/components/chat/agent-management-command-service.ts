@@ -331,6 +331,12 @@ export const runAgentCommand = async (
         }
         return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.LOGIN)];
       }
+      if (harness.id === HARNESS_ID.CURSOR_CLI || harness.id === HARNESS_ID.CODEX_CLI) {
+        return [
+          `Run \`${harness.command} ${harness.args.join(" ")} login\` in a terminal.`,
+          HARNESS_MESSAGE.LOGIN_OPENS_BROWSER,
+        ];
+      }
       return [`Run \`${harness.command} ${harness.args.join(" ")} login\` in a terminal.`];
     case AGENT_MANAGEMENT_COMMAND.LOGOUT:
       if (!harness) {
@@ -407,7 +413,10 @@ export const runAgentCommand = async (
         return availableModels.map((model) => `- ${model.modelId}`);
       }
       if (!hasCapability(harness, AGENT_MANAGEMENT_CAPABILITY.MODELS)) {
-        return [unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.MODELS)];
+        return [
+          unsupportedCapabilityMessage(harness, AGENT_MANAGEMENT_CAPABILITY.MODELS),
+          HARNESS_MESSAGE.MODELS_USE_FLAG,
+        ];
       }
       {
         const result = await runHarnessCommand(

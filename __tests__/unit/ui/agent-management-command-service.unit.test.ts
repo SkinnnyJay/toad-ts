@@ -208,6 +208,7 @@ describe("agent-management-command-service", () => {
     });
 
     expect(lines[0]).toContain("models is not supported");
+    expect(lines[1]).toContain("/model <id>");
   });
 
   it("returns login guidance command for active harness", async () => {
@@ -223,6 +224,7 @@ describe("agent-management-command-service", () => {
     });
 
     expect(lines[0]).toContain("cursor-agent --foo login");
+    expect(lines[1]).toContain("open a browser");
   });
 
   it("returns env guidance when gemini login is requested", async () => {

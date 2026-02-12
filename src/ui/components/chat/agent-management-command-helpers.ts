@@ -49,6 +49,8 @@ export const HARNESS_MESSAGE = {
   NO_ACTIVE_HARNESS: "No active harness selected.",
   NOT_SUPPORTED: "is not supported for the active harness.",
   GEMINI_LOGIN: "Gemini CLI uses environment-based auth. Set GOOGLE_API_KEY or GEMINI_API_KEY.",
+  LOGIN_OPENS_BROWSER: "Login will open a browser for authentication.",
+  MODELS_USE_FLAG: "Model listing is unavailable. Use /model <id> or a --model flag.",
 } as const;
 
 export const AGENT_MESSAGE = {
