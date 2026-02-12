@@ -17,6 +17,12 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     args: "<path>",
     category: "context",
   },
+  {
+    name: SLASH_COMMAND.AGENT,
+    description: "Manage active agent and cloud workflows",
+    args: "[cloud <list|launch|followup|conversation|stop> ...]",
+    category: "provider",
+  },
   { name: SLASH_COMMAND.AGENTS, description: "Open agent discovery panel", category: "agents" },
   { name: SLASH_COMMAND.CLEAR, description: "Clear chat messages", category: "session" },
   {
@@ -65,6 +71,16 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     category: "settings",
   },
   { name: SLASH_COMMAND.LOGIN, description: "Authenticate with a provider", category: "provider" },
+  {
+    name: SLASH_COMMAND.LOGOUT,
+    description: "Sign out from active provider",
+    category: "provider",
+  },
+  {
+    name: SLASH_COMMAND.MCP,
+    description: "List MCP servers for the active session",
+    category: "provider",
+  },
   {
     name: SLASH_COMMAND.MEMORY,
     description: "Edit memory files",
