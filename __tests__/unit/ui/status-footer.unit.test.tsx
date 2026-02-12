@@ -66,6 +66,6 @@ describe("StatusFooter", () => {
       })
     );
 
-    expect(lastFrame()).toContain("Review: PR #456 (review_requested)");
+    expect(lastFrame()).toContain("Review: PR #456 (review requested)");
   });
 });

@@ -59,6 +59,10 @@ const toPullRequestLabel = (url: string): string => {
   return prNumber && prNumber.length > 0 ? `PR #${prNumber}` : "PR";
 };
 
+const toReviewDecisionLabel = (reviewDecision: string): string => {
+  return reviewDecision.trim().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
+};
+
 export function StatusFooter({
   taskProgress,
   planProgress,
@@ -100,7 +104,7 @@ export function StatusFooter({
     ? truncateMiddle(workspaceLabel, LIMIT.STRING_TRUNCATE_LONG)
     : undefined;
   const pullRequestText = prStatus
-    ? `${toPullRequestLabel(prStatus.url)} (${prStatus.reviewDecision})`
+    ? `${toPullRequestLabel(prStatus.url)} (${toReviewDecisionLabel(prStatus.reviewDecision)})`
     : undefined;
 
   const statusParts = [
