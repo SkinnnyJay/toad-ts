@@ -404,15 +404,25 @@ export class CursorHookIpcServer extends EventEmitter<CursorHookIpcServerEvents>
     const bodyMaxBytes = this.options.bodyMaxBytes ?? CURSOR_HOOK_IPC.BODY_MAX_BYTES;
     return new Promise<string>((resolve, reject) => {
       let data = "";
+      let limitExceeded = false;
       request.setEncoding("utf8");
       request.on("data", (chunk: string) => {
+        if (limitExceeded) {
+          return;
+        }
         data += chunk;
         if (Buffer.byteLength(data, "utf8") > bodyMaxBytes) {
+          limitExceeded = true;
           reject(new Error("Payload too large."));
         }
       });
       request.on("error", (error) => reject(error));
-      request.on("end", () => resolve(data));
+      request.on("end", () => {
+        if (limitExceeded) {
+          return;
+        }
+        resolve(data);
+      });
     }).catch((error) => {
       if (error instanceof Error && error.message === "Payload too large.") {
         throw Object.assign(error, { statusCode: HTTP_STATUS_PAYLOAD_TOO_LARGE });
