@@ -259,8 +259,9 @@ Tip: use --model <id> to switch.`,
       });
 
       expect(mockSpawn).toHaveBeenCalledTimes(1);
-      const spawnCall = mockSpawn.mock.calls[0]!;
-      const args = spawnCall[1] as string[];
+      const spawnCall = mockSpawn.mock.calls[0];
+      expect(spawnCall).toBeDefined();
+      const args = (spawnCall as unknown[])[1] as string[];
 
       expect(args).toContain("-p");
       expect(args).toContain("--output-format");

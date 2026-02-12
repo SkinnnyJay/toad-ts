@@ -64,6 +64,14 @@ function loadNdjsonFixture(name: string): string[] {
   return content.split("\n").filter((line) => line.trim().length > 0);
 }
 
+/** Safe array access for tests — throws if index is out of bounds */
+function at<T>(arr: T[], index: number): T {
+  const value = arr[index];
+  if (value === undefined)
+    throw new Error(`Array index ${index} out of bounds (length ${arr.length})`);
+  return value;
+}
+
 function loadTextFixture(name: string): string {
   const path = resolve(__dirname, "../../fixtures/cursor", name);
   return readFileSync(path, "utf-8");
@@ -133,7 +141,7 @@ describe("Cursor NDJSON Schema Validation", () => {
     const lines = loadNdjsonFixture("hello-response.ndjson");
 
     it("validates system.init event", () => {
-      const parsed = JSON.parse(lines[0]!);
+      const parsed = JSON.parse(at(lines, 0));
       const result = CursorSystemEventSchema.safeParse(parsed);
       expect(result.success).toBe(true);
       if (result.success) {
@@ -146,7 +154,7 @@ describe("Cursor NDJSON Schema Validation", () => {
     });
 
     it("validates user event", () => {
-      const parsed = JSON.parse(lines[1]!);
+      const parsed = JSON.parse(at(lines, 1));
       const result = CursorUserEventSchema.safeParse(parsed);
       expect(result.success).toBe(true);
       if (result.success) {
@@ -158,7 +166,7 @@ describe("Cursor NDJSON Schema Validation", () => {
     it("validates streaming assistant delta events", () => {
       // Lines 2-10 are streaming deltas (have timestamp_ms)
       for (let i = 2; i <= 10; i++) {
-        const parsed = JSON.parse(lines[i]!);
+        const parsed = JSON.parse(at(lines, i));
         const result = CursorAssistantEventSchema.safeParse(parsed);
         expect(result.success).toBe(true);
         if (result.success) {
@@ -170,7 +178,7 @@ describe("Cursor NDJSON Schema Validation", () => {
 
     it("validates final complete assistant event", () => {
       // Line 11 is the complete message (no timestamp_ms)
-      const parsed = JSON.parse(lines[11]!);
+      const parsed = JSON.parse(at(lines, 11));
       const result = CursorAssistantEventSchema.safeParse(parsed);
       expect(result.success).toBe(true);
       if (result.success) {
@@ -180,7 +188,7 @@ describe("Cursor NDJSON Schema Validation", () => {
     });
 
     it("validates result event", () => {
-      const lastLine = lines[lines.length - 1]!;
+      const lastLine = at(lines, lines.length - 1);
       const parsed = JSON.parse(lastLine);
       const result = CursorResultEventSchema.safeParse(parsed);
       expect(result.success).toBe(true);
@@ -244,8 +252,9 @@ describe("Cursor NDJSON Schema Validation", () => {
       const startedLine = lines.find((l) => {
         const p = JSON.parse(l);
         return p.type === "tool_call" && p.subtype === "started";
-      })!;
-      const parsed = JSON.parse(startedLine);
+      });
+      expect(startedLine).toBeDefined();
+      const parsed = JSON.parse(startedLine as string);
       const key = extractToolTypeKey(parsed.tool_call);
       expect(key).toBeDefined();
       expect(typeof key).toBe("string");
@@ -278,10 +287,12 @@ describe("Cursor NDJSON Schema Validation", () => {
       const startedLine = lines.find((l) => {
         const p = JSON.parse(l);
         return p.type === "tool_call" && p.subtype === "started";
-      })!;
-      const parsed = JSON.parse(startedLine);
-      const key = extractToolTypeKey(parsed.tool_call)!;
-      const input = extractToolInput(key, parsed.tool_call);
+      });
+      expect(startedLine).toBeDefined();
+      const parsed = JSON.parse(startedLine as string);
+      const key = extractToolTypeKey(parsed.tool_call);
+      expect(key).toBeDefined();
+      const input = extractToolInput(key as string, parsed.tool_call);
       expect(input).toBeDefined();
       expect(typeof input).toBe("object");
     });
@@ -290,10 +301,12 @@ describe("Cursor NDJSON Schema Validation", () => {
       const completedLine = lines.find((l) => {
         const p = JSON.parse(l);
         return p.type === "tool_call" && p.subtype === "completed";
-      })!;
-      const parsed = JSON.parse(completedLine);
-      const key = extractToolTypeKey(parsed.tool_call)!;
-      const result = extractToolResult(key, parsed.tool_call);
+      });
+      expect(completedLine).toBeDefined();
+      const parsed = JSON.parse(completedLine as string);
+      const key = extractToolTypeKey(parsed.tool_call);
+      expect(key).toBeDefined();
+      const result = extractToolResult(key as string, parsed.tool_call);
       expect(result).toBeDefined();
       expect(typeof result.success).toBe("boolean");
     });
