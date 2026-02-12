@@ -38,6 +38,14 @@ const toNativeSessionLabel = (session: AgentManagementSession): string => {
   return `Native: ${shortId} · ${nativeTitle}`;
 };
 
+const toDisplayTimestamp = (timestamp: string): string => {
+  const parsedDate = new Date(timestamp);
+  if (Number.isNaN(parsedDate.valueOf())) {
+    return timestamp;
+  }
+  return parsedDate.toLocaleString();
+};
+
 export function SessionsPopup({
   isOpen,
   onClose,
@@ -91,7 +99,7 @@ export function SessionsPopup({
         details.push(session.title);
       }
       if (session.createdAt) {
-        details.push(`Created: ${session.createdAt}`);
+        details.push(`Created: ${toDisplayTimestamp(session.createdAt)}`);
       }
       if (session.model) {
         details.push(`Model: ${session.model}`);

@@ -224,6 +224,33 @@ describe("UI Modals", () => {
       expect(lastFrame()).toContain("Native: 123e4567");
     });
 
+    it("keeps invalid external createdAt metadata searchable", () => {
+      const nativeSessionId = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174000");
+
+      const { lastFrame, stdin } = renderInk(
+        React.createElement(
+          TruncationProvider,
+          {},
+          React.createElement(SessionsPopup, {
+            isOpen: true,
+            onClose: () => {},
+            onSelectSession: () => {},
+            externalSessions: [
+              {
+                id: nativeSessionId,
+                title: "Native title",
+                createdAt: "invalid-timestamp",
+              },
+            ],
+          })
+        )
+      );
+
+      stdin.write("invalid-timestamp");
+      expect(lastFrame()).toContain("Filter: invalid-timestamp");
+      expect(lastFrame()).toContain("Native: 123e4567");
+    });
+
     it("orders external cursor sessions by newest created timestamp first", () => {
       const newestSessionId = SessionIdSchema.parse("123e4567-e89b-12d3-a456-426614174000");
       const oldestSessionId = SessionIdSchema.parse("223e4567-e89b-12d3-a456-426614174000");
