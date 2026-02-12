@@ -1,3 +1,4 @@
+import { SESSION_HYDRATION_INITIAL_PROGRESS } from "@/config/limits";
 import { UI } from "@/config/ui";
 import { RENDER_STAGE } from "@/constants/render-stage";
 import type { HarnessConfig } from "@/harness/harnessConfig";
@@ -130,7 +131,7 @@ describe("useSessionHydration", () => {
 
   describe("progress calculation", () => {
     it("progress only increases (never decreases)", () => {
-      let progress = 5;
+      let progress = SESSION_HYDRATION_INITIAL_PROGRESS;
       const setProgress = (updater: number | ((current: number) => number)) => {
         if (typeof updater === "function") {
           progress = updater(progress);

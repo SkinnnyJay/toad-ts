@@ -1,6 +1,7 @@
 import { type AgentConfig, loadAgentConfigs } from "@/agents/agent-config";
 import { AgentManager } from "@/agents/agent-manager";
 import type { AgentInfo } from "@/agents/agent-manager";
+import { SESSION_HYDRATION_INITIAL_PROGRESS } from "@/config/limits";
 import { UI } from "@/config/ui";
 import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-marks";
 import { RENDER_STAGE, type RenderStage } from "@/constants/render-stage";
@@ -72,7 +73,7 @@ export const filterHarnessConfigs = (
  */
 export function useSessionHydration({
   persistenceManager,
-  initialProgress = 5,
+  initialProgress = SESSION_HYDRATION_INITIAL_PROGRESS,
   initialStatusMessage = "Preparing…",
   enabledHarnessIds,
 }: UseSessionHydrationOptions): UseSessionHydrationResult {
