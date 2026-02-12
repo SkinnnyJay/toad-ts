@@ -10,6 +10,8 @@ import { KEY_NAME } from "@/constants/key-names";
 import { KEYBOARD_INPUT } from "@/constants/keyboard-input";
 import { SEMANTIC_COLOR } from "@/constants/semantic-colors";
 import type { LoadedCommand, LoadedSkill } from "@/types/domain";
+import { ScrollArea } from "@/ui/components/ScrollArea";
+import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
 import { useUiSymbols } from "@/ui/hooks/useUiSymbols";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
@@ -70,6 +72,9 @@ function groupBySource(items: DiscoveryItem[]): Array<{ source: string; items: D
   return result;
 }
 
+/** Fixed rows for header (title + hint), view toggle, and footer. */
+const DISCOVERY_MODAL_CHROME_ROWS = 5;
+
 export function SkillsCommandsModal({
   isOpen,
   mode,
@@ -78,6 +83,7 @@ export function SkillsCommandsModal({
   onClose,
 }: SkillsCommandsModalProps): ReactNode {
   const symbols = useUiSymbols();
+  const terminalDimensions = useTerminalDimensions();
   const [viewMode, setViewMode] = useState<DiscoveryViewMode>(DISCOVERY_VIEW.FLAT);
   const [index, setIndex] = useState(0);
 
@@ -87,6 +93,23 @@ export function SkillsCommandsModal({
 
   const flatCount = flatList.length;
   const groupedCount = grouped.reduce((acc, g) => acc + g.items.length, 0);
+
+  const maxModalHeight = useMemo(
+    () =>
+      Math.min(
+        UI.DISCOVERY_MODAL_MAX_HEIGHT,
+        terminalDimensions.rows - 2 * UI.DISCOVERY_MODAL_VIEWPORT_MARGIN
+      ),
+    [terminalDimensions.rows]
+  );
+  const listViewportRows = useMemo(
+    () =>
+      Math.max(
+        1,
+        Math.min(UI.DISCOVERY_MODAL_LIST_ROWS, maxModalHeight - DISCOVERY_MODAL_CHROME_ROWS)
+      ),
+    [maxModalHeight]
+  );
 
   useKeyboard((key) => {
     if (!isOpen) return;
@@ -138,7 +161,79 @@ export function SkillsCommandsModal({
   if (!isOpen) return null;
 
   const title = mode === DISCOVERY_SUBPATH.SKILLS ? "Skills" : "Commands";
-  const contentMinHeight = UI.MODAL_HEIGHT - UI.SIDEBAR_PADDING * 2 - UI.SCROLLBAR_WIDTH;
+
+  const listContent =
+    items.length === 0 ? (
+      <text fg={SEMANTIC_COLOR.HINT} attributes={TextAttributes.DIM}>
+        No {mode} discovered. Add {mode} under .claude/{mode}/, .cursor/{mode}/, or similar.
+      </text>
+    ) : viewMode === DISCOVERY_VIEW.FLAT ? (
+      <box flexDirection="column" gap={0}>
+        {flatList.map((item, i) => {
+          const isSelected = i === index;
+          const sourceColor = getSourceColor(item.source);
+          return (
+            <box key={`${item.source}-${item.name}-${i}`} flexDirection="column" gap={0}>
+              <text fg={isSelected ? SEMANTIC_COLOR.SELECTED : undefined}>
+                {isSelected ? `${symbols.CHEVRON} ` : "  "}
+                <text fg={sourceColor}>[{item.source}]</text>{" "}
+                <text fg={isSelected ? SEMANTIC_COLOR.SELECTED : SEMANTIC_COLOR.SKILL_NAME}>
+                  {item.name}
+                </text>
+              </text>
+              {item.description ? (
+                <text
+                  fg={SEMANTIC_COLOR.DESCRIPTION}
+                  attributes={TextAttributes.DIM}
+                  marginLeft={2}
+                >
+                  {item.description}
+                </text>
+              ) : null}
+            </box>
+          );
+        })}
+      </box>
+    ) : (
+      <box flexDirection="column" gap={0}>
+        {grouped.map(({ source, items: groupItems }) => (
+          <box key={source} flexDirection="column" gap={0} marginBottom={1}>
+            <text fg={getSourceColor(source)} attributes={TextAttributes.BOLD}>
+              [{source}]
+            </text>
+            {groupItems.map((item, i) => {
+              const groupStartIndex = grouped
+                .slice(
+                  0,
+                  grouped.findIndex((g) => g.source === source)
+                )
+                .reduce((acc, g) => acc + g.items.length, 0);
+              const globalIdx = groupStartIndex + i;
+              const isSelected = globalIdx === index;
+              return (
+                <box key={`${source}-${item.name}-${i}`} flexDirection="column" gap={0}>
+                  <text fg={isSelected ? SEMANTIC_COLOR.SELECTED : undefined}>
+                    {isSelected ? `${symbols.CHEVRON} ` : "  "}
+                    <text fg={isSelected ? SEMANTIC_COLOR.SELECTED : SEMANTIC_COLOR.SKILL_NAME}>
+                      {item.name}
+                    </text>
+                  </text>
+                  {item.description ? (
+                    <text
+                      fg={SEMANTIC_COLOR.DESCRIPTION}
+                      attributes={TextAttributes.DIM}
+                      marginLeft={2}
+                    >
+                      {item.description}
+                    </text>
+                  ) : null}
+                </box>
+              );
+            })}
+          </box>
+        ))}
+      </box>
+    );
 
   return (
     <box
@@ -150,11 +245,12 @@ export function SkillsCommandsModal({
       paddingRight={1}
       paddingTop={1}
       paddingBottom={1}
-      minHeight={UI.MODAL_HEIGHT}
+      height={maxModalHeight}
       width={UI.MODAL_WIDTH}
       gap={1}
+      overflow="hidden"
     >
-      <box flexDirection="row" justifyContent="space-between">
+      <box flexDirection="row" justifyContent="space-between" flexShrink={0}>
         <box flexDirection="row">
           <text fg={SEMANTIC_COLOR.SECTION_HEADER} attributes={TextAttributes.BOLD}>
             {title}
@@ -166,7 +262,7 @@ export function SkillsCommandsModal({
         </box>
       </box>
 
-      <box flexDirection="row" gap={1} marginBottom={1}>
+      <box flexDirection="row" gap={1} marginBottom={1} flexShrink={0}>
         <text
           fg={viewMode === DISCOVERY_VIEW.FLAT ? SEMANTIC_COLOR.SELECTED : SEMANTIC_COLOR.HINT}
           attributes={viewMode === DISCOVERY_VIEW.FLAT ? TextAttributes.BOLD : undefined}
@@ -181,77 +277,13 @@ export function SkillsCommandsModal({
         </text>
       </box>
 
-      <box flexDirection="column" flexGrow={1} minHeight={contentMinHeight}>
-        {items.length === 0 ? (
-          <text fg={SEMANTIC_COLOR.HINT} attributes={TextAttributes.DIM}>
-            No {mode} discovered. Add {mode} under .claude/{mode}/, .cursor/{mode}/, or similar.
-          </text>
-        ) : viewMode === DISCOVERY_VIEW.FLAT ? (
-          flatList.map((item, i) => {
-            const isSelected = i === index;
-            const sourceColor = getSourceColor(item.source);
-            return (
-              <box key={`${item.source}-${item.name}-${i}`} flexDirection="column" gap={0}>
-                <text fg={isSelected ? SEMANTIC_COLOR.SELECTED : undefined}>
-                  {isSelected ? `${symbols.CHEVRON} ` : "  "}
-                  <text fg={sourceColor}>[{item.source}]</text>{" "}
-                  <text fg={isSelected ? SEMANTIC_COLOR.SELECTED : SEMANTIC_COLOR.SKILL_NAME}>
-                    {item.name}
-                  </text>
-                </text>
-                {item.description ? (
-                  <text
-                    fg={SEMANTIC_COLOR.DESCRIPTION}
-                    attributes={TextAttributes.DIM}
-                    marginLeft={2}
-                  >
-                    {item.description}
-                  </text>
-                ) : null}
-              </box>
-            );
-          })
-        ) : (
-          grouped.map(({ source, items: groupItems }) => (
-            <box key={source} flexDirection="column" gap={0} marginBottom={1}>
-              <text fg={getSourceColor(source)} attributes={TextAttributes.BOLD}>
-                [{source}]
-              </text>
-              {groupItems.map((item, i) => {
-                const groupStartIndex = grouped
-                  .slice(
-                    0,
-                    grouped.findIndex((g) => g.source === source)
-                  )
-                  .reduce((acc, g) => acc + g.items.length, 0);
-                const globalIdx = groupStartIndex + i;
-                const isSelected = globalIdx === index;
-                return (
-                  <box key={`${source}-${item.name}-${i}`} flexDirection="column" gap={0}>
-                    <text fg={isSelected ? SEMANTIC_COLOR.SELECTED : undefined}>
-                      {isSelected ? `${symbols.CHEVRON} ` : "  "}
-                      <text fg={isSelected ? SEMANTIC_COLOR.SELECTED : SEMANTIC_COLOR.SKILL_NAME}>
-                        {item.name}
-                      </text>
-                    </text>
-                    {item.description ? (
-                      <text
-                        fg={SEMANTIC_COLOR.DESCRIPTION}
-                        attributes={TextAttributes.DIM}
-                        marginLeft={2}
-                      >
-                        {item.description}
-                      </text>
-                    ) : null}
-                  </box>
-                );
-              })}
-            </box>
-          ))
-        )}
+      <box flexDirection="column" minHeight={0} flexGrow={1}>
+        <ScrollArea height={listViewportRows} viewportCulling={true} focused={isOpen}>
+          {listContent}
+        </ScrollArea>
       </box>
 
-      <box marginTop={1} paddingTop={1} borderStyle="single" border={["top"]}>
+      <box marginTop={1} paddingTop={1} borderStyle="single" border={["top"]} flexShrink={0}>
         <text fg={SEMANTIC_COLOR.HINT} attributes={TextAttributes.DIM}>
           Tab: Switch view | ↑/↓: Navigate | Esc/Ctrl+S: Close
         </text>

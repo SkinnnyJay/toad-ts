@@ -30,6 +30,12 @@ export const UI = {
   COMMAND_PALETTE_MARGIN_ROWS: 1,
   /** Estimated fixed rows consumed by Chat chrome (header + footer + status + margins). */
   CHAT_CHROME_ROWS: 15,
+  /** Visible rows in Skills/Commands discovery modal list (scroll for rest). */
+  DISCOVERY_MODAL_LIST_ROWS: 10,
+  /** Margin (rows) to leave at top/bottom so discovery modal does not fill terminal. */
+  DISCOVERY_MODAL_VIEWPORT_MARGIN: 2,
+  /** Max height (rows) of discovery modal when terminal is large. */
+  DISCOVERY_MODAL_MAX_HEIGHT: 20,
   PROGRESS_BAR_WIDTH: 40,
   /** Logo ASCII art display scale (1 = full size). 0.75 = 25% smaller. */
   LOGO_DISPLAY_SCALE: 0.75,
@@ -74,6 +80,9 @@ export const {
   COMMAND_PALETTE_LIST_ROWS,
   COMMAND_PALETTE_MARGIN_ROWS,
   CHAT_CHROME_ROWS,
+  DISCOVERY_MODAL_LIST_ROWS,
+  DISCOVERY_MODAL_VIEWPORT_MARGIN,
+  DISCOVERY_MODAL_MAX_HEIGHT,
   PROGRESS_BAR_WIDTH,
   LOGO_DISPLAY_SCALE,
   ICON_SIZE_SM,

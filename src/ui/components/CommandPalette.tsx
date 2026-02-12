@@ -62,8 +62,8 @@ export function CommandPalette({
   /**
    * Available height for the palette = terminal rows minus all chrome
    * (header, footer, status bar, etc.) that sits outside the response area.
-   * The palette container in Chat.tsx is a flexGrow box that fills the
-   * response area exactly, so we match that here.
+   * Reserve viewport margin above and below so the modal never touches
+   * the top or bottom of the terminal.
    */
   const availableHeight = useMemo(
     () =>
@@ -71,7 +71,11 @@ export function CommandPalette({
     [terminalDimensions.rows]
   );
   const maxPaletteHeight = useMemo(
-    () => Math.min(UI.COMMAND_PALETTE_MAX_HEIGHT, availableHeight),
+    () =>
+      Math.min(
+        UI.COMMAND_PALETTE_MAX_HEIGHT,
+        availableHeight - 2 * UI.COMMAND_PALETTE_VIEWPORT_MARGIN
+      ),
     [availableHeight]
   );
   const listHeight = useMemo(
