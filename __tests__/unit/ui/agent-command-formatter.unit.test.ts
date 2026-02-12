@@ -1,6 +1,7 @@
 import {
   formatLoginResult,
   formatMcpList,
+  formatModelsResult,
   formatStatusResult,
 } from "@/ui/formatters/agent-command-formatter";
 import { describe, expect, it } from "vitest";
@@ -51,5 +52,18 @@ describe("agent-command-formatter", () => {
     );
 
     expect(lines).toEqual(["- filesystem: connected", "- memory: disabled (missing token)"]);
+  });
+
+  it("formats models results with active model footer", () => {
+    const lines = formatModelsResult(
+      {
+        supported: true,
+        models: ["gpt-5", "claude-sonnet-4"],
+        activeModel: "gpt-5",
+      },
+      "Cursor CLI"
+    );
+
+    expect(lines).toEqual(["- gpt-5", "- claude-sonnet-4", "Active model: gpt-5"]);
   });
 });

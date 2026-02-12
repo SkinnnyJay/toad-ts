@@ -13,6 +13,7 @@ import {
   CliAgentMcpListResultSchema,
   CliAgentModelSchema,
   CliAgentModelsResponseSchema,
+  CliAgentModelsResultSchema,
   CliAgentPromptInputSchema,
   CliAgentPromptResultSchema,
   CliAgentSessionSchema,
@@ -130,12 +131,18 @@ describe("cli-agent types", () => {
       supported: true,
       servers: [{ name: "filesystem", status: "connected" }],
     });
+    const modelsResult = CliAgentModelsResultSchema.parse({
+      supported: true,
+      models: ["gpt-5", "claude-sonnet-4"],
+      activeModel: "gpt-5",
+    });
 
     expect(loginResult.requiresBrowser).toBe(true);
     expect(logoutResult.supported).toBe(false);
     expect(statusResult.authenticated).toBe(true);
     expect(aboutResult.userEmail).toBe("dev@example.com");
     expect(mcpListResult.servers[0]?.name).toBe("filesystem");
+    expect(modelsResult.models).toHaveLength(2);
   });
 
   it("parses all stream event variants", () => {

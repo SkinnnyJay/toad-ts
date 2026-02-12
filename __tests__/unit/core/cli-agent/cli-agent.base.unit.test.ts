@@ -126,7 +126,7 @@ describe("CliAgentBase", () => {
     expect(status.supported).toBe(false);
     expect(about.supported).toBe(false);
     expect(models.supported).toBe(false);
-    expect(models.modelIds).toEqual([]);
+    expect(models.models).toEqual([]);
     expect(mcp.supported).toBe(false);
     expect(mcp.servers).toEqual([]);
   });

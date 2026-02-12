@@ -1,6 +1,7 @@
 import type {
   CliAgentLoginResult,
   CliAgentMcpServer,
+  CliAgentModelsResult,
   CliAgentStatusResult,
 } from "@/types/cli-agent.types";
 
@@ -58,4 +59,21 @@ export const formatMcpList = (servers: CliAgentMcpServer[], agentName: string): 
     const reasonSuffix = server.reason ? ` (${server.reason})` : "";
     return `- ${server.name}: ${server.status}${reasonSuffix}`;
   });
+};
+
+export const formatModelsResult = (result: CliAgentModelsResult, agentName: string): string[] => {
+  if (!result.supported) {
+    return [`${agentName}: model listing is not supported.`];
+  }
+  if (result.models.length === 0) {
+    return [result.message ?? `No models returned by ${agentName}.`];
+  }
+  const lines = result.models.map((modelId) => `- ${modelId}`);
+  if (result.activeModel) {
+    lines.push(`Active model: ${result.activeModel}`);
+  }
+  if (result.message) {
+    lines.push(result.message);
+  }
+  return lines;
 };

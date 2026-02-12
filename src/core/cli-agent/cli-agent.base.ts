@@ -6,6 +6,7 @@ import type {
   CliAgentLoginResult,
   CliAgentLogoutResult,
   CliAgentMcpListResult,
+  CliAgentModelsResult,
   CliAgentStatusResult,
 } from "@/types/cli-agent.types";
 import type { ConnectionStatus } from "@/types/domain";
@@ -99,14 +100,10 @@ export abstract class CliAgentBase
     return this.unsupportedManagementCommand("about");
   }
 
-  public async models(): Promise<{
-    supported: boolean;
-    modelIds: string[];
-    message?: string;
-  }> {
+  public async models(): Promise<CliAgentModelsResult> {
     return {
       ...this.unsupportedManagementCommand("models"),
-      modelIds: [],
+      models: [],
     };
   }
 

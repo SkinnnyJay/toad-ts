@@ -214,6 +214,16 @@ export const CliAgentMcpListResultSchema = z
   .strict();
 export type CliAgentMcpListResult = z.infer<typeof CliAgentMcpListResultSchema>;
 
+export const CliAgentModelsResultSchema = z
+  .object({
+    supported: z.boolean().default(true),
+    models: z.array(z.string().min(1)).default([]),
+    activeModel: z.string().min(1).optional(),
+    message: z.string().optional(),
+  })
+  .strict();
+export type CliAgentModelsResult = z.infer<typeof CliAgentModelsResultSchema>;
+
 const StreamEventBaseSchema = z
   .object({
     sessionId: z.string().min(1).optional(),
