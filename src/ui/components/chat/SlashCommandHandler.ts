@@ -43,6 +43,7 @@ export interface SlashCommandHandlerOptions {
   onOpenEditor?: (initialValue: string) => Promise<void>;
   onOpenAgentSelect?: () => void;
   onOpenThemes?: () => void;
+  onOpenCloudAgents?: () => void;
   onOpenContext?: () => void;
   onOpenHooks?: () => void;
   onOpenProgress?: () => void;
@@ -68,6 +69,7 @@ export const useSlashCommandHandler = ({
   onOpenEditor,
   onOpenAgentSelect,
   onOpenThemes,
+  onOpenCloudAgents,
   onOpenContext,
   onOpenHooks,
   onOpenProgress,
@@ -357,6 +359,7 @@ export const useSlashCommandHandler = ({
         openEditor: onOpenEditor,
         openSettings: onOpenSettings,
         openThemes: onOpenThemes,
+        openCloudAgents: onOpenCloudAgents,
         openContext: onOpenContext,
         openHooks: onOpenHooks,
         openProgress: onOpenProgress,
@@ -458,6 +461,7 @@ export const useSlashCommandHandler = ({
       onOpenEditor,
       onOpenAgentSelect,
       onOpenThemes,
+      onOpenCloudAgents,
       onOpenContext,
       onOpenHooks,
       onOpenProgress,

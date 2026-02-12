@@ -100,6 +100,7 @@ export interface SlashCommandDeps {
   openEditor?: (initialValue: string) => Promise<void>;
   openSettings?: () => void;
   openThemes?: () => void;
+  openCloudAgents?: () => void;
   openContext?: () => void;
   openHooks?: () => void;
   openProgress?: () => void;

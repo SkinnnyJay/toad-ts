@@ -91,6 +91,20 @@ describe("slash command agent management", () => {
     );
   });
 
+  it("opens cloud agents panel when /cloud has no subcommand and panel callback exists", () => {
+    const openCloudAgents = vi.fn();
+    const listCloudAgentItems = vi.fn();
+    const { deps } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      openCloudAgents,
+      listCloudAgentItems,
+    });
+
+    expect(runSlashCommand("/cloud", deps)).toBe(true);
+    expect(openCloudAgents).toHaveBeenCalledTimes(1);
+    expect(listCloudAgentItems).not.toHaveBeenCalled();
+  });
+
   it("shows cloud status for a specific agent", async () => {
     const getCloudAgentItem = vi.fn(async () => ({
       id: "agent-1",

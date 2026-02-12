@@ -27,8 +27,10 @@ export const KEY_NAME = {
   L: "l",
   I: "i",
   A: "a",
+  F: "f",
   R: "r",
   W: "w",
+  X: "x",
   BACKTICK: "`",
 } as const;
 

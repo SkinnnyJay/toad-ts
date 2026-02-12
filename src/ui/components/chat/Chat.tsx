@@ -56,6 +56,7 @@ export interface ChatProps {
   onOpenSessions?: () => void;
   onOpenAgentSelect?: () => void;
   onOpenThemes?: () => void;
+  onOpenCloudAgents?: () => void;
   onOpenContext?: () => void;
   onOpenHooks?: () => void;
   onOpenProgress?: () => void;
@@ -86,6 +87,7 @@ export const Chat = memo(
     onOpenSessions,
     onOpenAgentSelect,
     onOpenThemes,
+    onOpenCloudAgents,
     onOpenContext,
     onOpenHooks,
     onOpenProgress,
@@ -244,6 +246,7 @@ export const Chat = memo(
       onOpenEditor: handleOpenEditor,
       onOpenAgentSelect,
       onOpenThemes,
+      onOpenCloudAgents,
       onOpenContext,
       onOpenHooks,
       onOpenProgress,

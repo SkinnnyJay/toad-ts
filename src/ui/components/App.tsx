@@ -41,6 +41,7 @@ import { registerCheckpointManager } from "@/store/checkpoints/checkpoint-servic
 import { createPersistenceConfig } from "@/store/persistence/persistence-config";
 import { PersistenceManager } from "@/store/persistence/persistence-manager";
 import { createPersistenceProvider } from "@/store/persistence/persistence-provider";
+import { CursorCloudAgentSchema } from "@/types/cursor-cloud.types";
 import { AgentIdSchema, MessageIdSchema, type SessionId } from "@/types/domain";
 import { AgentDiscoveryModal } from "@/ui/components/AgentDiscoveryModal";
 import { AgentSelect } from "@/ui/components/AgentSelect";
@@ -48,6 +49,7 @@ import { AsciiBanner } from "@/ui/components/AsciiBanner";
 import { BackgroundTasksModal } from "@/ui/components/BackgroundTasksModal";
 import { BreadcrumbBar } from "@/ui/components/BreadcrumbBar";
 import { Chat } from "@/ui/components/Chat";
+import { type CloudAgentListItem, CloudAgentsModal } from "@/ui/components/CloudAgentsModal";
 import { ContextModal } from "@/ui/components/ContextModal";
 import { HelpModal } from "@/ui/components/HelpModal";
 import { HooksModal } from "@/ui/components/HooksModal";
@@ -94,6 +96,10 @@ export function App(): ReactNode {
   const [isHooksOpen, setIsHooksOpen] = useState(false);
   const [isProgressOpen, setIsProgressOpen] = useState(false);
   const [isAgentDiscoveryOpen, setIsAgentDiscoveryOpen] = useState(false);
+  const [isCloudAgentsOpen, setIsCloudAgentsOpen] = useState(false);
+  const [cloudAgents, setCloudAgents] = useState<CloudAgentListItem[]>([]);
+  const [cloudAgentsLoading, setCloudAgentsLoading] = useState(false);
+  const [cloudAgentsError, setCloudAgentsError] = useState<string | null>(null);
   const startupMeasured = useRef(false);
   const currentSessionId = useAppStore((state) => state.currentSessionId);
   const connectionStatus = useAppStore((state) => state.connectionStatus);
@@ -407,6 +413,72 @@ export function App(): ReactNode {
     upsertSession,
   ]);
 
+  const handleRefreshCloudAgents = useCallback(async () => {
+    if (selectedAgent?.harnessId !== HARNESS_DEFAULT.CURSOR_CLI_ID) {
+      setCloudAgentsError("Cloud agents are only available for Cursor harness sessions.");
+      setCloudAgents([]);
+      return;
+    }
+    setCloudAgentsLoading(true);
+    setCloudAgentsError(null);
+    try {
+      const cloudClient = new CursorCloudAgentClient();
+      const response = await cloudClient.listAgents({ limit: 100 });
+      const rawAgents = Array.isArray(response.agents) ? response.agents : [];
+      const mappedAgents = rawAgents.map((rawAgent) => {
+        const cloudAgent = CursorCloudAgentSchema.parse(rawAgent);
+        return {
+          id: cloudAgent.id,
+          status: cloudAgent.status,
+          model: cloudAgent.model,
+          updatedAt: cloudAgent.updated_at,
+        };
+      });
+      setCloudAgents(mappedAgents);
+    } catch (error) {
+      setCloudAgentsError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setCloudAgentsLoading(false);
+    }
+  }, [selectedAgent?.harnessId]);
+
+  const handleOpenCloudAgents = useCallback(() => {
+    setIsCloudAgentsOpen(true);
+    void handleRefreshCloudAgents();
+  }, [handleRefreshCloudAgents]);
+
+  const handleFetchCloudAgentStatus = useCallback(
+    async (agentId: string): Promise<CloudAgentListItem> => {
+      const cloudClient = new CursorCloudAgentClient();
+      const response = CursorCloudAgentSchema.parse(await cloudClient.getAgent(agentId));
+      return {
+        id: response.id,
+        status: response.status,
+        model: response.model,
+        updatedAt: response.updated_at,
+      };
+    },
+    []
+  );
+
+  const handleStopCloudAgent = useCallback(
+    async (agentId: string): Promise<void> => {
+      const cloudClient = new CursorCloudAgentClient();
+      await cloudClient.stopAgent(agentId);
+      await handleRefreshCloudAgents();
+    },
+    [handleRefreshCloudAgents]
+  );
+
+  const handleFollowupCloudAgent = useCallback(
+    async (agentId: string, prompt: string): Promise<void> => {
+      const cloudClient = new CursorCloudAgentClient();
+      await cloudClient.addFollowup(agentId, { prompt });
+      await handleRefreshCloudAgents();
+    },
+    [handleRefreshCloudAgents]
+  );
+
   const breadcrumbPlacement = appConfig.ui.breadcrumb.placement;
   const breadcrumbVisible = breadcrumbPlacement !== BREADCRUMB_PLACEMENT.HIDDEN;
   const workspacePath = process.cwd();
@@ -425,6 +497,16 @@ export function App(): ReactNode {
       setQueuedBreadcrumbSkill(repoWorkflowInfo.action.skill);
     }
   }, [repoWorkflowInfo]);
+
+  useEffect(() => {
+    if (selectedAgent?.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID) {
+      return;
+    }
+    if (!isCloudAgentsOpen) {
+      return;
+    }
+    setIsCloudAgentsOpen(false);
+  }, [isCloudAgentsOpen, selectedAgent?.harnessId]);
 
   useHookManager({
     hooks: appConfig.hooks,
@@ -456,7 +538,8 @@ export function App(): ReactNode {
     keybinds: appConfig.keybinds,
     onCyclePermissionMode: handleCyclePermissionMode,
     onRunBreadcrumbAction: handleRunBreadcrumbAction,
-    hasOtherModalOpen: isContextOpen || isHooksOpen || isProgressOpen || isAgentDiscoveryOpen,
+    hasOtherModalOpen:
+      isContextOpen || isHooksOpen || isProgressOpen || isAgentDiscoveryOpen || isCloudAgentsOpen,
   });
   const {
     sessions: nativeCursorSessions,
@@ -659,6 +742,18 @@ export function App(): ReactNode {
                     sessionId={activeSessionId ?? undefined}
                     onClose={() => setIsProgressOpen(false)}
                   />
+                ) : isCloudAgentsOpen ? (
+                  <CloudAgentsModal
+                    isOpen={isCloudAgentsOpen}
+                    agents={cloudAgents}
+                    loading={cloudAgentsLoading}
+                    error={cloudAgentsError}
+                    onClose={() => setIsCloudAgentsOpen(false)}
+                    onRefresh={handleRefreshCloudAgents}
+                    onFetchStatus={handleFetchCloudAgentStatus}
+                    onStopAgent={handleStopCloudAgent}
+                    onSendFollowup={handleFollowupCloudAgent}
+                  />
                 ) : isThemesOpen ? (
                   <ThemesModal isOpen={isThemesOpen} onClose={() => setIsThemesOpen(false)} />
                 ) : isSkillsOpen ? (
@@ -697,6 +792,7 @@ export function App(): ReactNode {
                     onOpenHelp={() => setIsHelpOpen(true)}
                     onOpenSessions={() => setIsSessionsPopupOpen(true)}
                     onOpenThemes={() => setIsThemesOpen(true)}
+                    onOpenCloudAgents={handleOpenCloudAgents}
                     onOpenContext={() => setIsContextOpen(true)}
                     onOpenHooks={() => setIsHooksOpen(true)}
                     onOpenProgress={() => setIsProgressOpen(true)}

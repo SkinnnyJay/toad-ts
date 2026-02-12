@@ -216,7 +216,12 @@ export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): voi
     deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.CLOUD_UNSUPPORTED);
     return;
   }
-  const subcommand = parts[1] ?? CLOUD_SUBCOMMAND.LIST;
+  const requestedSubcommand = parts[1];
+  if (!requestedSubcommand && deps.openCloudAgents) {
+    deps.openCloudAgents();
+    return;
+  }
+  const subcommand = requestedSubcommand ?? CLOUD_SUBCOMMAND.LIST;
   switch (subcommand) {
     case CLOUD_SUBCOMMAND.LIST: {
       if (!deps.listCloudAgentItems) {
