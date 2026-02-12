@@ -493,4 +493,53 @@ describe("agent management commands integration", () => {
     expect(lines).toContain("Authenticated: yes");
     expect(lines).toContain("Sessions: 2");
   });
+
+  it("returns base gemini status lines when list-sessions command fails", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "",
+      stderr: "list-sessions unavailable",
+      exitCode: 1,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "gemini-cli",
+      name: "Gemini CLI",
+      command: "gemini",
+      args: [],
+      env: {
+        GOOGLE_API_KEY: "google-key",
+      },
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.STATUS, {
+      activeHarness: harness,
+    });
+
+    expect(lines).toContain("Authenticated: yes");
+    expect(lines).not.toContain("Sessions: 0");
+    expect(lines.some((line) => line.startsWith("Sessions:"))).toBe(false);
+  });
+
+  it("falls back to codex unknown-auth message when status output is non-standard", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "Codex auth state unavailable",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "codex-cli",
+      name: "Codex CLI",
+      command: "codex",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.STATUS, {
+      activeHarness: harness,
+    });
+
+    expect(lines).toContain("Authenticated: no");
+    expect(lines).toContain("Status: Codex auth state unavailable");
+  });
 });
