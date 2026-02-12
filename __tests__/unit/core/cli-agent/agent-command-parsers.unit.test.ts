@@ -1,6 +1,9 @@
 import {
+  parseClaudeMcpListOutput,
+  parseClaudeVersionOutput,
   parseCliVersionOutput,
   parseCodexLoginStatusOutput,
+  parseGeminiVersionOutput,
   parseMcpListOutput,
 } from "@/core/cli-agent/agent-command-parsers";
 import { describe, expect, it } from "vitest";
@@ -11,6 +14,11 @@ describe("agent-command-parsers", () => {
     expect(parsed).toBe("codex-cli 1.2.3");
   });
 
+  it("parses claude and gemini version wrappers", () => {
+    expect(parseClaudeVersionOutput("claude 3.0.0")).toBe("claude 3.0.0");
+    expect(parseGeminiVersionOutput("\n gemini 2.2.0")).toBe("gemini 2.2.0");
+  });
+
   it("parses generic mcp list output lines", () => {
     const parsed = parseMcpListOutput(
       "filesystem: connected\nmemory: disabled (missing token)\ninvalid line"
@@ -19,6 +27,9 @@ describe("agent-command-parsers", () => {
     expect(parsed).toEqual([
       { name: "filesystem", status: "connected" },
       { name: "memory", status: "disabled", reason: "missing token" },
+    ]);
+    expect(parseClaudeMcpListOutput("filesystem: connected")).toEqual([
+      { name: "filesystem", status: "connected" },
     ]);
   });
 

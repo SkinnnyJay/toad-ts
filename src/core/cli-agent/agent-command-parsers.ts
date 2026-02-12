@@ -28,6 +28,14 @@ export const parseCliVersionOutput = (output: string): string | undefined => {
   return firstLine;
 };
 
+export const parseClaudeVersionOutput = (output: string): string | undefined => {
+  return parseCliVersionOutput(output);
+};
+
+export const parseGeminiVersionOutput = (output: string): string | undefined => {
+  return parseCliVersionOutput(output);
+};
+
 export const parseMcpListOutput = (output: string): ParsedMcpServerStatus[] => {
   return toLines(output)
     .map((line) => {
@@ -48,6 +56,10 @@ export const parseMcpListOutput = (output: string): ParsedMcpServerStatus[] => {
       };
     })
     .filter((entry): entry is ParsedMcpServerStatus => entry !== null);
+};
+
+export const parseClaudeMcpListOutput = (output: string): ParsedMcpServerStatus[] => {
+  return parseMcpListOutput(output);
 };
 
 export const parseCodexLoginStatusOutput = (

@@ -5,8 +5,10 @@ import {
   HARNESS_ID,
 } from "@/constants/agent-management-commands";
 import {
+  parseClaudeVersionOutput,
   parseCliVersionOutput,
   parseCodexLoginStatusOutput,
+  parseGeminiVersionOutput,
   parseMcpListOutput,
 } from "@/core/cli-agent/agent-command-parsers";
 import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
@@ -290,6 +292,19 @@ const resolveAgentRootCommand = (subcommand: string | undefined): string | undef
   }
 };
 
+const parseAboutVersionForHarness = (
+  harness: HarnessConfig,
+  stdout: string
+): string | undefined => {
+  if (harness.id === HARNESS_ID.CLAUDE_CLI) {
+    return parseClaudeVersionOutput(stdout);
+  }
+  if (harness.id === HARNESS_ID.GEMINI_CLI) {
+    return parseGeminiVersionOutput(stdout);
+  }
+  return parseCliVersionOutput(stdout);
+};
+
 export const runAgentCommand = async (
   command: string,
   context: AgentManagementContext,
@@ -324,7 +339,7 @@ export const runAgentCommand = async (
         if (isCursorHarness(harness)) {
           return mapCursorAboutLines(result.stdout);
         }
-        const version = parseCliVersionOutput(result.stdout);
+        const version = parseAboutVersionForHarness(harness, result.stdout);
         return [version ? `Version: ${version}` : result.stdout || COMMAND_RESULT_EMPTY];
       }
       {
@@ -395,7 +410,7 @@ export const runAgentCommand = async (
         if (isCursorHarness(harness)) {
           return mapCursorAboutLines(result.stdout);
         }
-        const version = parseCliVersionOutput(result.stdout);
+        const version = parseAboutVersionForHarness(harness, result.stdout);
         return [version ? `Version: ${version}` : result.stdout || COMMAND_RESULT_EMPTY];
       }
     case AGENT_MANAGEMENT_COMMAND.STATUS:
