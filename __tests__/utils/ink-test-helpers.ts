@@ -185,7 +185,9 @@ export async function waitFor(
     if (Date.now() - start > timeoutMs) {
       throw new Error(`waitFor timed out after ${timeoutMs}ms. Condition never became true.`);
     }
-    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    });
   }
 }
 
