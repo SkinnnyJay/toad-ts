@@ -185,6 +185,8 @@ export function Sidebar({
 
   const sessionsById = useAppStore((state) => state.sessions);
   const contextAttachmentsBySession = useAppStore((state) => state.contextAttachments);
+  const getAccordionCollapsed = useAppStore((state) => state.getAccordionCollapsed);
+  const setAccordionCollapsed = useAppStore((state) => state.setAccordionCollapsed);
   const sidebarTab = useAppStore((state) => state.uiState.sidebarTab);
   const setSidebarTab = useAppStore((state) => state.setSidebarTab);
   const sessions = useMemo<Session[]>(() => {
@@ -250,6 +252,16 @@ export function Sidebar({
       return;
     }
 
+    if (key.name === KEY_NAME.SPACE && isSidebarSection(active)) {
+      key.preventDefault();
+      key.stopPropagation();
+      const section = active as SidebarSection;
+      const collapsedState = getAccordionCollapsed();
+      const current = collapsedState[section];
+      setAccordionCollapsed(section, !current);
+      return;
+    }
+
     if (isSidebarSection(active)) {
       if (key.name === KEY_NAME.LEFT) {
         key.preventDefault();
@@ -278,9 +290,7 @@ export function Sidebar({
     }
 
     if (
-      (key.name === KEY_NAME.RETURN ||
-        key.name === KEY_NAME.LINEFEED ||
-        key.name === KEY_NAME.SPACE) &&
+      (key.name === KEY_NAME.RETURN || key.name === KEY_NAME.LINEFEED) &&
       isSidebarSection(active)
     ) {
       key.preventDefault();
@@ -335,7 +345,9 @@ export function Sidebar({
   const tabContentPaddingTop = 1;
   const tabGap = 0;
   const chevronBoxWidth = 2;
+  const sectionTitleHeight = 1;
   const contentHeightBelowTabs = Math.max(6, contentHeight - tabBarHeight - tabContentPaddingTop);
+  const contentBodyHeight = Math.max(4, contentHeightBelowTabs - sectionTitleHeight);
   const contentAreaWidth = Math.max(1, sidebarWidth - sidebarPadding * 2 - scrollbarWidth);
   const tabCount = SIDEBAR_TAB_VALUES.length;
   const minTabWidth = 3;
@@ -463,20 +475,21 @@ export function Sidebar({
         paddingTop={tabContentPaddingTop}
         overflow="hidden"
       >
+        <text attributes={TextAttributes.DIM}>{activeTabLabel}</text>
         {activeTab === FOCUS_TARGET.FILES ? (
           <box
             flexDirection="column"
             width="100%"
             minWidth={0}
             minHeight={0}
-            height={contentHeightBelowTabs - tabContentPaddingTop}
-            maxHeight={contentHeightBelowTabs - tabContentPaddingTop}
+            height={contentBodyHeight}
+            maxHeight={contentBodyHeight}
             overflow="hidden"
             flexShrink={1}
           >
             <FileTree
               isFocused={focusTarget === FOCUS_TARGET.FILES}
-              height={contentHeightBelowTabs - tabContentPaddingTop}
+              height={contentBodyHeight}
               textSize="small"
               onRequestFocus={() => onFocusTab?.(FOCUS_TARGET.FILES)}
               onSelectFile={(_path, name) => {
@@ -486,7 +499,7 @@ export function Sidebar({
           </box>
         ) : (
           <ScrollArea
-            height={contentHeightBelowTabs}
+            height={contentBodyHeight}
             viewportCulling={true}
             focused={focusTarget !== FOCUS_TARGET.CHAT}
           >

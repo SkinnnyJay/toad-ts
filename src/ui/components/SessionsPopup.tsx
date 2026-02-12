@@ -55,7 +55,7 @@ export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopu
       return {
         name: sessionTitle,
         description: `Agent: ${agentLabel} · Created: ${createdAt} · Updated: ${updatedAt}`,
-        value: session.id,
+        value: sessionTitle,
       };
     });
   }, [filteredSessions]);
@@ -126,9 +126,10 @@ export function SessionsPopup({ isOpen, onClose, onSelectSession }: SessionsPopu
           selectedIndex={selectedIndex}
           focused={true}
           onChange={(index) => setSelectedIndex(index)}
-          onSelect={(_index, option) => {
-            if (!option?.value) return;
-            const parsed = SessionIdSchema.safeParse(option.value);
+          onSelect={(index) => {
+            const selectedSession = filteredSessions[index];
+            if (!selectedSession) return;
+            const parsed = SessionIdSchema.safeParse(selectedSession.id);
             if (!parsed.success) return;
             onSelectSession(parsed.data);
             onClose();

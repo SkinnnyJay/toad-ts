@@ -195,7 +195,11 @@ export const MessageList = memo(
           border={true}
           borderStyle="single"
           borderColor={COLOR.GRAY}
-        />
+          alignItems="center"
+          justifyContent="center"
+        >
+          <text fg={COLOR.GRAY}>No messages yet</text>
+        </box>
       );
     }
 
