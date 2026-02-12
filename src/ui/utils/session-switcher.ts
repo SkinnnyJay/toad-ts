@@ -13,11 +13,17 @@ export const toSessionSwitchSeed = (session: {
   title?: string;
   createdAt?: string;
   model?: string;
-}): SessionSwitchSeed => {
+}): SessionSwitchSeed | undefined => {
+  const title = session.title?.trim();
+  const createdAt = session.createdAt?.trim();
+  const model = session.model?.trim();
+  if (!title && !createdAt && !model) {
+    return undefined;
+  }
   return {
-    title: session.title,
-    createdAt: session.createdAt,
-    model: session.model,
+    ...(title ? { title } : {}),
+    ...(createdAt ? { createdAt } : {}),
+    ...(model ? { model } : {}),
   };
 };
 

@@ -43,6 +43,16 @@ describe("switchToSessionWithFallback", () => {
     });
   });
 
+  it("returns undefined seed when native metadata is empty", () => {
+    expect(
+      toSessionSwitchSeed({
+        title: "   ",
+        createdAt: "",
+        model: undefined,
+      })
+    ).toBeUndefined();
+  });
+
   it("switches existing sessions without creating placeholders", () => {
     const targetSessionId = SessionIdSchema.parse("session-existing");
     const existingSession = createSession("session-existing");

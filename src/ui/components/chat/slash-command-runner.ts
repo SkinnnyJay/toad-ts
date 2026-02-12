@@ -194,7 +194,11 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
             if (!seed) {
               return;
             }
-            deps.switchToSession?.(parsedSessionId, toSessionSwitchSeed(seed));
+            const switchSeed = toSessionSwitchSeed(seed);
+            if (!switchSeed) {
+              return;
+            }
+            deps.switchToSession?.(parsedSessionId, switchSeed);
           };
           if (deps.activeHarnessId === HARNESS_DEFAULT.CURSOR_CLI_ID && deps.listAgentSessions) {
             void deps
