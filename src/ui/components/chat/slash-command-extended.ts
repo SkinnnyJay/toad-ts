@@ -31,6 +31,24 @@ const MANAGEMENT_COMMAND = {
 } as const;
 
 const PREVIEW_LINE_LIMIT = 8;
+const CLOUD_LIST_LIMIT = 20;
+
+const CLOUD_SUBCOMMAND = {
+  LIST: "list",
+  STATUS: "status",
+  STOP: "stop",
+  FOLLOWUP: "followup",
+} as const;
+
+const CLOUD_USAGE = "Usage: /cloud [list|status <id>|stop <id>|followup <id> <prompt>]";
+
+const isCursorCloudSupported = (deps: SlashCommandDeps): boolean => {
+  return deps.activeHarnessId === HARNESS_DEFAULT.CURSOR_CLI_ID;
+};
+
+const toCloudUnsupportedMessage = (): string => {
+  return "Cloud commands are only available for the Cursor harness.";
+};
 
 const buildOutputPreview = (stdout: string, stderr: string): string => {
   const combined = `${stdout}\n${stderr}`
@@ -184,6 +202,117 @@ export const handleStatusCommand = (deps: SlashCommandDeps): void => {
       );
     })
     .catch((error) => appendAgentCommandRuntimeError(deps, error));
+};
+
+export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): void => {
+  if (!isCursorCloudSupported(deps)) {
+    deps.appendSystemMessage(toCloudUnsupportedMessage());
+    return;
+  }
+  const subcommand = parts[1] ?? CLOUD_SUBCOMMAND.LIST;
+  switch (subcommand) {
+    case CLOUD_SUBCOMMAND.LIST: {
+      if (!deps.listCloudAgentItems) {
+        deps.appendSystemMessage("Cloud listing is not available for this provider.");
+        return;
+      }
+      deps.appendSystemMessage("Fetching cloud agents…");
+      void deps
+        .listCloudAgentItems()
+        .then((agents) => {
+          if (agents.length === 0) {
+            deps.appendSystemMessage("No active cloud agents.");
+            return;
+          }
+          const preview = agents
+            .slice(0, CLOUD_LIST_LIMIT)
+            .map((agent) => `${agent.id} (${agent.status}${agent.model ? `, ${agent.model}` : ""})`)
+            .join("\n");
+          deps.appendSystemMessage(`Cloud agents:\n${preview}`);
+        })
+        .catch((error) => {
+          deps.appendSystemMessage(
+            `Cloud agents unavailable: ${error instanceof Error ? error.message : String(error)}`
+          );
+        });
+      return;
+    }
+    case CLOUD_SUBCOMMAND.STATUS: {
+      const agentId = parts[2]?.trim();
+      if (!agentId) {
+        deps.appendSystemMessage(CLOUD_USAGE);
+        return;
+      }
+      if (!deps.getCloudAgentItem) {
+        deps.appendSystemMessage("Cloud status lookup is not available for this provider.");
+        return;
+      }
+      deps.appendSystemMessage(`Fetching cloud agent ${agentId}…`);
+      void deps
+        .getCloudAgentItem(agentId)
+        .then((agent) => {
+          deps.appendSystemMessage(
+            `Cloud agent ${agent.id}: ${agent.status}${agent.model ? ` (${agent.model})` : ""}`
+          );
+        })
+        .catch((error) => {
+          deps.appendSystemMessage(
+            `Cloud status unavailable: ${error instanceof Error ? error.message : String(error)}`
+          );
+        });
+      return;
+    }
+    case CLOUD_SUBCOMMAND.STOP: {
+      const agentId = parts[2]?.trim();
+      if (!agentId) {
+        deps.appendSystemMessage(CLOUD_USAGE);
+        return;
+      }
+      if (!deps.stopCloudAgentItem) {
+        deps.appendSystemMessage("Cloud stop is not available for this provider.");
+        return;
+      }
+      deps.appendSystemMessage(`Stopping cloud agent ${agentId}…`);
+      void deps
+        .stopCloudAgentItem(agentId)
+        .then((result) => {
+          deps.appendSystemMessage(`Stop requested for cloud agent ${result.id}.`);
+        })
+        .catch((error) => {
+          deps.appendSystemMessage(
+            `Cloud stop failed: ${error instanceof Error ? error.message : String(error)}`
+          );
+        });
+      return;
+    }
+    case CLOUD_SUBCOMMAND.FOLLOWUP: {
+      const agentId = parts[2]?.trim();
+      const prompt = parts.slice(3).join(" ").trim();
+      if (!agentId || !prompt) {
+        deps.appendSystemMessage(CLOUD_USAGE);
+        return;
+      }
+      if (!deps.followupCloudAgentItem) {
+        deps.appendSystemMessage("Cloud follow-up is not available for this provider.");
+        return;
+      }
+      deps.appendSystemMessage(`Sending cloud follow-up to ${agentId}…`);
+      void deps
+        .followupCloudAgentItem(agentId, prompt)
+        .then((result) => {
+          deps.appendSystemMessage(`Follow-up queued for cloud agent ${result.id}.`);
+        })
+        .catch((error) => {
+          deps.appendSystemMessage(
+            `Cloud follow-up failed: ${error instanceof Error ? error.message : String(error)}`
+          );
+        });
+      return;
+    }
+    default: {
+      deps.appendSystemMessage(CLOUD_USAGE);
+    }
+  }
 };
 
 export const handleLoginCommand = (deps: SlashCommandDeps): void => {

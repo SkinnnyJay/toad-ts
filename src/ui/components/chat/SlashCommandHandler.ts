@@ -17,6 +17,7 @@ import type { HarnessConfig } from "@/harness/harnessConfig";
 import { useAppStore } from "@/store/app-store";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
+import { CursorCloudAgentSchema } from "@/types/cursor-cloud.types";
 import type { Message, Session, SessionId } from "@/types/domain";
 import { withSessionModel } from "@/ui/utils/session-model-metadata";
 import { toSessionModelOptionsFromCloudResponse } from "@/ui/utils/session-model-refresh";
@@ -386,6 +387,48 @@ export const useSlashCommandHandler = ({
                 const cloudClient = new CursorCloudAgentClient();
                 const response = await cloudClient.listModels();
                 return toSessionModelOptionsFromCloudResponse(response);
+              }
+            : undefined,
+        listCloudAgentItems:
+          agent?.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID
+            ? async () => {
+                const cloudClient = new CursorCloudAgentClient();
+                const response = await cloudClient.listAgents({ limit: 20 });
+                const rawAgents = Array.isArray(response.agents) ? response.agents : [];
+                return rawAgents.map((rawAgent) => {
+                  const cloudAgent = CursorCloudAgentSchema.parse(rawAgent);
+                  return {
+                    id: cloudAgent.id,
+                    status: cloudAgent.status,
+                    model: cloudAgent.model,
+                  };
+                });
+              }
+            : undefined,
+        getCloudAgentItem:
+          agent?.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID
+            ? async (agentId) => {
+                const cloudClient = new CursorCloudAgentClient();
+                const response = CursorCloudAgentSchema.parse(await cloudClient.getAgent(agentId));
+                return {
+                  id: response.id,
+                  status: response.status,
+                  model: response.model,
+                };
+              }
+            : undefined,
+        stopCloudAgentItem:
+          agent?.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID
+            ? async (agentId) => {
+                const cloudClient = new CursorCloudAgentClient();
+                return cloudClient.stopAgent(agentId);
+              }
+            : undefined,
+        followupCloudAgentItem:
+          agent?.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID
+            ? async (agentId, prompt) => {
+                const cloudClient = new CursorCloudAgentClient();
+                return cloudClient.addFollowup(agentId, { prompt });
               }
             : undefined,
         connectionStatus,

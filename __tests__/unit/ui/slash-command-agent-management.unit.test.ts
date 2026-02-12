@@ -53,6 +53,97 @@ describe("slash command agent management", () => {
     expect(appendSystemMessage).toHaveBeenCalledWith("Usage: /agent <subcommand...>");
   });
 
+  it("lists cloud agents for cursor harness", async () => {
+    const listCloudAgentItems = vi.fn(async () => [
+      { id: "agent-1", status: "running", model: "auto" },
+      { id: "agent-2", status: "completed" },
+    ]);
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      listCloudAgentItems,
+    });
+
+    expect(runSlashCommand("/cloud list", deps)).toBe(true);
+    await vi.waitFor(() => {
+      expect(appendSystemMessage.mock.calls.length).toBeGreaterThan(1);
+    });
+
+    expect(listCloudAgentItems).toHaveBeenCalledTimes(1);
+    expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("Cloud agents:"));
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("agent-1 (running, auto)")
+    );
+  });
+
+  it("shows cloud status for a specific agent", async () => {
+    const getCloudAgentItem = vi.fn(async () => ({
+      id: "agent-1",
+      status: "running",
+      model: "auto",
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      getCloudAgentItem,
+    });
+
+    expect(runSlashCommand("/cloud status agent-1", deps)).toBe(true);
+    await vi.waitFor(() => {
+      expect(appendSystemMessage.mock.calls.length).toBeGreaterThan(1);
+    });
+
+    expect(getCloudAgentItem).toHaveBeenCalledWith("agent-1");
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("Cloud agent agent-1: running (auto)")
+    );
+  });
+
+  it("stops cloud agent and reports completion", async () => {
+    const stopCloudAgentItem = vi.fn(async () => ({ id: "agent-1" }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      stopCloudAgentItem,
+    });
+
+    expect(runSlashCommand("/cloud stop agent-1", deps)).toBe(true);
+    await vi.waitFor(() => {
+      expect(appendSystemMessage.mock.calls.length).toBeGreaterThan(1);
+    });
+
+    expect(stopCloudAgentItem).toHaveBeenCalledWith("agent-1");
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("Stop requested for cloud agent agent-1.")
+    );
+  });
+
+  it("sends cloud follow-up prompt", async () => {
+    const followupCloudAgentItem = vi.fn(async () => ({ id: "agent-1" }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      followupCloudAgentItem,
+    });
+
+    expect(runSlashCommand("/cloud followup agent-1 continue working", deps)).toBe(true);
+    await vi.waitFor(() => {
+      expect(appendSystemMessage.mock.calls.length).toBeGreaterThan(1);
+    });
+
+    expect(followupCloudAgentItem).toHaveBeenCalledWith("agent-1", "continue working");
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      expect.stringContaining("Follow-up queued for cloud agent agent-1.")
+    );
+  });
+
+  it("shows unsupported message for cloud command on non-cursor harness", () => {
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.CLAUDE_CLI_ID,
+    });
+
+    expect(runSlashCommand("/cloud", deps)).toBe(true);
+    expect(appendSystemMessage).toHaveBeenCalledWith(
+      "Cloud commands are only available for the Cursor harness."
+    );
+  });
+
   it("runs /mcp with default list behavior on cursor", async () => {
     const runAgentCommand = vi.fn(async () => ({
       stdout: "github: loaded",

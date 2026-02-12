@@ -65,6 +65,7 @@ import { handleExportSlashCommand, handleImportSlashCommand } from "./slash-comm
 import {
   handleAddDirCommand,
   handleAgentCommand,
+  handleCloudCommand,
   handleConfigCommand,
   handleInitCommand,
   handleLoginCommand,
@@ -117,6 +118,10 @@ export interface SlashCommandDeps {
   listAgentSessions?: () => Promise<AgentManagementSession[]>;
   listCloudAgents?: () => Promise<number>;
   listCloudModels?: () => Promise<SessionModelOptions>;
+  listCloudAgentItems?: () => Promise<Array<{ id: string; status: string; model?: string }>>;
+  getCloudAgentItem?: (agentId: string) => Promise<{ id: string; status: string; model?: string }>;
+  stopCloudAgentItem?: (agentId: string) => Promise<{ id: string }>;
+  followupCloudAgentItem?: (agentId: string, prompt: string) => Promise<{ id: string }>;
   toggleVimMode?: () => boolean;
   connectionStatus?: string;
   now?: () => number;
@@ -153,6 +158,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     command === SLASH_COMMAND.MCP ||
     command === SLASH_COMMAND.MODEL ||
     command === SLASH_COMMAND.MODELS ||
+    command === SLASH_COMMAND.CLOUD ||
     command === SLASH_COMMAND.PERMISSIONS;
   if (!deps.sessionId && !allowsWithoutSession) {
     deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_ACTIVE_SESSION);
@@ -665,6 +671,10 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
     }
     case SLASH_COMMAND.MCP: {
       handleMcpCommand(parts, deps);
+      return true;
+    }
+    case SLASH_COMMAND.CLOUD: {
+      handleCloudCommand(parts, deps);
       return true;
     }
     case SLASH_COMMAND.AGENT: {
