@@ -19,6 +19,7 @@ import type { HarnessRegistry } from "@/harness/harnessRegistry";
 import { useAppStore } from "@/store/app-store";
 import type { SessionId } from "@/types/domain";
 import { AgentIdSchema } from "@/types/domain";
+import { isAuthFailureMessage } from "@/ui/utils/auth-error-matcher";
 import { withTimeout } from "@/utils/async/withTimeout";
 import { EnvManager } from "@/utils/env/env.utils";
 import { clearScreen } from "@/utils/terminal/clearScreen.utils";
@@ -27,9 +28,6 @@ import { useEffect, useState } from "react";
 const isErrnoException = (error: unknown): error is NodeJS.ErrnoException => {
   return typeof error === "object" && error !== null && "code" in error;
 };
-
-const CURSOR_AUTH_ERROR_PATTERN =
-  /(not authenticated|unauthorized|forbidden|status 401|status 403|authentication required)/i;
 
 /**
  * Formats harness errors into user-friendly messages.
@@ -42,8 +40,7 @@ export const formatHarnessError = (
   if (
     context.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID &&
     (message === CURSOR_AUTH_GUIDANCE.LOGIN_REQUIRED ||
-      message.includes(ENV_KEY.CURSOR_API_KEY) ||
-      CURSOR_AUTH_ERROR_PATTERN.test(message))
+      isAuthFailureMessage(message, { includeCursorApiKeyHint: true }))
   ) {
     return CURSOR_AUTH_GUIDANCE.LOGIN_REQUIRED;
   }
