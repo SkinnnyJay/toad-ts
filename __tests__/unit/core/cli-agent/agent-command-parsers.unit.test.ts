@@ -3,6 +3,7 @@ import {
   parseClaudeVersionOutput,
   parseCliVersionOutput,
   parseCodexLoginStatusOutput,
+  parseGeminiListSessionsOutput,
   parseGeminiVersionOutput,
   parseMcpListOutput,
 } from "@/core/cli-agent/agent-command-parsers";
@@ -45,5 +46,23 @@ describe("agent-command-parsers", () => {
 
     expect(parsed.authenticated).toBe(false);
     expect(parsed.message).toBe("Not authenticated");
+  });
+
+  it("parses gemini list-sessions text output", () => {
+    const parsed = parseGeminiListSessionsOutput(
+      "Sessions\n1. sess-1 updated today\n2. sess-2 updated yesterday"
+    );
+
+    expect(parsed.sessionIds).toEqual(["sess-1", "sess-2"]);
+    expect(parsed.count).toBe(2);
+  });
+
+  it("parses gemini list-sessions json output", () => {
+    const parsed = parseGeminiListSessionsOutput(
+      JSON.stringify([{ id: "sess-a" }, { sessionId: "sess-b" }])
+    );
+
+    expect(parsed.sessionIds).toEqual(["sess-a", "sess-b"]);
+    expect(parsed.count).toBe(2);
   });
 });

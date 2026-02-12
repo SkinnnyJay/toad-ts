@@ -24,6 +24,7 @@ import {
   formatStatusResult,
 } from "@/ui/formatters/agent-command-formatter";
 import { execa } from "execa";
+import { resolveGeminiStatusLines } from "./agent-management-command-gemini";
 import {
   AGENT_MESSAGE,
   AGENT_SUBCOMMAND,
@@ -44,7 +45,6 @@ import {
   mapCursorAboutLines,
   mapCursorModelLines,
   mapCursorStatusLines,
-  mapGeminiStatusLines,
   mapMcpLines,
   mapStatusLines,
   resolveNativeCommandArgs,
@@ -444,7 +444,7 @@ export const runAgentCommand = async (
         return mapClaudeStatusLines(harness);
       }
       if (harness.id === HARNESS_ID.GEMINI_CLI) {
-        return mapGeminiStatusLines(harness);
+        return resolveGeminiStatusLines(harness, runHarnessCommand);
       }
       {
         const result = await runHarnessCommand(

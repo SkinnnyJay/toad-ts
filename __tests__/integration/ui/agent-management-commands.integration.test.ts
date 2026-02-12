@@ -190,4 +190,29 @@ describe("agent management commands integration", () => {
     expect(lines[0]).toContain("models is not supported");
     expect(lines[1]).toContain("/model <id>");
   });
+
+  it("includes gemini session count in status output when available", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "1. sess-100\n2. sess-200",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "gemini-cli",
+      name: "Gemini CLI",
+      command: "gemini",
+      args: [],
+      env: {
+        GOOGLE_API_KEY: "google-key",
+      },
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.STATUS, {
+      activeHarness: harness,
+    });
+
+    expect(lines).toContain("Authenticated: yes");
+    expect(lines).toContain("Sessions: 2");
+  });
 });

@@ -53,6 +53,9 @@ export const resolveNativeCommandArgs = (
   if (command === AGENT_MANAGEMENT_COMMAND.STATUS && harness.id === HARNESS_ID.CODEX_CLI) {
     return [AGENT_MANAGEMENT_COMMAND.LOGIN, AGENT_MANAGEMENT_COMMAND.STATUS];
   }
+  if (command === AGENT_MANAGEMENT_COMMAND.STATUS && harness.id === HARNESS_ID.GEMINI_CLI) {
+    return ["list-sessions"];
+  }
   return [command, ...args];
 };
 

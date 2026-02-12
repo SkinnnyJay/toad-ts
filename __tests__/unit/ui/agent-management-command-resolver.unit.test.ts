@@ -36,6 +36,13 @@ describe("agent-management-command-resolver", () => {
       args: [],
       env: {},
     });
+    const geminiHarness = harnessConfigSchema.parse({
+      id: "gemini-cli",
+      name: "Gemini CLI",
+      command: "gemini",
+      args: [],
+      env: {},
+    });
 
     expect(resolveNativeCommandArgs(cursorHarness, AGENT_MANAGEMENT_COMMAND.ABOUT)).toEqual([
       AGENT_MANAGEMENT_COMMAND.ABOUT,
@@ -46,6 +53,9 @@ describe("agent-management-command-resolver", () => {
     expect(resolveNativeCommandArgs(codexHarness, AGENT_MANAGEMENT_COMMAND.STATUS)).toEqual([
       AGENT_MANAGEMENT_COMMAND.LOGIN,
       AGENT_MANAGEMENT_COMMAND.STATUS,
+    ]);
+    expect(resolveNativeCommandArgs(geminiHarness, AGENT_MANAGEMENT_COMMAND.STATUS)).toEqual([
+      "list-sessions",
     ]);
   });
 

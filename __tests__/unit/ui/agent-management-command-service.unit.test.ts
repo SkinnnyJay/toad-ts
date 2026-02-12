@@ -308,6 +308,32 @@ describe("agent-management-command-service", () => {
     expect(lines[2]).toContain("GOOGLE_API_KEY");
   });
 
+  it("appends gemini session count when list-sessions succeeds", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "1. sess-a\n2. sess-b",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "gemini-cli",
+      name: "Gemini CLI",
+      command: "gemini",
+      args: [],
+      env: {
+        GOOGLE_API_KEY: "google-key",
+      },
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.STATUS, {
+      activeHarness: harness,
+    });
+
+    expect(lines).toContain("Sessions: 2");
+    const args = execaMock.mock.calls[0]?.[1] as string[] | undefined;
+    expect(args).toEqual(["list-sessions"]);
+  });
+
   it("returns not-supported message when logout is unavailable", async () => {
     const harness = harnessConfigSchema.parse({
       id: "claude-cli",
