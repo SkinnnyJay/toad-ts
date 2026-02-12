@@ -16,11 +16,14 @@ import {
 } from "@/constants/slash-command-messages";
 import { parseAuthStatusCommandResult } from "@/core/agent-management/auth-status-command-result";
 import { parseKeyValueLines } from "@/core/agent-management/cli-output-parser";
-import { toCommandFailureMessage } from "@/core/agent-management/command-result-utils";
-import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import { sortCloudAgentItemsByRecency } from "@/ui/utils/cloud-agent-list";
 import { formatMcpToolPreview, parseMcpServerToolsCommandResult } from "@/ui/utils/mcp-server-list";
 import { EnvManager } from "@/utils/env/env.utils";
+import {
+  appendAgentManagementCommandRuntimeError,
+  buildAgentManagementCommandFailureMessage,
+  buildAgentManagementCommandResultMessage,
+} from "./slash-command-agent-management-formatters";
 import { handleCloudDispatchSubcommand } from "./slash-command-cloud-dispatch";
 import { resolveCloudCommandErrorMessage } from "./slash-command-cloud-utils";
 import type { SlashCommandDeps } from "./slash-command-runner";
@@ -38,39 +41,9 @@ const MANAGEMENT_COMMAND = {
   MODELS: AGENT_MANAGEMENT_COMMAND.MODELS,
   MCP: AGENT_MANAGEMENT_COMMAND.MCP,
 } as const;
-const PREVIEW_LINE_LIMIT = 8;
 const CLOUD_LIST_LIMIT = 20;
 const isCursorCloudSupported = (deps: SlashCommandDeps): boolean =>
   deps.activeHarnessId === HARNESS_DEFAULT.CURSOR_CLI_ID;
-const buildOutputPreview = (stdout: string, stderr: string): string => {
-  const combined = `${stdout}\n${stderr}`
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    .slice(0, PREVIEW_LINE_LIMIT);
-  return combined.join("\n");
-};
-const buildCommandResultMessage = (title: string, result: AgentManagementCommandResult): string => {
-  const preview = buildOutputPreview(result.stdout, result.stderr);
-  if (preview.length === 0) {
-    return `${title}\n(exit ${result.exitCode})`;
-  }
-  return `${title}\n${preview}`;
-};
-const buildCommandFailureMessage = (result: AgentManagementCommandResult): string => {
-  const fallbackMessage = `exit ${result.exitCode}`;
-  const failureMessage = toCommandFailureMessage(result, fallbackMessage);
-  if (failureMessage === fallbackMessage) {
-    return `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} (exit ${result.exitCode})`;
-  }
-  return `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${buildOutputPreview(failureMessage, "")}`;
-};
-const appendAgentCommandRuntimeError = (deps: SlashCommandDeps, error: unknown): void =>
-  deps.appendSystemMessage(
-    `${SLASH_COMMAND_MESSAGE.AGENT_COMMAND_FAILED} ${
-      error instanceof Error ? error.message : String(error)
-    }`
-  );
 const resolveStatusArgs = (harnessId: string | undefined): string[] | null => {
   switch (harnessId) {
     case HARNESS_DEFAULT.CURSOR_CLI_ID:
@@ -168,7 +141,7 @@ export const handleStatusCommand = (deps: SlashCommandDeps): void => {
           appendStatusAuthGuidance(deps);
           return;
         }
-        deps.appendSystemMessage(buildCommandFailureMessage(result));
+        deps.appendSystemMessage(buildAgentManagementCommandFailureMessage(result));
         return;
       }
 
@@ -197,7 +170,7 @@ export const handleStatusCommand = (deps: SlashCommandDeps): void => {
       }
       appendStatusAuthGuidance(deps);
     })
-    .catch((error) => appendAgentCommandRuntimeError(deps, error));
+    .catch((error) => appendAgentManagementCommandRuntimeError(deps.appendSystemMessage, error));
 };
 
 export const handleCloudCommand = (parts: string[], deps: SlashCommandDeps): void => {
@@ -349,12 +322,14 @@ export const handleLoginCommand = (deps: SlashCommandDeps): void => {
           appendStatusAuthGuidance(deps);
           return;
         }
-        deps.appendSystemMessage(buildCommandFailureMessage(result));
+        deps.appendSystemMessage(buildAgentManagementCommandFailureMessage(result));
         return;
       }
-      deps.appendSystemMessage(buildCommandResultMessage("Login command completed.", result));
+      deps.appendSystemMessage(
+        buildAgentManagementCommandResultMessage("Login command completed.", result)
+      );
     })
-    .catch((error) => appendAgentCommandRuntimeError(deps, error));
+    .catch((error) => appendAgentManagementCommandRuntimeError(deps.appendSystemMessage, error));
 };
 
 export const handleLogoutCommand = (deps: SlashCommandDeps): void => {
@@ -376,12 +351,14 @@ export const handleLogoutCommand = (deps: SlashCommandDeps): void => {
     .runAgentCommand([MANAGEMENT_COMMAND.LOGOUT])
     .then((result) => {
       if (result.exitCode !== 0) {
-        deps.appendSystemMessage(buildCommandFailureMessage(result));
+        deps.appendSystemMessage(buildAgentManagementCommandFailureMessage(result));
         return;
       }
-      deps.appendSystemMessage(buildCommandResultMessage("Logout command completed.", result));
+      deps.appendSystemMessage(
+        buildAgentManagementCommandResultMessage("Logout command completed.", result)
+      );
     })
-    .catch((error) => appendAgentCommandRuntimeError(deps, error));
+    .catch((error) => appendAgentManagementCommandRuntimeError(deps.appendSystemMessage, error));
 };
 
 export const handleConfigCommand = (deps: SlashCommandDeps): void => {
@@ -481,7 +458,7 @@ export const handleMcpCommand = (parts: string[], deps: SlashCommandDeps): void 
           appendStatusAuthGuidance(deps);
           return;
         }
-        deps.appendSystemMessage(buildCommandFailureMessage(result));
+        deps.appendSystemMessage(buildAgentManagementCommandFailureMessage(result));
         return;
       }
       if (
@@ -497,7 +474,9 @@ export const handleMcpCommand = (parts: string[], deps: SlashCommandDeps): void 
         deps.appendSystemMessage(toolMessage);
         return;
       }
-      deps.appendSystemMessage(buildCommandResultMessage("MCP command result:", result));
+      deps.appendSystemMessage(
+        buildAgentManagementCommandResultMessage("MCP command result:", result)
+      );
     })
-    .catch((error) => appendAgentCommandRuntimeError(deps, error));
+    .catch((error) => appendAgentManagementCommandRuntimeError(deps.appendSystemMessage, error));
 };
