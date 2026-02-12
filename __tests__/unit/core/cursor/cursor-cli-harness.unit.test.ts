@@ -326,8 +326,9 @@ describe("CursorCliHarnessAdapter", () => {
         connectionFactory: () => mockConnection,
       });
 
-      const result = await adapter.setSessionMode!({ mode: "plan" });
-      expect(result.mode).toBe("plan");
+      const result = await adapter.setSessionMode({ mode: "plan" } as never);
+      const typed = result as unknown as Record<string, string>;
+      expect(typed["mode"]).toBe("plan");
     });
 
     it("setSessionModel updates current model", async () => {
@@ -336,8 +337,9 @@ describe("CursorCliHarnessAdapter", () => {
         connectionFactory: () => mockConnection,
       });
 
-      const result = await adapter.setSessionModel!({ model: "gpt-5.2" });
-      expect(result.model).toBe("gpt-5.2");
+      const result = await adapter.setSessionModel({ model: "gpt-5.2" } as never);
+      const typed = result as unknown as Record<string, string>;
+      expect(typed["model"]).toBe("gpt-5.2");
     });
   });
 

@@ -31,7 +31,6 @@ import {
   parseCursorStatusOutput,
 } from "@/types/cursor-cli.types";
 import { CursorStreamParser } from "@/core/cursor/cursor-stream-parser";
-import type { CursorStreamParserEvents } from "@/core/cursor/cursor-stream-parser";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 
@@ -78,7 +77,8 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
   private activePids: Set<number> = new Set();
   private _connectionStatus: ConnectionStatus = CONNECTION_STATUS.DISCONNECTED;
   private currentSessionId: string | null = null;
-  private verified = false;
+  /** Whether the connection has been verified (binary + auth) */
+  public isVerified = false;
 
   constructor(options: CursorCliConnectionOptions = {}) {
     super();
@@ -164,6 +164,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
         name: m.name,
         isDefault: m.isDefault,
         isCurrent: m.isCurrent,
+        supportsThinking: m.name.toLowerCase().includes("thinking"),
       })),
       defaultModel: parsed.defaultModel,
       currentModel: parsed.currentModel,
@@ -206,7 +207,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
       }
       logger.info("Cursor CLI authenticated", { email: authStatus.email });
 
-      this.verified = true;
+      this.isVerified = true;
       this.setStatus(CONNECTION_STATUS.CONNECTED);
     } catch (error) {
       this.setStatus(CONNECTION_STATUS.ERROR);
@@ -219,7 +220,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
    */
   async disconnect(): Promise<void> {
     this.killActiveProcess();
-    this.verified = false;
+    this.isVerified = false;
     this.currentSessionId = null;
     this.setStatus(CONNECTION_STATUS.DISCONNECTED);
   }

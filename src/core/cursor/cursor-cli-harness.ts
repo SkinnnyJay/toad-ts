@@ -15,8 +15,8 @@ import { nanoid } from "nanoid";
 import { EventEmitter } from "eventemitter3";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
-import { ENV_KEY } from "@/constants/env-keys";
-import type { AgentPort, AgentPortEvents } from "@/core/agent-port";
+// AgentPort is the contract we implement via HarnessRuntime
+
 import type {
   HarnessAdapter,
   HarnessRuntime,
@@ -35,9 +35,8 @@ import {
 } from "@/core/cursor/hook-ipc-server";
 import {
   HooksConfigGenerator,
-  type HooksConfigGeneratorOptions,
 } from "@/core/cursor/hooks-config-generator";
-import { STREAM_EVENT_TYPE, type StreamEvent } from "@/types/cli-agent.types";
+
 import type { CliAgentPromptInput } from "@/types/cli-agent.types";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
@@ -52,6 +51,10 @@ import type {
   PromptResponse,
   RequestPermissionRequest,
   SessionNotification,
+  SetSessionModeRequest,
+  SetSessionModeResponse,
+  SetSessionModelRequest,
+  SetSessionModelResponse,
 } from "@agentclientprotocol/sdk";
 
 const logger = createClassLogger("CursorCliHarnessAdapter");
@@ -92,7 +95,7 @@ export class CursorCliHarnessAdapter
   private readonly connection: CursorCliConnection;
   private hookServer: HookIpcServer | null = null;
   private hooksGenerator: HooksConfigGenerator | null = null;
-  private translator: CursorToAcpTranslator | null = null;
+  private activeTranslator: CursorToAcpTranslator | null = null;
   private translatorCleanup: (() => void) | null = null;
   private readonly enableHooks: boolean;
   private readonly hookOptions: Partial<HookIpcServerOptions>;
@@ -168,7 +171,10 @@ export class CursorCliHarnessAdapter
       this.translatorCleanup();
       this.translatorCleanup = null;
     }
-    this.translator = null;
+    if (this.activeTranslator) {
+      this.activeTranslator.reset();
+      this.activeTranslator = null;
+    }
 
     // 3. Uninstall hooks and stop IPC server
     if (this.hooksGenerator) {
@@ -205,16 +211,17 @@ export class CursorCliHarnessAdapter
     }
 
     return {
+      protocolVersion: "1.0",
       serverInfo: {
         name: HARNESS_DEFAULT.CURSOR_CLI_NAME,
         version: "1.0.0",
       },
       capabilities: {},
       instructions: "Cursor CLI agent — streaming via NDJSON, hooks for permissions",
-    } as InitializeResponse;
+    } as unknown as InitializeResponse;
   }
 
-  async newSession(params: NewSessionRequest): Promise<NewSessionResponse> {
+  async newSession(_params: NewSessionRequest): Promise<NewSessionResponse> {
     try {
       const sessionId = await this.connection.createSession();
       return {
@@ -245,13 +252,14 @@ export class CursorCliHarnessAdapter
       sessionId: this.connection.sessionId ?? undefined,
       model: this.currentModel,
       mode: this.currentMode,
-      force: this.options.force,
+      force: this.options.force ?? false,
+      streaming: true,
       workspacePath: this.cwd,
     };
 
     // Create fresh translator for this prompt
     const translator = new CursorToAcpTranslator();
-    this.translator = translator;
+    this.activeTranslator = translator;
 
     // Wire translator events to AgentPort events
     translator.on("sessionUpdate", (update) => {
@@ -319,17 +327,21 @@ export class CursorCliHarnessAdapter
 
   // ── Mode/Model switching ───────────────────────────────────
 
-  async setSessionMode?(params: { mode: string }): Promise<{ mode: string }> {
+  async setSessionMode(params: SetSessionModeRequest): Promise<SetSessionModeResponse> {
     const validModes = ["agent", "plan", "ask"];
-    if (validModes.includes(params.mode)) {
-      this.currentMode = params.mode as "agent" | "plan" | "ask";
+    const requestedMode = (params as unknown as Record<string, string>)["mode"];
+    if (requestedMode && validModes.includes(requestedMode)) {
+      this.currentMode = requestedMode as "agent" | "plan" | "ask";
     }
-    return { mode: this.currentMode ?? "agent" };
+    return { mode: this.currentMode ?? "agent" } as unknown as SetSessionModeResponse;
   }
 
-  async setSessionModel?(params: { model: string }): Promise<{ model: string }> {
-    this.currentModel = params.model;
-    return { model: this.currentModel };
+  async setSessionModel(params: SetSessionModelRequest): Promise<SetSessionModelResponse> {
+    const requestedModel = (params as unknown as Record<string, string>)["model"];
+    if (requestedModel) {
+      this.currentModel = requestedModel;
+    }
+    return { model: this.currentModel ?? "" } as unknown as SetSessionModelResponse;
   }
 
   // ── Internal ───────────────────────────────────────────────
@@ -382,10 +394,8 @@ export class CursorCliHarnessAdapter
       projectRoot: this.cwd,
       socketPath: this.hookServer.path,
     });
-    const { env: hookEnv } = this.hooksGenerator.install();
+    this.hooksGenerator.install();
 
-    // Inject hook socket path into connection's env
-    // (This would need to be done before spawning, so we store it)
     logger.info("Hook server started and hooks installed", {
       socketPath: this.hookServer.path,
     });

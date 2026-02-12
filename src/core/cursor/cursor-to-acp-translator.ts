@@ -11,7 +11,6 @@
  */
 
 import { EventEmitter } from "eventemitter3";
-import { nanoid } from "nanoid";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import type { AgentPortEvents } from "@/core/agent-port";

@@ -19,7 +19,6 @@ import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   ALL_CURSOR_HOOK_EVENTS,
-  CURSOR_BLOCKING_HOOK_EVENTS,
 } from "@/constants/cursor-hook-events";
 import type { CursorHookEvent } from "@/constants/cursor-hook-events";
 import { createClassLogger } from "@/utils/logging/logger.utils";
