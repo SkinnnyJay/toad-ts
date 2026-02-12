@@ -5,6 +5,7 @@ import {
   HARNESS_ID,
 } from "@/constants/agent-management-commands";
 import {
+  parseClaudeMcpListOutput,
   parseClaudeVersionOutput,
   parseCliVersionOutput,
   parseCodexLoginStatusOutput,
@@ -174,7 +175,10 @@ const runMcpCommand = async (
   }
 
   if (subcommand === MCP_SUBCOMMAND.LIST) {
-    const parsed = parseMcpListOutput(result.stdout);
+    const parsed =
+      harness.id === HARNESS_ID.CLAUDE_CLI
+        ? parseClaudeMcpListOutput(result.stdout)
+        : parseMcpListOutput(result.stdout);
     if (parsed.length > 0) {
       return formatMcpList(parsed, harness.name);
     }

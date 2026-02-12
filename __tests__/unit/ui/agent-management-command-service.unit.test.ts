@@ -481,6 +481,28 @@ describe("agent-management-command-service", () => {
     expect(lines[0]).toContain("MCP subcommand is not supported");
   });
 
+  it("parses claude MCP list output through shared parser wrapper", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "filesystem: connected\nmemory: disabled (missing token)",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "claude-cli",
+      name: "Claude CLI",
+      command: "claude-code-acp",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.MCP, {
+      activeHarness: harness,
+    });
+
+    expect(lines).toEqual(["- filesystem: connected", "- memory: disabled (missing token)"]);
+  });
+
   it("runs native MCP list for active cursor harness", async () => {
     const execaMock = await getExecaMock();
     const mcpOutput = readFileSync(
