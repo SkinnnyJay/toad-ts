@@ -129,6 +129,23 @@ describe("Cursor CLI Harness Integration", () => {
       expect(updateTypes).toContain(SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE);
     });
 
+    it("processes error-auth.ndjson — auth failure result", () => {
+      const parser = new CursorStreamParser();
+      const translator = new CursorToAcpTranslator();
+      translator.attach(parser);
+
+      const results: unknown[] = [];
+      translator.on("promptResult", (r) => results.push(r));
+
+      parser.feed(loadFixture("error-auth.ndjson"));
+      parser.flush();
+
+      expect(results).toHaveLength(1);
+      const result = results[0] as Record<string, unknown>;
+      expect(result.isError).toBe(true);
+      expect(result.text).toContain("Authentication failed");
+    });
+
     it("handles chunk-by-chunk streaming (simulate real stdout)", () => {
       const parser = new CursorStreamParser();
       const translator = new CursorToAcpTranslator();

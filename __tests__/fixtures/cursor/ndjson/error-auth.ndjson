@@ -1,0 +1,2 @@
+{"type":"system","subtype":"init","apiKeySource":"none","cwd":"/workspace","session_id":"err-session-001","model":"unknown","permissionMode":"default"}
+{"type":"result","subtype":"success","duration_ms":150,"duration_api_ms":0,"is_error":true,"result":"Authentication failed: No valid API key or login session found. Run: cursor-agent login","session_id":"err-session-001","request_id":"err-req-001"}

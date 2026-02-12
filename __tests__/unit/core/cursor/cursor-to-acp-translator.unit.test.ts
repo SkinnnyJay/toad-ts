@@ -237,6 +237,21 @@ describe("CursorToAcpTranslator", () => {
       expect(translator.sessionId).toBeDefined();
     });
 
+    it("processes error-auth.ndjson end-to-end", () => {
+      const results: unknown[] = [];
+
+      translator.on("promptResult", (r) => results.push(r));
+
+      const fixture = loadNdjsonFixture("error-auth.ndjson");
+      parser.feed(fixture);
+      parser.flush();
+
+      expect(results).toHaveLength(1);
+      const result = results[0] as Record<string, unknown>;
+      expect(result.isError).toBe(true);
+      expect(result.text).toContain("Authentication failed");
+    });
+
     it("processes tool-use-response.ndjson end-to-end", () => {
       const updates: unknown[] = [];
       const results: unknown[] = [];
