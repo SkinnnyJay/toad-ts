@@ -36,6 +36,10 @@ import type {
 } from "@/types/agent-management.types";
 import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
 import { PlanIdSchema, SessionIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
+import {
+  toNormalizedOptionalString,
+  withSessionAvailableModels,
+} from "@/ui/utils/session-model-metadata";
 import { type SessionSwitchSeed, toSessionSwitchSeed } from "@/ui/utils/session-switcher";
 import { nanoid } from "nanoid";
 import {
@@ -115,14 +119,6 @@ export interface SlashCommandDeps {
   connectionStatus?: string;
   now?: () => number;
 }
-
-const toNormalizedOptionalString = (value: string | undefined): string | undefined => {
-  const normalized = value?.trim();
-  if (!normalized) {
-    return undefined;
-  }
-  return normalized;
-};
 
 export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean => {
   if (!value.startsWith("/")) return false;
@@ -378,19 +374,11 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
               if (activeSession) {
                 const model =
                   toNormalizedOptionalString(activeSession.metadata?.model) ?? parsedCurrentModel;
-                const metadataBase = {
-                  ...(activeSession.metadata ?? { mcpServers: [] }),
-                  mcpServers: activeSession.metadata?.mcpServers ?? [],
-                };
                 deps.upsertSession({
-                  session: {
-                    ...activeSession,
-                    metadata: {
-                      ...metadataBase,
-                      ...(model ? { model } : {}),
-                      availableModels: normalizedModels,
-                    },
-                  },
+                  session: withSessionAvailableModels(activeSession, {
+                    availableModels: normalizedModels,
+                    fallbackModelId: model,
+                  }),
                 });
               }
             }

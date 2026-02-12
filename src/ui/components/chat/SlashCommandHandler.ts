@@ -18,6 +18,7 @@ import { useAppStore } from "@/store/app-store";
 import type { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type { Message, Session, SessionId } from "@/types/domain";
+import { withSessionModel } from "@/ui/utils/session-model-metadata";
 import { type SessionSwitchSeed, switchToSessionWithFallback } from "@/ui/utils/session-switcher";
 import { copyToClipboard } from "@/utils/clipboard/clipboard.utils";
 import { openExternalEditorForFile } from "@/utils/editor/externalEditor";
@@ -335,15 +336,7 @@ export const useSlashCommandHandler = ({
           await client.setSessionModel({ sessionId, modelId });
           const session = getSession(sessionId);
           if (session) {
-            const metadataBase = {
-              ...(session.metadata ?? { mcpServers: [] }),
-              mcpServers: session.metadata?.mcpServers ?? [],
-            };
-            const metadata = {
-              ...metadataBase,
-              model: modelId,
-            };
-            upsertSession({ session: { ...session, metadata } });
+            upsertSession({ session: withSessionModel(session, modelId) });
           }
         },
         toggleToolDetails: () => {

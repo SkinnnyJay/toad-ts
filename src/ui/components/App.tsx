@@ -79,19 +79,12 @@ import { useAutoTitle } from "@/ui/hooks/useAutoTitle";
 import { useRepoWorkflow } from "@/ui/hooks/useRepoWorkflow";
 import { ThemeProvider } from "@/ui/theme/theme-context";
 import { applyThemeColors } from "@/ui/theme/theme-definitions";
+import { withSessionAvailableModels, withSessionModel } from "@/ui/utils/session-model-metadata";
 import { Env, EnvManager } from "@/utils/env/env.utils";
 import { playCompletionSound } from "@/utils/sound/completion-sound.utils";
 import { TextAttributes } from "@opentui/core";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-
-const toNormalizedOptionalString = (value: string | undefined): string | undefined => {
-  const normalized = value?.trim();
-  if (!normalized) {
-    return undefined;
-  }
-  return normalized;
-};
 
 export function App(): ReactNode {
   const [view, setView] = useState<View>(VIEW.AGENT_SELECT);
@@ -371,18 +364,8 @@ export function App(): ReactNode {
       if (!session) {
         return;
       }
-      const metadataBase = {
-        ...(session.metadata ?? { mcpServers: [] }),
-        mcpServers: session.metadata?.mcpServers ?? [],
-      };
       upsertSession({
-        session: {
-          ...session,
-          metadata: {
-            ...metadataBase,
-            model: modelId,
-          },
-        },
+        session: withSessionModel(session, modelId),
       });
     },
     [activeSessionId, client, getSession, upsertSession]
@@ -403,21 +386,11 @@ export function App(): ReactNode {
     if (!session) {
       return;
     }
-    const existingModel = toNormalizedOptionalString(session.metadata?.model);
-    const metadataBase = {
-      ...(session.metadata ?? { mcpServers: [] }),
-      mcpServers: session.metadata?.mcpServers ?? [],
-    };
-    const model = existingModel ?? parsedDefaultModel;
     upsertSession({
-      session: {
-        ...session,
-        metadata: {
-          ...metadataBase,
-          ...(model ? { model } : {}),
-          availableModels,
-        },
-      },
+      session: withSessionAvailableModels(session, {
+        availableModels,
+        fallbackModelId: parsedDefaultModel,
+      }),
     });
   }, [activeSessionId, client, getSession, upsertSession]);
 
