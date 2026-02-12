@@ -1,4 +1,5 @@
 import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
+import { EnvManager } from "@/utils/env/env.utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const createJsonResponse = (
@@ -18,6 +19,15 @@ const createJsonResponse = (
 describe("CursorCloudAgentClient", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("fails fast when no cursor api key is configured", () => {
+    const envManager = EnvManager.getInstance();
+    vi.spyOn(envManager, "getSnapshot").mockReturnValue({});
+
+    expect(() => new CursorCloudAgentClient({ baseUrl: "https://example.test" })).toThrow(
+      "Missing CURSOR_API_KEY"
+    );
   });
 
   it("supports ETag caching for repeated GET requests", async () => {

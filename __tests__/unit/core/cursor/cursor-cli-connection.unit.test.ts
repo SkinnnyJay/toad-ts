@@ -179,6 +179,26 @@ describe("CursorCliConnection", () => {
     expect(calls[0]?.args).toContain("api-key-123");
   });
 
+  it("reuses latest session id via --resume on follow-up prompts", async () => {
+    const fixture = readFixture("__tests__/fixtures/cursor/ndjson/hello-response.ndjson");
+    const { spawnFn, calls } = createSpawnFn([
+      { stdout: fixture, exitCode: 0 },
+      { stdout: fixture, exitCode: 0 },
+    ]);
+    const connection = new CursorCliConnection({
+      spawnFn,
+      command: "cursor-agent",
+    });
+
+    await connection.runPrompt({ message: "first prompt" });
+    await connection.runPrompt({ message: "second prompt" });
+
+    const secondArgs = calls[1]?.args ?? [];
+    const resumeFlagIndex = secondArgs.indexOf("--resume");
+    expect(resumeFlagIndex).toBeGreaterThanOrEqual(0);
+    expect(secondArgs[resumeFlagIndex + 1]).toBe("b423b428-a576-4c0c-ae1a-ef80457ba379");
+  });
+
   it("keeps command spawn p95 under target threshold", async () => {
     const fixture = readFixture("__tests__/fixtures/cursor/status-output.txt");
     const scenarios = Array.from({ length: CURSOR_LIMIT.SPAWN_PERF_SAMPLE_SIZE }, () => ({
