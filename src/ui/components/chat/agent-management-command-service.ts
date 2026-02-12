@@ -45,7 +45,7 @@ const CLOUD_AGENT_SUBCOMMAND = {
 const CLOUD_AGENT_MESSAGE = {
   CURSOR_ONLY: "Cloud commands require the active Cursor CLI harness.",
   USAGE:
-    "Usage: /agent cloud list | /agent cloud launch <prompt> | /agent cloud stop <agentId> | /agent cloud followup <agentId> <prompt> | /agent cloud conversation <agentId>",
+    "Usage: /agent cloud list [limit] [cursor] | /agent cloud launch <prompt> | /agent cloud stop <agentId> | /agent cloud followup <agentId> <prompt> | /agent cloud conversation <agentId>",
   MISSING_PROMPT: "Provide a prompt for cloud launch.",
   MISSING_AGENT_ID: "Provide an agent id to stop.",
   MISSING_FOLLOWUP: "Usage: /agent cloud followup <agentId> <prompt>",
@@ -58,6 +58,26 @@ const toErrorMessage = (error: unknown): string => {
     return error.message;
   }
   return String(error);
+};
+
+const parseCloudListArgs = (
+  args: string[]
+): {
+  limit: number;
+  cursor: string | undefined;
+} => {
+  const [firstArg, secondArg] = args;
+  const parsedLimit = Number.parseInt(firstArg ?? "", 10);
+  if (!Number.isNaN(parsedLimit) && parsedLimit > 0) {
+    return {
+      limit: parsedLimit,
+      cursor: secondArg?.trim() || undefined,
+    };
+  }
+  return {
+    limit: 10,
+    cursor: firstArg?.trim() || undefined,
+  };
 };
 
 const isCursorHarness = (harness: HarnessConfig): boolean => harness.id === HARNESS_ID.CURSOR_CLI;
@@ -168,11 +188,16 @@ const runCloudAgentCommand = async (
   const cloudClient = getCloudClient(context);
   switch (subcommand) {
     case CLOUD_AGENT_SUBCOMMAND.LIST: {
-      const list = await cloudClient.listAgents({ limit: 10 });
+      const { limit, cursor } = parseCloudListArgs(subArgs);
+      const list = await cloudClient.listAgents({ limit, cursor });
       if (list.items.length === 0) {
         return ["No active cloud agents."];
       }
-      return list.items.map((agent) => `- ${agent.id} (${agent.status ?? "unknown"})`);
+      const lines = list.items.map((agent) => `- ${agent.id} (${agent.status ?? "unknown"})`);
+      if (list.nextCursor) {
+        lines.push(`Next cursor: ${list.nextCursor}`);
+      }
+      return lines;
     }
     case CLOUD_AGENT_SUBCOMMAND.LAUNCH: {
       const prompt = subArgs.join(" ").trim();

@@ -135,8 +135,45 @@ describe("agent-management-command-service", () => {
       ["cloud", "list"]
     );
 
-    expect(cloudClient.listAgents).toHaveBeenCalled();
+    expect(cloudClient.listAgents).toHaveBeenCalledWith({ limit: 10, cursor: undefined });
     expect(lines[0]).toContain("cloud-agent-1");
+  });
+
+  it("accepts cloud list pagination arguments", async () => {
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+    const cloudClient = {
+      listAgents: vi.fn(async () => ({
+        items: [{ id: "cloud-agent-3", status: "queued" }],
+        nextCursor: "cursor-next-1",
+      })),
+      launchAgent: vi.fn(),
+      waitForAgentStatus: vi.fn(),
+      stopAgent: vi.fn(),
+      followupAgent: vi.fn(),
+      getConversation: vi.fn(),
+    };
+
+    const lines = await runAgentCommand(
+      AGENT_MANAGEMENT_COMMAND.AGENT,
+      {
+        activeHarness: harness,
+        cloudClient,
+      },
+      ["cloud", "list", "25", "cursor-1"]
+    );
+
+    expect(cloudClient.listAgents).toHaveBeenCalledWith({
+      limit: 25,
+      cursor: "cursor-1",
+    });
+    expect(lines[0]).toContain("cloud-agent-3");
+    expect(lines[1]).toContain("cursor-next-1");
   });
 
   it("dispatches cloud agent launch via /agent cloud launch", async () => {
