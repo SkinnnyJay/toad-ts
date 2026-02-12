@@ -1,6 +1,11 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
+import {
+  AGENT_MANAGEMENT_CAPABILITY,
+  AGENT_MANAGEMENT_COMMAND,
+  HARNESS_ID,
+  HARNESS_MANAGEMENT_CAPABILITIES,
+} from "@/constants/agent-management-commands";
 import { ENV_KEY } from "@/constants/env-keys";
 import { harnessConfigSchema } from "@/harness/harnessConfig";
 import { AgentIdSchema, SessionIdSchema } from "@/types/domain";
@@ -252,6 +257,68 @@ describe("agent-management-command-service", () => {
 
     expect(lines[0]).toContain("models is not supported");
     expect(lines[1]).toContain("/model <id>");
+  });
+
+  it("returns default models error when command fails without stderr", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "",
+      stderr: "",
+      exitCode: 1,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "claude-cli",
+      name: "Claude CLI",
+      command: "claude-code-acp",
+      args: [],
+      env: {},
+    });
+
+    const originalCapabilities = [...HARNESS_MANAGEMENT_CAPABILITIES[HARNESS_ID.CLAUDE_CLI]];
+    HARNESS_MANAGEMENT_CAPABILITIES[HARNESS_ID.CLAUDE_CLI] = [
+      ...originalCapabilities,
+      AGENT_MANAGEMENT_CAPABILITY.MODELS,
+    ];
+    try {
+      const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.MODELS, {
+        activeHarness: harness,
+      });
+
+      expect(lines).toEqual(["Failed to list models."]);
+    } finally {
+      HARNESS_MANAGEMENT_CAPABILITIES[HARNESS_ID.CLAUDE_CLI] = originalCapabilities;
+    }
+  });
+
+  it("formats non-cursor empty models output with explicit fallback message", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "claude-cli",
+      name: "Claude CLI",
+      command: "claude-code-acp",
+      args: [],
+      env: {},
+    });
+
+    const originalCapabilities = [...HARNESS_MANAGEMENT_CAPABILITIES[HARNESS_ID.CLAUDE_CLI]];
+    HARNESS_MANAGEMENT_CAPABILITIES[HARNESS_ID.CLAUDE_CLI] = [
+      ...originalCapabilities,
+      AGENT_MANAGEMENT_CAPABILITY.MODELS,
+    ];
+    try {
+      const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.MODELS, {
+        activeHarness: harness,
+      });
+
+      expect(lines).toEqual(["No models output."]);
+    } finally {
+      HARNESS_MANAGEMENT_CAPABILITIES[HARNESS_ID.CLAUDE_CLI] = originalCapabilities;
+    }
   });
 
   it("returns login guidance command for active harness", async () => {
@@ -681,6 +748,28 @@ describe("agent-management-command-service", () => {
 
     expect(lines[0]).toContain("playwright");
     expect(lines[0]).toContain("needs approval");
+  });
+
+  it("returns empty MCP output message when cursor parser yields no entries", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: "not-parseable-mcp-list",
+      stderr: "",
+      exitCode: 0,
+    });
+    const harness = harnessConfigSchema.parse({
+      id: "cursor-cli",
+      name: "Cursor CLI",
+      command: "cursor-agent",
+      args: [],
+      env: {},
+    });
+
+    const lines = await runAgentCommand(AGENT_MANAGEMENT_COMMAND.MCP, {
+      activeHarness: harness,
+    });
+
+    expect(lines).toEqual(["No output available."]);
   });
 
   it("runs MCP enable through native harness command", async () => {
@@ -1140,5 +1229,10 @@ describe("agent-management-command-service", () => {
     );
 
     expect(lines[0]).toContain("Usage: /agent cloud list [limit] [cursor]");
+  });
+
+  it("returns unsupported command fallback for unknown command keys", async () => {
+    const lines = await runAgentCommand("unknown-management-command", {});
+    expect(lines).toEqual(["Unsupported management command."]);
   });
 });
