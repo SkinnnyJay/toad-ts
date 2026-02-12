@@ -18,6 +18,7 @@ import type { ShellCommandConfig } from "@/tools/shell-command-config";
 import { parseShellCommandInput } from "@/tools/shell-command-config";
 import type { Message, SessionId, SessionMode } from "@/types/domain";
 import { MessageIdSchema, ToolCallIdSchema } from "@/types/domain";
+import { isCloudAuthError } from "@/ui/utils/cloud-auth-errors";
 import {
   type CloudDispatchContext,
   toNormalizedCloudDispatchContextValue,
@@ -88,10 +89,7 @@ export const resolveCloudDispatchErrorMessage = (error: unknown): string => {
   if (error instanceof Error && error.message.includes(ENV_KEY.CURSOR_API_KEY)) {
     return CHAT_MESSAGE.CLOUD_DISPATCH_MISSING_API_KEY;
   }
-  if (
-    error instanceof Error &&
-    /(unauthorized|forbidden|authentication|status 401|status 403)/i.test(error.message)
-  ) {
+  if (isCloudAuthError(error)) {
     return CHAT_MESSAGE.CLOUD_DISPATCH_AUTH_REQUIRED;
   }
 
