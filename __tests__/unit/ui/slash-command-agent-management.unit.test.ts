@@ -1,5 +1,7 @@
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
+import { SESSION_MODE } from "@/constants/session-modes";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
+import { type Session, SessionIdSchema } from "@/types/domain";
 import { type SlashCommandDeps, runSlashCommand } from "@/ui/components/chat/slash-command-runner";
 import { describe, expect, it, vi } from "vitest";
 
@@ -107,6 +109,55 @@ describe("slash command agent management", () => {
     await Promise.resolve();
 
     expect(runAgentCommand).toHaveBeenCalledWith(["models"]);
+  });
+
+  it("hydrates session availableModels from fetched /models output", async () => {
+    const sessionId = SessionIdSchema.parse("session-model-metadata");
+    const session: Session = {
+      id: sessionId,
+      title: "Model session",
+      messageIds: [],
+      createdAt: 1,
+      updatedAt: 1,
+      mode: SESSION_MODE.AUTO,
+      metadata: {
+        mcpServers: [],
+        model: "auto",
+      },
+    };
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "auto - Auto (default)\nfast - Fast Model",
+      stderr: "",
+      exitCode: 0,
+    }));
+    const upsertSession = vi.fn();
+    const { deps, appendSystemMessage } = createDeps({
+      sessionId,
+      getSession: () => session,
+      upsertSession,
+      activeHarnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand(SLASH_COMMAND.MODELS, deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(runAgentCommand).toHaveBeenCalledWith(["models"]);
+    expect(upsertSession).toHaveBeenCalledWith({
+      session: expect.objectContaining({
+        id: sessionId,
+        metadata: {
+          mcpServers: [],
+          model: "auto",
+          availableModels: [
+            { modelId: "auto", name: "Auto" },
+            { modelId: "fast", name: "Fast Model" },
+          ],
+        },
+      }),
+    });
+    expect(appendSystemMessage).toHaveBeenCalledWith(expect.stringContaining("Available models"));
   });
 
   it("reports /models command failures from native management command", async () => {

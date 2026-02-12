@@ -326,54 +326,77 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
         const availableModels = session?.metadata?.availableModels ?? [];
         if (availableModels.length > 0) {
           deps.appendSystemMessage(formatModelListMessage(availableModels, currentModel));
-        } else if (!currentModel) {
-          if (!deps.runAgentCommand) {
+          return true;
+        }
+        if (!deps.runAgentCommand) {
+          if (!currentModel) {
             deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MODEL_CONFIGURED);
             return true;
           }
-          deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.MODELS_FETCHING);
-          void deps
-            .runAgentCommand([AGENT_MANAGEMENT_COMMAND.MODELS])
-            .then((result) => {
-              const parsed = (() => {
-                try {
-                  return parseModelsCommandResult(result);
-                } catch (error) {
-                  deps.appendSystemMessage(
-                    `${SLASH_COMMAND_MESSAGE.MODELS_NOT_AVAILABLE} ${
-                      error instanceof Error ? error.message : String(error)
-                    }`
-                  );
-                  return null;
-                }
-              })();
-              if (!parsed) {
-                return;
-              }
-              if (parsed.models.length === 0) {
-                deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MODELS_AVAILABLE);
-                return;
-              }
-              const parsedCurrentModel = parsed.models.find((model) => model.isDefault)?.id;
-              const normalizedModels = parsed.models.map((model) => ({
-                modelId: model.id,
-                name: model.name,
-              }));
-              deps.appendSystemMessage(
-                formatModelListMessage(normalizedModels, parsedCurrentModel)
-              );
-            })
-            .catch((error) => {
-              deps.appendSystemMessage(
-                `${SLASH_COMMAND_MESSAGE.MODELS_NOT_AVAILABLE} ${
-                  error instanceof Error ? error.message : String(error)
-                }`
-              );
-            });
-          return true;
-        } else {
           deps.appendSystemMessage(formatModelCurrentMessage(currentModel));
+          return true;
         }
+        deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.MODELS_FETCHING);
+        void deps
+          .runAgentCommand([AGENT_MANAGEMENT_COMMAND.MODELS])
+          .then((result) => {
+            const parsed = (() => {
+              try {
+                return parseModelsCommandResult(result);
+              } catch (error) {
+                deps.appendSystemMessage(
+                  `${SLASH_COMMAND_MESSAGE.MODELS_NOT_AVAILABLE} ${
+                    error instanceof Error ? error.message : String(error)
+                  }`
+                );
+                return null;
+              }
+            })();
+            if (!parsed) {
+              return;
+            }
+            if (parsed.models.length === 0) {
+              deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.NO_MODELS_AVAILABLE);
+              return;
+            }
+            const parsedCurrentModel = parsed.models.find((model) => model.isDefault)?.id;
+            const normalizedModels = parsed.models.map((model) => ({
+              modelId: model.id,
+              name: model.name,
+            }));
+            if (deps.sessionId) {
+              const activeSession = deps.getSession(deps.sessionId);
+              if (activeSession) {
+                const model = activeSession.metadata?.model ?? parsedCurrentModel;
+                deps.upsertSession({
+                  session: {
+                    ...activeSession,
+                    metadata: {
+                      mcpServers: activeSession.metadata?.mcpServers ?? [],
+                      ...(model ? { model } : {}),
+                      ...(activeSession.metadata?.temperature !== undefined
+                        ? { temperature: activeSession.metadata.temperature }
+                        : {}),
+                      ...(activeSession.metadata?.parentSessionId
+                        ? { parentSessionId: activeSession.metadata.parentSessionId }
+                        : {}),
+                      availableModels: normalizedModels,
+                    },
+                  },
+                });
+              }
+            }
+            deps.appendSystemMessage(
+              formatModelListMessage(normalizedModels, currentModel ?? parsedCurrentModel)
+            );
+          })
+          .catch((error) => {
+            deps.appendSystemMessage(
+              `${SLASH_COMMAND_MESSAGE.MODELS_NOT_AVAILABLE} ${
+                error instanceof Error ? error.message : String(error)
+              }`
+            );
+          });
         return true;
       }
       if (!deps.setSessionModel) {
