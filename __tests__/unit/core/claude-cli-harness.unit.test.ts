@@ -1,6 +1,7 @@
 import { PassThrough, Readable, Writable } from "node:stream";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { ERROR_CODE } from "@/constants/error-codes";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
@@ -362,5 +363,22 @@ describe("ClaudeCliHarnessAdapter", () => {
     expect(claudeCliHarnessAdapter.name).toBe(HARNESS_DEFAULT.CLAUDE_CLI_NAME);
     expect(runtime).toBeInstanceOf(ClaudeCliHarnessAdapter);
     expect(runtime.connectionStatus).toBe(CONNECTION_STATUS.DISCONNECTED);
+  });
+
+  it("rethrows non-method-not-found errors from setSessionMode", async () => {
+    const adapter = new ClaudeCliHarnessAdapter({
+      connection: new FakeConnection(createClientStream()),
+    });
+    const patchedError = { code: ERROR_CODE.AUTH_REQUIRED, message: "Auth required" };
+    const patchedClient = Reflect.get(adapter, "client") as {
+      setSessionMode: (params: { sessionId: string; modeId: string }) => Promise<unknown>;
+    };
+    patchedClient.setSessionMode = vi.fn(async () => {
+      throw patchedError;
+    });
+
+    await expect(
+      adapter.setSessionMode({ sessionId: "session-mode-model", modeId: SESSION_MODE.AUTO })
+    ).rejects.toBe(patchedError);
   });
 });

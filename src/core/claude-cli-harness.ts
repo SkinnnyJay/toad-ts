@@ -265,4 +265,4 @@ const isMethodNotFoundError = (error: unknown): error is { code: number } =>
   error !== null &&
   "code" in error &&
   typeof (error as { code: unknown }).code === "number" &&
-  (error as { code: number }).code === -32601;
+  (error as { code: number }).code === ERROR_CODE.RPC_METHOD_NOT_FOUND;
