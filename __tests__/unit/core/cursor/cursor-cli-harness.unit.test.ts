@@ -1,6 +1,7 @@
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { ENV_KEY } from "@/constants/env-keys";
+import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { CursorCliConnection } from "@/core/cursor/cursor-cli-connection";
 import { CursorCliHarnessAdapter } from "@/core/cursor/cursor-cli-harness";
 import { CursorToAcpTranslator } from "@/core/cursor/cursor-to-acp-translator";
@@ -217,5 +218,54 @@ describe("CursorCliHarnessAdapter", () => {
     });
 
     expect(sessionStartResponse).toBeDefined();
+  });
+
+  it("emits thought and file diff updates from hook observers", async () => {
+    const { harness, hookServer } = createHarness();
+    const updates: Array<{ sessionId: string; updateType: string; payload: unknown }> = [];
+    harness.on("sessionUpdate", (event) => {
+      updates.push({
+        sessionId: event.sessionId,
+        updateType: event.update.sessionUpdate,
+        payload: event.update,
+      });
+    });
+    await harness.connect();
+
+    await hookServer.handlers?.routeHandlers?.[CURSOR_HOOK_EVENT.AFTER_AGENT_THOUGHT]?.({
+      payload: {
+        conversation_id: "conv-1",
+        generation_id: "gen-1",
+        model: "opus",
+        hook_event_name: CURSOR_HOOK_EVENT.AFTER_AGENT_THOUGHT,
+        thought: "Need to inspect tests first.",
+      },
+    });
+    await hookServer.handlers?.routeHandlers?.[CURSOR_HOOK_EVENT.AFTER_FILE_EDIT]?.({
+      payload: {
+        conversation_id: "conv-1",
+        generation_id: "gen-1",
+        model: "opus",
+        hook_event_name: CURSOR_HOOK_EVENT.AFTER_FILE_EDIT,
+        path: "src/foo.ts",
+        edits: [
+          {
+            path: "src/foo.ts",
+            old_string: "const a = 1;",
+            new_string: "const a = 2;",
+          },
+        ],
+      },
+    });
+
+    expect(
+      updates.some((update) => update.updateType === SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK)
+    ).toBe(true);
+    expect(updates.some((update) => update.updateType === SESSION_UPDATE_TYPE.TOOL_CALL)).toBe(
+      true
+    );
+    expect(
+      updates.some((update) => update.updateType === SESSION_UPDATE_TYPE.TOOL_CALL_UPDATE)
+    ).toBe(true);
   });
 });
