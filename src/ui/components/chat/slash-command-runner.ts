@@ -36,7 +36,7 @@ import type {
 } from "@/types/agent-management.types";
 import type { Message, MessageId, Plan, Session, SessionId } from "@/types/domain";
 import { PlanIdSchema, SessionIdSchema, SessionModeSchema, TaskIdSchema } from "@/types/domain";
-import type { SessionSwitchSeed } from "@/ui/utils/session-switcher";
+import { type SessionSwitchSeed, toSessionSwitchSeed } from "@/ui/utils/session-switcher";
 import { nanoid } from "nanoid";
 import {
   runCopyCommand,
@@ -194,11 +194,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
             if (!seed) {
               return;
             }
-            deps.switchToSession?.(parsedSessionId, {
-              title: seed.title,
-              createdAt: seed.createdAt,
-              model: seed.model,
-            });
+            deps.switchToSession?.(parsedSessionId, toSessionSwitchSeed(seed));
           };
           if (deps.activeHarnessId === HARNESS_DEFAULT.CURSOR_CLI_ID && deps.listAgentSessions) {
             void deps

@@ -2,7 +2,10 @@ import type { AgentInfo } from "@/agents/agent-manager";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { AgentIdSchema, type Session, SessionIdSchema } from "@/types/domain";
 import { describe, expect, it, vi } from "vitest";
-import { switchToSessionWithFallback } from "../../../src/ui/utils/session-switcher";
+import {
+  switchToSessionWithFallback,
+  toSessionSwitchSeed,
+} from "../../../src/ui/utils/session-switcher";
 
 const createAgent = (): AgentInfo => ({
   id: AgentIdSchema.parse("cursor-cli"),
@@ -26,6 +29,20 @@ const createSession = (id: string): Session => {
 };
 
 describe("switchToSessionWithFallback", () => {
+  it("maps native session metadata to switch seed", () => {
+    expect(
+      toSessionSwitchSeed({
+        title: "Recovered title",
+        createdAt: "2026-02-11T18:30:00.000Z",
+        model: "gpt-5",
+      })
+    ).toEqual({
+      title: "Recovered title",
+      createdAt: "2026-02-11T18:30:00.000Z",
+      model: "gpt-5",
+    });
+  });
+
   it("switches existing sessions without creating placeholders", () => {
     const targetSessionId = SessionIdSchema.parse("session-existing");
     const existingSession = createSession("session-existing");

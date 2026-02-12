@@ -9,6 +9,18 @@ export interface SessionSwitchSeed {
   model?: string;
 }
 
+export const toSessionSwitchSeed = (session: {
+  title?: string;
+  createdAt?: string;
+  model?: string;
+}): SessionSwitchSeed => {
+  return {
+    title: session.title,
+    createdAt: session.createdAt,
+    model: session.model,
+  };
+};
+
 export interface SessionSwitcherOptions {
   targetSessionId: SessionId;
   getSession: (sessionId: SessionId) => Session | undefined;

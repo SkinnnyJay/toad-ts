@@ -7,7 +7,7 @@ import { toNormalizedAgentManagementSessions } from "@/core/agent-management/ses
 import { useAppStore } from "@/store/app-store";
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import { type SessionId, SessionIdSchema } from "@/types/domain";
-import type { SessionSwitchSeed } from "@/ui/utils/session-switcher";
+import { type SessionSwitchSeed, toSessionSwitchSeed } from "@/ui/utils/session-switcher";
 import { truncateMiddle } from "@/ui/utils/truncate-middle";
 import type { SelectOption } from "@opentui/core";
 import { TextAttributes } from "@opentui/core";
@@ -128,11 +128,7 @@ export function SessionsPopup({
           session.model ?? ""
         } ${session.messageCount ?? ""} cursor`,
         description: `Native Cursor session (${session.id})${suffix}`,
-        switchSeed: {
-          title: session.title,
-          createdAt: session.createdAt,
-          model: session.model,
-        },
+        switchSeed: toSessionSwitchSeed(session),
       });
     }
     return [...localEntries, ...externalEntries];
