@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { ENV_KEY } from "@/constants/env-keys";
 import { CursorCliConnection } from "@/core/cursor/cursor-cli-connection";
@@ -127,6 +128,47 @@ class FakeHooksGenerator extends HooksConfigGenerator {
 describe("Cursor harness integration", () => {
   afterEach(() => {
     useAppStore.getState().reset();
+  });
+
+  it("fails connect when cursor binary is missing", async () => {
+    const connection = new StreamingFakeConnection();
+    connection.installStatus = { installed: false, binaryName: "cursor-agent" };
+    const harness = new CursorCliHarnessAdapter({
+      connection,
+      hookIpcServer: new FakeHookServer(),
+      hooksConfigGenerator: new FakeHooksGenerator(),
+    });
+
+    await expect(harness.connect()).rejects.toThrow("Cursor CLI binary");
+    expect(harness.connectionStatus).toBe(CONNECTION_STATUS.ERROR);
+  });
+
+  it("fails authenticate when cursor is not logged in", async () => {
+    const connection = new StreamingFakeConnection();
+    connection.authStatus = { authenticated: false };
+    const harness = new CursorCliHarnessAdapter({
+      connection,
+      hookIpcServer: new FakeHookServer(),
+      hooksConfigGenerator: new FakeHooksGenerator(),
+    });
+
+    await expect(harness.authenticate({})).rejects.toThrow("Cursor authentication required");
+  });
+
+  it("emits runtime error on unexpected cursor process exit", async () => {
+    const connection = new StreamingFakeConnection();
+    const harness = new CursorCliHarnessAdapter({
+      connection,
+      hookIpcServer: new FakeHookServer(),
+      hooksConfigGenerator: new FakeHooksGenerator(),
+    });
+    const errors: string[] = [];
+    harness.on("error", (error) => {
+      errors.push(error.message);
+    });
+
+    connection.emit("processExit", { code: 9, signal: null });
+    expect(errors.some((message) => message.includes("code 9"))).toBe(true);
   });
 
   it("streams cursor events through SessionStream into store messages and tools", async () => {
