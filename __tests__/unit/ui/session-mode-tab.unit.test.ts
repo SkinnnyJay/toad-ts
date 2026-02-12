@@ -49,4 +49,27 @@ describe("SessionModeTab", () => {
     expect(onSelectMode).toHaveBeenCalledWith(SESSION_MODE.READ_ONLY);
     await waitFor(() => lastFrame().includes("Updated session mode to read-only."));
   });
+
+  it("shows object-shaped mode update failure details", async () => {
+    const onSelectMode = vi.fn(async () => {
+      throw { message: "mode object failure" };
+    });
+    const { stdin, lastFrame } = renderInk(
+      React.createElement(
+        TruncationProvider,
+        {},
+        React.createElement(SessionModeTab, {
+          isActive: true,
+          currentMode: SESSION_MODE.AUTO,
+          onSelectMode,
+        })
+      )
+    );
+
+    stdin.write("\x1B[B");
+    stdin.write("\r");
+
+    await waitFor(() => onSelectMode.mock.calls.length === 1);
+    await waitFor(() => lastFrame().includes("Failed to update mode: mode object failure"));
+  });
 });

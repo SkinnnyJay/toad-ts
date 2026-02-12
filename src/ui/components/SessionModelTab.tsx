@@ -1,6 +1,7 @@
 import { COLOR } from "@/constants/colors";
 import { KEY_NAME } from "@/constants/key-names";
 import type { ModelInfo } from "@/types/domain";
+import { toErrorMessage } from "@/ui/utils/auth-error-matcher";
 import { toNormalizedOptionalString } from "@/ui/utils/session-model-metadata";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
@@ -60,9 +61,8 @@ export function SessionModelTab({
         await onSelectModel(modelId);
         setStatusMessage(`Updated session model to ${modelId}.`);
       } catch (error) {
-        setStatusMessage(
-          `Failed to update model: ${error instanceof Error ? error.message : String(error)}`
-        );
+        const details = toErrorMessage(error) ?? String(error);
+        setStatusMessage(`Failed to update model: ${details}`);
       } finally {
         setIsSaving(false);
       }
@@ -81,9 +81,8 @@ export function SessionModelTab({
       await onRefreshModels();
       setStatusMessage("Refreshed model list.");
     } catch (error) {
-      setStatusMessage(
-        `Failed to refresh models: ${error instanceof Error ? error.message : String(error)}`
-      );
+      const details = toErrorMessage(error) ?? String(error);
+      setStatusMessage(`Failed to refresh models: ${details}`);
     } finally {
       setIsRefreshing(false);
     }

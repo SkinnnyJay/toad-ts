@@ -105,4 +105,26 @@ describe("SessionModelTab", () => {
     await new Promise((resolve) => setTimeout(resolve, 25));
     expect(onRefreshModels).toHaveBeenCalledTimes(1);
   });
+
+  it("shows object-shaped refresh failure message details", async () => {
+    const onRefreshModels = vi.fn(async () => {
+      throw { message: "refresh object failure" };
+    });
+    const { lastFrame } = renderInk(
+      React.createElement(
+        TruncationProvider,
+        {},
+        React.createElement(SessionModelTab, {
+          isActive: true,
+          availableModels: [{ modelId: "auto", name: "Auto" }],
+          onRefreshModels,
+        })
+      )
+    );
+
+    keyboardRuntime.emit("r", { ctrl: true });
+    await waitFor(() => onRefreshModels.mock.calls.length === 1);
+    await waitFor(() => lastFrame().includes("Failed to refresh models: refresh object failure"));
+    expect(lastFrame()).toContain("Failed to refresh models: refresh object failure");
+  });
 });

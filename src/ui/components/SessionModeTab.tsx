@@ -1,6 +1,7 @@
 import { COLOR } from "@/constants/colors";
 import { KEY_NAME } from "@/constants/key-names";
 import { SESSION_MODE, type SessionMode } from "@/constants/session-modes";
+import { toErrorMessage } from "@/ui/utils/auth-error-matcher";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
@@ -89,9 +90,8 @@ export function SessionModeTab({
           setStatusMessage(`Updated session mode to ${targetMode.id}.`);
         })
         .catch((error) => {
-          setStatusMessage(
-            `Failed to update mode: ${error instanceof Error ? error.message : String(error)}`
-          );
+          const details = toErrorMessage(error) ?? String(error);
+          setStatusMessage(`Failed to update mode: ${details}`);
         })
         .finally(() => {
           setIsSaving(false);
