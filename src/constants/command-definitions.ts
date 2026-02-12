@@ -1,3 +1,4 @@
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { SLASH_COMMAND } from "@/constants/slash-commands";
 
@@ -19,6 +20,13 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   },
   { name: SLASH_COMMAND.AGENTS, description: "Open agent discovery panel", category: "agents" },
   { name: SLASH_COMMAND.CLEAR, description: "Clear chat messages", category: "session" },
+  {
+    name: SLASH_COMMAND.CLOUD,
+    description: "Manage Cursor cloud agents",
+    args: "[list|status|stop|followup] [args...]",
+    category: "provider",
+    agents: [HARNESS_DEFAULT.CURSOR_CLI_ID],
+  },
   {
     name: SLASH_COMMAND.COMPACT,
     description: "Run compaction for the current session",
