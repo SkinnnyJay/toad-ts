@@ -4,6 +4,11 @@ import {
   AGENT_MANAGEMENT_COMMAND,
   HARNESS_ID,
 } from "@/constants/agent-management-commands";
+import {
+  parseCliVersionOutput,
+  parseCodexLoginStatusOutput,
+  parseMcpListOutput,
+} from "@/core/cli-agent/agent-command-parsers";
 import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
 import { parseCursorMcpListOutput } from "@/core/cursor/cursor-command-parsers";
 import type { HarnessConfig } from "@/harness/harnessConfig";
@@ -162,6 +167,16 @@ const runMcpCommand = async (
     });
   }
 
+  if (subcommand === MCP_SUBCOMMAND.LIST) {
+    const parsed = parseMcpListOutput(result.stdout);
+    if (parsed.length > 0) {
+      return parsed.map((entry) => {
+        const reasonSuffix = entry.reason ? ` (${entry.reason})` : "";
+        return `- ${entry.name}: ${entry.status}${reasonSuffix}`;
+      });
+    }
+  }
+
   const lines = result.stdout
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -310,7 +325,8 @@ export const runAgentCommand = async (
         if (isCursorHarness(harness)) {
           return mapCursorAboutLines(result.stdout);
         }
-        return [result.stdout || COMMAND_RESULT_EMPTY];
+        const version = parseCliVersionOutput(result.stdout);
+        return [version ? `Version: ${version}` : result.stdout || COMMAND_RESULT_EMPTY];
       }
       {
         const delegatedCommand = resolveAgentRootCommand(args[0]);
@@ -376,7 +392,8 @@ export const runAgentCommand = async (
         if (isCursorHarness(harness)) {
           return mapCursorAboutLines(result.stdout);
         }
-        return [result.stdout || COMMAND_RESULT_EMPTY];
+        const version = parseCliVersionOutput(result.stdout);
+        return [version ? `Version: ${version}` : result.stdout || COMMAND_RESULT_EMPTY];
       }
     case AGENT_MANAGEMENT_COMMAND.STATUS:
       if (!harness) {
@@ -401,6 +418,14 @@ export const runAgentCommand = async (
         }
         if (isCursorHarness(harness)) {
           return mapCursorStatusLines(result.stdout, result.stderr);
+        }
+        if (harness.id === HARNESS_ID.CODEX_CLI) {
+          const parsed = parseCodexLoginStatusOutput(result.stdout, result.stderr);
+          return [
+            `Authenticated: ${parsed.authenticated ? "yes" : "no"}`,
+            ...(parsed.email ? [`Email: ${parsed.email}`] : []),
+            `Status: ${parsed.message}`,
+          ];
         }
         return [result.stdout || result.stderr || "Status command produced no output."];
       }

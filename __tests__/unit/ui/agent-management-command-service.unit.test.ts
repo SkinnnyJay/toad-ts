@@ -261,7 +261,8 @@ describe("agent-management-command-service", () => {
       activeHarness: harness,
     });
 
-    expect(lines[0]).toContain("Authenticated as coder@example.com");
+    expect(lines[0]).toContain("Authenticated: yes");
+    expect(lines[1]).toContain("coder@example.com");
     const args = execaMock.mock.calls[0]?.[1] as string[] | undefined;
     expect(args).toEqual(["login", "status"]);
   });
@@ -394,7 +395,7 @@ describe("agent-management-command-service", () => {
       activeHarness: harness,
     });
 
-    expect(lines[0]).toContain("codex 0.1.0");
+    expect(lines[0]).toContain("Version: codex 0.1.0");
     const args = execaMock.mock.calls[0]?.[1] as string[] | undefined;
     expect(args).toEqual(["--version"]);
   });
