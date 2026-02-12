@@ -153,7 +153,7 @@ export const parseAuthStatusOutput = (stdout: string): CliAgentAuthStatus => {
 };
 
 export const parseModelsOutput = (stdout: string): CliAgentModelsResponse => {
-  const models = getNonEmptyLines(stdout)
+  const parsedModels = getNonEmptyLines(stdout)
     .filter((line) => !MODEL_NOISE_LINE_PATTERN.test(line))
     .map((line) => {
       const match = MODEL_LINE_PATTERN.exec(line);
@@ -178,6 +178,25 @@ export const parseModelsOutput = (stdout: string): CliAgentModelsResponse => {
       ): entry is { id: string; name: string; isDefault: boolean; supportsThinking: boolean } =>
         entry !== null
     );
+
+  const modelsById = new Map<
+    string,
+    { id: string; name: string; isDefault: boolean; supportsThinking: boolean }
+  >();
+  for (const model of parsedModels) {
+    const existing = modelsById.get(model.id);
+    if (!existing) {
+      modelsById.set(model.id, model);
+      continue;
+    }
+    modelsById.set(model.id, {
+      id: model.id,
+      name: existing.name.length >= model.name.length ? existing.name : model.name,
+      isDefault: existing.isDefault || model.isDefault,
+      supportsThinking: existing.supportsThinking || model.supportsThinking,
+    });
+  }
+  const models = Array.from(modelsById.values());
 
   const defaultModel = models.find((model) => model.isDefault)?.id;
   return CliAgentModelsResponseSchema.parse({

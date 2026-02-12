@@ -79,6 +79,29 @@ describe("models-command-result", () => {
     ]);
   });
 
+  it("deduplicates duplicate model rows from command output", () => {
+    const parsed = parseModelsCommandResult({
+      stdout: [
+        "gpt-5 - GPT-5",
+        "gpt-5 - GPT-5 (default)",
+        "opus-4.6-thinking - Claude 4.6 Opus (Thinking)",
+      ].join("\n"),
+      stderr: "",
+      exitCode: 0,
+    });
+
+    expect(parsed.defaultModel).toBe("gpt-5");
+    expect(parsed.models).toEqual([
+      { id: "gpt-5", name: "GPT-5", isDefault: true, supportsThinking: false },
+      {
+        id: "opus-4.6-thinking",
+        name: "Claude 4.6 Opus (Thinking)",
+        isDefault: false,
+        supportsThinking: true,
+      },
+    ]);
+  });
+
   it("does not treat warning-only stderr as model output", () => {
     const parsed = parseModelsCommandResult({
       stdout: "",

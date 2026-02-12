@@ -221,6 +221,33 @@ describe("cli-output-parser", () => {
     expect(parsed.defaultModel).toBe("gpt-5");
   });
 
+  it("deduplicates duplicate model ids while merging default/thinking metadata", () => {
+    const parsed = parseModelsOutput(
+      [
+        "gpt-5 - GPT-5",
+        "gpt-5 - GPT-5 (current)",
+        "opus-4.6-thinking - Claude 4.6 Opus",
+        "opus-4.6-thinking - Claude 4.6 Opus (Thinking) (default)",
+      ].join("\n")
+    );
+
+    expect(parsed.models).toEqual([
+      {
+        id: "gpt-5",
+        name: "GPT-5",
+        isDefault: true,
+        supportsThinking: false,
+      },
+      {
+        id: "opus-4.6-thinking",
+        name: "Claude 4.6 Opus (Thinking)",
+        isDefault: true,
+        supportsThinking: true,
+      },
+    ]);
+    expect(parsed.defaultModel).toBe("gpt-5");
+  });
+
   it("does not treat warning-prefixed model ids as noise", () => {
     const parsed = parseModelsOutput("warning-model - Warning Model");
 
