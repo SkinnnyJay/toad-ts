@@ -1,5 +1,7 @@
 import {
   sortCloudAgentItemsByRecency,
+  toCloudAgentListItem,
+  toCloudAgentListItems,
   toSortableCloudTimestamp,
 } from "@/ui/utils/cloud-agent-list";
 import { describe, expect, it } from "vitest";
@@ -20,5 +22,51 @@ describe("cloud-agent-list", () => {
     ]);
 
     expect(sorted.map((item) => item.id)).toEqual(["agent-a", "agent-b", "agent-c", "agent-z"]);
+  });
+
+  it("parses cloud agent payloads into UI list items", () => {
+    expect(
+      toCloudAgentListItem({
+        id: "agent-1",
+        status: "running",
+        model: "auto",
+        updated_at: "2026-02-11T10:00:00.000Z",
+      })
+    ).toEqual({
+      id: "agent-1",
+      status: "running",
+      model: "auto",
+      updatedAt: "2026-02-11T10:00:00.000Z",
+    });
+  });
+
+  it("maps cloud agent payload arrays into list items", () => {
+    expect(
+      toCloudAgentListItems([
+        {
+          id: "agent-1",
+          status: "running",
+          updated_at: "2026-02-11T10:00:00.000Z",
+        },
+        {
+          id: "agent-2",
+          status: "completed",
+          model: "max",
+        },
+      ])
+    ).toEqual([
+      {
+        id: "agent-1",
+        status: "running",
+        model: undefined,
+        updatedAt: "2026-02-11T10:00:00.000Z",
+      },
+      {
+        id: "agent-2",
+        status: "completed",
+        model: "max",
+        updatedAt: undefined,
+      },
+    ]);
   });
 });

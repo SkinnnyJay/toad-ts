@@ -83,7 +83,7 @@ import { useAutoTitle } from "@/ui/hooks/useAutoTitle";
 import { useRepoWorkflow } from "@/ui/hooks/useRepoWorkflow";
 import { ThemeProvider } from "@/ui/theme/theme-context";
 import { applyThemeColors } from "@/ui/theme/theme-definitions";
-import { sortCloudAgentItemsByRecency } from "@/ui/utils/cloud-agent-list";
+import { sortCloudAgentItemsByRecency, toCloudAgentListItems } from "@/ui/utils/cloud-agent-list";
 import { toCloudDispatchContextFromRepoWorkflow } from "@/ui/utils/cloud-dispatch-context";
 import {
   type McpServerListItem,
@@ -459,16 +459,7 @@ export function App(): ReactNode {
       const cloudClient = new CursorCloudAgentClient();
       const response = await cloudClient.listAgents({ limit: 100 });
       const rawAgents = Array.isArray(response.agents) ? response.agents : [];
-      const mappedAgents = rawAgents.map((rawAgent) => {
-        const cloudAgent = CursorCloudAgentSchema.parse(rawAgent);
-        return {
-          id: cloudAgent.id,
-          status: cloudAgent.status,
-          model: cloudAgent.model,
-          updatedAt: cloudAgent.updated_at,
-        };
-      });
-      setCloudAgents(sortCloudAgentItemsByRecency(mappedAgents));
+      setCloudAgents(sortCloudAgentItemsByRecency(toCloudAgentListItems(rawAgents)));
     } catch (error) {
       setCloudAgentsError(error instanceof Error ? error.message : String(error));
     } finally {

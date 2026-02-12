@@ -1,8 +1,15 @@
+import { CursorCloudAgentSchema } from "@/types/cursor-cloud.types";
+
 const INVALID_CLOUD_TIMESTAMP = -1;
 
 export interface CloudAgentRecencyItem {
   id: string;
   updatedAt?: string;
+}
+
+export interface CloudAgentListItem extends CloudAgentRecencyItem {
+  status: string;
+  model?: string;
 }
 
 export const toSortableCloudTimestamp = (value: string | undefined): number => {
@@ -28,3 +35,16 @@ export const sortCloudAgentItemsByRecency = <TItem extends CloudAgentRecencyItem
     return first.id.localeCompare(second.id);
   });
 };
+
+export const toCloudAgentListItem = (rawAgent: unknown): CloudAgentListItem => {
+  const cloudAgent = CursorCloudAgentSchema.parse(rawAgent);
+  return {
+    id: cloudAgent.id,
+    status: cloudAgent.status,
+    model: cloudAgent.model,
+    updatedAt: cloudAgent.updated_at,
+  };
+};
+
+export const toCloudAgentListItems = (rawAgents: readonly unknown[]): CloudAgentListItem[] =>
+  rawAgents.map((rawAgent) => toCloudAgentListItem(rawAgent));

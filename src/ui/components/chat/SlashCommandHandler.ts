@@ -21,6 +21,7 @@ import type { AgentManagementCommandResult } from "@/types/agent-management.type
 import { CursorCloudAgentSchema } from "@/types/cursor-cloud.types";
 import type { Message, Session, SessionId } from "@/types/domain";
 import { SessionModeSchema } from "@/types/domain";
+import { toCloudAgentListItems } from "@/ui/utils/cloud-agent-list";
 import { withSessionModel } from "@/ui/utils/session-model-metadata";
 import { toSessionModelOptionsFromCloudResponse } from "@/ui/utils/session-model-refresh";
 import { type SessionSwitchSeed, switchToSessionWithFallback } from "@/ui/utils/session-switcher";
@@ -414,15 +415,7 @@ export const useSlashCommandHandler = ({
                 const cloudClient = new CursorCloudAgentClient();
                 const response = await cloudClient.listAgents({ limit: 20 });
                 const rawAgents = Array.isArray(response.agents) ? response.agents : [];
-                return rawAgents.map((rawAgent) => {
-                  const cloudAgent = CursorCloudAgentSchema.parse(rawAgent);
-                  return {
-                    id: cloudAgent.id,
-                    status: cloudAgent.status,
-                    model: cloudAgent.model,
-                    updatedAt: cloudAgent.updated_at,
-                  };
-                });
+                return toCloudAgentListItems(rawAgents);
               }
             : undefined,
         getCloudAgentItem:
