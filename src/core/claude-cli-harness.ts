@@ -230,7 +230,7 @@ export class ClaudeCliHarnessAdapter extends CliAgentBase implements HarnessRunt
   }
 }
 
-export const createCliHarnessRuntime = (config: HarnessConfig): HarnessRuntime => {
+export const createAcpCliHarnessRuntime = (config: HarnessConfig): HarnessRuntime => {
   const env = { ...EnvManager.getInstance().getSnapshot(), ...config.env };
   const toolHost = new ToolHost({ baseDir: config.cwd, env });
   const clientOptions: ACPClientOptions = {
@@ -248,11 +248,13 @@ export const createCliHarnessRuntime = (config: HarnessConfig): HarnessRuntime =
   });
 };
 
+export const createCliHarnessRuntime = createAcpCliHarnessRuntime;
+
 export const claudeCliHarnessAdapter: HarnessAdapter = createCliHarnessAdapter({
   id: HARNESS_DEFAULT.CLAUDE_CLI_ID,
   name: HARNESS_DEFAULT.CLAUDE_CLI_NAME,
   configSchema: harnessConfigSchema,
-  createRuntime: (config: HarnessConfig) => createCliHarnessRuntime(config),
+  createRuntime: (config: HarnessConfig) => createAcpCliHarnessRuntime(config),
 });
 
 const isErrnoException = (error: unknown): error is NodeJS.ErrnoException =>

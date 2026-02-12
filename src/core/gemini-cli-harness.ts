@@ -1,5 +1,5 @@
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
-import { createCliHarnessRuntime } from "@/core/claude-cli-harness";
+import { createAcpCliHarnessRuntime } from "@/core/claude-cli-harness";
 import { createCliHarnessAdapter } from "@/core/cli-agent/create-cli-harness-adapter";
 import type { HarnessAdapter } from "@/harness/harnessAdapter";
 import { type HarnessConfig, harnessConfigSchema } from "@/harness/harnessConfig";
@@ -8,5 +8,5 @@ export const geminiCliHarnessAdapter: HarnessAdapter = createCliHarnessAdapter({
   id: HARNESS_DEFAULT.GEMINI_CLI_ID,
   name: HARNESS_DEFAULT.GEMINI_CLI_NAME,
   configSchema: harnessConfigSchema,
-  createRuntime: (config: HarnessConfig) => createCliHarnessRuntime(config),
+  createRuntime: (config: HarnessConfig) => createAcpCliHarnessRuntime(config),
 });
