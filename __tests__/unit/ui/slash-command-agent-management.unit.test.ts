@@ -881,6 +881,24 @@ describe("slash command agent management", () => {
     );
   });
 
+  it("shows gemini login hint for /agent auth-required failure output", async () => {
+    const runAgentCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "authentication required",
+      exitCode: 1,
+    }));
+    const { deps, appendSystemMessage } = createDeps({
+      activeHarnessId: HARNESS_DEFAULT.GEMINI_CLI_ID,
+      runAgentCommand,
+    });
+
+    expect(runSlashCommand("/agent status", deps)).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(appendSystemMessage).toHaveBeenCalledWith(SLASH_COMMAND_MESSAGE.GEMINI_LOGIN_HINT);
+  });
+
   it("fetches native cursor sessions for /sessions", async () => {
     const duplicated = "9b7418b2-5b71-4a12-97b4-64f2131e5241";
     const runAgentCommand = vi.fn(async () => ({
