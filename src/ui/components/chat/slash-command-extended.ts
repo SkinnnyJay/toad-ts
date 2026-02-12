@@ -61,13 +61,21 @@ const getActiveHarness = (deps: SlashCommandDeps) => {
   return deps.harnesses?.[deps.activeHarnessId];
 };
 
-const runManagementCommand = (command: string, deps: SlashCommandDeps): void => {
-  void runAgentCommand(command, {
-    activeHarness: getActiveHarness(deps),
-    activeAgentName: deps.activeAgentName,
-    session: deps.sessionId ? deps.getSession(deps.sessionId) : undefined,
-    connectionStatus: deps.connectionStatus,
-  })
+const runManagementCommand = (
+  command: string,
+  deps: SlashCommandDeps,
+  args: string[] = []
+): void => {
+  void runAgentCommand(
+    command,
+    {
+      activeHarness: getActiveHarness(deps),
+      activeAgentName: deps.activeAgentName,
+      session: deps.sessionId ? deps.getSession(deps.sessionId) : undefined,
+      connectionStatus: deps.connectionStatus,
+    },
+    args
+  )
     .then((lines) => deps.appendSystemMessage(formatStatusMessage(lines)))
     .catch((error) =>
       deps.appendSystemMessage(
@@ -93,8 +101,8 @@ export const handleMcpCommand = (deps: SlashCommandDeps): void => {
   runManagementCommand(AGENT_MANAGEMENT_COMMAND.MCP, deps);
 };
 
-export const handleAgentCommand = (deps: SlashCommandDeps): void => {
-  runManagementCommand(AGENT_MANAGEMENT_COMMAND.AGENT, deps);
+export const handleAgentCommand = (parts: string[], deps: SlashCommandDeps): void => {
+  runManagementCommand(AGENT_MANAGEMENT_COMMAND.AGENT, deps, parts.slice(1));
 };
 
 export const handleModelsListCommand = (deps: SlashCommandDeps): void => {

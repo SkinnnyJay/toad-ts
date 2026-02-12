@@ -496,7 +496,7 @@ export const runSlashCommand = (value: string, deps: SlashCommandDeps): boolean 
       return true;
     }
     case SLASH_COMMAND.AGENT: {
-      handleAgentCommand(deps);
+      handleAgentCommand(parts, deps);
       return true;
     }
     case SLASH_COMMAND.CONFIG: {

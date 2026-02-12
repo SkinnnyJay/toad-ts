@@ -1,6 +1,7 @@
 import { LIMIT } from "@/config/limits";
 import { AGENT_MANAGEMENT_COMMAND, HARNESS_ID } from "@/constants/agent-management-commands";
 import { ENV_KEY } from "@/constants/env-keys";
+import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
 import {
   parseCursorModelsOutput,
   parseCursorStatusOutput,
@@ -15,6 +16,7 @@ export interface AgentManagementContext {
   activeAgentName?: string;
   session?: Session;
   connectionStatus?: string;
+  cloudClient?: Pick<CursorCloudAgentClient, "listAgents" | "launchAgent" | "stopAgent">;
 }
 
 interface HarnessCommandResult {
@@ -22,6 +24,20 @@ interface HarnessCommandResult {
   stderr: string;
   exitCode: number;
 }
+
+const CLOUD_AGENT_SUBCOMMAND = {
+  ROOT: "cloud",
+  LIST: "list",
+  LAUNCH: "launch",
+  STOP: "stop",
+} as const;
+
+const CLOUD_AGENT_MESSAGE = {
+  CURSOR_ONLY: "Cloud commands require the active Cursor CLI harness.",
+  USAGE: "Usage: /agent cloud list | /agent cloud launch <prompt> | /agent cloud stop <agentId>",
+  MISSING_PROMPT: "Provide a prompt for cloud launch.",
+  MISSING_AGENT_ID: "Provide an agent id to stop.",
+} as const;
 
 const isCursorHarness = (harness: HarnessConfig): boolean => harness.id === HARNESS_ID.CURSOR_CLI;
 
@@ -97,13 +113,76 @@ const mapCursorModelLines = (stdout: string): string[] => {
   });
 };
 
+const getCloudClient = (
+  context: AgentManagementContext
+): Pick<CursorCloudAgentClient, "listAgents" | "launchAgent" | "stopAgent"> => {
+  if (context.cloudClient) {
+    return context.cloudClient;
+  }
+  return new CursorCloudAgentClient();
+};
+
+const runCloudAgentCommand = async (
+  context: AgentManagementContext,
+  args: string[]
+): Promise<string[]> => {
+  const harness = context.activeHarness;
+  if (!harness || !isCursorHarness(harness)) {
+    return [CLOUD_AGENT_MESSAGE.CURSOR_ONLY];
+  }
+
+  const [subcommand, ...subArgs] = args;
+  if (!subcommand) {
+    return [CLOUD_AGENT_MESSAGE.USAGE];
+  }
+
+  const cloudClient = getCloudClient(context);
+  switch (subcommand) {
+    case CLOUD_AGENT_SUBCOMMAND.LIST: {
+      const list = await cloudClient.listAgents({ limit: 10 });
+      if (list.items.length === 0) {
+        return ["No active cloud agents."];
+      }
+      return list.items.map((agent) => `- ${agent.id} (${agent.status ?? "unknown"})`);
+    }
+    case CLOUD_AGENT_SUBCOMMAND.LAUNCH: {
+      const prompt = subArgs.join(" ").trim();
+      if (!prompt) {
+        return [CLOUD_AGENT_MESSAGE.MISSING_PROMPT];
+      }
+      const response = await cloudClient.launchAgent({
+        prompt,
+        model: context.session?.metadata?.model,
+      });
+      return [
+        `Dispatched cloud agent: ${response.agent.id}`,
+        `Status: ${response.agent.status ?? "unknown"}`,
+      ];
+    }
+    case CLOUD_AGENT_SUBCOMMAND.STOP: {
+      const agentId = subArgs[0]?.trim();
+      if (!agentId) {
+        return [CLOUD_AGENT_MESSAGE.MISSING_AGENT_ID];
+      }
+      await cloudClient.stopAgent(agentId);
+      return [`Stopped cloud agent: ${agentId}`];
+    }
+    default:
+      return [CLOUD_AGENT_MESSAGE.USAGE];
+  }
+};
+
 export const runAgentCommand = async (
   command: string,
-  context: AgentManagementContext
+  context: AgentManagementContext,
+  args: string[] = []
 ): Promise<string[]> => {
   const harness = context.activeHarness;
   switch (command) {
     case AGENT_MANAGEMENT_COMMAND.AGENT:
+      if (args[0] === CLOUD_AGENT_SUBCOMMAND.ROOT) {
+        return runCloudAgentCommand(context, args.slice(1));
+      }
       return mapStatusLines(context);
     case AGENT_MANAGEMENT_COMMAND.MCP:
       return mapMcpLines(context.session);
