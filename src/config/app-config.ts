@@ -18,6 +18,7 @@ import { ERROR_CODE } from "@/constants/error-codes";
 import { HOOK_EVENT_VALUES } from "@/constants/hook-events";
 import { KEYBIND_ACTION } from "@/constants/keybind-actions";
 import { KEYBIND } from "@/constants/keybinds";
+import { parseBooleanEnvFlag } from "@/utils/env/boolean-flags";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { findUp } from "find-up";
@@ -47,12 +48,6 @@ export type {
 export { appConfigSchema } from "@/config/app-config-schema";
 
 const DEFAULT_LEADER_KEY = "ctrl+x";
-const BOOLEAN_FLAG = {
-  TRUE: "true",
-  FALSE: "false",
-  ONE: "1",
-  ZERO: "0",
-} as const;
 
 const defaultKeybinds = {
   [KEYBIND_ACTION.FOCUS_CHAT]: "alt+`",
@@ -213,20 +208,6 @@ const parseJsonWithComments = (raw: string): unknown => {
   const withoutComments = raw.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
   const withoutTrailing = withoutComments.replace(/,\s*([}\]])/g, "$1");
   return JSON.parse(withoutTrailing);
-};
-
-const parseBooleanFlag = (value: string | undefined): boolean | undefined => {
-  if (value === undefined) {
-    return undefined;
-  }
-  const normalized = value.trim().toLowerCase();
-  if (normalized === BOOLEAN_FLAG.TRUE || normalized === BOOLEAN_FLAG.ONE) {
-    return true;
-  }
-  if (normalized === BOOLEAN_FLAG.FALSE || normalized === BOOLEAN_FLAG.ZERO) {
-    return false;
-  }
-  return undefined;
 };
 
 const resolveVariables = async (
@@ -439,7 +420,7 @@ export const loadAppConfig = async (options: LoadAppConfigOptions = {}): Promise
     (current, config) => mergeAppConfig(current, config),
     DEFAULT_APP_CONFIG
   );
-  const cursorFlagOverride = parseBooleanFlag(env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]);
+  const cursorFlagOverride = parseBooleanEnvFlag(env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]);
   if (cursorFlagOverride !== undefined) {
     merged.compatibility.cursor = cursorFlagOverride;
   }

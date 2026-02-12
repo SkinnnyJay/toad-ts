@@ -18,19 +18,14 @@ import { RENDER_STAGE } from "@/constants/render-stage";
 import { SESSION_MODE, getNextSessionMode } from "@/constants/session-modes";
 import { formatModeUpdatedMessage } from "@/constants/slash-command-messages";
 import { VIEW, type View } from "@/constants/views";
-import { claudeCliHarnessAdapter } from "@/core/claude-cli-harness";
-import { codexCliHarnessAdapter } from "@/core/codex-cli-harness";
 import {
   filterCommandsForAgent,
   filterSkillsForAgent,
   loadCommands,
   loadSkills,
 } from "@/core/cross-tool";
-import { cursorCliHarnessAdapter } from "@/core/cursor/cursor-cli-harness";
-import { geminiCliHarnessAdapter } from "@/core/gemini-cli-harness";
-import { mockHarnessAdapter } from "@/core/mock-harness";
 import { SessionStream } from "@/core/session-stream";
-import { HarnessRegistry } from "@/harness/harnessRegistry";
+import { createHarnessRegistry } from "@/harness/harnessRegistryFactory";
 import { useAppStore } from "@/store/app-store";
 import { useBackgroundTaskStore } from "@/store/background-task-store";
 import { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
@@ -151,12 +146,10 @@ export function App(): ReactNode {
     onViewChange: setView,
   });
   const harnessRegistry = useMemo(() => {
-    const adapters = [claudeCliHarnessAdapter, geminiCliHarnessAdapter, codexCliHarnessAdapter];
-    if (appConfig.compatibility.cursor) {
-      adapters.push(cursorCliHarnessAdapter);
-    }
-    adapters.push(mockHarnessAdapter);
-    return new HarnessRegistry(adapters);
+    return createHarnessRegistry({
+      enableCursor: appConfig.compatibility.cursor,
+      includeMock: true,
+    });
   }, [appConfig.compatibility.cursor]);
   const sessionStream = useMemo(() => new SessionStream(useAppStore.getState()), []);
   const subAgentRunner = useMemo(
