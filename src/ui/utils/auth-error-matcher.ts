@@ -9,6 +9,9 @@ interface AuthFailureMatchOptions {
   includeCursorApiKeyHint?: boolean;
 }
 
+export const hasCursorApiKeyHint = (message: string): boolean =>
+  message.includes(ENV_KEY.CURSOR_API_KEY);
+
 export const isAuthFailureMessage = (
   message: string,
   options: AuthFailureMatchOptions = {}
@@ -19,7 +22,7 @@ export const isAuthFailureMessage = (
   if (options.includeGenericAuthenticationTerm && AUTHENTICATION_TERM_PATTERN.test(message)) {
     return true;
   }
-  if (options.includeCursorApiKeyHint && message.includes(ENV_KEY.CURSOR_API_KEY)) {
+  if (options.includeCursorApiKeyHint && hasCursorApiKeyHint(message)) {
     return true;
   }
   return false;

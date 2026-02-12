@@ -1,4 +1,4 @@
-import { isAuthFailureMessage } from "@/ui/utils/auth-error-matcher";
+import { hasCursorApiKeyHint, isAuthFailureMessage } from "@/ui/utils/auth-error-matcher";
 import { describe, expect, it } from "vitest";
 
 describe("auth-error-matcher", () => {
@@ -28,5 +28,10 @@ describe("auth-error-matcher", () => {
 
   it("returns false for non-auth text", () => {
     expect(isAuthFailureMessage("network timeout")).toBe(false);
+  });
+
+  it("detects explicit cursor api key mentions", () => {
+    expect(hasCursorApiKeyHint("Missing CURSOR_API_KEY for cloud requests")).toBe(true);
+    expect(hasCursorApiKeyHint("network timeout")).toBe(false);
   });
 });

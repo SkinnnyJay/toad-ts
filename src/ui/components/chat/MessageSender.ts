@@ -3,7 +3,6 @@ import { parseAgentMention } from "@/agents/agent-mentions";
 import { LIMIT } from "@/config/limits";
 import { CHAT_MESSAGE } from "@/constants/chat-messages";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
-import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { INPUT_PREFIX } from "@/constants/input-prefixes";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
@@ -18,6 +17,7 @@ import type { ShellCommandConfig } from "@/tools/shell-command-config";
 import { parseShellCommandInput } from "@/tools/shell-command-config";
 import type { Message, SessionId, SessionMode } from "@/types/domain";
 import { MessageIdSchema, ToolCallIdSchema } from "@/types/domain";
+import { hasCursorApiKeyHint } from "@/ui/utils/auth-error-matcher";
 import { isCloudAuthError } from "@/ui/utils/cloud-auth-errors";
 import {
   type CloudDispatchContext,
@@ -86,7 +86,7 @@ export const toCloudDispatchPrompt = (input: string): string =>
   input.slice(INPUT_PREFIX.CLOUD_DISPATCH.length).trim();
 
 export const resolveCloudDispatchErrorMessage = (error: unknown): string => {
-  if (error instanceof Error && error.message.includes(ENV_KEY.CURSOR_API_KEY)) {
+  if (error instanceof Error && hasCursorApiKeyHint(error.message)) {
     return CHAT_MESSAGE.CLOUD_DISPATCH_MISSING_API_KEY;
   }
   if (isCloudAuthError(error)) {
