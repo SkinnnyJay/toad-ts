@@ -1,9 +1,6 @@
+import { DEBOUNCE_MS, LIMIT, MENTION_QUERY_REGEX } from "@/constants/mention-suggestions";
 import fuzzysort from "fuzzysort";
 import { useEffect, useMemo, useState } from "react";
-
-const MENTION_REGEX = /@([\w./-]*)$/;
-const MENTION_SUGGESTION_LIMIT = 8;
-const MENTION_DEBOUNCE_MS = 150;
 
 export interface UseMentionSuggestionsOptions {
   enabled?: boolean;
@@ -27,7 +24,7 @@ export interface UseMentionSuggestionsResult {
  */
 export const extractMentionQuery = (value: string, cursorPosition: number): string | null => {
   const beforeCursor = value.slice(0, cursorPosition);
-  const match = beforeCursor.match(MENTION_REGEX);
+  const match = beforeCursor.match(MENTION_QUERY_REGEX);
   return match ? (match[1] ?? null) : null;
 };
 
@@ -40,8 +37,8 @@ export function useMentionSuggestions({
   value,
   cursorPosition,
   filePaths,
-  suggestionLimit = MENTION_SUGGESTION_LIMIT,
-  debounceMs = MENTION_DEBOUNCE_MS,
+  suggestionLimit = LIMIT,
+  debounceMs = DEBOUNCE_MS,
 }: UseMentionSuggestionsOptions): UseMentionSuggestionsResult {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
