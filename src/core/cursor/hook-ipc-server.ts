@@ -85,9 +85,6 @@ export interface CursorHookIpcServerEvents {
   error: (error: Error) => void;
 }
 
-const HTTP_STATUS_METHOD_NOT_ALLOWED = 405;
-const HTTP_STATUS_PAYLOAD_TOO_LARGE = 413;
-
 export class CursorHookIpcServer extends EventEmitter<CursorHookIpcServerEvents> {
   private readonly logger = createClassLogger("CursorHookIpcServer");
   private readonly options: CursorHookIpcServerOptions;
@@ -219,7 +216,7 @@ export class CursorHookIpcServer extends EventEmitter<CursorHookIpcServerEvents>
   private async handleRequest(request: IncomingMessage, response: ServerResponse): Promise<void> {
     try {
       if (request.method !== HTTP_METHOD.POST) {
-        this.sendJson(response, HTTP_STATUS_METHOD_NOT_ALLOWED, {
+        this.sendJson(response, HTTP_STATUS.METHOD_NOT_ALLOWED, {
           error: "Only POST requests are supported.",
         });
         return;
@@ -425,7 +422,7 @@ export class CursorHookIpcServer extends EventEmitter<CursorHookIpcServerEvents>
       });
     }).catch((error) => {
       if (error instanceof Error && error.message === "Payload too large.") {
-        throw Object.assign(error, { statusCode: HTTP_STATUS_PAYLOAD_TOO_LARGE });
+        throw Object.assign(error, { statusCode: HTTP_STATUS.PAYLOAD_TOO_LARGE });
       }
       throw error;
     });
