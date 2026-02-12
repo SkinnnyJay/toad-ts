@@ -109,6 +109,10 @@ class FakeHookServer extends EventEmitter<{
   public started = false;
   public stopped = false;
   public stopCalls = 0;
+  public resolvedPermissions: Array<{
+    requestId: string;
+    resolution: { decision: "allow" | "deny"; reason?: string };
+  }> = [];
 
   async start(): Promise<{ transport: "http"; url: string }> {
     this.started = true;
@@ -121,6 +125,14 @@ class FakeHookServer extends EventEmitter<{
   async stop(): Promise<void> {
     this.stopped = true;
     this.stopCalls += 1;
+  }
+
+  resolvePermissionRequest(
+    requestId: string,
+    resolution: { decision: "allow" | "deny"; reason?: string }
+  ): boolean {
+    this.resolvedPermissions.push({ requestId, resolution });
+    return true;
   }
 }
 
@@ -245,6 +257,15 @@ describe("CursorCliHarnessAdapter", () => {
       },
     ]);
     expect(permissionRequestIds).toEqual(["hook-14855632-18d5-44a3-ab27-5c93e95a8011-1"]);
+    expect(hookServer.resolvedPermissions).toEqual([
+      {
+        requestId: "permission-shell-1",
+        resolution: {
+          decision: "allow",
+          reason: "Auto-approved by TOADSTOOL runtime.",
+        },
+      },
+    ]);
     expect(sessionUpdates).toContain(SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK);
     expect(sessionUpdates).toContain(SESSION_UPDATE_TYPE.AGENT_THOUGHT_CHUNK);
     expect(sessionUpdates).toContain(SESSION_UPDATE_TYPE.TOOL_CALL);

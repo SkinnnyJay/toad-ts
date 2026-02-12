@@ -42,6 +42,7 @@ import { type HarnessConfig, harnessConfigSchema } from "@/harness/harnessConfig
 import type { AgentManagementCommandResult } from "@/types/agent-management.types";
 import type { AgentManagementSession } from "@/types/agent-management.types";
 import type { CursorHookInput } from "@/types/cursor-hooks.types";
+import { CURSOR_HOOK_DECISION } from "@/types/cursor-hooks.types";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import type {
@@ -74,6 +75,10 @@ interface CursorCliHarnessConnection
 interface CursorHookIpcServerLike {
   start(): Promise<CursorHookIpcAddress>;
   stop(): Promise<void>;
+  resolvePermissionRequest?: (
+    requestId: string,
+    resolution: { decision: "allow" | "deny"; reason?: string }
+  ) => boolean;
   on(event: "error", fn: (error: Error) => void): this;
   on(event: "hookEvent", fn: (event: CursorHookInput) => void): this;
   on(event: "permissionRequest", fn: (request: CursorHookPermissionRequest) => void): this;
@@ -433,6 +438,11 @@ export class CursorCliHarnessAdapter extends CliAgentBase implements HarnessRunt
         { optionId: ALLOW_ONCE, kind: ALLOW_ONCE, name: "Allow once" },
         { optionId: REJECT_ONCE, kind: REJECT_ONCE, name: "Reject once" },
       ],
+    });
+
+    this.hookServer.resolvePermissionRequest?.(request.requestId, {
+      decision: CURSOR_HOOK_DECISION.ALLOW,
+      reason: "Auto-approved by TOADSTOOL runtime.",
     });
   }
 
