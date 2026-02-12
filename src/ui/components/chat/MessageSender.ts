@@ -242,11 +242,8 @@ export const useMessageSender = ({
             );
           })
           .catch((error) => {
-            appendSystemMessage(
-              `${CHAT_MESSAGE.SUBAGENT_FAILED} ${
-                error instanceof Error ? error.message : String(error)
-              }`
-            );
+            const details = toErrorMessage(error) ?? String(error);
+            appendSystemMessage(`${CHAT_MESSAGE.SUBAGENT_FAILED} ${details}`);
           });
         return;
       }
@@ -307,6 +304,7 @@ export const useMessageSender = ({
               appendSystemMessage(CHAT_MESSAGE.INTERACTIVE_SHELL_COMPLETE);
             })
             .catch((error) => {
+              const details = toErrorMessage(error) ?? String(error);
               updateMessage({
                 messageId,
                 patch: {
@@ -314,7 +312,7 @@ export const useMessageSender = ({
                     {
                       ...toolCallBlock,
                       status: TOOL_CALL_STATUS.FAILED,
-                      result: { error: error instanceof Error ? error.message : String(error) },
+                      result: { error: details },
                     },
                   ],
                   isStreaming: false,
@@ -343,6 +341,7 @@ export const useMessageSender = ({
             });
           })
           .catch((error) => {
+            const details = toErrorMessage(error) ?? String(error);
             updateMessage({
               messageId,
               patch: {
@@ -350,7 +349,7 @@ export const useMessageSender = ({
                   {
                     ...toolCallBlock,
                     status: TOOL_CALL_STATUS.FAILED,
-                    result: { error: error instanceof Error ? error.message : String(error) },
+                    result: { error: details },
                   },
                 ],
                 isStreaming: false,

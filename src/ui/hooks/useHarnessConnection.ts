@@ -19,6 +19,7 @@ import type { HarnessRegistry } from "@/harness/harnessRegistry";
 import { useAppStore } from "@/store/app-store";
 import type { SessionId } from "@/types/domain";
 import { AgentIdSchema } from "@/types/domain";
+import { toErrorMessage } from "@/ui/utils/auth-error-matcher";
 import { isAuthFailureMessage } from "@/ui/utils/auth-error-matcher";
 import { withTimeout } from "@/utils/async/withTimeout";
 import { EnvManager } from "@/utils/env/env.utils";
@@ -36,7 +37,7 @@ export const formatHarnessError = (
   error: unknown,
   context: { agentName?: string; command?: string; harnessId?: string }
 ): string => {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = toErrorMessage(error) ?? String(error);
   if (
     context.harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID &&
     (message === CURSOR_AUTH_GUIDANCE.LOGIN_REQUIRED ||

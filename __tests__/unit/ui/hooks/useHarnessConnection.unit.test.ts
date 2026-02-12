@@ -126,6 +126,19 @@ describe("useHarnessConnection", () => {
       expect(result).toBe(CURSOR_AUTH_GUIDANCE.LOGIN_REQUIRED);
     });
 
+    it("maps cursor auth wording from object messages to login guidance", () => {
+      const result = formatHarnessError(
+        { message: "Request failed with status 401" },
+        {
+          agentName: "Cursor CLI",
+          command: "cursor-agent",
+          harnessId: HARNESS_DEFAULT.CURSOR_CLI_ID,
+        }
+      );
+
+      expect(result).toBe(CURSOR_AUTH_GUIDANCE.LOGIN_REQUIRED);
+    });
+
     it("does not remap auth wording for non-cursor harnesses", () => {
       const error = new Error("Request failed with status 401");
       const result = formatHarnessError(error, {
@@ -148,6 +161,12 @@ describe("useHarnessConnection", () => {
       const result = formatHarnessError("string error", { agentName: "Agent" });
 
       expect(result).toBe("Unable to connect to Agent: string error");
+    });
+
+    it("uses object message details when present", () => {
+      const result = formatHarnessError({ message: "structured error" }, { agentName: "Agent" });
+
+      expect(result).toBe("Unable to connect to Agent: structured error");
     });
 
     it("handles null/undefined errors", () => {
