@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { SessionModelTab } from "../../../src/ui/components/SessionModelTab";
 import { TruncationProvider } from "../../../src/ui/components/TruncationProvider";
 import { cleanup, renderInk, waitFor } from "../../utils/ink-test-helpers";
+import { keyboardRuntime } from "../../utils/opentui-test-runtime";
 
 afterEach(() => {
   cleanup();
@@ -51,5 +52,25 @@ describe("SessionModelTab", () => {
     expect(onSelectModel).toHaveBeenCalledWith("fast");
     await waitFor(() => lastFrame().includes("Updated session model to fast."));
     expect(lastFrame()).toContain("Updated session model to fast.");
+  });
+
+  it("refreshes model list on Ctrl+R", async () => {
+    const onRefreshModels = vi.fn(async () => undefined);
+    const { lastFrame } = renderInk(
+      React.createElement(
+        TruncationProvider,
+        {},
+        React.createElement(SessionModelTab, {
+          isActive: true,
+          availableModels: [{ modelId: "auto", name: "Auto" }],
+          onRefreshModels,
+        })
+      )
+    );
+
+    keyboardRuntime.emit("r", { ctrl: true });
+    await waitFor(() => onRefreshModels.mock.calls.length === 1);
+    await waitFor(() => lastFrame().includes("Refreshed model list."));
+    expect(lastFrame()).toContain("Refreshed model list.");
   });
 });

@@ -3,6 +3,7 @@ import type { KeybindConfig } from "@/config/app-config";
 import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
 import { UI } from "@/config/ui";
+import { AGENT_MANAGEMENT_COMMAND } from "@/constants/agent-management-commands";
 import { BACKGROUND_TASK_STATUS } from "@/constants/background-task-status";
 import { BREADCRUMB_PLACEMENT } from "@/constants/breadcrumb-placement";
 import { COLOR } from "@/constants/colors";
@@ -19,6 +20,7 @@ import { RENDER_STAGE } from "@/constants/render-stage";
 import { SESSION_MODE, getNextSessionMode } from "@/constants/session-modes";
 import { formatModeUpdatedMessage } from "@/constants/slash-command-messages";
 import { VIEW, type View } from "@/constants/views";
+import { parseModelsCommandResult } from "@/core/agent-management/models-command-result";
 import { claudeCliHarnessAdapter } from "@/core/claude-cli-harness";
 import { codexCliHarnessAdapter } from "@/core/codex-cli-harness";
 import {
@@ -82,6 +84,15 @@ import { playCompletionSound } from "@/utils/sound/completion-sound.utils";
 import { TextAttributes } from "@opentui/core";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
+
+const toNormalizedOptionalString = (value: string | undefined): string | undefined => {
+  const normalized = value?.trim();
+  if (!normalized) {
+    return undefined;
+  }
+  return normalized;
+};
+
 export function App(): ReactNode {
   const [view, setView] = useState<View>(VIEW.AGENT_SELECT);
   const [queuedBreadcrumbSkill, setQueuedBreadcrumbSkill] = useState<string | null>(null);
@@ -377,6 +388,39 @@ export function App(): ReactNode {
     [activeSessionId, client, getSession, upsertSession]
   );
 
+  const handleRefreshSessionModels = useCallback(async () => {
+    if (!activeSessionId || !client?.runAgentCommand) {
+      throw new Error("Model listing is not available for the active provider.");
+    }
+    const result = await client.runAgentCommand([AGENT_MANAGEMENT_COMMAND.MODELS]);
+    const parsed = parseModelsCommandResult(result);
+    const parsedDefaultModel = parsed.models.find((model) => model.isDefault)?.id;
+    const availableModels = parsed.models.map((model) => ({
+      modelId: model.id,
+      name: model.name,
+    }));
+    const session = getSession(activeSessionId);
+    if (!session) {
+      return;
+    }
+    const existingModel = toNormalizedOptionalString(session.metadata?.model);
+    const metadataBase = {
+      ...(session.metadata ?? { mcpServers: [] }),
+      mcpServers: session.metadata?.mcpServers ?? [],
+    };
+    const model = existingModel ?? parsedDefaultModel;
+    upsertSession({
+      session: {
+        ...session,
+        metadata: {
+          ...metadataBase,
+          ...(model ? { model } : {}),
+          availableModels,
+        },
+      },
+    });
+  }, [activeSessionId, client, getSession, upsertSession]);
+
   const breadcrumbPlacement = appConfig.ui.breadcrumb.placement;
   const breadcrumbVisible = breadcrumbPlacement !== BREADCRUMB_PLACEMENT.HIDDEN;
   const workspacePath = process.cwd();
@@ -609,6 +653,7 @@ export function App(): ReactNode {
                     availableModels={activeSession?.metadata?.availableModels ?? []}
                     currentModelId={activeSession?.metadata?.model}
                     onSelectModel={handleSelectSessionModel}
+                    onRefreshModels={handleRefreshSessionModels}
                   />
                 ) : isHooksOpen ? (
                   <HooksModal

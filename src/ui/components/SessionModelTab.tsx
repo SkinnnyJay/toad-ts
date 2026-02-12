@@ -10,6 +10,7 @@ interface SessionModelTabProps {
   availableModels: ModelInfo[];
   currentModelId?: string;
   onSelectModel?: (modelId: string) => Promise<void>;
+  onRefreshModels?: () => Promise<void>;
 }
 
 const toNormalizedOptionalString = (value: string | undefined): string | undefined => {
@@ -25,10 +26,12 @@ export function SessionModelTab({
   availableModels,
   currentModelId,
   onSelectModel,
+  onRefreshModels,
 }: SessionModelTabProps): ReactNode {
   const [index, setIndex] = useState(0);
   const [statusMessage, setStatusMessage] = useState<string | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const normalizedCurrentModelId = toNormalizedOptionalString(currentModelId);
   const currentModelIndex = useMemo(
     () => availableModels.findIndex((model) => model.modelId === normalizedCurrentModelId),
@@ -70,11 +73,39 @@ export function SessionModelTab({
     }
   };
 
+  const handleRefreshModels = async (): Promise<void> => {
+    if (!onRefreshModels) {
+      setStatusMessage("Model refresh is not available for the active provider.");
+      return;
+    }
+    setIsRefreshing(true);
+    setStatusMessage("Refreshing model list…");
+    try {
+      await onRefreshModels();
+      setStatusMessage("Refreshed model list.");
+    } catch (error) {
+      setStatusMessage(
+        `Failed to refresh models: ${error instanceof Error ? error.message : String(error)}`
+      );
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   useKeyboard((key) => {
     if (!isActive) {
       return;
     }
-    if (isSaving || availableModels.length === 0) {
+    if (key.ctrl && key.name === KEY_NAME.R) {
+      key.preventDefault();
+      key.stopPropagation();
+      if (isSaving || isRefreshing) {
+        return;
+      }
+      void handleRefreshModels();
+      return;
+    }
+    if (isSaving || isRefreshing || availableModels.length === 0) {
       return;
     }
     if (key.name === KEY_NAME.UP) {
@@ -112,6 +143,7 @@ export function SessionModelTab({
       <text attributes={TextAttributes.DIM}>
         Select the active model for this session. Press Enter to apply.
       </text>
+      <text attributes={TextAttributes.DIM}>Ctrl+R refreshes model options from the CLI.</text>
       {availableModels.length === 0 ? (
         <box flexDirection="column" gap={1} marginTop={1}>
           <text attributes={TextAttributes.DIM}>No models cached for this session yet.</text>

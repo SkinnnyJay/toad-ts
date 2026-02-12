@@ -22,6 +22,7 @@ interface SettingsModalProps {
   availableModels?: ModelInfo[];
   currentModelId?: string;
   onSelectModel?: (modelId: string) => Promise<void>;
+  onRefreshModels?: () => Promise<void>;
 }
 
 export function SettingsModal({
@@ -33,6 +34,7 @@ export function SettingsModal({
   availableModels = [],
   currentModelId,
   onSelectModel,
+  onRefreshModels,
 }: SettingsModalProps): ReactNode {
   const [activeTab, setActiveTab] = useState<SettingsTab>(SETTINGS_TAB.DEFAULT_PROVIDER);
   const [isEditingKeybind, setIsEditingKeybind] = useState(false);
@@ -124,6 +126,7 @@ export function SettingsModal({
             availableModels={availableModels}
             currentModelId={currentModelId}
             onSelectModel={onSelectModel}
+            onRefreshModels={onRefreshModels}
           />
         ) : (
           <KeybindsTab
