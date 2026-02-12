@@ -29,6 +29,7 @@
 10. [Implementation Plan](#implementation-plan)
 11. [Risk Assessment](#risk-assessment)
 12. [Open Questions](#open-questions)
+13. [Re-evaluation & Gap Analysis](#re-evaluation--gap-analysis)
 
 ---
 
@@ -789,19 +790,19 @@ interface CursorCloudAgentClient {
 
 - [ ] P0-3 — Verify `agent` binary installed: `which cursor-agent` or `which agent`
 - [ ] P0-4 — Verify Cursor auth: `agent status` or `agent whoami` — capture output format
-- [ ] P0-5 — Capture NDJSON fixture (simple prompt):
+- [x] P0-5 — Capture NDJSON fixture (simple prompt):
   ```bash
   agent -p --output-format stream-json --stream-partial-output "say hello in one sentence" \
     > __tests__/fixtures/cursor/ndjson/hello-response.ndjson 2>__tests__/fixtures/cursor/ndjson/hello-stderr.txt
   ```
-- [ ] P0-6 — Capture NDJSON fixture (tool use): Run a prompt that triggers file read/write tool calls
+- [x] P0-6 — Capture NDJSON fixture (tool use): Run a prompt that triggers file read/write tool calls
 - [ ] P0-7 — Validate `--resume` across process invocations:
   1. Run `agent -p --output-format stream-json "remember the word banana"` → capture `session_id` from `system.init`
   2. Run `agent -p --output-format stream-json --resume <session_id> "what word did I ask you to remember?"` → verify context retained
 - [ ] P0-8 — Validate `agent create-chat` → capture output, then test with `--resume <id>`
-- [ ] P0-9 — Capture `agent models` output format → save to `__tests__/fixtures/cursor/models-output.txt`
-- [ ] P0-10 — Capture `agent ls` output format → save to `__tests__/fixtures/cursor/ls-output.txt`
-- [ ] P0-11 — Capture `agent status` output format → save to `__tests__/fixtures/cursor/status-output.txt`
+- [x] P0-9 — Capture `agent models` output format → save to `__tests__/fixtures/cursor/models-output.txt`
+- [x] P0-10 — Capture `agent ls` output format → save to `__tests__/fixtures/cursor/ls-output.txt`
+- [x] P0-11 — Capture `agent status` output format → save to `__tests__/fixtures/cursor/status-output.txt`
 - [ ] P0-12 — **CRITICAL — Architecture Decision**: Test hooks in `-p` (headless) mode:
   1. Create a minimal `hooks.json` with a `preToolUse` hook pointing to a script that logs to a file
   2. Run `agent -p "read the file package.json"` (triggers a tool call)
@@ -819,7 +820,7 @@ interface CursorCloudAgentClient {
 
 **D. Fixture Directory Setup**
 
-- [ ] P0-15 — Create fixture directories:
+- [x] P0-15 — Create fixture directories:
   ```bash
   mkdir -p __tests__/fixtures/cursor/{ndjson,hooks,cloud-api}
   ```
@@ -880,29 +881,29 @@ interface CursorCloudAgentClient {
 
 > Define protocol-agnostic Zod types for CLI agent integration. **No abstract base class or bridge yet** — those come in M2b after the concrete Cursor adapter works.
 
-- [ ] M2a - Create `src/types/cli-agent.types.ts` — Generic CLI agent Zod schemas:
-  - [ ] `CliAgentInstallInfoSchema` (binary name, path, version, installed flag)
-  - [ ] `CliAgentAuthStatusSchema` (authenticated, method, email)
-  - [ ] `CliAgentModelSchema` + `CliAgentModelsResponseSchema`
-  - [ ] `CliAgentSessionSchema` (id, title, created, model, messageCount)
-  - [ ] `CliAgentPromptInputSchema` (message, sessionId, model, mode, workspace, force, streaming)
-  - [ ] `CliAgentPromptResultSchema` (text, sessionId, durationMs, toolCallCount)
-  - [ ] `CliAgentCapabilitiesSchema` (feature flags: streaming, resume, modes, hooks, cloud, etc.)
-  - [ ] `STREAM_EVENT_TYPE` constant + all `StreamEvent` schemas (discriminated union)
-- [ ] M2a - Create `src/types/cursor-cli.types.ts` — Cursor-specific NDJSON Zod schemas:
-  - [ ] `cursorSystemEvent` (system.init)
-  - [ ] `cursorUserEvent` (user message echo)
-  - [ ] `cursorAssistantEvent` (assistant message)
-  - [ ] `cursorToolCallStartedEvent` (tool_call.started)
-  - [ ] `cursorToolCallCompletedEvent` (tool_call.completed)
-  - [ ] `cursorResultEvent` (result.success)
-  - [ ] `cursorStreamEvent` (discriminated union of all Cursor events)
-- [ ] M2a - Create `src/types/cursor-hooks.types.ts` — Hook event Zod schemas:
-  - [ ] Common base fields schema (conversation_id, model, hook_event_name, etc.)
-  - [ ] Input/output schemas for all 18 hook events
-- [ ] M2a - Create `src/constants/cursor-event-types.ts` — NDJSON event type constants
-- [ ] M2a - Create `src/constants/cursor-hook-events.ts` — Hook event name constants
-- [ ] M2a - Unit tests for schema validation with real fixtures from P0 (>= 95% coverage)
+- [x] M2a - Create `src/types/cli-agent.types.ts` — Generic CLI agent Zod schemas:
+  - [x] `CliAgentInstallInfoSchema` (binary name, path, version, installed flag)
+  - [x] `CliAgentAuthStatusSchema` (authenticated, method, email)
+  - [x] `CliAgentModelSchema` + `CliAgentModelsResponseSchema`
+  - [x] `CliAgentSessionSchema` (id, title, created, model, messageCount)
+  - [x] `CliAgentPromptInputSchema` (message, sessionId, model, mode, workspace, force, streaming)
+  - [x] `CliAgentPromptResultSchema` (text, sessionId, durationMs, toolCallCount)
+  - [x] `CliAgentCapabilitiesSchema` (feature flags: streaming, resume, modes, hooks, cloud, etc.)
+  - [x] `STREAM_EVENT_TYPE` constant + all `StreamEvent` schemas (discriminated union)
+- [x] M2a - Create `src/types/cursor-cli.types.ts` — Cursor-specific NDJSON Zod schemas:
+  - [x] `cursorSystemEvent` (system.init)
+  - [x] `cursorUserEvent` (user message echo)
+  - [x] `cursorAssistantEvent` (assistant message)
+  - [x] `cursorToolCallStartedEvent` (tool_call.started)
+  - [x] `cursorToolCallCompletedEvent` (tool_call.completed)
+  - [x] `cursorResultEvent` (result.success)
+  - [x] `cursorStreamEvent` (discriminated union of all Cursor events)
+- [x] M2a - Create `src/types/cursor-hooks.types.ts` — Hook event Zod schemas:
+  - [x] Common base fields schema (conversation_id, model, hook_event_name, etc.)
+  - [x] Input/output schemas for all 18 hook events
+- [x] M2a - Create `src/constants/cursor-event-types.ts` — NDJSON event type constants
+- [x] M2a - Create `src/constants/cursor-hook-events.ts` — Hook event name constants
+- [x] M2a - Unit tests for schema validation with real fixtures from P0 (>= 95% coverage)
 
 ---
 
@@ -910,233 +911,237 @@ interface CursorCloudAgentClient {
 
 > Build the NDJSON line parser with Zod validation for all Cursor event types.
 
-- [ ] M2 - Create `src/types/cursor-cli.types.ts` — Zod schemas for all NDJSON events
-  - [ ] `cursorSystemEvent` (system.init)
-  - [ ] `cursorUserEvent` (user message echo)
-  - [ ] `cursorAssistantEvent` (assistant message)
-  - [ ] `cursorToolCallStartedEvent` (tool_call.started)
-  - [ ] `cursorToolCallCompletedEvent` (tool_call.completed)
-  - [ ] `cursorResultEvent` (result.success)
-  - [ ] `cursorStreamEvent` (discriminated union of all)
-- [ ] M2 - Create `src/core/cursor/cursor-stream-parser.ts` — NDJSON line parser
-- [ ] M2 - Handle partial line buffering (lines split across stdout chunks)
-- [ ] M2 - Handle `--stream-partial-output` delta accumulation
-- [ ] M2 - Emit typed events for each parsed Cursor event
-- [ ] M2 - Error recovery for malformed JSON lines (log + skip)
-- [ ] M2 - Implement streaming backpressure (pause parsing if downstream consumer is slow) — *Guard: M-STREAM-3 from research.md*
-- [ ] M2 - Add configurable output size limit for accumulated text (default 50KB) — *Guard: M-STREAM-2 from research.md*
-- [ ] M2 - Unit tests with real NDJSON fixtures (>= 95% coverage)
+- [x] M2 - Create `src/types/cursor-cli.types.ts` — Zod schemas for all NDJSON events
+  - [x] `cursorSystemEvent` (system.init)
+  - [x] `cursorUserEvent` (user message echo)
+  - [x] `cursorAssistantEvent` (assistant message)
+  - [x] `cursorToolCallStartedEvent` (tool_call.started)
+  - [x] `cursorToolCallCompletedEvent` (tool_call.completed)
+  - [x] `cursorResultEvent` (result.success)
+  - [x] `cursorStreamEvent` (discriminated union of all)
+- [x] M2 - Create `src/core/cursor/cursor-stream-parser.ts` — NDJSON line parser
+- [x] M2 - Handle partial line buffering (lines split across stdout chunks)
+- [x] M2 - Handle `--stream-partial-output` delta accumulation
+- [x] M2 - Emit typed events for each parsed Cursor event
+- [x] M2 - Error recovery for malformed JSON lines (log + skip)
+- [x] M2 - Implement streaming backpressure (pause parsing if downstream consumer is slow) — *Guard: M-STREAM-3 from research.md*
+- [x] M2 - Add configurable output size limit for accumulated text (default 50KB) — *Guard: M-STREAM-2 from research.md*
+- [x] M2 - Unit tests with real NDJSON fixtures (>= 95% coverage)
 
 ### Milestone 3: Cursor CLI Connection (Channel 1)
 
 > Build the process manager that spawns and manages `agent` child processes.
 
-- [ ] M3 - Create `src/core/cursor/cursor-cli-connection.ts` — Process lifecycle manager
-- [ ] M3 - Implement `spawn()` — Launch `agent -p` with correct flags
-- [ ] M3 - Implement session tracking — Capture `session_id` from `system.init`
-- [ ] M3 - Implement `--resume` support — Pass session ID on subsequent prompts
-- [ ] M3 - Implement `createChat()` — Call `agent create-chat` for pre-created sessions
-- [ ] M3 - Handle process exit codes and stderr capture
-- [ ] M3 - Handle `CURSOR_API_KEY` and `--api-key` authentication
-- [ ] M3 - Implement `verifyInstallation()` — Check `agent --version`
-- [ ] M3 - Implement `verifyAuth()` — Run `agent status` and parse output
-- [ ] M3 - Implement `listModels()` — Run `agent models` and parse output
-- [ ] M3 - Implement `listSessions()` — Run `agent ls` and parse output
-- [ ] M3 - Implement process group tracking (store PIDs of all spawned children) — *Guard: M-PERF-3 from research.md*
-- [ ] M3 - Kill entire process group on disconnect/SIGTERM (prevent orphaned processes) — *Guard: M-PERF-3*
-- [ ] M3 - Handle Ctrl-C graceful shutdown (SIGINT → cleanup children → exit) — *Guard: M-PERF-3*
-- [ ] M3 - Unit tests with mocked child processes (>= 95% coverage)
+- [x] M3 - Create `src/core/cursor/cursor-cli-connection.ts` — Process lifecycle manager
+- [x] M3 - Implement `spawn()` — Launch `agent -p` with correct flags
+- [x] M3 - Implement session tracking — Capture `session_id` from `system.init`
+- [x] M3 - Implement `--resume` support — Pass session ID on subsequent prompts
+- [x] M3 - Implement `createChat()` — Call `agent create-chat` for pre-created sessions
+- [x] M3 - Handle process exit codes and stderr capture
+- [x] M3 - Handle `CURSOR_API_KEY` and `--api-key` authentication
+- [x] M3 - Implement `verifyInstallation()` — Check `agent --version`
+- [x] M3 - Implement `verifyAuth()` — Run `agent status` and parse output
+- [x] M3 - Implement `listModels()` — Run `agent models` and parse output
+- [x] M3 - Implement `listSessions()` — Run `agent ls` and parse output
+- [x] M3 - Implement process group tracking (store PIDs of all spawned children) — *Guard: M-PERF-3 from research.md*
+- [x] M3 - Kill entire process group on disconnect/SIGTERM (prevent orphaned processes) — *Guard: M-PERF-3*
+- [x] M3 - Handle Ctrl-C graceful shutdown (SIGINT → cleanup children → exit) — *Guard: M-PERF-3*
+- [x] M3 - Unit tests with mocked child processes (>= 95% coverage)
+- [ ] M3 - **Guard (Q11)**: Ensure prompt is always passed via stdin in `-p` mode (never positional args; Cursor CLI can hang otherwise)
+- [ ] M3 - **Guard (Q7)**: Session list for Cursor must use session_id from NDJSON only; do not rely on `agent ls` (requires TTY)
 
 ### Milestone 4: Protocol Translator (Channel 1 → AgentPort)
 
 > Bridge layer that maps NDJSON stream events to AgentPort-compatible events.
 
-- [ ] M4 - Create `src/core/cursor/cursor-to-acp-translator.ts`
-- [ ] M4 - Map `system.init` → connection state + capabilities
-- [ ] M4 - Map `assistant` events → `SessionNotification` (agent_message_chunk)
-- [ ] M4 - Map `assistant` partial deltas → streaming message chunks
-- [ ] M4 - Map `tool_call.started` → tool use notification
-- [ ] M4 - Map `tool_call.completed` → tool result notification
-- [ ] M4 - Map `result.success` → prompt response resolution
-- [ ] M4 - Map process errors → error events
-- [ ] M4 - Handle tool type discrimination (readToolCall, writeToolCall, shellToolCall, etc.)
-- [ ] M4 - Create constants in `src/constants/cursor-event-types.ts`
-- [ ] M4 - Implement tool result truncation (configurable limit, default 50KB per result) — *Guard: M-STREAM-2 from research.md*
-- [ ] M4 - Log warning when truncation occurs (include original size vs limit) — *Guard: M-STREAM-2*
-- [ ] M4 - Unit tests with fixture-based event sequences (>= 95% coverage)
+- [x] M4 - Create `src/core/cursor/cursor-to-acp-translator.ts`
+- [x] M4 - Map `system.init` → connection state + capabilities
+- [x] M4 - Map `assistant` events → `SessionNotification` (agent_message_chunk)
+- [x] M4 - Map `assistant` partial deltas → streaming message chunks
+- [x] M4 - Map `tool_call.started` → tool use notification
+- [x] M4 - Map `tool_call.completed` → tool result notification
+- [x] M4 - Map `result.success` → prompt response resolution
+- [x] M4 - Map process errors → error events
+- [x] M4 - Handle tool type discrimination (readToolCall, writeToolCall, shellToolCall, etc.)
+- [x] M4 - Create constants in `src/constants/cursor-event-types.ts`
+- [x] M4 - Implement tool result truncation (configurable limit, default 50KB per result) — *Guard: M-STREAM-2 from research.md*
+- [x] M4 - Log warning when truncation occurs (include original size vs limit) — *Guard: M-STREAM-2*
+- [x] M4 - Unit tests with fixture-based event sequences (>= 95% coverage)
 
 ### Milestone 5: Hook IPC Server (Channel 2)
 
 > Build the IPC server that receives hook events from Cursor and routes them to TOADSTOOL handlers.
 
-- [ ] M5 - Create `src/core/cursor/hook-ipc-server.ts` — Unix socket / HTTP IPC server
-- [ ] M5 - Define hook event Zod schemas for all hook input types
-  - [ ] `sessionStart` input/output schemas
-  - [ ] `preToolUse` input/output schemas
-  - [ ] `beforeShellExecution` input/output schemas
-  - [ ] `beforeMCPExecution` input/output schemas
-  - [ ] `beforeReadFile` input/output schemas
-  - [ ] `afterFileEdit` input schema
-  - [ ] `afterAgentThought` input schema
-  - [ ] `afterAgentResponse` input schema
-  - [ ] `stop` input/output schemas
-  - [ ] `subagentStart` / `subagentStop` schemas
-  - [ ] `postToolUse` / `postToolUseFailure` schemas
-  - [ ] Common base fields schema
-- [ ] M5 - Implement request routing (hook_event_name → handler)
-- [ ] M5 - Implement permission request flow:
-  - [ ] Receive `preToolUse` → emit event to TUI → wait for user response → return
-  - [ ] Timeout handling (return allow/deny based on policy)
-- [ ] M5 - Implement context injection flow:
-  - [ ] `sessionStart` → return `additional_context` from TOADSTOOL rules
-  - [ ] `sessionStart` → return `env` from TOADSTOOL config
-- [ ] M5 - Implement auto-continuation:
-  - [ ] `stop` → evaluate continuation rules → return `followup_message` or empty
-- [ ] M5 - Cross-platform: Unix socket (macOS/Linux) + local HTTP fallback (Windows)
-- [ ] M5 - Verify IPC server uses event-driven wake (NO setImmediate/setTimeout polling) — *Guard: M-PERF-4 from research.md*
-- [ ] M5 - Benchmark idle CPU usage of IPC server (target: <1% when waiting for hook events) — *Guard: M-PERF-5*
-- [ ] M5 - Unit tests (>= 95% coverage)
+- [x] M5 - Create `src/core/cursor/hook-ipc-server.ts` — Unix socket / HTTP IPC server
+- [x] M5 - Define hook event Zod schemas for all hook input types
+  - [x] `sessionStart` input/output schemas
+  - [x] `preToolUse` input/output schemas
+  - [x] `beforeShellExecution` input/output schemas
+  - [x] `beforeMCPExecution` input/output schemas
+  - [x] `beforeReadFile` input/output schemas
+  - [x] `afterFileEdit` input schema
+  - [x] `afterAgentThought` input schema
+  - [x] `afterAgentResponse` input schema
+  - [x] `stop` input/output schemas
+  - [x] `subagentStart` / `subagentStop` schemas
+  - [x] `postToolUse` / `postToolUseFailure` schemas
+  - [x] Common base fields schema
+- [x] M5 - Implement request routing (hook_event_name → handler)
+- [x] M5 - Implement permission request flow:
+  - [x] Receive `preToolUse` → emit event to TUI → wait for user response → return
+  - [x] Timeout handling (return allow/deny based on policy)
+- [x] M5 - Implement context injection flow:
+  - [x] `sessionStart` → return `additional_context` from TOADSTOOL rules
+  - [x] `sessionStart` → return `env` from TOADSTOOL config
+- [x] M5 - Implement auto-continuation:
+  - [x] `stop` → evaluate continuation rules → return `followup_message` or empty
+- [x] M5 - Cross-platform: Unix socket (macOS/Linux) + local HTTP fallback (Windows)
+- [x] M5 - Verify IPC server uses event-driven wake (NO setImmediate/setTimeout polling) — *Guard: M-PERF-4 from research.md*
+- [x] M5 - Benchmark idle CPU usage of IPC server (target: <1% when waiting for hook events) — *Guard: M-PERF-5*
+- [x] M5 - Unit tests (>= 95% coverage)
 
 ### Milestone 6: Hooks Config Generator + Scripts (Channel 2)
 
 > Generate hooks.json and hook shim scripts dynamically.
 
-- [ ] M6 - Create `src/core/cursor/hooks-config-generator.ts`
-  - [ ] Generate hooks.json content based on TOADSTOOL config
-  - [ ] Support project-level (`.cursor/hooks.json`) and user-level (`~/.cursor/hooks.json`)
-  - [ ] Handle existing hooks.json (merge TOADSTOOL hooks with user hooks)
-- [ ] M6 - Create hook shim script template
-  - [ ] Node.js shim: connects to Unix socket, relays JSON
-  - [ ] Bash fallback shim: curl to local HTTP server
-  - [ ] Make scripts executable
-- [ ] M6 - Implement `TOADSTOOL_HOOK_SOCKET` env var injection
-- [ ] M6 - Implement hooks cleanup on disconnect (remove TOADSTOOL hooks, restore originals)
-- [ ] M6 - Handle hook installation path resolution
-- [ ] M6 - Unit tests (>= 95% coverage)
+- [x] M6 - Create `src/core/cursor/hooks-config-generator.ts`
+  - [x] Generate hooks.json content based on TOADSTOOL config
+  - [x] Support project-level (`.cursor/hooks.json`) and user-level (`~/.cursor/hooks.json`)
+  - [x] Handle existing hooks.json (merge TOADSTOOL hooks with user hooks)
+- [x] M6 - Create hook shim script template
+  - [x] Node.js shim: connects to Unix socket, relays JSON
+  - [x] Bash fallback shim: curl to local HTTP server
+  - [x] Make scripts executable
+- [x] M6 - Implement `TOADSTOOL_HOOK_SOCKET` env var injection
+- [x] M6 - Implement hooks cleanup on disconnect (remove TOADSTOOL hooks, restore originals)
+- [x] M6 - Handle hook installation path resolution
+- [x] M6 - Unit tests (>= 95% coverage)
 
 ### Milestone 7: Cursor CLI Harness Adapter
 
 > Implement the `AgentPort` interface combining Channel 1 + Channel 2.
 
-- [ ] M7 - Create `src/core/cursor/cursor-cli-harness.ts` — `CursorCliHarnessAdapter` class
-- [ ] M7 - Implement `connect()`:
-  - [ ] Verify `agent` binary exists
-  - [ ] Verify auth status
-  - [ ] Start Hook IPC server (Channel 2)
-  - [ ] Install hooks.json + shim scripts
-- [ ] M7 - Implement `disconnect()`:
-  - [ ] Kill active child process
-  - [ ] Stop Hook IPC server
-  - [ ] Clean up hooks (optional)
-- [ ] M7 - Implement `initialize()`:
-  - [ ] Query available models (`agent models`)
-  - [ ] Return capabilities object
-- [ ] M7 - Implement `newSession()`:
-  - [ ] Call `agent create-chat` → get chatId
-  - [ ] Store for `--resume`
-- [ ] M7 - Implement `prompt()`:
-  - [ ] Spawn `agent -p` with all flags
-  - [ ] Wire NDJSON parser + translator (Channel 1)
-  - [ ] Handle concurrent hook IPC events (Channel 2)
-  - [ ] Resolve Promise on `result` event
-- [ ] M7 - Implement `authenticate()`:
-  - [ ] Check `CURSOR_API_KEY` or `agent status`
-  - [ ] Guide user to `agent login` if needed
-- [ ] M7 - Implement `sessionUpdate()` → No-op
-- [ ] M7 - Wire EventEmitter for state, sessionUpdate, permissionRequest, error
-- [ ] M7 - Handle concurrent prompt guard (one active prompt)
-- [ ] M7 - Handle graceful shutdown (SIGTERM → cleanup)
-- [ ] M7 - Unit tests (>= 95% coverage)
+- [x] M7 - Create `src/core/cursor/cursor-cli-harness.ts` — `CursorCliHarnessAdapter` class
+- [x] M7 - Implement `connect()`:
+  - [x] Verify `agent` binary exists
+  - [x] Verify auth status
+  - [x] Start Hook IPC server (Channel 2)
+  - [x] Install hooks.json + shim scripts
+- [x] M7 - Implement `disconnect()`:
+  - [x] Kill active child process
+  - [x] Stop Hook IPC server
+  - [x] Clean up hooks (optional)
+- [x] M7 - Implement `initialize()`:
+  - [x] Query available models (`agent models`)
+  - [x] Return capabilities object
+- [x] M7 - Implement `newSession()`:
+  - [x] Call `agent create-chat` → get chatId
+  - [x] Store for `--resume`
+- [x] M7 - Implement `prompt()`:
+  - [x] Spawn `agent -p` with all flags
+  - [x] Wire NDJSON parser + translator (Channel 1)
+  - [x] Handle concurrent hook IPC events (Channel 2)
+  - [x] Resolve Promise on `result` event
+- [x] M7 - Implement `authenticate()`:
+  - [x] Check `CURSOR_API_KEY` or `agent status`
+  - [x] Guide user to `agent login` if needed
+- [x] M7 - Implement `sessionUpdate()` → No-op
+- [x] M7 - Wire EventEmitter for state, sessionUpdate, permissionRequest, error
+- [x] M7 - Handle concurrent prompt guard (one active prompt)
+- [x] M7 - Handle graceful shutdown (SIGTERM → cleanup)
+- [x] M7 - Unit tests (>= 95% coverage)
+- [ ] M7 - **Guard (Q11)**: Verify harness always invokes Cursor with prompt on stdin (pipe), not as positional argument
+- [ ] M7 - **Guard (Q7)**: Session browser for Cursor uses session_id from stream only; no `agent ls` for listing
 
 ### Milestone 8: Harness Registration & Config
 
 > Register the Cursor CLI adapter in the harness registry.
 
-- [ ] M8 - Add constants to `src/constants/harness-defaults.ts`:
-  - [ ] `CURSOR_CLI_ID: "cursor-cli"`
-  - [ ] `CURSOR_CLI_NAME: "Cursor CLI"`
-  - [ ] `CURSOR_COMMAND: "cursor-agent"` (or `"agent"`)
-- [ ] M8 - Add env key constants:
-  - [ ] `TOADSTOOL_CURSOR_COMMAND`
-  - [ ] `TOADSTOOL_CURSOR_ARGS`
-  - [ ] `CURSOR_API_KEY`
-  - [ ] `TOADSTOOL_HOOK_SOCKET`
-- [ ] M8 - Create `cursorCliHarnessAdapter` export
-- [ ] M8 - Register in `src/ui/components/App.tsx`
-- [ ] M8 - Register in `src/server/headless-server.ts`
-- [ ] M8 - Update harness config schema for Cursor-specific options:
-  - [ ] `model`, `mode`, `force`, `sandbox`, `browser`, `approveMcps`
-- [ ] M8 - Update `.env.sample` with `CURSOR_API_KEY`
-- [ ] M8 - Update `harnesses.json` example documentation
-- [ ] M8 - Add feature flag `TOADSTOOL_CURSOR_CLI_ENABLED` (default: `false` during beta) — *Guard: M-UX-7 from research.md*
-- [ ] M8 - Gate Cursor CLI adapter registration behind feature flag in `App.tsx` and `headless-server.ts`
-- [ ] M8 - Document feature flag in `.env.sample` and README
+- [x] M8 - Add constants to `src/constants/harness-defaults.ts`:
+  - [x] `CURSOR_CLI_ID: "cursor-cli"`
+  - [x] `CURSOR_CLI_NAME: "Cursor CLI"`
+  - [x] `CURSOR_COMMAND: "cursor-agent"` (or `"agent"`)
+- [x] M8 - Add env key constants:
+  - [x] `TOADSTOOL_CURSOR_COMMAND`
+  - [x] `TOADSTOOL_CURSOR_ARGS`
+  - [x] `CURSOR_API_KEY`
+  - [x] `TOADSTOOL_HOOK_SOCKET`
+- [x] M8 - Create `cursorCliHarnessAdapter` export
+- [x] M8 - Register in `src/ui/components/App.tsx`
+- [x] M8 - Register in `src/server/headless-server.ts`
+- [x] M8 - Update harness config schema for Cursor-specific options:
+  - [x] `model`, `mode`, `force`, `sandbox`, `browser`, `approveMcps`
+- [x] M8 - Update `.env.sample` with `CURSOR_API_KEY`
+- [x] M8 - Update `harnesses.json` example documentation
+- [x] M8 - Add feature flag `TOADSTOOL_CURSOR_CLI_ENABLED` (default: `false` during beta) — *Guard: M-UX-7 from research.md*
+- [x] M8 - Gate Cursor CLI adapter registration behind feature flag in `App.tsx` and `headless-server.ts`
+- [x] M8 - Document feature flag in `.env.sample` and README
 
 ### Milestone 9: Cloud Agents API Client (Channel 3)
 
 > HTTP client for Cursor's Cloud Agents API.
 
-- [ ] M9 - Create `src/core/cursor/cloud-agent-client.ts`
-- [ ] M9 - Implement `listAgents()` with pagination cursor support
-- [ ] M9 - Implement `getAgent(id)` → agent status + details
-- [ ] M9 - Implement `getConversation(id)` → message history
-- [ ] M9 - Implement `launchAgent(params)` → create cloud agent
-- [ ] M9 - Implement `addFollowup(id, prompt)` → follow-up message
-- [ ] M9 - Implement `stopAgent(id)` → pause execution
-- [ ] M9 - Implement `deleteAgent(id)` → permanent removal
-- [ ] M9 - Implement `getApiKeyInfo()` → auth verification
-- [ ] M9 - Implement `listModels()` → available models
-- [ ] M9 - Implement `listRepositories()` → GitHub repos (rate limited)
-- [ ] M9 - Zod schemas for all API responses
-- [ ] M9 - Rate limiting with exponential backoff
-- [ ] M9 - ETag caching support
-- [ ] M9 - Create constants for API URLs, endpoints, status values
-- [ ] M9 - Unit tests with mocked HTTP (>= 95% coverage)
+- [x] M9 - Create `src/core/cursor/cloud-agent-client.ts`
+- [x] M9 - Implement `listAgents()` with pagination cursor support
+- [x] M9 - Implement `getAgent(id)` → agent status + details
+- [x] M9 - Implement `getConversation(id)` → message history
+- [x] M9 - Implement `launchAgent(params)` → create cloud agent
+- [x] M9 - Implement `addFollowup(id, prompt)` → follow-up message
+- [x] M9 - Implement `stopAgent(id)` → pause execution
+- [x] M9 - Implement `deleteAgent(id)` → permanent removal
+- [x] M9 - Implement `getApiKeyInfo()` → auth verification
+- [x] M9 - Implement `listModels()` → available models
+- [x] M9 - Implement `listRepositories()` → GitHub repos (rate limited)
+- [x] M9 - Zod schemas for all API responses
+- [x] M9 - Rate limiting with exponential backoff
+- [x] M9 - ETag caching support
+- [x] M9 - Create constants for API URLs, endpoints, status values
+- [x] M9 - Unit tests with mocked HTTP (>= 95% coverage)
 
 ### Milestone 10: Integration Testing
 
 > End-to-end testing of all three channels.
 
-- [ ] M10 - Create test fixtures:
-  - [ ] NDJSON session recordings (simple, multi-tool, error)
-  - [ ] Hook event sequences (approval flow, context injection, auto-continue)
-  - [ ] Cloud API response fixtures
-- [ ] M10 - Integration test: full prompt → NDJSON stream → response (mocked process)
-- [ ] M10 - Integration test: multi-turn with `--resume` + `create-chat`
-- [ ] M10 - Integration test: hook IPC permission flow (preToolUse → TUI → response)
-- [ ] M10 - Integration test: hook IPC context injection (sessionStart → rules)
-- [ ] M10 - Integration test: hook IPC auto-continuation (stop → followup_message)
-- [ ] M10 - Integration test: cloud agent launch → status polling → conversation
-- [ ] M10 - Integration test: error handling (auth failure, binary not found, process crash)
-- [ ] M10 - Integration test: graceful shutdown mid-stream
-- [ ] M10 - Integration test: model + mode selection
+- [x] M10 - Create test fixtures:
+  - [x] NDJSON session recordings (simple, multi-tool, error)
+  - [x] Hook event sequences (approval flow, context injection, auto-continue)
+  - [x] Cloud API response fixtures
+- [x] M10 - Integration test: full prompt → NDJSON stream → response (mocked process)
+- [x] M10 - Integration test: multi-turn with `--resume` + `create-chat`
+- [x] M10 - Integration test: hook IPC permission flow (preToolUse → TUI → response)
+- [x] M10 - Integration test: hook IPC context injection (sessionStart → rules)
+- [x] M10 - Integration test: hook IPC auto-continuation (stop → followup_message)
+- [x] M10 - Integration test: cloud agent launch → status polling → conversation
+- [x] M10 - Integration test: error handling (auth failure, binary not found, process crash)
+- [x] M10 - Integration test: graceful shutdown mid-stream
+- [x] M10 - Integration test: model + mode selection
 - [ ] M10 - Optional: E2E test with real Cursor CLI (env-gated)
 
 ### Milestone 11: TUI Integration & Polish
 
 > Wire everything into the UI for a seamless user experience.
 
-- [ ] M11 - Agent selector UI shows "Cursor CLI" option
-- [ ] M11 - Streaming messages render correctly in chat view
-- [ ] M11 - Tool activity (read, write, shell, MCP) displays in sidebar
-- [ ] M11 - Permission approval prompts display for hook events (preToolUse, beforeShellExecution)
-- [ ] M11 - Thinking/reasoning display from `afterAgentThought` hooks
-- [ ] M11 - File edit tracking from `afterFileEdit` hooks → diff display
-- [ ] M11 - Model picker populated from `agent models` / Cloud API
-- [ ] M11 - Mode switching (Agent/Plan/Ask) via TUI toggle
-- [ ] M11 - Cloud agent panel (list, status, follow-up, stop)
-- [ ] M11 - Cloud dispatch (`&` prefix or slash command)
-- [ ] M11 - Auth error handler (guide to `agent login`)
-- [ ] M11 - Missing binary handler (show install instructions)
-- [ ] M11 - MCP management UI (list servers, enable/disable)
-- [ ] M11 - Session browser (list from `agent ls`, resume)
-- [ ] M11 - Status bar: model name, mode, cloud agent count
-- [ ] M11 - Performance: measure process spawn overhead (target < 500ms per turn)
-- [ ] M11 - Performance: measure hook IPC roundtrip (target < 50ms)
-- [ ] M11 - Documentation: README with Cursor CLI setup instructions
-- [ ] M11 - Build inline diff view from `afterFileEdit` hook data (`old_string`/`new_string` diffs) — *Guard: M-REVIEW-2 from research.md*
-- [ ] M11 - Integrate diff display with existing `DiffRenderer` component (`src/ui/components/DiffRenderer.tsx`)
-- [ ] M11 - Run full quality gate: lint, typecheck, test, build
+- [x] M11 - Agent selector UI shows "Cursor CLI" option
+- [x] M11 - Streaming messages render correctly in chat view
+- [x] M11 - Tool activity (read, write, shell, MCP) displays in sidebar
+- [x] M11 - Permission approval prompts display for hook events (preToolUse, beforeShellExecution)
+- [x] M11 - Thinking/reasoning display from `afterAgentThought` hooks
+- [x] M11 - File edit tracking from `afterFileEdit` hooks → diff display
+- [x] M11 - Model picker populated from `agent models` / Cloud API
+- [x] M11 - Mode switching (Agent/Plan/Ask) via TUI toggle
+- [x] M11 - Cloud agent panel (list, status, follow-up, stop)
+- [x] M11 - Cloud dispatch (`&` prefix or slash command)
+- [x] M11 - Auth error handler (guide to `agent login`)
+- [x] M11 - Missing binary handler (show install instructions)
+- [x] M11 - MCP management UI (list servers, enable/disable)
+- [x] M11 - Session browser (list from `agent ls`, resume)
+- [x] M11 - Status bar: model name, mode, cloud agent count
+- [x] M11 - Performance: measure process spawn overhead (target < 500ms per turn)
+- [x] M11 - Performance: measure hook IPC roundtrip (target < 50ms)
+- [x] M11 - Documentation: README with Cursor CLI setup instructions
+- [x] M11 - Build inline diff view from `afterFileEdit` hook data (`old_string`/`new_string` diffs) — *Guard: M-REVIEW-2 from research.md*
+- [x] M11 - Integrate diff display with existing `DiffRenderer` component (`src/ui/components/DiffRenderer.tsx`)
+- [x] M11 - Run full quality gate: lint, typecheck, test, build
 
 ---
 
@@ -1164,7 +1169,11 @@ interface CursorCloudAgentClient {
 
 ## Open Questions
 
-### Must Resolve Before Implementation
+### Resolved (see Addendum C)
+
+Questions Q1–Q11 below were validated as of 2026-02-10. See **[ADDENDUM C: Open Question Validation Results](#addendum-c-open-question-validation-results-2026-02-10)** for test results and conclusions. The architecture is confirmed viable; implementation guards (stdin-for-prompt, no `agent ls` for session list) are captured in M3/M7 task list.
+
+### Must Resolve Before Implementation (historical — now resolved)
 
 1. **Q: Does `--resume` work across separate process invocations?**
    - Test: Spawn `agent -p "hello"`, get session_id, then spawn `agent -p --resume <id> "follow up"`
@@ -1317,33 +1326,33 @@ __tests__/
 ## Success Criteria
 
 ### Core (Must Have)
-- [ ] User can select "Cursor CLI" as agent from the TUI
-- [ ] Sending a prompt produces streaming text output in the chat view
-- [ ] Tool activity (file reads, writes, shell commands) is displayed
-- [ ] Multi-turn conversation works via `--resume`
-- [ ] Model selection is supported (pass `--model` flag)
-- [ ] Mode selection is supported (Agent/Plan/Ask)
-- [ ] Authentication errors produce clear, actionable messages
-- [ ] Missing `agent` binary produces clear install instructions
+- [x] User can select "Cursor CLI" as agent from the TUI
+- [x] Sending a prompt produces streaming text output in the chat view
+- [x] Tool activity (file reads, writes, shell commands) is displayed
+- [x] Multi-turn conversation works via `--resume`
+- [x] Model selection is supported (pass `--model` flag)
+- [x] Mode selection is supported (Agent/Plan/Ask)
+- [x] Authentication errors produce clear, actionable messages
+- [x] Missing `agent` binary produces clear install instructions
 
 ### Enhanced (Should Have — Hooks)
-- [ ] Permission prompts display in TUI for tool calls (via `preToolUse` hook)
-- [ ] Shell command approval works (via `beforeShellExecution` hook)
-- [ ] Context injection works (via `sessionStart` hook)
-- [ ] Agent thinking/reasoning displays in TUI (via `afterAgentThought` hook)
-- [ ] File edit details show diffs (via `afterFileEdit` hook)
+- [x] Permission prompts display in TUI for tool calls (via `preToolUse` hook)
+- [x] Shell command approval works (via `beforeShellExecution` hook)
+- [x] Context injection works (via `sessionStart` hook)
+- [x] Agent thinking/reasoning displays in TUI (via `afterAgentThought` hook)
+- [x] File edit details show diffs (via `afterFileEdit` hook)
 
 ### Cloud (Nice to Have)
-- [ ] Cloud agent dispatch works (`&` prefix → Cloud API)
-- [ ] Cloud agent status displays in TUI
-- [ ] Cloud agent follow-up messages work
-- [ ] Cloud agent conversation history is viewable
+- [x] Cloud agent dispatch works (`&` prefix → Cloud API)
+- [x] Cloud agent status displays in TUI
+- [x] Cloud agent follow-up messages work
+- [x] Cloud agent conversation history is viewable
 
 ### Quality Gates
-- [ ] All tests pass (unit >= 95% coverage, integration tests)
-- [ ] Build, lint, typecheck all pass
-- [ ] Performance: process spawn overhead < 500ms at p95
-- [ ] Performance: hook IPC roundtrip < 50ms at p95
+- [x] All tests pass (unit >= 95% coverage, integration tests)
+- [x] Build, lint, typecheck all pass
+- [x] Performance: process spawn overhead < 500ms at p95
+- [x] Performance: hook IPC roundtrip < 50ms at p95
 
 ---
 
@@ -1351,26 +1360,26 @@ __tests__/
 
 > **Deferred until Phase G**: Extract the generic abstraction from the working Cursor adapter. This avoids premature abstraction — the interface is driven by real implementation experience, not speculation.
 
-- [ ] M2b - Extract `src/core/cli-agent/cli-agent.port.ts` — `CliAgentPort` interface (from Cursor adapter's actual contract)
-- [ ] M2b - Extract `src/core/cli-agent/cli-agent.base.ts` — Abstract base class with shared utilities:
-  - [ ] Process spawning with timeout, cleanup, and signal handling
-  - [ ] NDJSON line parser with partial buffer handling (extracted from `cursor-stream-parser.ts`)
-  - [ ] Zod-safe event validation (parse or skip malformed lines)
-  - [ ] Concurrent prompt guard (one active prompt at a time)
-  - [ ] Session ID tracking for `--resume`-style continuations
-  - [ ] Auth status caching
-- [ ] M2b - Extract `src/core/cli-agent/cli-agent.bridge.ts` — `CliAgentPort` → `AgentPort` bridge:
-  - [ ] Map `StreamEvent.text_delta` → `SessionNotification` (agent_message_chunk)
-  - [ ] Map `StreamEvent.tool_start/complete` → tool notifications
-  - [ ] Map `StreamEvent.permission_request` → `permissionRequest` event
-  - [ ] Map `StreamEvent.thinking_delta` → thinking display updates
-  - [ ] Map `StreamEvent.result` → `PromptResponse` resolution
-  - [ ] Map `StreamEvent.error` → error events
-- [ ] M2b - Create `src/core/cli-agent/create-cli-harness-adapter.ts` — Factory function
-- [ ] M2b - Create `src/core/cli-agent/stream-line-parser.ts` — Shared NDJSON utility (extracted from M2)
-- [ ] M2b - Refactor `CursorCliHarnessAdapter` to extend `CliAgentBase` (verify no regressions)
-- [ ] M2b - Unit tests for all generic components (>= 95% coverage)
-- [ ] M2b - Run full quality gate: lint, typecheck, test, build
+- [x] M2b - Extract `src/core/cli-agent/cli-agent.port.ts` — `CliAgentPort` interface (from Cursor adapter's actual contract)
+- [x] M2b - Extract `src/core/cli-agent/cli-agent.base.ts` — Abstract base class with shared utilities:
+  - [x] Process spawning with timeout, cleanup, and signal handling
+  - [x] NDJSON line parser with partial buffer handling (extracted from `cursor-stream-parser.ts`)
+  - [x] Zod-safe event validation (parse or skip malformed lines)
+  - [x] Concurrent prompt guard (one active prompt at a time)
+  - [x] Session ID tracking for `--resume`-style continuations
+  - [x] Auth status caching
+- [x] M2b - Extract `src/core/cli-agent/cli-agent.bridge.ts` — `CliAgentPort` → `AgentPort` bridge:
+  - [x] Map `StreamEvent.text_delta` → `SessionNotification` (agent_message_chunk)
+  - [x] Map `StreamEvent.tool_start/complete` → tool notifications
+  - [x] Map `StreamEvent.permission_request` → `permissionRequest` event
+  - [x] Map `StreamEvent.thinking_delta` → thinking display updates
+  - [x] Map `StreamEvent.result` → `PromptResponse` resolution
+  - [x] Map `StreamEvent.error` → error events
+- [x] M2b - Create `src/core/cli-agent/create-cli-harness-adapter.ts` — Factory function
+- [x] M2b - Create `src/core/cli-agent/stream-line-parser.ts` — Shared NDJSON utility (extracted from M2)
+- [x] M2b - Refactor `CursorCliHarnessAdapter` to extend `CliAgentBase` (verify no regressions)
+- [x] M2b - Unit tests for all generic components (>= 95% coverage)
+- [x] M2b - Run full quality gate: lint, typecheck, test, build
 
 ---
 
@@ -1896,25 +1905,25 @@ src/
 
 This refactoring should happen **before** the Cursor-specific implementation (Milestones 2-7), becoming the new **Milestone 2**:
 
-- [ ] M2-NEW - Create `src/types/cli-agent.types.ts` with all Zod schemas
-- [ ] M2-NEW - Create `src/core/cli-agent/cli-agent.port.ts` — `CliAgentPort` interface
-- [ ] M2-NEW - Create `src/core/cli-agent/cli-agent.base.ts` — Abstract base with shared utilities:
-  - [ ] Process spawning with timeout, cleanup, and signal handling
-  - [ ] NDJSON line parser with partial buffer handling
-  - [ ] Zod-safe event validation (parse or skip malformed lines)
-  - [ ] Concurrent prompt guard (one active prompt at a time)
-  - [ ] Session ID tracking for `--resume`-style continuations
-  - [ ] Auth status caching
-- [ ] M2-NEW - Create `src/core/cli-agent/cli-agent.bridge.ts` — `CliAgentPort` → `AgentPort` bridge
-  - [ ] Map `StreamEvent.text_delta` → `SessionNotification` (agent_message_chunk)
-  - [ ] Map `StreamEvent.tool_start/complete` → tool notifications
-  - [ ] Map `StreamEvent.permission_request` → `permissionRequest` event
-  - [ ] Map `StreamEvent.thinking_delta` → thinking display updates
-  - [ ] Map `StreamEvent.result` → `PromptResponse` resolution
-  - [ ] Map `StreamEvent.error` → error events
-- [ ] M2-NEW - Create `src/core/cli-agent/create-cli-harness-adapter.ts` — Factory function
-- [ ] M2-NEW - Create `src/core/cli-agent/stream-line-parser.ts` — Shared NDJSON utility
-- [ ] M2-NEW - Unit tests for all generic components (>= 95% coverage)
+- [x] M2-NEW - Create `src/types/cli-agent.types.ts` with all Zod schemas
+- [x] M2-NEW - Create `src/core/cli-agent/cli-agent.port.ts` — `CliAgentPort` interface
+- [x] M2-NEW - Create `src/core/cli-agent/cli-agent.base.ts` — Abstract base with shared utilities:
+  - [x] Process spawning with timeout, cleanup, and signal handling
+  - [x] NDJSON line parser with partial buffer handling
+  - [x] Zod-safe event validation (parse or skip malformed lines)
+  - [x] Concurrent prompt guard (one active prompt at a time)
+  - [x] Session ID tracking for `--resume`-style continuations
+  - [x] Auth status caching
+- [x] M2-NEW - Create `src/core/cli-agent/cli-agent.bridge.ts` — `CliAgentPort` → `AgentPort` bridge
+  - [x] Map `StreamEvent.text_delta` → `SessionNotification` (agent_message_chunk)
+  - [x] Map `StreamEvent.tool_start/complete` → tool notifications
+  - [x] Map `StreamEvent.permission_request` → `permissionRequest` event
+  - [x] Map `StreamEvent.thinking_delta` → thinking display updates
+  - [x] Map `StreamEvent.result` → `PromptResponse` resolution
+  - [x] Map `StreamEvent.error` → error events
+- [x] M2-NEW - Create `src/core/cli-agent/create-cli-harness-adapter.ts` — Factory function
+- [x] M2-NEW - Create `src/core/cli-agent/stream-line-parser.ts` — Shared NDJSON utility
+- [x] M2-NEW - Unit tests for all generic components (>= 95% coverage)
 
 ---
 
@@ -2254,6 +2263,7 @@ TOADSTOOL already has these pieces we can extend:
 | **F: Test & Polish** | M10 → M11 | Integration tests + TUI wiring | Production-quality harness with /diff display |
 | **G: Extract Abstraction** | M2b | Refactor into CliAgentBase + Bridge | Generic interface extracted from working code (not speculative) |
 | **H: Cloud & Breadcrumb** | M9, MB1-MB4 | Cloud API + repo workflow UI | Optional features, can ship independently |
+| **I: Agent Management** | MD1–MD3 | Unified slash commands + parsers | `/login`, `/logout`, `/status`, `/models`, `/mcp`, `/agent` |
 
 ### Milestone Table
 
@@ -2276,8 +2286,11 @@ TOADSTOOL already has these pieces we can extend:
 | MB2 | Breadcrumb: Workflow Service + Tests | 2-3 days | H | MB1 |
 | MB3 | Breadcrumb: UI Component + Hook | 2-3 days | H | MB2 |
 | MB4 | Breadcrumb: Skills Integration | 3-4 days | H | MB3 |
+| MD1 | Agent Management: Types + parsers (all agents) | 2-3 days | I | M2b, M8 |
+| MD2 | Agent Management: Slash commands + formatters | 1-2 days | I | MD1 |
+| MD3 | Agent Management: Integration tests + edge cases | 1-2 days | I | MD2 |
 
-**Total estimate: ~35-50 days**
+**Total estimate: ~38-55 days**
 
 ### Key Changes from Original Plan
 
@@ -2509,7 +2522,54 @@ This is a critical implementation detail. **Always pipe the prompt via stdin** i
 
 ---
 
-## ADDENDUM D: Unified Agent Management Commands (`/login`, `/logout`, `/status`, `/models`)
+## Re-evaluation & Gap Analysis
+
+> **Purpose**: Re-baseline the plan against the current codebase and add any missing or uncaptured tasks. Use this section to decide what to do next.
+
+### Gaps identified
+
+1. **Open Questions section is stale**  
+   Addendum C validates Q1–Q11, but the main "Open Questions" section still reads "Must Resolve Before Implementation". The plan should reflect that these are resolved and point to Addendum C.
+
+2. **Addendum D (Unified Agent Management) not in main roadmap**  
+   Milestones MD1–MD3 (slash commands `/login`, `/logout`, `/status`, `/models`, `/mcp`, `/agent` and agent-specific parsers) live only in Addendum D. They are not in the "Milestone Overview" or "Execution Phases" tables, so they can be missed when tracking progress. Some implementation may already exist (`agent-management/`, slash command handlers, formatters).
+
+3. **Critical implementation guards not explicit in task list**  
+   - **Stdin for prompt (Q11)**: In `-p` mode the Cursor CLI expects the prompt on **stdin**, not as a positional argument; otherwise the process can hang. This should be an explicit implementation requirement (e.g. under M3/M7).  
+   - **Session list**: `agent ls` requires a TTY (Q7). Session list for Cursor should use `session_id` from NDJSON only; no programmatic `agent ls` for session list. This should be documented as a constraint in M3/M7 or in the Cursor connection/harness tasks.
+
+4. **Plan metadata**  
+   Header still says "Status: Research & Planning" and "Last Updated: 2026-02-10". After re-baseline, status and date should be updated so the document reflects current phase.
+
+5. **Documentation and risk follow-ups**  
+   - Document **tested/supported Cursor CLI version** (e.g. in README or docs) to mitigate "Cursor CLI is still in beta" risk.  
+   - Optional: ADR for three-channel architecture; troubleshooting subsection for Cursor (install, auth, hooks).
+
+6. **Breadcrumb (MB)**  
+   MB2 still has "Zod schemas (deferred)" and "Unit tests for status derivation"; MB4 (skills) and MB5 (integration test) are open. No new tasks proposed here unless you want explicit "Document breadcrumb config" or "MB6 - README breadcrumb section".
+
+### Tasks added below
+
+- **[Plan]** Update Open Questions to mark Q1–Q11 resolved and link to Addendum C.  
+- **[Plan]** Add implementation guards for Cursor: stdin-for-prompt (M3/M7), no `agent ls` for session list (M3).  
+- **[Plan]** Add MD1–MD3 to Milestone Table and Execution Phases (e.g. Phase I: Agent Management).  
+- **[Plan]** Update plan header: Status and Last Updated when re-baselining.  
+- **[Doc]** Document tested/supported Cursor CLI version (README or docs).  
+- **[Doc]** (Optional) ADR for three-channel architecture; Cursor troubleshooting subsection.
+
+### Re-evaluation task list (tracking)
+
+- [ ] **Plan** — Update Open Questions section: mark Q1–Q11 as resolved, add "See Addendum C" pointer
+- [ ] **Plan** — Add implementation guard to M3/M7: Cursor CLI must receive prompt via stdin in `-p` mode (not positional args)
+- [ ] **Plan** — Add implementation guard to M3/M7: Session list for Cursor uses session_id from NDJSON only; do not call `agent ls` (TTY required)
+- [ ] **Plan** — Add MD1–MD3 to Execution Phases table and Milestone Table (Phase I: Agent Management)
+- [ ] **Plan** — Update plan header: Status and Last Updated when re-baseline is complete
+- [ ] **Doc** — Document tested/supported Cursor CLI version in README or docs (e.g. "Tested with 2026.01.28")
+- [ ] **Doc** — (Optional) ADR for three-channel architecture; Cursor troubleshooting subsection in README
+
+---
+
+## ADDENDUM D: Unified Agent Management Commands (`/login`, `/logout`, `/status`, `/models`) (`/login`, `/logout`, `/status`, `/models`)
 
 ### Problem
 
