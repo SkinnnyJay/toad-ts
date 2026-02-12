@@ -193,6 +193,26 @@ describe("CursorHookIpcServer", () => {
     }
   });
 
+  it("rejects oversized payloads with a 413 response", async () => {
+    const server = new CursorHookIpcServer({
+      transport: CURSOR_HOOK_IPC_TRANSPORT.HTTP,
+      bodyMaxBytes: 64,
+    });
+
+    try {
+      const address = await server.start();
+      const response = await postJson(address.url ?? "", {
+        ...baseHookPayload(CURSOR_HOOK_EVENT.SESSION_START),
+        additional_context: "x".repeat(1024),
+      });
+
+      expect(response.status).toBe(413);
+      expect(response.body.error).toBe("Payload too large.");
+    } finally {
+      await server.stop();
+    }
+  });
+
   it("supports unix socket transport", async () => {
     const socketPath = path.join(tmpdir(), `toadstool-cursor-hook-test-${randomUUID()}.sock`);
     const server = new CursorHookIpcServer({

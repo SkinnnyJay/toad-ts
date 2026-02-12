@@ -255,11 +255,17 @@ export class CursorHookIpcServer extends EventEmitter<CursorHookIpcServerEvents>
       const hookResponse = await this.routeHookEvent(hookEvent);
       this.sendJson(response, HTTP_STATUS.OK, hookResponse);
     } catch (error) {
-      this.logger.error("Failed to process hook IPC request", {
-        error: error instanceof Error ? error.message : String(error),
-      });
-      this.sendJson(response, HTTP_STATUS.INTERNAL_SERVER_ERROR, {
-        error: "Hook IPC server error.",
+      const statusCode = this.getErrorStatusCode(error);
+      if (statusCode === HTTP_STATUS.INTERNAL_SERVER_ERROR) {
+        this.logger.error("Failed to process hook IPC request", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+      this.sendJson(response, statusCode, {
+        error:
+          error instanceof Error && statusCode !== HTTP_STATUS.INTERNAL_SERVER_ERROR
+            ? error.message
+            : "Hook IPC server error.",
       });
     }
   }
@@ -445,5 +451,13 @@ export class CursorHookIpcServer extends EventEmitter<CursorHookIpcServerEvents>
 
   private isErrnoException(error: unknown): error is NodeJS.ErrnoException {
     return typeof error === "object" && error !== null && "code" in error;
+  }
+
+  private getErrorStatusCode(error: unknown): number {
+    if (typeof error !== "object" || error === null || !("statusCode" in error)) {
+      return HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    }
+    const statusCode = error.statusCode;
+    return typeof statusCode === "number" ? statusCode : HTTP_STATUS.INTERNAL_SERVER_ERROR;
   }
 }
