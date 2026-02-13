@@ -1,6 +1,7 @@
 export const CONFIG_FILE = {
   PROJECT_JSON: "toadstool.json",
   PROJECT_JSONC: "toadstool.jsonc",
+  SETTINGS_JSON: "settings.json",
   GLOBAL_CONFIG_DIR: ".config",
   GLOBAL_APP_DIR: "toadstool",
   GLOBAL_CONFIG_FILE: "config.json",
@@ -16,6 +17,7 @@ export const PROJECT_CONFIG_FILES: ConfigFile[] = [
 export const {
   PROJECT_JSON,
   PROJECT_JSONC,
+  SETTINGS_JSON,
   GLOBAL_CONFIG_DIR,
   GLOBAL_APP_DIR,
   GLOBAL_CONFIG_FILE,

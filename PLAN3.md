@@ -384,6 +384,14 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `src/core/providers/anthropic-provider.ts`
   - Added focused test:
     - `__tests__/unit/constants/provider-stream.unit.test.ts`
+- Additional cross-tool/platform literal hardening:
+  - Added `SETTINGS_JSON` to `src/constants/config-files.ts`.
+  - Replaced raw `"settings.json"` usage in:
+    - `src/core/cross-tool/hooks-loader.ts`
+  - Replaced raw `".env.sample"` literal in:
+    - `src/core/cross-tool/init-generator.ts`
+  - Replaced raw `"win32"` platform checks in:
+    - `src/core/cli-agent/cli-agent-process-runner.ts`
 
 ---
 

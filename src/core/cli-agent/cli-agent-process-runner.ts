@@ -3,6 +3,7 @@ import {
   type SpawnOptionsWithoutStdio,
   spawn,
 } from "node:child_process";
+import { PLATFORM } from "@/constants/platform";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 
 export interface CliAgentCommandResult {
@@ -190,7 +191,7 @@ export class CliAgentProcessRunner {
     return this.spawnFn(this.command, commandArgs, {
       cwd: this.cwd,
       env: this.env,
-      detached: process.platform !== "win32",
+      detached: process.platform !== PLATFORM.WIN32,
       stdio: "pipe",
     });
   }
@@ -218,7 +219,7 @@ export class CliAgentProcessRunner {
     }
 
     try {
-      if (process.platform !== "win32") {
+      if (process.platform !== PLATFORM.WIN32) {
         process.kill(-pid, signal);
       } else {
         child.kill(signal);
