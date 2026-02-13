@@ -664,6 +664,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/integration/server/headless-server.integration.test.ts`
   - Covered:
     - `/sessions/:id/messages` returns `200` with empty messages for unknown session IDs
+- Additional HTTP method semantics hardening for API routes:
+  - Runtime update:
+    - `src/server/headless-server.ts`
+  - Behavior update:
+    - known `/api/*` paths now return `405 Method not allowed` when method is unsupported
+      (instead of generic `404` fallback).
+  - Extended integration coverage:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Covered:
+    - unsupported methods for known API routes (`/api/config`, `/api/tui/execute-command`)
+      return canonical `METHOD_NOT_ALLOWED` payload
 
 ---
 

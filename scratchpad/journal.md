@@ -1,5 +1,15 @@
 # Scratchpad Journal
 
+## 2026-02-13 (API method semantics hardening)
+- Updated `src/server/headless-server.ts` to return `405 Method not allowed` for known `/api/*`
+  paths when method is unsupported.
+- Extended `__tests__/integration/server/headless-server.integration.test.ts` to cover:
+  - unsupported-method handling for known API routes (`/api/config`, `/api/tui/execute-command`)
+- Validation:
+  - Targeted: `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (session-messages edge behavior coverage)
 - Extended `__tests__/integration/server/headless-server.integration.test.ts` with explicit
   coverage for unknown-session messages fetch behavior.

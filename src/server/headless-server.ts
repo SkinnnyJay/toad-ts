@@ -15,7 +15,7 @@ import {
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { createHarnessRegistry, isCursorHarnessEnabled } from "@/harness/harnessRegistryFactory";
-import { matchRoute } from "@/server/api-routes";
+import { API_ROUTES, matchRoute } from "@/server/api-routes";
 import { checkServerAuth } from "@/server/server-auth";
 import type { ServerRuntimeConfig } from "@/server/server-config";
 import { createSessionRequestSchema, promptSessionRequestSchema } from "@/server/server-types";
@@ -192,6 +192,11 @@ export const startHeadlessServer = async (
       const matched = matchRoute(req.method ?? HTTP_METHOD.GET, url.pathname);
       if (matched) {
         await matched.handler(req, res, matched.params);
+        return;
+      }
+      const routePatternMatch = API_ROUTES.some((route) => route.pattern.test(url.pathname));
+      if (routePatternMatch) {
+        sendError(res, HTTP_STATUS.METHOD_NOT_ALLOWED, SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED);
         return;
       }
 

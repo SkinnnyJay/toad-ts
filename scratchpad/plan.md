@@ -29,6 +29,9 @@
   - server runtime fix mapping oversized-body errors to `400` responses
 - Added unknown-session message retrieval coverage:
   - integration assertion for `/sessions/:id/messages` empty-list behavior
+- Added API method semantics hardening:
+  - known `/api/*` unsupported methods now return `405`
+  - integration coverage for canonical method-not-allowed response
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

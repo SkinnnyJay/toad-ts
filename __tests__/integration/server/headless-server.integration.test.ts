@@ -272,4 +272,28 @@ describe("headless server", () => {
       await server.close();
     }
   });
+
+  it("returns method not allowed for known API routes with unsupported methods", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const configResponse = await fetch(`${baseUrl}/api/config`, {
+        method: "POST",
+      });
+      expect(configResponse.status).toBe(405);
+      await expect(configResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const executeResponse = await fetch(`${baseUrl}/api/tui/execute-command`);
+      expect(executeResponse.status).toBe(405);
+      await expect(executeResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+    } finally {
+      await server.close();
+    }
+  });
 });
