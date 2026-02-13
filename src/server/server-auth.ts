@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HTTP_STATUS } from "@/constants/http-status";
+import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { EnvManager } from "@/utils/env/env.utils";
 
 /**
@@ -17,7 +18,7 @@ export const checkServerAuth = (req: IncomingMessage, res: ServerResponse): bool
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     res.writeHead(HTTP_STATUS.BAD_REQUEST, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: "Authorization required" }));
+    res.end(JSON.stringify({ error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED }));
     return false;
   }
 
@@ -25,7 +26,7 @@ export const checkServerAuth = (req: IncomingMessage, res: ServerResponse): bool
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader;
   if (token !== password) {
     res.writeHead(HTTP_STATUS.BAD_REQUEST, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: "Invalid credentials" }));
+    res.end(JSON.stringify({ error: SERVER_RESPONSE_MESSAGE.INVALID_CREDENTIALS }));
     return false;
   }
 

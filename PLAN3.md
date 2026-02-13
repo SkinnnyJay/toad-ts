@@ -539,6 +539,18 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - `/api/agents` fallback excludes Cursor harness when `TOADSTOOL_CURSOR_CLI_ENABLED` is unset/false
     - `/api/agents` fallback includes Cursor harness when `TOADSTOOL_CURSOR_CLI_ENABLED=true`
+- Additional server-auth hardening and coverage:
+  - Centralized auth error response literals in `SERVER_RESPONSE_MESSAGE`:
+    - `AUTHORIZATION_REQUIRED`
+    - `INVALID_CREDENTIALS`
+  - Updated `src/server/server-auth.ts` to use shared response constants.
+  - Added focused unit coverage:
+    - `__tests__/unit/server/server-auth.unit.test.ts`
+  - Covered:
+    - no-password pass-through behavior
+    - missing auth header rejection
+    - invalid credential rejection
+    - Bearer-token success path
 
 ---
 

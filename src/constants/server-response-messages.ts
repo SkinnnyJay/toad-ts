@@ -13,6 +13,8 @@ export const SERVER_RESPONSE_MESSAGE = {
   COMMAND_REQUIRED: "Command required",
   FAILED_TO_LOAD_CONFIG: "Failed to load config",
   FAILED_TO_LOAD_HARNESSES: "Failed to load harnesses",
+  AUTHORIZATION_REQUIRED: "Authorization required",
+  INVALID_CREDENTIALS: "Invalid credentials",
 } as const;
 
 export type ServerResponseMessage =
