@@ -1,3 +1,4 @@
+import { LIMIT } from "@/config/limits";
 import { type Token, type Tokens, marked, walkTokens } from "marked";
 
 marked.setOptions({
@@ -13,6 +14,11 @@ import { CompressionTypeEnum } from "../types";
 import type { CompressionOutcome, CompressionStrategy } from "./base";
 
 const INDENTATION = "  ";
+const COLLAPSED_MARKDOWN_LINE_BREAKS = "\n\n";
+const MARKDOWN_EXCESS_LINE_BREAK_REGEX = new RegExp(
+  `\\n{${LIMIT.MARKDOWN_COLLAPSE_MIN_NEWLINES},}`,
+  "g"
+);
 
 const renderInlineTokens = (tokens: Token[] = []): string => {
   const combined = tokens
@@ -55,8 +61,8 @@ const renderBlockTokens = (tokens: Token[]): string =>
   tokens
     .map((token) => renderBlockToken(token))
     .filter((segment) => segment.length > 0)
-    .join("\n\n")
-    .replace(/\n{3,}/g, "\n\n")
+    .join(COLLAPSED_MARKDOWN_LINE_BREAKS)
+    .replace(MARKDOWN_EXCESS_LINE_BREAK_REGEX, COLLAPSED_MARKDOWN_LINE_BREAKS)
     .trim();
 
 const renderList = (token: Tokens.List): string => {

@@ -1,3 +1,4 @@
+import { LIMIT } from "@/config/limits";
 import type { TokenizerEstimate } from "./tokenOptimizer.types";
 
 export interface TokenizerAdapter {
@@ -38,7 +39,7 @@ const approximateTokenCount = (input: string): number => {
     return 0;
   }
 
-  return Math.max(1, Math.ceil(charCount / 4));
+  return Math.max(1, Math.ceil(charCount / LIMIT.CHARS_PER_TOKEN_ESTIMATE));
 };
 
 export const createDefaultTokenizerAdapter = (): TokenizerAdapter => {

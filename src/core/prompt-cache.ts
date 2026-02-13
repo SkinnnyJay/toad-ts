@@ -36,7 +36,7 @@ export class PromptCache {
     let hash = 0;
     for (let i = 0; i < context.length; i++) {
       const char = context.charCodeAt(i);
-      hash = ((hash << 5) - hash + char) | 0;
+      hash = ((hash << LIMIT.PROMPT_CACHE_HASH_SHIFT_BITS) - hash + char) | 0;
     }
     return `prompt-${hash.toString(36)}`;
   }
