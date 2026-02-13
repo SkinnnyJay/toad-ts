@@ -1192,6 +1192,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - whitespace-only query rejection
     - trimmed query success response
+- Additional SSE response-close cleanup hardening:
+  - Updated:
+    - `src/server/api-routes.ts`
+  - Hardening change:
+    - events-stream subscription cleanup now runs on response close as well as
+      request close, with idempotent cleanup semantics.
+  - Extended:
+    - `__tests__/unit/server/api-route-events-stream.unit.test.ts`
+  - Covered:
+    - cleanup invocation on response-close event
+    - single unsubscribe across duplicate close event combinations
 
 ---
 

@@ -1,5 +1,17 @@
 # Scratchpad Journal
 
+## 2026-02-13 (SSE response-close cleanup hardening)
+- Updated `src/server/api-routes.ts`:
+  - events stream now also performs subscription cleanup on `res.close`
+  - cleanup handler is idempotent across request+response close events
+- Extended `__tests__/unit/server/api-route-events-stream.unit.test.ts`:
+  - added response-close cleanup coverage and duplicate-close idempotency assertion
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/api-route-events-stream.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (file-search query-trim hardening)
 - Updated `src/server/api-routes.ts`:
   - file-search query extraction now trims surrounding whitespace

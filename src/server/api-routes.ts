@@ -148,9 +148,17 @@ export const eventsStream: RouteHandler = async (_req, res) => {
     res.write(`data: ${data}\n\n`);
   });
 
-  _req.once("close", () => {
+  let isCleanedUp = false;
+  const cleanup = (): void => {
+    if (isCleanedUp) {
+      return;
+    }
+    isCleanedUp = true;
     unsubscribe();
-  });
+  };
+
+  _req.once("close", cleanup);
+  res.once("close", cleanup);
 };
 
 // ── TUI Control Endpoints ──────────────────────────────────────────────────

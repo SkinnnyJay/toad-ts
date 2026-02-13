@@ -59,6 +59,7 @@
   - hardened UTF-8 request decoding for multi-byte split-buffer chunk boundaries
   - hardened route classifiers for lowercase/padded HTTP method inputs
   - hardened file-search query handling for whitespace-only input
+  - hardened SSE cleanup for response-close shutdown path
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

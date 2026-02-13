@@ -31,20 +31,20 @@ const createResponseCapture = (): {
   let statusCode: number | null = null;
   let headers: Record<string, string> | null = null;
   const writes: string[] = [];
-  const response = {
-    writeHead: (
-      nextStatusCode: number,
-      nextHeaders: Record<string, string> | undefined
-    ): ServerResponse => {
-      statusCode = nextStatusCode;
-      headers = nextHeaders ?? null;
-      return response as unknown as ServerResponse;
-    },
-    write: (chunk: string): boolean => {
-      writes.push(chunk);
-      return true;
-    },
-  } as unknown as ServerResponse;
+  const responseEmitter = new EventEmitter();
+  const response = responseEmitter as unknown as ServerResponse;
+  response.writeHead = (
+    nextStatusCode: number,
+    nextHeaders: Record<string, string> | undefined
+  ): ServerResponse => {
+    statusCode = nextStatusCode;
+    headers = nextHeaders ?? null;
+    return response;
+  };
+  response.write = (chunk: string): boolean => {
+    writes.push(chunk);
+    return true;
+  };
   return {
     response,
     getCaptured: () => ({ statusCode, headers, writes }),
@@ -102,6 +102,21 @@ describe("eventsStream handler", () => {
 
     request.emit("close");
     request.emit("close");
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it("unsubscribes when response emits close event", async () => {
+    const subscribeMock = await getSubscribeMock();
+    const unsubscribe = vi.fn();
+    subscribeMock.mockImplementation(() => unsubscribe);
+
+    const request = new EventEmitter() as IncomingMessage;
+    const { response } = createResponseCapture();
+
+    await eventsStream(request, response, {});
+    (response as unknown as EventEmitter).emit("close");
+    request.emit("close");
+
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 });

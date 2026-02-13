@@ -181,6 +181,9 @@
 - Added file-search query-trim hardening:
   - file-search now rejects whitespace-only query values
   - added unit coverage for whitespace-only and trimmed-query behavior
+- Added SSE response-close cleanup hardening:
+  - events stream now unsubscribes on response close in addition to request close
+  - added unit coverage for response-close cleanup path
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
