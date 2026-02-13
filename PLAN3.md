@@ -1925,3 +1925,21 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - prevent ambiguous harness selection semantics from malformed harness-id
       keys while preserving existing behavior for valid ids.
+
+## Execution Log Addendum — 2026-02-13 (explicit blank CLI harness-id guard)
+
+- Additional harness selector hardening:
+  - Updated:
+    - `src/harness/harnessConfig.ts`
+    - `__tests__/unit/harness/harness-config.unit.test.ts`
+  - Hardening changes:
+    - explicit CLI harness-id inputs that are whitespace-only are now rejected
+      with canonical invalid-id diagnostics rather than silently falling through
+      to default harness selection.
+    - preserves existing trimmed selection behavior for padded-but-valid
+      explicit harness-id values.
+    - expanded focused unit coverage for explicit blank CLI harness-id
+      rejection behavior.
+  - Goal:
+    - keep explicit harness selection deterministic and fail-fast for malformed
+      CLI input while maintaining fallback behavior for implicit/default paths.

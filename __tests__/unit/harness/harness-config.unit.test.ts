@@ -389,6 +389,29 @@ describe("harnessConfig", () => {
     expect(result.harness.command).toBe("beta-cli");
   });
 
+  it("rejects explicit CLI harness id when value is whitespace-only", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "alpha",
+      harnesses: {
+        alpha: {
+          name: "Alpha",
+          command: "alpha-cli",
+        },
+      },
+    });
+
+    await expect(
+      loadHarnessConfig({
+        projectRoot,
+        homedir: userRoot,
+        harnessId: "   ",
+      })
+    ).rejects.toThrow(formatInvalidHarnessIdError("   "));
+  });
+
   it("throws when multiple harnesses exist and no default is configured", async () => {
     projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
     userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));

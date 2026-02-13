@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added explicit blank CLI harness-id guard hardening:
+  - whitespace-only explicit CLI harness-id values now reject with invalid-id
+    diagnostics instead of silently falling back to defaults
+  - preserved trimmed lookup behavior for padded-but-valid explicit ids
+  - expanded harness config unit coverage for explicit blank CLI id rejection
 - Added invalid harness-id config guard hardening:
   - harness-config loader now rejects harness ids with leading/trailing
     whitespace (including whitespace-only ids)
