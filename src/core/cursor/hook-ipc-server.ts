@@ -2,6 +2,7 @@ import { unlink } from "node:fs/promises";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { DEFAULT_HOST } from "@/config/server";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { HTTP_STATUS } from "@/constants/http-status";
@@ -16,7 +17,7 @@ import {
 import { createClassLogger } from "@/utils/logging/logger.utils";
 
 const HOOK_IPC_DEFAULT = {
-  HOST: "127.0.0.1",
+  HOST: DEFAULT_HOST,
   PATHNAME: "/",
 } as const;
 
