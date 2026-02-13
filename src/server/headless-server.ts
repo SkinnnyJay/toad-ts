@@ -178,8 +178,12 @@ export const startHeadlessServer = async (
 
       sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.NOT_FOUND);
     } catch (error) {
-      if (error instanceof ZodError || error instanceof SyntaxError) {
+      if (error instanceof ZodError) {
         sendError(res, HTTP_STATUS.BAD_REQUEST, error.message);
+        return;
+      }
+      if (error instanceof SyntaxError) {
+        sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
         return;
       }
       if (

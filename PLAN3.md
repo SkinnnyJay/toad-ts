@@ -924,6 +924,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - core route classifier unhandled behavior for over-segmented paths
     - headless-server canonical unknown-endpoint responses for over-segmented
       prompt/messages session routes
+- Additional headless invalid-JSON response normalization:
+  - Updated:
+    - `src/server/headless-server.ts`
+  - Hardening change:
+    - syntax-error request parsing failures now return canonical
+      `SERVER_RESPONSE_MESSAGE.INVALID_REQUEST` payloads.
+  - Extended:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Covered:
+    - non-API invalid JSON (`POST /sessions`) now matches canonical invalid-request response
+      shape used across server endpoints.
 
 ---
 

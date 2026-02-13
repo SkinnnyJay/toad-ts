@@ -148,9 +148,9 @@ describe("headless server", () => {
         body: "{invalid",
       });
       expect(invalidPayloadResponse.status).toBe(400);
-      const payload = (await invalidPayloadResponse.json()) as { error?: string };
-      expect(typeof payload.error).toBe("string");
-      expect(payload.error?.length ?? 0).toBeGreaterThan(0);
+      await expect(invalidPayloadResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      });
 
       const invalidTuiPayloadResponse = await fetch(`${baseUrl}/api/tui/append-prompt`, {
         method: "POST",

@@ -1,5 +1,18 @@
 # Scratchpad Journal
 
+## 2026-02-13 (headless invalid-JSON response normalization)
+- Updated `src/server/headless-server.ts`:
+  - separated syntax-error handling from zod validation handling
+  - syntax errors now return canonical `SERVER_RESPONSE_MESSAGE.INVALID_REQUEST`
+- Updated integration coverage:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `/sessions` invalid-JSON assertion now locks canonical invalid-request payload
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (strict session-subroute parsing hardening)
 - Updated `src/server/session-route-path.ts`:
   - parser now rejects over-segmented session paths (e.g. `/sessions/:id/prompt/extra`)

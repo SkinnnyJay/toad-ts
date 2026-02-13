@@ -104,6 +104,9 @@
   - session route parser now rejects extra path segments beyond expected shape
   - added coverage to lock unknown-endpoint behavior for over-segmented session routes
   - moved segment-limit literal into shared limits config to keep strict literal checks green
+- Added headless invalid-JSON response normalization:
+  - syntax-error handling now returns canonical invalid-request response payload
+  - aligned non-API invalid JSON behavior with existing API route canonical mapping
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
