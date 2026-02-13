@@ -1,3 +1,4 @@
+import { CURSOR_REGEX_MIN_COLUMN_SPACES } from "@/config/limits";
 import { CLI_AGENT_AUTH_METHOD } from "@/types/cli-agent.types";
 import {
   type CliAgentAuthStatus,
@@ -22,13 +23,18 @@ const CURSOR_ABOUT_KEY = {
   USER_EMAIL: "User Email",
 } as const;
 
+const CURSOR_REGEX_PATTERN = {
+  MODEL_LINE: `^(\\S+)\\s+-\\s+(.+?)(?:\\s{${CURSOR_REGEX_MIN_COLUMN_SPACES},}\\((.+)\\))?$`,
+  ABOUT_LINE: `^(.+?)\\s{${CURSOR_REGEX_MIN_COLUMN_SPACES},}(.+)$`,
+} as const;
+
 const CURSOR_REGEX = {
-  MODEL_LINE: /^(\S+)\s+-\s+(.+?)(?:\s{2,}\((.+)\))?$/,
+  MODEL_LINE: new RegExp(CURSOR_REGEX_PATTERN.MODEL_LINE),
   AUTH_EMAIL: /Logged in as\s+([^\s]+)/,
   LOGIN_EMAIL: /(Logged in as|Authenticated as)\s+([^\s]+)/i,
   LOGIN_BROWSER_HINT: /(open|opening).+browser|https?:\/\/\S+/i,
   LOGOUT_SUCCESS: /(logged out|logout completed|signed out)/i,
-  ABOUT_LINE: /^(.+?)\s{2,}(.+)$/,
+  ABOUT_LINE: new RegExp(CURSOR_REGEX_PATTERN.ABOUT_LINE),
   MCP_LIST_LINE: /^([^:]+):\s*(.+?)(?:\s+\((.+)\))?$/,
 } as const;
 
