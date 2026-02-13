@@ -1775,3 +1775,24 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Harness-config fallback-on-load-failure coverage)
+
+### Summary
+- Added integration coverage ensuring headless server falls back to default
+  harness config when `loadHarnessConfig(...)` fails due to invalid harness
+  config file data.
+- Test validates that startup remains functional by creating a session through
+  fallback `mock` harness under invalid-config conditions.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅

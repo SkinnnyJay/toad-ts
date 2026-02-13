@@ -137,6 +137,8 @@
     ids returning 404 harness-not-configured responses
   - added headless integration coverage for configured default harness ids that
     lack registered adapters returning 404 adapter-not-registered responses
+  - added headless integration coverage for fallback to default harness config
+    when harness config loading fails at startup
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

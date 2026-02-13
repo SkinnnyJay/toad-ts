@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added harness-config fallback-on-load-failure integration coverage:
+  - headless integration now verifies startup falls back to default harness
+    config when configured harness file is invalid
+  - validates successful session creation via fallback `mock` harness
+    under invalid harness-config conditions
 - Added unregistered-adapter create-session integration coverage:
   - headless integration now verifies configured default harnesses without a
     registered adapter return `404` adapter-not-registered errors

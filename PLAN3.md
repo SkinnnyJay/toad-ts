@@ -2080,3 +2080,18 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock deterministic failure semantics for runtime adapter lookup gaps in
       session creation flow.
+
+## Execution Log Addendum — 2026-02-13 (harness-config fallback-on-load-failure coverage)
+
+- Additional startup fallback integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage ensuring server startup falls back to default
+      harness configuration when harness config loading fails (invalid harness
+      config file shape/content).
+    - test provisions invalid harness config in isolated temp workspace and
+      verifies successful session creation via `mock` harness under fallback.
+  - Goal:
+    - lock resilience semantics for headless startup when user/project harness
+      configuration is present but invalid.
