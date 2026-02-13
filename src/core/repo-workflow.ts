@@ -37,6 +37,11 @@ export interface RepoWorkflowInfo {
   action: RepoWorkflowAction;
 }
 
+type PullRequestStatusLike = Omit<PullRequestStatus, "state" | "reviewDecision"> & {
+  state: string;
+  reviewDecision: string;
+};
+
 const GIT_REMOTE_ORIGIN_URL = "remote.origin.url";
 const GH_PR_CHECKS_JSON_FIELDS = "name,status,conclusion";
 const REMOTE_GIT_SUFFIX_PATTERN = /\.git$/i;
@@ -183,7 +188,7 @@ async function getPrChecksStatus(cwd: string): Promise<"pass" | "fail" | "pendin
 }
 
 export function deriveRepoWorkflowStatus(
-  pr: PullRequestStatus | null,
+  pr: PullRequestStatusLike | null,
   isDirty: boolean,
   isAhead: boolean,
   hasMergeConflicts: boolean,
@@ -195,7 +200,7 @@ export function deriveRepoWorkflowStatus(
     return REPO_WORKFLOW_STATUS.LOCAL_CLEAN;
   }
 
-  const state = pr.state.toLowerCase();
+  const state = pr.state.trim().toLowerCase();
   if (state === PR_STATE.MERGED) return REPO_WORKFLOW_STATUS.MERGED;
   if (state === PR_STATE.CLOSED) return REPO_WORKFLOW_STATUS.CLOSED;
 
@@ -206,7 +211,7 @@ export function deriveRepoWorkflowStatus(
   if (hasMergeConflicts) return REPO_WORKFLOW_STATUS.MERGE_CONFLICTS;
   if (checksStatus === "fail") return REPO_WORKFLOW_STATUS.CI_FAILING;
 
-  const decision = (pr.reviewDecision ?? "").toLowerCase();
+  const decision = (pr.reviewDecision ?? "").trim().toLowerCase();
   if (decision === PR_REVIEW_STATUS.APPROVED) return REPO_WORKFLOW_STATUS.APPROVED;
   if (decision === PR_REVIEW_STATUS.CHANGES_REQUESTED) {
     return REPO_WORKFLOW_STATUS.CHANGES_REQUESTED;

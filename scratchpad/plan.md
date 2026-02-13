@@ -208,6 +208,9 @@
 - Added events-stream stale-callback guard hardening:
   - SSE callback now no-ops after cleanup to prevent writes from stale listeners
   - added unit coverage locking post-cleanup callback behavior
+- Added repo-workflow normalization hardening:
+  - derive status now trims state/review-decision fields before comparisons
+  - added unit coverage for padded merged state and approved decision inputs
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

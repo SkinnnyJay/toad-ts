@@ -1340,3 +1340,14 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - `__tests__/unit/server/api-route-events-stream.unit.test.ts`
   - Covered:
     - post-cleanup stale-callback no-write behavior
+- Additional repo-workflow normalization hardening:
+  - Updated:
+    - `src/core/repo-workflow.ts`
+  - Hardening change:
+    - workflow derivation now trims PR state and review-decision fields before
+      status branching to defend against padded caller inputs.
+  - Extended:
+    - `__tests__/unit/core/repo-workflow.unit.test.ts`
+  - Covered:
+    - padded merged-state normalization
+    - padded approved-decision normalization

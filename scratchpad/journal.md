@@ -1,5 +1,20 @@
 # Scratchpad Journal
 
+## 2026-02-13 (repo-workflow defensive normalization)
+- Updated `src/core/repo-workflow.ts`:
+  - `deriveRepoWorkflowStatus` now trims and lowercases PR `state` and
+    `reviewDecision` before workflow branching
+  - widened internal input shape for defensive compatibility with non-normalized
+    callers while preserving existing behavior for normalized inputs
+- Extended `__tests__/unit/core/repo-workflow.unit.test.ts`:
+  - added padded-state normalization coverage (`" merged "`)
+  - added padded-review-decision normalization coverage (`" approved "`)
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/repo-workflow.unit.test.ts __tests__/unit/core/repo-workflow-info.unit.test.ts __tests__/unit/core/pr-status.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (events-stream stale-callback guard)
 - Updated `src/server/api-routes.ts`:
   - events-stream callback now short-circuits when cleanup has already run
