@@ -149,6 +149,8 @@
     default harness id is missing from configured harnesses
   - added headless integration coverage for startup fallback when harness
     config file contains malformed JSON
+  - added headless integration coverage for cursor harness connect failures,
+    including post-failure server responsiveness via mock harness sessions
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

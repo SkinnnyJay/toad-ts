@@ -9,6 +9,7 @@ import { z } from "zod";
 import { SERVER_CONFIG } from "@/config/server";
 import { ENV_KEY } from "@/constants/env-keys";
 import { FILE_PATH } from "@/constants/file-paths";
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { SERVER_EVENT } from "@/constants/server-events";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import {
@@ -200,6 +201,52 @@ describe("headless server", () => {
       });
     } finally {
       await server.close();
+    }
+  });
+
+  it("keeps server responsive when cursor harness connection fails", async () => {
+    const originalCursorEnabled = process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED];
+    const originalCursorCommand = process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND];
+    process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED] = "true";
+    process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = "toadstool-missing-cursor-binary";
+    EnvManager.resetInstance();
+
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const cursorResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.CURSOR_CLI_ID }),
+      });
+      expect(cursorResponse.status).toBe(500);
+      await expect(cursorResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.SERVER_ERROR,
+      });
+
+      const fallbackResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.MOCK_ID }),
+      });
+      expect(fallbackResponse.status).toBe(200);
+      const payload = createSessionResponseSchema.parse(await fallbackResponse.json());
+      expect(payload.sessionId).toBeTruthy();
+    } finally {
+      await server.close();
+      if (originalCursorEnabled === undefined) {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED] = undefined;
+      } else {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED] = originalCursorEnabled;
+      }
+      if (originalCursorCommand === undefined) {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = undefined;
+      } else {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = originalCursorCommand;
+      }
+      EnvManager.resetInstance();
     }
   });
 

@@ -2170,3 +2170,18 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock resilience semantics for malformed harness-config JSON at headless
       startup boundary.
+
+## Execution Log Addendum — 2026-02-13 (cursor connect-failure resilience coverage)
+
+- Additional headless runtime-resilience integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for cursor harness connection failures when
+      cursor feature flag is enabled and cursor command is missing.
+    - verifies create-session using `cursor-cli` returns canonical server error
+      and confirms server remains responsive by successfully creating a
+      subsequent `mock` session.
+  - Goal:
+    - lock robustness semantics so harness-level connect failures do not
+      destabilize headless server request handling.

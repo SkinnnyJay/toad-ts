@@ -1897,3 +1897,25 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Cursor connect-failure resilience integration coverage)
+
+### Summary
+- Added headless integration coverage for cursor harness connection failures
+  when cursor feature flag is enabled and cursor command is missing.
+- Test validates:
+  - `cursor-cli` session creation fails with canonical server error response.
+  - server remains responsive by successfully creating a subsequent `mock`
+    harness session.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅

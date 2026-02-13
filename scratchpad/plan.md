@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added cursor connect-failure resilience integration coverage:
+  - headless integration now verifies cursor harness connect failures return
+    canonical server errors when cursor feature flag is enabled with a missing
+    cursor command
+  - validates server remains responsive by successfully creating a follow-up
+    `mock` harness session after the cursor failure path
 - Added malformed harness-config JSON fallback integration coverage:
   - headless integration now verifies startup falls back to default harness
     config when `harnesses.json` exists but contains malformed JSON
