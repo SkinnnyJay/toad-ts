@@ -907,6 +907,23 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - multibyte payload overflow handling
     - chunked body assembly behavior
     - stream error propagation path
+- Additional strict session-route parsing hardening:
+  - Updated:
+    - `src/server/session-route-path.ts`
+    - `src/config/limits.ts`
+  - Hardening change:
+    - session route parsing now rejects extra path segments beyond supported shapes
+      (`/sessions/:id` and `/sessions/:id/:action`), preventing malformed routes from
+      being interpreted as valid prompt/messages endpoints.
+  - Extended:
+    - `__tests__/unit/server/session-route-path.unit.test.ts`
+    - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Covered:
+    - extra-segment parser rejection behavior
+    - core route classifier unhandled behavior for over-segmented paths
+    - headless-server canonical unknown-endpoint responses for over-segmented
+      prompt/messages session routes
 
 ---
 

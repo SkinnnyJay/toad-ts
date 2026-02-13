@@ -36,5 +36,8 @@ describe("classifyCoreRoute", () => {
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1/prompt/extra")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
   });
 });

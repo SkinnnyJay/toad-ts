@@ -32,6 +32,7 @@
   - expanded hook IPC invalid payload unit coverage
   - strengthened /api/agents integration contract assertions
   - hardened request-body max-size enforcement to use utf-8 byte counts
+  - hardened session route parsing against extra-segment subpaths
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

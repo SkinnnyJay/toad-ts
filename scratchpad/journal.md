@@ -1,5 +1,24 @@
 # Scratchpad Journal
 
+## 2026-02-13 (strict session-subroute parsing hardening)
+- Updated `src/server/session-route-path.ts`:
+  - parser now rejects over-segmented session paths (e.g. `/sessions/:id/prompt/extra`)
+  - segment limit sourced from `LIMIT.SESSION_ROUTE_MAX_SEGMENTS`
+- Updated `src/config/limits.ts`:
+  - added `SESSION_ROUTE_MAX_SEGMENTS` constant for parser guard
+- Extended coverage:
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Locked behavior:
+  - extra-segment session routes now consistently return canonical unknown-endpoint responses
+    instead of being misclassified as valid prompt/messages paths
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/session-route-path.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅ (after moving segment cap to config constant)
+
 ## 2026-02-13 (request-body byte-size correctness hardening)
 - Updated `src/server/request-body.ts`:
   - request size enforcement now tracks utf-8 byte length instead of string length

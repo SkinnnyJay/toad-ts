@@ -203,6 +203,22 @@ describe("headless server", () => {
       await expect(getResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
       });
+
+      const extraPromptSegment = await fetch(`${baseUrl}/sessions/session-1/prompt/extra`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "Hello" }),
+      });
+      expect(extraPromptSegment.status).toBe(404);
+      await expect(extraPromptSegment.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const extraMessagesSegment = await fetch(`${baseUrl}/sessions/session-1/messages/extra`);
+      expect(extraMessagesSegment.status).toBe(404);
+      await expect(extraMessagesSegment.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
     } finally {
       await server.close();
     }

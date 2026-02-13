@@ -100,6 +100,10 @@
 - Added request-body byte-size correctness hardening:
   - request body size checks now use utf-8 byte counts instead of string length
   - added utility coverage for multibyte overflow, chunked reads, and stream error path
+- Added strict session-subroute parsing hardening:
+  - session route parser now rejects extra path segments beyond expected shape
+  - added coverage to lock unknown-endpoint behavior for over-segmented session routes
+  - moved segment-limit literal into shared limits config to keep strict literal checks green
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

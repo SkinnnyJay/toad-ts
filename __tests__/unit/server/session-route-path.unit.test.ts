@@ -20,4 +20,9 @@ describe("parseSessionRoutePath", () => {
     expect(parseSessionRoutePath("/health")).toBeNull();
     expect(parseSessionRoutePath("/api/sessions")).toBeNull();
   });
+
+  it("returns null for session paths with extra segments", () => {
+    expect(parseSessionRoutePath("/sessions/session-1/prompt/extra")).toBeNull();
+    expect(parseSessionRoutePath("/sessions/session-1/messages/extra")).toBeNull();
+  });
 });
