@@ -7,6 +7,7 @@ import { SERVER_CONFIG } from "@/config/server";
 import { ENV_KEY } from "@/constants/env-keys";
 import { SERVER_EVENT } from "@/constants/server-events";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
+import { HARNESS_ID_VALIDATION_MESSAGE } from "@/harness/harness-id";
 import { startHeadlessServer } from "@/server/headless-server";
 import { createSessionResponseSchema, serverEventSchema } from "@/server/server-types";
 import { EnvManager } from "@/utils/env/env.utils";
@@ -422,7 +423,7 @@ describe("headless server", () => {
       expect(response.status).toBe(400);
       const payload = (await response.json()) as { error?: string };
       expect(typeof payload.error).toBe("string");
-      expect((payload.error ?? "").length).toBeGreaterThan(0);
+      expect(payload.error).toContain(HARNESS_ID_VALIDATION_MESSAGE.NON_CANONICAL);
     } finally {
       await server.close();
     }

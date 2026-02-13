@@ -2009,3 +2009,27 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - align harness-id validation semantics across config loading and server
       request boundaries to avoid ambiguous harness selection behavior.
+
+## Execution Log Addendum — 2026-02-13 (harness-id validation message unification)
+
+- Additional harness-id diagnostics hardening:
+  - Updated:
+    - `src/harness/harness-id.ts`
+    - `src/harness/harness-error-messages.ts`
+    - `src/server/server-types.ts`
+    - `__tests__/unit/harness/harness-id.unit.test.ts`
+    - `__tests__/unit/harness/harness-error-messages.unit.test.ts`
+    - `__tests__/unit/server/server-types.unit.test.ts`
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - introduced shared canonical harness-id validation message constant.
+    - harness config invalid-id formatter now reuses shared message text.
+    - create-session request schema now emits deterministic canonical-id message
+      for `harnessId` validation failures.
+    - expanded unit/integration coverage to assert message propagation across:
+      - harness-id utility/constants
+      - harness error formatter
+      - server schema validation + headless response payloads
+  - Goal:
+    - keep harness-id validation diagnostics deterministic and consistent across
+      config/runtime request boundaries.

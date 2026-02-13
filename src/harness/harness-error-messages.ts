@@ -1,3 +1,5 @@
+import { HARNESS_ID_VALIDATION_MESSAGE } from "@/harness/harness-id";
+
 export const formatHarnessNotConfiguredError = (harnessId: string): string => {
   return `Harness '${harnessId}' not configured.`;
 };
@@ -11,5 +13,5 @@ export const formatHarnessNotFoundError = (harnessId: string): string => {
 };
 
 export const formatInvalidHarnessIdError = (harnessId: string): string => {
-  return `Invalid harness id '${harnessId}'. Harness ids must not contain leading or trailing whitespace.`;
+  return `Invalid harness id '${harnessId}'. ${HARNESS_ID_VALIDATION_MESSAGE.NON_CANONICAL}`;
 };

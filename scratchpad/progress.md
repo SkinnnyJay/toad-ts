@@ -129,6 +129,8 @@
     trimming/coercion of padded values)
   - hardened session create request validation to reject non-canonical
     harness ids using shared harness-id helper semantics
+  - hardened harness-id validation diagnostics by reusing one canonical
+    message across harness config errors and session request schema failures
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

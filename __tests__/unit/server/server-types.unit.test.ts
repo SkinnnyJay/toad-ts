@@ -1,4 +1,5 @@
 import { SERVER_EVENT } from "@/constants/server-events";
+import { HARNESS_ID_VALIDATION_MESSAGE } from "@/harness/harness-id";
 import {
   createSessionRequestSchema,
   createSessionResponseSchema,
@@ -44,6 +45,11 @@ describe("server-types schemas", () => {
 
     expect(paddedHarnessId.success).toBe(false);
     expect(whitespaceHarnessId.success).toBe(false);
+    if (!paddedHarnessId.success) {
+      expect(paddedHarnessId.error.issues[0]?.message).toBe(
+        HARNESS_ID_VALIDATION_MESSAGE.NON_CANONICAL
+      );
+    }
   });
 
   it("enforces create session response shape", () => {

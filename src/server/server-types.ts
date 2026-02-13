@@ -1,11 +1,17 @@
 import { SERVER_EVENT } from "@/constants/server-events";
-import { isCanonicalHarnessId } from "@/harness/harness-id";
+import { HARNESS_ID_VALIDATION_MESSAGE, isCanonicalHarnessId } from "@/harness/harness-id";
 import { AgentIdSchema, SessionIdSchema } from "@/types/domain";
 import { z } from "zod";
 
 export const createSessionRequestSchema = z
   .object({
-    harnessId: z.string().min(1).refine(isCanonicalHarnessId).optional(),
+    harnessId: z
+      .string()
+      .min(1)
+      .refine(isCanonicalHarnessId, {
+        message: HARNESS_ID_VALIDATION_MESSAGE.NON_CANONICAL,
+      })
+      .optional(),
     agentId: AgentIdSchema.optional(),
     cwd: z.string().min(1).optional(),
     title: z.string().min(1).optional(),

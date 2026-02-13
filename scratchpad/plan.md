@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added harness-id validation message unification hardening:
+  - shared canonical harness-id validation message constant now reused across
+    harness error formatting and server request schema validation
+  - create-session schema now emits deterministic harness-id validation message
+  - expanded unit/integration coverage for message propagation in schema +
+    headless bad-request payloads
 - Added session-request harness-id canonicalization hardening:
   - shared harness-id utility added for canonical-id checks/normalization
   - create-session request schema now rejects padded/blank harness ids at

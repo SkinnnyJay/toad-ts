@@ -1688,3 +1688,25 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Harness-id validation message unification)
+
+### Summary
+- Added shared canonical harness-id validation message constant.
+- Reused shared message text in:
+  - harness invalid-id error formatter
+  - create-session request schema refinement message
+- Expanded focused unit/integration coverage to assert message propagation
+  across harness utility/formatter/schema/headless request validation paths.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/harness/harness-id.unit.test.ts __tests__/unit/harness/harness-error-messages.unit.test.ts __tests__/unit/server/server-types.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅

@@ -4,6 +4,7 @@ import {
   formatHarnessNotFoundError,
   formatInvalidHarnessIdError,
 } from "@/harness/harness-error-messages";
+import { HARNESS_ID_VALIDATION_MESSAGE } from "@/harness/harness-id";
 import { describe, expect, it } from "vitest";
 
 describe("harness error message helpers", () => {
@@ -25,7 +26,7 @@ describe("harness error message helpers", () => {
 
   it("formats invalid harness id message", () => {
     expect(formatInvalidHarnessIdError(" cursor-cli ")).toBe(
-      "Invalid harness id ' cursor-cli '. Harness ids must not contain leading or trailing whitespace."
+      `Invalid harness id ' cursor-cli '. ${HARNESS_ID_VALIDATION_MESSAGE.NON_CANONICAL}`
     );
   });
 });

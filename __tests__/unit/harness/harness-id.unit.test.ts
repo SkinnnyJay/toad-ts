@@ -1,4 +1,8 @@
-import { isCanonicalHarnessId, normalizeHarnessId } from "@/harness/harness-id";
+import {
+  HARNESS_ID_VALIDATION_MESSAGE,
+  isCanonicalHarnessId,
+  normalizeHarnessId,
+} from "@/harness/harness-id";
 import { describe, expect, it } from "vitest";
 
 describe("harness-id utilities", () => {
@@ -13,5 +17,9 @@ describe("harness-id utilities", () => {
   it("returns false for padded or blank harness ids", () => {
     expect(isCanonicalHarnessId(" cursor-cli ")).toBe(false);
     expect(isCanonicalHarnessId("   ")).toBe(false);
+  });
+
+  it("exposes canonical harness id validation message", () => {
+    expect(HARNESS_ID_VALIDATION_MESSAGE.NON_CANONICAL).toContain("must be non-empty");
   });
 });
