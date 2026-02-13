@@ -1,5 +1,16 @@
 # Scratchpad Journal
 
+## 2026-02-13 (repo remote scheme-case parsing hardening)
+- Updated `src/core/repo-workflow.ts`:
+  - made `https://` and `ssh://` remote parsing case-insensitive
+- Extended `__tests__/unit/core/repo-workflow-info.unit.test.ts`:
+  - added uppercase-HTTPS remote parse coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/repo-workflow-info.unit.test.ts __tests__/unit/core/repo-workflow.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (request-body single-settlement hardening)
 - Updated `src/server/request-body.ts`:
   - introduced one-shot resolve/reject guards so request-body promise settles once

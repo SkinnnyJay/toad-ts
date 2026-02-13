@@ -1030,6 +1030,16 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/server/request-body.unit.test.ts`
   - Covered:
     - combined multi-chunk overflow path where body size exceeds max across chunks.
+- Additional remote-url scheme-case parsing hardening:
+  - Updated:
+    - `src/core/repo-workflow.ts`
+  - Hardening change:
+    - repo owner/repo extraction now accepts case-variant protocol schemes for
+      `https://` and `ssh://` remotes.
+  - Extended:
+    - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
+  - Covered:
+    - uppercase `HTTPS://...` remote parsing to owner/repo values.
 
 ---
 

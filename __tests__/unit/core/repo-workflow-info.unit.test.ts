@@ -372,4 +372,30 @@ describe("getRepoWorkflowInfo", () => {
     expect(info.owner).toBe("octocat");
     expect(info.repoName).toBe("hello-world");
   });
+
+  it("parses owner and repo from uppercase HTTPS remote url", async () => {
+    const execaMock = await getExecaMock();
+    const prStatusMock = await getPrStatusMock();
+    const isGitCleanMock = await getIsGitCleanMock();
+
+    execaMock.mockImplementation(
+      buildExecaImplementation(
+        [{ status: "completed", conclusion: "success" }],
+        "HTTPS://github.com/octocat/hello-world.git"
+      )
+    );
+    prStatusMock.mockResolvedValue({
+      number: 10,
+      title: "Uppercase HTTPS parse",
+      url: "https://github.com/octocat/hello-world/pull/10",
+      state: "open",
+      reviewDecision: PR_REVIEW_STATUS.APPROVED,
+    });
+    isGitCleanMock.mockResolvedValue(true);
+
+    const info = await getRepoWorkflowInfo("/workspace");
+
+    expect(info.owner).toBe("octocat");
+    expect(info.repoName).toBe("hello-world");
+  });
 });

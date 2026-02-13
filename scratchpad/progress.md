@@ -43,6 +43,7 @@
   - added ssh remote trailing-slash parsing support in repo workflow info
   - hardened shared JSON response helper managed-header sanitization
   - hardened request-body reader to settle once under repeated stream events
+  - hardened repo remote URL parser for uppercase scheme variants
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

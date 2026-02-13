@@ -68,7 +68,7 @@ function parseOwnerRepoFromUrl(url: string): { owner: string; repo: string } | n
     return { owner: sshMatch[1] ?? "", repo: (sshMatch[2] ?? "").replace(/\.git$/, "") };
   }
   const sshProtocolMatch = trimmed.match(
-    /^ssh:\/\/(?:[^@]+@)?[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/
+    /^ssh:\/\/(?:[^@]+@)?[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i
   );
   if (sshProtocolMatch) {
     return {
@@ -76,7 +76,7 @@ function parseOwnerRepoFromUrl(url: string): { owner: string; repo: string } | n
       repo: (sshProtocolMatch[2] ?? "").replace(/\.git$/, ""),
     };
   }
-  const httpsMatch = trimmed.match(/^https?:\/\/[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/);
+  const httpsMatch = trimmed.match(/^https?:\/\/[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i);
   if (httpsMatch) {
     return { owner: httpsMatch[1] ?? "", repo: (httpsMatch[2] ?? "").replace(/\.git$/, "") };
   }

@@ -134,6 +134,9 @@
 - Added request-body single-settlement hardening:
   - request-body reader now guards resolve/reject to settle exactly once
   - added chunk-overflow coverage for multi-chunk max-body enforcement path
+- Added remote-url scheme-case parsing hardening:
+  - repo remote parser now accepts uppercase HTTPS/SSH scheme variants
+  - added workflow info unit coverage for uppercase HTTPS remotes
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
