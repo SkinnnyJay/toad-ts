@@ -1,3 +1,4 @@
+import { TIMEOUT } from "@/config/timeouts";
 import {
   PR_REVIEW_COLOR,
   PR_REVIEW_STATUS,
@@ -23,7 +24,7 @@ export const getPRStatus = async (cwd?: string): Promise<PullRequestStatus | nul
     const { stdout } = await execa(
       "gh",
       ["pr", "view", "--json", "number,title,url,state,reviewDecision,isDraft"],
-      { cwd: cwd ?? process.cwd(), timeout: 10_000 }
+      { cwd: cwd ?? process.cwd(), timeout: TIMEOUT.GH_CLI_MS }
     );
 
     const data = JSON.parse(stdout) as {

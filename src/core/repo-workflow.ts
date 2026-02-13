@@ -1,5 +1,6 @@
 import path from "node:path";
 import { GIT_STATUS_CODE_MIN_LENGTH } from "@/config/limits";
+import { TIMEOUT } from "@/config/timeouts";
 import { REPO_WORKFLOW_ACTION, type RepoWorkflowAction } from "@/constants/repo-workflow-actions";
 import { REPO_WORKFLOW_STATUS, type RepoWorkflowStatus } from "@/constants/repo-workflow-status";
 import { type PullRequestStatus, getPRStatus } from "@/core/pr-status";
@@ -112,7 +113,7 @@ async function getPrChecksStatus(cwd: string): Promise<"pass" | "fail" | "pendin
     const { stdout } = await execa("gh", ["pr", "checks", "--json", "name,status,conclusion"], {
       cwd,
       encoding: "utf8",
-      timeout: 10_000,
+      timeout: TIMEOUT.GH_CLI_MS,
     });
     const data = JSON.parse(stdout) as Array<{ status?: string; conclusion?: string }>;
     if (!Array.isArray(data) || data.length === 0) return null;

@@ -22,6 +22,7 @@ export const TIMEOUT = {
   TOOL_CALL_SUMMARY_PULSE_MS: 500,
   COMMAND_DISCOVERY_MS: 3000,
   BEADS_COMMAND_MS: 10000,
+  GH_CLI_MS: 10000,
 } as const;
 
 // Re-export for convenience
@@ -49,4 +50,5 @@ export const {
   TOOL_CALL_SUMMARY_PULSE_MS,
   COMMAND_DISCOVERY_MS,
   BEADS_COMMAND_MS,
+  GH_CLI_MS,
 } = TIMEOUT;

@@ -474,6 +474,11 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Replaced raw command timeout literals in:
     - `src/core/lsp-client.ts`
     - `src/core/beads-integration.ts`
+- Additional GitHub CLI timeout literal hardening:
+  - Added `GH_CLI_MS` in `src/config/timeouts.ts`.
+  - Replaced raw `10_000` GH command timeouts in:
+    - `src/core/repo-workflow.ts`
+    - `src/core/pr-status.ts`
 
 ---
 
