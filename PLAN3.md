@@ -1020,6 +1020,16 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - lowercase managed header override suppression behavior while preserving
       non-managed custom headers.
+- Additional request-body single-settlement hardening:
+  - Updated:
+    - `src/server/request-body.ts`
+  - Hardening change:
+    - request-body read promise now uses single-settlement guards so repeated stream
+      events after an error path cannot trigger multiple resolve/reject attempts.
+  - Extended:
+    - `__tests__/unit/server/request-body.unit.test.ts`
+  - Covered:
+    - combined multi-chunk overflow path where body size exceeds max across chunks.
 
 ---
 

@@ -1,5 +1,17 @@
 # Scratchpad Journal
 
+## 2026-02-13 (request-body single-settlement hardening)
+- Updated `src/server/request-body.ts`:
+  - introduced one-shot resolve/reject guards so request-body promise settles once
+    even when multiple stream events fire after failure
+- Extended `__tests__/unit/server/request-body.unit.test.ts`:
+  - added combined chunk overflow case to lock multi-chunk over-limit behavior
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/request-body.unit.test.ts __tests__/unit/server/api-route-tui-handlers.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (response-helper managed-header sanitization)
 - Updated `src/server/http-response.ts`:
   - strips case-variant managed headers (`content-type`, `content-length`) from caller

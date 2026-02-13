@@ -131,6 +131,9 @@
 - Added response-helper managed-header sanitization hardening:
   - response helper now strips case-variant managed content headers from custom inputs
   - added unit coverage to lock content-type/content-length header precedence behavior
+- Added request-body single-settlement hardening:
+  - request-body reader now guards resolve/reject to settle exactly once
+  - added chunk-overflow coverage for multi-chunk max-body enforcement path
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

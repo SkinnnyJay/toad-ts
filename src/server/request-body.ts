@@ -11,20 +11,37 @@ export const readRequestBody = async (
   maxBodyBytes = SERVER_CONFIG.MAX_BODY_BYTES
 ): Promise<string> =>
   new Promise((resolve, reject) => {
+    let isSettled = false;
     let receivedBytes = 0;
     let data = "";
+    const resolveOnce = (payload: string): void => {
+      if (isSettled) {
+        return;
+      }
+      isSettled = true;
+      resolve(payload);
+    };
+    const rejectOnce = (error: Error): void => {
+      if (isSettled) {
+        return;
+      }
+      isSettled = true;
+      reject(error);
+    };
     req.on("data", (chunk: Buffer | string) => {
       const chunkText = typeof chunk === "string" ? chunk : chunk.toString();
       const chunkBytes = typeof chunk === "string" ? Buffer.byteLength(chunk) : chunk.length;
       receivedBytes += chunkBytes;
       if (receivedBytes > maxBodyBytes) {
-        reject(new Error(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE));
+        rejectOnce(new Error(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE));
         return;
       }
       data += chunkText;
     });
-    req.on("end", () => resolve(data));
-    req.on("error", reject);
+    req.on("end", () => resolveOnce(data));
+    req.on("error", (error) =>
+      rejectOnce(error instanceof Error ? error : new Error(String(error)))
+    );
   });
 
 export const parseJsonRequestBody = async <TPayload>(

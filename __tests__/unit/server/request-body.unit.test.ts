@@ -52,6 +52,14 @@ describe("request-body helpers", () => {
     await expect(pending).rejects.toThrow(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE);
   });
 
+  it("rejects when combined chunk size exceeds configured max", async () => {
+    const req = createRequest();
+    const pending = readRequestBody(req, 4);
+    emitPayloadChunks(req, ["12", "345"]);
+
+    await expect(pending).rejects.toThrow(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE);
+  });
+
   it("rejects request body when utf-8 byte size exceeds max", async () => {
     const req = createRequest();
     const pending = readRequestBody(req, 7);
