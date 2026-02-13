@@ -49,18 +49,22 @@ export interface UseAppKeyboardShortcutsResult {
 
 /**
  * Focus target mapping for number shortcuts.
- * Command/Ctrl + 1-5 maps to different focus targets.
+ * Command/Ctrl + digit keys maps to different focus targets.
  */
-export const FOCUS_NUMBER_MAP = {
-  "1": FOCUS_TARGET.FILES,
-  "2": FOCUS_TARGET.PLAN,
-  "3": FOCUS_TARGET.CONTEXT,
-  "4": FOCUS_TARGET.SESSIONS,
-  "5": FOCUS_TARGET.AGENT,
-  "6": FOCUS_TARGET.TODOS,
-} as const;
+const FOCUS_TARGET_SEQUENCE = [
+  FOCUS_TARGET.FILES,
+  FOCUS_TARGET.PLAN,
+  FOCUS_TARGET.CONTEXT,
+  FOCUS_TARGET.SESSIONS,
+  FOCUS_TARGET.AGENT,
+  FOCUS_TARGET.TODOS,
+] as const;
 
-export type FocusShortcutKey = keyof typeof FOCUS_NUMBER_MAP;
+export const FOCUS_NUMBER_MAP: Record<string, FocusTarget> = Object.fromEntries(
+  FOCUS_TARGET_SEQUENCE.map((target, index) => [String(index + 1), target])
+);
+
+export type FocusShortcutKey = string;
 
 export const isFocusShortcutKey = (keyName: string): keyName is FocusShortcutKey => {
   return Object.hasOwn(FOCUS_NUMBER_MAP, keyName);
@@ -159,7 +163,11 @@ export function useAppKeyboardShortcuts({
     if ((key.meta || key.ctrl) && isFocusShortcutKey(keyName)) {
       key.preventDefault();
       key.stopPropagation();
-      setFocusTarget(FOCUS_NUMBER_MAP[keyName]);
+      const focusTargetForShortcut = FOCUS_NUMBER_MAP[keyName];
+      if (!focusTargetForShortcut) {
+        return;
+      }
+      setFocusTarget(focusTargetForShortcut);
       return;
     }
 
