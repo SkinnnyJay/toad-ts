@@ -1305,3 +1305,18 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 
 15. **Simplify or document Cursor vs ACP**  
     Cursor CLI is not ACP-based; the default config presents it alongside ACP harnesses. **Fix:** Either remove Cursor from default config until M7/M8 (recommended in Critical #1), or add a short comment in `defaultHarnessConfig.ts` and README that "Cursor CLI" is listed for future use and requires the Cursor CLI harness implementation (PLAN2) to be functional.
+
+---
+
+## Execution Log Addendum — 2026-02-13
+
+- Additional events-stream aborted-request cleanup hardening:
+  - Updated:
+    - `src/server/api-routes.ts`
+  - Hardening change:
+    - SSE subscription cleanup now also triggers on request `aborted` events,
+      while preserving idempotent cleanup across close/error/aborted ordering.
+  - Extended:
+    - `__tests__/unit/server/api-route-events-stream.unit.test.ts`
+  - Covered:
+    - request-aborted cleanup path with idempotency via subsequent close event

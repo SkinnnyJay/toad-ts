@@ -65,6 +65,7 @@
   - hardened SSE stream cleanup coverage for request/response error events
   - expanded PR status unit coverage for gh invocation option wiring
   - expanded file-search unit coverage for plus-encoded query decoding
+  - hardened SSE cleanup for request-aborted shutdown path
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

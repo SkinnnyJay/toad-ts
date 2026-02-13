@@ -1,5 +1,17 @@
 # Scratchpad Journal
 
+## 2026-02-13 (events-stream aborted-request cleanup)
+- Updated `src/server/api-routes.ts`:
+  - events stream now subscribes to request `aborted` events for cleanup
+  - cleanup remains idempotent with existing request/response close/error handling
+- Extended `__tests__/unit/server/api-route-events-stream.unit.test.ts`:
+  - added request-aborted cleanup coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/api-route-events-stream.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (file-search plus-decoding contract test)
 - Extended `__tests__/unit/server/api-route-file-search.unit.test.ts`:
   - added explicit coverage for `+` form-encoding in query values

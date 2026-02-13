@@ -199,6 +199,9 @@
 - Added file-search plus-decoding contract coverage:
   - locked behavior that `q=readme+notes` decodes to `readme notes`
   - expanded focused file-search unit coverage without changing runtime behavior
+- Added events-stream aborted-request cleanup hardening:
+  - SSE subscriptions now clean up when request emits `aborted`
+  - added unit coverage for aborted + close event idempotency
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

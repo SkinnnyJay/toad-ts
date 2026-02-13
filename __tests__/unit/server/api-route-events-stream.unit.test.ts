@@ -149,4 +149,19 @@ describe("eventsStream handler", () => {
 
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
+
+  it("unsubscribes when request emits aborted event", async () => {
+    const subscribeMock = await getSubscribeMock();
+    const unsubscribe = vi.fn();
+    subscribeMock.mockImplementation(() => unsubscribe);
+
+    const request = new EventEmitter() as IncomingMessage;
+    const { response } = createResponseCapture();
+
+    await eventsStream(request, response, {});
+    request.emit("aborted");
+    (response as unknown as EventEmitter).emit("close");
+
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+  });
 });
