@@ -35,6 +35,12 @@ describe("parseRequestUrl", () => {
     expect(url).toBeNull();
   });
 
+  it("returns null for absolute request urls", () => {
+    const url = parseRequestUrl(createRequest("https://example.com/api/files/search?q=readme"));
+
+    expect(url).toBeNull();
+  });
+
   it("returns null when request url is missing", () => {
     const url = parseRequestUrl(createRequest(undefined, "127.0.0.1:4141"));
 

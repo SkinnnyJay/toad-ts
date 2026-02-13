@@ -229,6 +229,9 @@
 - Added request-url whitespace normalization hardening:
   - shared parser now trims url/host inputs before URL construction
   - preserves valid parsing for whitespace-padded host/url request values
+- Added request-target strictness hardening:
+  - shared parser now rejects non-origin-form request targets (absolute URLs)
+  - file-search route now returns invalid-request for absolute request targets
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

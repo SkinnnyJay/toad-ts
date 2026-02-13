@@ -1419,3 +1419,15 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Covered:
     - whitespace-wrapped url/host parse behavior
     - whitespace-host file-search success behavior
+- Additional request-target strictness hardening:
+  - Updated:
+    - `src/server/request-url.ts`
+  - Hardening change:
+    - request-url parser now accepts only origin-form request targets and rejects
+      absolute request URLs as invalid inputs.
+  - Extended:
+    - `__tests__/unit/server/request-url.unit.test.ts`
+    - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - Covered:
+    - absolute request-target rejection in parser
+    - file-search absolute-target canonical invalid-request response
