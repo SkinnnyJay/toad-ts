@@ -12,7 +12,7 @@ import { PLATFORM } from "@/constants/platform";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { sendErrorResponse, sendJsonResponse } from "@/server/http-response";
 import { parseJsonRequestBody } from "@/server/request-body";
-import { normalizeRequestBodyParseError } from "@/server/request-error-normalization";
+import { normalizeRequestBodyParseErrorDetails } from "@/server/request-error-normalization";
 import {
   type CursorHookInput,
   CursorHookInputSchema,
@@ -36,19 +36,6 @@ type HookIpcTransport = (typeof HOOK_IPC_TRANSPORT)[keyof typeof HOOK_IPC_TRANSP
 
 const defaultSocketPath = (pid: number): string => {
   return path.join(tmpdir(), `toadstool-cursor-hooks-${pid}.sock`);
-};
-
-interface HookRequestBodyErrorMapping {
-  readonly message: string;
-  readonly error: string;
-}
-
-const mapHookRequestBodyError = (error: unknown): HookRequestBodyErrorMapping => {
-  const message = normalizeRequestBodyParseError(error);
-  return {
-    message,
-    error: error instanceof Error ? error.message : String(error),
-  };
 };
 
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> => {
@@ -153,7 +140,7 @@ export class HookIpcServer {
         }
         payload = parsedPayload.data;
       } catch (error) {
-        const mappedError = mapHookRequestBodyError(error);
+        const mappedError = normalizeRequestBodyParseErrorDetails(error);
         this.logger.warn("Hook IPC invalid request body", {
           error: mappedError.error,
           mappedMessage: mappedError.message,

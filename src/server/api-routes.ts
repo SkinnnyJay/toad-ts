@@ -9,10 +9,11 @@ import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { normalizeHttpMethod } from "@/server/http-method-normalization";
 import { sendJsonResponse } from "@/server/http-response";
 import { parseJsonRequestBody } from "@/server/request-body";
-import { normalizeRequestBodyParseError } from "@/server/request-error-normalization";
+import { normalizeRequestBodyParseErrorDetails } from "@/server/request-error-normalization";
 import { parseRequestUrl } from "@/server/request-url";
 import { useAppStore } from "@/store/app-store";
 import type { Session, SessionId } from "@/types/domain";
+import { createClassLogger } from "@/utils/logging/logger.utils";
 export type RouteHandler = (
   req: IncomingMessage,
   res: ServerResponse,
@@ -24,6 +25,12 @@ const QUERY_PARAM_SEPARATOR = "&";
 const QUERY_PARAM_ASSIGNMENT = "=";
 const FORM_SPACE_PATTERN = /\+/g;
 const FORM_SPACE_REPLACEMENT = "%20";
+const API_ROUTE_HANDLER = {
+  APPEND_PROMPT: "append_prompt",
+  EXECUTE_COMMAND: "execute_command",
+} as const;
+
+const logger = createClassLogger("ApiRoutes");
 
 const sendJson = (res: ServerResponse, status: number, payload: unknown): void => {
   sendJsonResponse(res, status, payload);
@@ -240,8 +247,16 @@ export const appendPrompt: RouteHandler = async (req, res) => {
     }
     sendJson(res, HTTP_STATUS.OK, { queued: true, text });
   } catch (error) {
+    const normalizedError = normalizeRequestBodyParseErrorDetails(error);
+    logger.warn("API route request parsing failed", {
+      handler: API_ROUTE_HANDLER.APPEND_PROMPT,
+      method: normalizeHttpMethod(req.method ?? ""),
+      pathname: req.url?.trim() ?? "",
+      error: normalizedError.error,
+      mappedMessage: normalizedError.message,
+    });
     sendJson(res, HTTP_STATUS.BAD_REQUEST, {
-      error: normalizeRequestBodyParseError(error),
+      error: normalizedError.message,
     });
   }
 };
@@ -262,8 +277,16 @@ export const executeCommand: RouteHandler = async (req, res) => {
     }
     sendJson(res, HTTP_STATUS.OK, { executed: true, command });
   } catch (error) {
+    const normalizedError = normalizeRequestBodyParseErrorDetails(error);
+    logger.warn("API route request parsing failed", {
+      handler: API_ROUTE_HANDLER.EXECUTE_COMMAND,
+      method: normalizeHttpMethod(req.method ?? ""),
+      pathname: req.url?.trim() ?? "",
+      error: normalizedError.error,
+      mappedMessage: normalizedError.message,
+    });
     sendJson(res, HTTP_STATUS.BAD_REQUEST, {
-      error: normalizeRequestBodyParseError(error),
+      error: normalizedError.message,
     });
   }
 };

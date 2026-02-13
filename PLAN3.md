@@ -1693,3 +1693,26 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - improve operational diagnostics and make parse-failure control flow more
       explicit at the exact route boundary where parsing occurs.
+
+## Execution Log Addendum — 2026-02-13 (API parse-failure diagnostics parity)
+
+- Additional API route diagnostics parity hardening:
+  - Updated:
+    - `src/server/api-routes.ts`
+    - `src/server/request-error-normalization.ts`
+    - `src/core/cursor/hook-ipc-server.ts`
+    - `__tests__/unit/server/api-route-tui-handlers.unit.test.ts`
+    - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+  - Hardening changes:
+    - API TUI handlers now emit structured parse-failure warnings with context:
+      - handler id
+      - normalized method/pathname
+      - mapped canonical error message
+      - underlying parse/read error detail
+    - introduced shared `normalizeRequestBodyParseErrorDetails(...)` to
+      centralize parse-failure detail mapping, reused by API routes and hook IPC.
+    - expanded API TUI coverage to lock canonical `INVALID_REQUEST` mapping for
+      request stream `error` and `aborted` lifecycle failures.
+  - Goal:
+    - ensure diagnostics parity across headless, API route, and hook IPC
+      request-body parsing paths while preserving canonical responses.

@@ -1,5 +1,30 @@
 # Scratchpad Journal
 
+## 2026-02-13 (API parse-failure diagnostics parity)
+- Updated:
+  - `src/server/api-routes.ts`
+  - `src/server/request-error-normalization.ts`
+  - `src/core/cursor/hook-ipc-server.ts`
+- Changes:
+  - API TUI handlers now emit structured warning diagnostics for request-body
+    parse failures (`handler`, `method`, `pathname`, `error`, `mappedMessage`)
+  - introduced shared `normalizeRequestBodyParseErrorDetails(...)` helper and
+    reused it in API routes + hook IPC
+- Extended tests:
+  - `__tests__/unit/server/api-route-tui-handlers.unit.test.ts`
+    - added request stream `error`/`aborted` failure mapping coverage
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+    - added parse-error details helper coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts __tests__/unit/server/api-route-tui-handlers.unit.test.ts __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (headless route-local parse handling hardening)
 - Updated `src/server/headless-server.ts`:
   - route-level request-body parse handling added for:

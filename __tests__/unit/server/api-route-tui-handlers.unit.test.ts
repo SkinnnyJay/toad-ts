@@ -59,6 +59,24 @@ const invokeRawHandler = async (
   return getCaptured();
 };
 
+const invokeErroredHandler = async (
+  handler: typeof appendPrompt | typeof executeCommand,
+  event: "error" | "aborted"
+): Promise<CapturedResponse> => {
+  const req = createRequest();
+  const { response, getCaptured } = createResponseCapture();
+  const execution = handler(req, response, {});
+  process.nextTick(() => {
+    if (event === "error") {
+      req.emit("error", new Error("socket hang up"));
+      return;
+    }
+    req.emit("aborted");
+  });
+  await execution;
+  return getCaptured();
+};
+
 describe("api-routes TUI handlers", () => {
   it("appendPrompt rejects missing text", async () => {
     const captured = await invokeJsonHandler(appendPrompt, { text: "" });
@@ -117,4 +135,16 @@ describe("api-routes TUI handlers", () => {
       body: { error: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE },
     });
   });
+
+  it.each(["error", "aborted"] as const)(
+    "appendPrompt returns bad request when request emits %s",
+    async (event) => {
+      const captured = await invokeErroredHandler(appendPrompt, event);
+
+      expect(captured).toEqual({
+        statusCode: HTTP_STATUS.BAD_REQUEST,
+        body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+      });
+    }
+  );
 });

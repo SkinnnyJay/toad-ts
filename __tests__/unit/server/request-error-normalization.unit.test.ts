@@ -2,6 +2,7 @@ import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import {
   classifyRequestParsingError,
   normalizeRequestBodyParseError,
+  normalizeRequestBodyParseErrorDetails,
 } from "@/server/request-error-normalization";
 import { describe, expect, it } from "vitest";
 
@@ -36,5 +37,14 @@ describe("request-error-normalization", () => {
     const error = new Error(UNKNOWN_ERROR_MESSAGE);
 
     expect(normalizeRequestBodyParseError(error)).toBe(SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
+  });
+
+  it("returns normalized parse error details", () => {
+    const error = new Error(UNKNOWN_ERROR_MESSAGE);
+
+    expect(normalizeRequestBodyParseErrorDetails(error)).toEqual({
+      message: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      error: UNKNOWN_ERROR_MESSAGE,
+    });
   });
 });

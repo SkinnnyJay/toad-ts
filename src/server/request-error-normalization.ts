@@ -1,5 +1,10 @@
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 
+export interface NormalizedRequestBodyParseError {
+  readonly message: string;
+  readonly error: string;
+}
+
 const isRequestBodyTooLargeError = (error: unknown): boolean =>
   error instanceof Error && error.message === SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE;
 
@@ -16,6 +21,13 @@ export const normalizeRequestBodyParseError = (error: unknown): string => {
   }
   return SERVER_RESPONSE_MESSAGE.INVALID_REQUEST;
 };
+
+export const normalizeRequestBodyParseErrorDetails = (
+  error: unknown
+): NormalizedRequestBodyParseError => ({
+  message: normalizeRequestBodyParseError(error),
+  error: error instanceof Error ? error.message : String(error),
+});
 
 export const classifyRequestParsingError = (error: unknown): string | null => {
   if (isRequestBodyTooLargeError(error)) {

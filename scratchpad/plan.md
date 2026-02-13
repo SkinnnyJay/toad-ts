@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added API parse-failure diagnostics parity:
+  - API TUI handlers now emit structured warning diagnostics for request-body
+    parse failures, aligned with hook IPC/headless diagnostics behavior
+  - shared parse-error details helper added and reused for API + hook IPC paths
+  - expanded TUI handler coverage for request stream `error`/`aborted` failures
 - Added headless route-local parse handling hardening:
   - body parse failures for session creation/prompt routes are now handled in
     localized route-level catch blocks with contextual warning diagnostics

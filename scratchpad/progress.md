@@ -99,6 +99,8 @@
     utility reused by API routes, hook IPC, and headless server
   - hardened headless route-local parse failure control flow with route-context
     diagnostics and localized parse-error handling
+  - hardened API parse-failure diagnostics parity for TUI handlers plus stream
+    error/aborted request-body coverage
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
