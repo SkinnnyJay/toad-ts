@@ -97,6 +97,9 @@
 - Added API agents integration contract coverage:
   - strengthened `/api/agents` integration assertions for defaultHarnessId semantics
   - now validates default harness id is present and corresponds to a returned agent id
+- Added request-body byte-size correctness hardening:
+  - request body size checks now use utf-8 byte counts instead of string length
+  - added utility coverage for multibyte overflow, chunked reads, and stream error path
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

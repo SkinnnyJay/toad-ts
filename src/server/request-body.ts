@@ -11,12 +11,16 @@ export const readRequestBody = async (
   maxBodyBytes = SERVER_CONFIG.MAX_BODY_BYTES
 ): Promise<string> =>
   new Promise((resolve, reject) => {
+    let receivedBytes = 0;
     let data = "";
     req.on("data", (chunk: Buffer | string) => {
-      data += chunk.toString();
-      if (data.length > maxBodyBytes) {
+      const chunkText = chunk.toString();
+      receivedBytes += Buffer.byteLength(chunkText);
+      if (receivedBytes > maxBodyBytes) {
         reject(new Error(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE));
+        return;
       }
+      data += chunkText;
     });
     req.on("end", () => resolve(data));
     req.on("error", reject);

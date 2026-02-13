@@ -1,5 +1,19 @@
 # Scratchpad Journal
 
+## 2026-02-13 (request-body byte-size correctness hardening)
+- Updated `src/server/request-body.ts`:
+  - request size enforcement now tracks utf-8 byte length instead of string length
+  - prevents undercounting multi-byte payloads for max-body limit enforcement
+- Expanded `__tests__/unit/server/request-body.unit.test.ts` coverage:
+  - utf-8 multibyte overflow case
+  - multi-chunk request body assembly
+  - request stream error propagation
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/request-body.unit.test.ts __tests__/unit/server/api-route-tui-handlers.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (/api/agents integration contract hardening)
 - Updated `__tests__/integration/server/api-routes.integration.test.ts`:
   - strengthened `/api/agents` assertions to validate:

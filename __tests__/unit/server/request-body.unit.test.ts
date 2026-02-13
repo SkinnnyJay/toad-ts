@@ -17,6 +17,17 @@ const emitPayload = (req: IncomingMessage, payload: string): void => {
   });
 };
 
+const emitPayloadChunks = (req: IncomingMessage, payloads: string[]): void => {
+  process.nextTick(() => {
+    for (const payload of payloads) {
+      if (payload.length > 0) {
+        req.emit("data", payload);
+      }
+    }
+    req.emit("end");
+  });
+};
+
 describe("request-body helpers", () => {
   it("reads request body payload", async () => {
     const req = createRequest();
@@ -32,6 +43,22 @@ describe("request-body helpers", () => {
     emitPayload(req, "12345");
 
     await expect(pending).rejects.toThrow(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE);
+  });
+
+  it("rejects request body when utf-8 byte size exceeds max", async () => {
+    const req = createRequest();
+    const pending = readRequestBody(req, 7);
+    emitPayload(req, "😀😀");
+
+    await expect(pending).rejects.toThrow(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE);
+  });
+
+  it("reads payload across multiple chunks", async () => {
+    const req = createRequest();
+    const pending = readRequestBody(req);
+    emitPayloadChunks(req, ['{"hello":', "true}"]);
+
+    await expect(pending).resolves.toBe('{"hello":true}');
   });
 
   it("parses JSON request body payload", async () => {
@@ -56,5 +83,17 @@ describe("request-body helpers", () => {
     emitPayload(req, "{invalid");
 
     await expect(pending).rejects.toBeInstanceOf(SyntaxError);
+  });
+
+  it("rejects when request stream emits an error", async () => {
+    const req = createRequest();
+    const pending = readRequestBody(req);
+    const failure = new Error("stream failed");
+
+    process.nextTick(() => {
+      req.emit("error", failure);
+    });
+
+    await expect(pending).rejects.toThrow("stream failed");
   });
 });

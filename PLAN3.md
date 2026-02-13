@@ -895,6 +895,18 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - response includes `defaultHarnessId`
     - `defaultHarnessId` maps to an id present in the returned `agents` list
     - response contract remains non-empty for the agent list path
+- Additional request-body byte-size correctness hardening:
+  - Updated:
+    - `src/server/request-body.ts`
+  - Hardening change:
+    - request body size enforcement now uses utf-8 byte counts, avoiding undercounting
+      multi-byte payloads when applying `MAX_BODY_BYTES`.
+  - Extended:
+    - `__tests__/unit/server/request-body.unit.test.ts`
+  - Covered:
+    - multibyte payload overflow handling
+    - chunked body assembly behavior
+    - stream error propagation path
 
 ---
 
