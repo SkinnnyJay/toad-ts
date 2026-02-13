@@ -1,5 +1,17 @@
 # Scratchpad Journal
 
+## 2026-02-13 (repo workflow ssh-protocol remote parsing)
+- Updated `src/core/repo-workflow.ts`:
+  - extended remote-url parsing to support ssh-protocol remotes
+    (`ssh://git@host[:port]/owner/repo.git`)
+- Extended `__tests__/unit/core/repo-workflow-info.unit.test.ts`:
+  - added coverage asserting owner/repo extraction for ssh-protocol remote URLs
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/repo-workflow-info.unit.test.ts __tests__/unit/core/repo-workflow.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (request-body chunk accounting hardening)
 - Updated `src/server/request-body.ts`:
   - byte accounting now reads from native chunk type:

@@ -947,6 +947,16 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - buffer-chunk request-body handling
     - exact-byte-limit acceptance behavior
+- Additional repo workflow remote parsing hardening:
+  - Updated:
+    - `src/core/repo-workflow.ts`
+  - Hardening change:
+    - remote URL parsing now supports ssh-protocol remote forms
+      (`ssh://git@host[:port]/owner/repo.git`) in addition to existing scp-style ssh and https.
+  - Extended:
+    - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
+  - Covered:
+    - owner/repo extraction from ssh-protocol remotes with explicit port.
 
 ---
 

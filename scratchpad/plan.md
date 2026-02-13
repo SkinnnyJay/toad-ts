@@ -110,6 +110,9 @@
 - Added request-body chunk accounting hardening:
   - request-body helper now measures bytes directly from incoming chunk type (string/buffer)
   - added focused coverage for buffer chunk inputs and exact-byte-limit acceptance
+- Added repo workflow remote parsing hardening:
+  - repo workflow parser now recognizes ssh protocol remotes (ssh://...)
+  - added coverage for ssh-protocol remote owner/repo extraction behavior
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
