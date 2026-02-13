@@ -155,6 +155,17 @@ describe("api-routes searchFiles handler", () => {
     });
   });
 
+  it("returns bad request for protocol-relative request urls", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("//example.com/api/files/search?q=notes"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
   it("returns bad request when query value has malformed encoding", async () => {
     const { response, getCaptured } = createResponseCapture();
 
