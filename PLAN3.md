@@ -433,6 +433,11 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `src/hooks/hook-prompt-runner.ts`
   - Added focused test:
     - `__tests__/unit/constants/hook-decision-keywords.unit.test.ts`
+- Additional harness config filename literal hardening:
+  - Added `HARNESSES_JSON` to `src/constants/file-paths.ts`.
+  - Replaced raw `"harnesses.json"` usage in:
+    - `src/harness/harnessConfig.ts`
+    - `__tests__/unit/harness/harness-config.unit.test.ts`
 
 ---
 

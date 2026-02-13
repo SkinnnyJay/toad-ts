@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { FILE_PATH } from "@/constants/file-paths";
 import { CLI_AGENT_MODE } from "@/types/cli-agent.types";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -9,7 +10,7 @@ import { loadHarnessConfig } from "@/harness/harnessConfig";
 const writeHarnessFile = async (root: string, data: unknown): Promise<string> => {
   const dir = path.join(root, ".toadstool");
   await mkdir(dir, { recursive: true });
-  const filePath = path.join(dir, "harnesses.json");
+  const filePath = path.join(dir, FILE_PATH.HARNESSES_JSON);
   await writeFile(filePath, JSON.stringify(data, null, 2));
   return filePath;
 };

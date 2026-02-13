@@ -12,7 +12,6 @@ import { EnvManager } from "@/utils/env/env.utils";
 import { z } from "zod";
 
 const ENV_PATTERN = /\$(\w+)|\$\{([^}]+)\}/g;
-const DEFAULT_CONFIG_FILENAME = "harnesses.json";
 export const HARNESS_CONFIG_ERROR = {
   NO_HARNESSES_CONFIGURED: "No harnesses configured.",
   NO_DEFAULT_HARNESS_CONFIGURED: "No default harness configured.",
@@ -254,11 +253,11 @@ export const loadHarnessConfig = async (
 ): Promise<HarnessConfigResult> => {
   const projectRoot = options.projectRoot ?? process.cwd();
   const projectPath =
-    options.configPath ?? path.join(projectRoot, FILE_PATH.TOADSTOOL_DIR, DEFAULT_CONFIG_FILENAME);
+    options.configPath ?? path.join(projectRoot, FILE_PATH.TOADSTOOL_DIR, FILE_PATH.HARNESSES_JSON);
   const userPath = path.join(
     options.homedir ?? homedir(),
     FILE_PATH.TOADSTOOL_DIR,
-    DEFAULT_CONFIG_FILENAME
+    FILE_PATH.HARNESSES_JSON
   );
   const env = options.env ?? EnvManager.getInstance().getSnapshot();
 
