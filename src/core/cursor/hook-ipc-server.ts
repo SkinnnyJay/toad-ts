@@ -27,6 +27,7 @@ const HOOK_IPC_TRANSPORT = {
 } as const;
 
 type HookIpcTransport = (typeof HOOK_IPC_TRANSPORT)[keyof typeof HOOK_IPC_TRANSPORT];
+const METHOD_NOT_ALLOWED_STATUS = HTTP_STATUS.NOT_FOUND + 1;
 
 const defaultSocketPath = (pid: number): string => {
   return path.join(tmpdir(), `toadstool-cursor-hooks-${pid}.sock`);
@@ -122,7 +123,7 @@ export class HookIpcServer {
 
     const server = http.createServer(async (req, res) => {
       if (req.method !== "POST") {
-        res.writeHead(405, { "Content-Type": "application/json" });
+        res.writeHead(METHOD_NOT_ALLOWED_STATUS, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ error: "Method not allowed" }));
         return;
       }
