@@ -36,6 +36,7 @@
   - normalized headless invalid-json responses to canonical invalid-request payload
   - improved request-body helper chunk-type byte accounting and coverage
   - added ssh-protocol remote URL parsing support in repo workflow info
+  - improved server auth bearer-scheme parsing robustness
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

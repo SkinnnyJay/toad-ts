@@ -115,6 +115,20 @@ describe("checkServerAuth", () => {
     expect(getCaptured().statusCode).toBeNull();
   });
 
+  it("accepts bearer token regardless of auth scheme case", () => {
+    process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD] = "secret";
+    EnvManager.resetInstance();
+    const { response, getCaptured } = createResponseCapture();
+
+    const allowed = checkServerAuth(
+      { headers: { authorization: "bearer secret" } } as IncomingMessage,
+      response as unknown as ServerResponse
+    );
+
+    expect(allowed).toBe(true);
+    expect(getCaptured().statusCode).toBeNull();
+  });
+
   it("accepts raw authorization token that matches configured password", () => {
     process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD] = "secret";
     EnvManager.resetInstance();

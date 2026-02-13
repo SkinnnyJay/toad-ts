@@ -1,5 +1,18 @@
 # Scratchpad Journal
 
+## 2026-02-13 (server auth bearer-scheme robustness)
+- Updated `src/server/server-auth.ts`:
+  - bearer token extraction now uses case-insensitive scheme matching
+    (`Bearer`/`bearer`/mixed-case supported)
+  - raw-token authorization support remains unchanged
+- Extended `__tests__/unit/server/server-auth.unit.test.ts`:
+  - added lowercase bearer-scheme acceptance test
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/server-auth.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (repo workflow ssh-protocol remote parsing)
 - Updated `src/core/repo-workflow.ts`:
   - extended remote-url parsing to support ssh-protocol remotes

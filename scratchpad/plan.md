@@ -113,6 +113,9 @@
 - Added repo workflow remote parsing hardening:
   - repo workflow parser now recognizes ssh protocol remotes (ssh://...)
   - added coverage for ssh-protocol remote owner/repo extraction behavior
+- Added auth bearer-scheme robustness hardening:
+  - server auth now accepts case-insensitive bearer scheme prefixes
+  - preserved raw-token support and canonical unauthorized response behavior
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

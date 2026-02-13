@@ -957,6 +957,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
   - Covered:
     - owner/repo extraction from ssh-protocol remotes with explicit port.
+- Additional auth bearer-scheme robustness hardening:
+  - Updated:
+    - `src/server/server-auth.ts`
+  - Hardening change:
+    - bearer token extraction now treats auth scheme case-insensitively, supporting
+      common lowercase/mixed-case `Authorization` header variants.
+  - Extended:
+    - `__tests__/unit/server/server-auth.unit.test.ts`
+  - Covered:
+    - lowercase bearer-scheme token acceptance
+    - unchanged raw-token acceptance path behavior
 
 ---
 

@@ -9,7 +9,7 @@ const AUTH_HEADER = {
   "WWW-Authenticate": "Bearer",
 } as const;
 
-const BEARER_TOKEN_PREFIX = "Bearer ";
+const BEARER_TOKEN_PREFIX_PATTERN = /^Bearer\s+/i;
 
 const rejectUnauthorized = (res: ServerResponse, message: string): boolean => {
   sendErrorResponse(res, HTTP_STATUS.UNAUTHORIZED, message, { headers: AUTH_HEADER });
@@ -33,9 +33,7 @@ export const checkServerAuth = (req: IncomingMessage, res: ServerResponse): bool
   }
 
   // Support "Bearer <token>" format
-  const token = authHeader.startsWith(BEARER_TOKEN_PREFIX)
-    ? authHeader.slice(BEARER_TOKEN_PREFIX.length)
-    : authHeader;
+  const token = authHeader.replace(BEARER_TOKEN_PREFIX_PATTERN, "");
   if (token !== password) {
     return rejectUnauthorized(res, SERVER_RESPONSE_MESSAGE.INVALID_CREDENTIALS);
   }
