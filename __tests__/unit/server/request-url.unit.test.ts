@@ -40,4 +40,13 @@ describe("parseRequestUrl", () => {
 
     expect(url).toBeNull();
   });
+
+  it("parses request url when url and host include surrounding whitespace", () => {
+    const url = parseRequestUrl(
+      createRequest("  /api/files/search?q=readme  ", " 127.0.0.1:4141 ")
+    );
+
+    expect(url?.pathname).toBe("/api/files/search");
+    expect(url?.searchParams.get("q")).toBe("readme");
+  });
 });

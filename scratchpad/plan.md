@@ -226,6 +226,9 @@
 - Added missing-request-url hardening:
   - shared parser now returns null for missing request URLs
   - file-search route now returns canonical invalid-request for missing url input
+- Added request-url whitespace normalization hardening:
+  - shared parser now trims url/host inputs before URL construction
+  - preserves valid parsing for whitespace-padded host/url request values
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

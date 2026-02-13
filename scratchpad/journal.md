@@ -1,5 +1,20 @@
 # Scratchpad Journal
 
+## 2026-02-13 (request-url whitespace normalization)
+- Updated `src/server/request-url.ts`:
+  - parser now trims request url and host header before URL construction
+  - blank/whitespace-only url values continue to return `null`
+- Extended:
+  - `__tests__/unit/server/request-url.unit.test.ts`
+    - added whitespace-wrapped url/host parse coverage
+  - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+    - added whitespace-host success-path coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/request-url.unit.test.ts __tests__/unit/server/api-route-file-search.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (missing request-url hardening)
 - Updated `src/server/request-url.ts`:
   - parser now returns `null` when request url is missing

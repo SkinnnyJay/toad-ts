@@ -1407,3 +1407,15 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Covered:
     - missing-url null fallback in parser
     - file-search missing-url canonical invalid-request response
+- Additional request-url whitespace normalization hardening:
+  - Updated:
+    - `src/server/request-url.ts`
+  - Hardening change:
+    - request URL parser now trims url/host inputs before parsing, preserving
+      valid route parsing for whitespace-padded request metadata.
+  - Extended:
+    - `__tests__/unit/server/request-url.unit.test.ts`
+    - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - Covered:
+    - whitespace-wrapped url/host parse behavior
+    - whitespace-host file-search success behavior

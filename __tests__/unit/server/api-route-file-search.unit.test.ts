@@ -122,6 +122,17 @@ describe("api-routes searchFiles handler", () => {
     });
   });
 
+  it("parses query when request host header has surrounding whitespace", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=notes", " 127.0.0.1:4141 "), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "notes", results: [] },
+    });
+  });
+
   it("returns bad request when request url is missing", async () => {
     const { response, getCaptured } = createResponseCapture();
 
