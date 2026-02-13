@@ -1124,6 +1124,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/server/api-route-events-stream.unit.test.ts`
   - Covered:
     - duplicate request-close event sequence only invokes unsubscribe once.
+- Additional repo checks-status whitespace normalization hardening:
+  - Updated:
+    - `src/core/repo-workflow.ts`
+  - Hardening change:
+    - check status/conclusion classification now trims whitespace before lowercasing,
+      reducing classification drift for padded `gh pr checks` output fields.
+  - Extended:
+    - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
+  - Covered:
+    - whitespace-padded queued checks classified as pending
+    - whitespace-padded cancelled checks classified as failing
 
 ---
 

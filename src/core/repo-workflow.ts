@@ -59,6 +59,9 @@ const GH_CHECK = {
 const normalizeRepoName = (repoName: string): string =>
   repoName.replace(REMOTE_GIT_SUFFIX_PATTERN, "");
 
+const normalizeCheckField = (value: string | undefined): string =>
+  value?.trim().toLowerCase() ?? "";
+
 async function getRemoteOriginUrl(cwd: string): Promise<string | null> {
   try {
     const { stdout } = await execa("git", ["config", "--get", GIT_REMOTE_ORIGIN_URL], {
@@ -155,7 +158,7 @@ async function getPrChecksStatus(cwd: string): Promise<"pass" | "fail" | "pendin
     const data = JSON.parse(stdout) as Array<{ status?: string; conclusion?: string }>;
     if (!Array.isArray(data) || data.length === 0) return null;
     const hasFail = data.some((c) => {
-      const conclusion = (c.conclusion ?? c.status ?? "").toLowerCase();
+      const conclusion = normalizeCheckField(c.conclusion) || normalizeCheckField(c.status);
       return (
         conclusion === GH_CHECK.FAILURE ||
         conclusion === GH_CHECK.CANCELLED ||
@@ -166,10 +169,10 @@ async function getPrChecksStatus(cwd: string): Promise<"pass" | "fail" | "pendin
     });
     const hasPending = data.some(
       (c) =>
-        (c.status ?? "").toLowerCase() === GH_CHECK.IN_PROGRESS ||
-        (c.status ?? "").toLowerCase() === GH_CHECK.QUEUED ||
-        (c.status ?? "").toLowerCase() === GH_CHECK.PENDING ||
-        (c.conclusion ?? "") === ""
+        normalizeCheckField(c.status) === GH_CHECK.IN_PROGRESS ||
+        normalizeCheckField(c.status) === GH_CHECK.QUEUED ||
+        normalizeCheckField(c.status) === GH_CHECK.PENDING ||
+        normalizeCheckField(c.conclusion) === ""
     );
     if (hasFail) return "fail";
     if (hasPending) return "pending";

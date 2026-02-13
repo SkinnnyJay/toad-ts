@@ -1,5 +1,17 @@
 # Scratchpad Journal
 
+## 2026-02-13 (repo check-status whitespace normalization hardening)
+- Updated `src/core/repo-workflow.ts`:
+  - check-status/conclusion normalization now trims whitespace before lowercase matching
+- Extended `__tests__/unit/core/repo-workflow-info.unit.test.ts`:
+  - added whitespace-padded queued/pending classification coverage
+  - added whitespace-padded cancelled/failing classification coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/repo-workflow-info.unit.test.ts __tests__/unit/core/repo-workflow.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (SSE close-unsubscribe idempotency hardening)
 - Updated `src/server/api-routes.ts`:
   - switched events-stream close listener from `on` to `once` for unsubscribe idempotency

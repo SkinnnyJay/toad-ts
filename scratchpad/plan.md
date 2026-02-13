@@ -163,6 +163,9 @@
 - Added SSE close-unsubscribe idempotency hardening:
   - events stream close handler now uses one-time listener semantics
   - added unit coverage for duplicate close-event safety
+- Added check-status whitespace normalization hardening:
+  - repo workflow checks parser now trims status/conclusion fields before classification
+  - added unit coverage for whitespace-padded pending/failing check states
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
