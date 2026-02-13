@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added empty harness-id message parity hardening:
+  - create-session harness-id schema now emits canonical invalid-id message for
+    empty string values (parity with padded/whitespace-only values)
+  - expanded server-types unit and headless integration coverage for empty
+    harness-id request handling
 - Added harness-id validation message unification hardening:
   - shared canonical harness-id validation message constant now reused across
     harness error formatting and server request schema validation

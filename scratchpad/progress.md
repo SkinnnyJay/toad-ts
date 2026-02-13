@@ -131,6 +131,8 @@
     harness ids using shared harness-id helper semantics
   - hardened harness-id validation diagnostics by reusing one canonical
     message across harness config errors and session request schema failures
+  - hardened create-session schema so empty harness-id values share the same
+    canonical invalid-id message as other non-canonical inputs
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

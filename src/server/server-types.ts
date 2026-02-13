@@ -7,7 +7,6 @@ export const createSessionRequestSchema = z
   .object({
     harnessId: z
       .string()
-      .min(1)
       .refine(isCanonicalHarnessId, {
         message: HARNESS_ID_VALIDATION_MESSAGE.NON_CANONICAL,
       })

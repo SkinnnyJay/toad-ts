@@ -2033,3 +2033,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - keep harness-id validation diagnostics deterministic and consistent across
       config/runtime request boundaries.
+
+## Execution Log Addendum — 2026-02-13 (empty harness-id message parity)
+
+- Additional create-session schema hardening:
+  - Updated:
+    - `src/server/server-types.ts`
+    - `__tests__/unit/server/server-types.unit.test.ts`
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - create-session `harnessId` schema now uses canonical-id refinement only
+      (no separate min-length check), ensuring empty-string values emit the same
+      canonical validation message as padded/whitespace-only values.
+    - expanded focused coverage for empty `harnessId` validation parity in both
+      unit schema checks and headless integration behavior.
+  - Goal:
+    - enforce deterministic harness-id validation messaging for all
+      non-canonical request payload variants.

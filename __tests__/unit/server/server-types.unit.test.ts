@@ -42,11 +42,20 @@ describe("server-types schemas", () => {
     const whitespaceHarnessId = createSessionRequestSchema.safeParse({
       harnessId: "   ",
     });
+    const emptyHarnessId = createSessionRequestSchema.safeParse({
+      harnessId: "",
+    });
 
     expect(paddedHarnessId.success).toBe(false);
     expect(whitespaceHarnessId.success).toBe(false);
+    expect(emptyHarnessId.success).toBe(false);
     if (!paddedHarnessId.success) {
       expect(paddedHarnessId.error.issues[0]?.message).toBe(
+        HARNESS_ID_VALIDATION_MESSAGE.NON_CANONICAL
+      );
+    }
+    if (!emptyHarnessId.success) {
+      expect(emptyHarnessId.error.issues[0]?.message).toBe(
         HARNESS_ID_VALIDATION_MESSAGE.NON_CANONICAL
       );
     }

@@ -1710,3 +1710,26 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Empty harness-id message parity hardening)
+
+### Summary
+- Updated create-session `harnessId` schema validation to use canonical-id
+  refine validation without separate min-length check.
+- Empty-string `harnessId` values now emit the same canonical validation
+  message as padded/whitespace-only values.
+- Expanded focused coverage for empty `harnessId` behavior in:
+  - server-types schema unit tests
+  - headless-server integration responses
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/server-types.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
