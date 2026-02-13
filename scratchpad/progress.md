@@ -5,6 +5,7 @@
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
   - strengthened fallback and feature-flag behavior coverage
   - expanded repo workflow and server route unit coverage
+  - added server infrastructure coverage for config resolution, schema contracts, and SSE lifecycle
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

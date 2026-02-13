@@ -1,5 +1,19 @@
 # Scratchpad Journal
 
+## 2026-02-13 (server infrastructure coverage hardening)
+- Added new focused server unit test files:
+  - `__tests__/unit/server/server-config.unit.test.ts`
+  - `__tests__/unit/server/server-types.unit.test.ts`
+  - `__tests__/unit/server/api-route-events-stream.unit.test.ts`
+- Locked behavior for:
+  - runtime config precedence and fallback behavior (`resolveServerConfig`)
+  - strict schema validation for server request/response/event contracts
+  - SSE handler lifecycle in `eventsStream` (headers, payload frame emission, unsubscribe on close)
+- Validation:
+  - Targeted tests: `npx vitest run __tests__/unit/server/server-config.unit.test.ts __tests__/unit/server/server-types.unit.test.ts __tests__/unit/server/api-route-events-stream.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (PLAN3 hardening continuation)
 - Added coverage for repo workflow check outcome classification (`pass`/`fail`/`pending`) and
   status mapping.

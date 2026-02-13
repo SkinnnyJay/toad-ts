@@ -13,6 +13,12 @@
 2. Expand focused unit coverage for server and workflow edge cases.
 3. Keep strict literal checks green.
 
+## Latest Completed Increment
+- Added server infrastructure test coverage:
+  - `server-config` runtime resolution behavior
+  - `server-types` request/event schema contracts
+  - `eventsStream` SSE lifecycle and unsubscribe cleanup
+
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
 - No quality-gate regressions (`lint`, `typecheck`, `test`, `build`).

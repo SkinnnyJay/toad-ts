@@ -614,6 +614,26 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - owner/repository extraction from SSH-style git remotes
       (`git@github.com:<owner>/<repo>.git`)
+- Additional server infrastructure coverage hardening:
+  - Added focused unit coverage for server runtime config resolution:
+    - `__tests__/unit/server/server-config.unit.test.ts`
+  - Covered:
+    - default host/port behavior
+    - env-derived host/port resolution
+    - overrides precedence over env
+    - invalid port fallback behavior
+  - Added focused schema coverage for server request/event contracts:
+    - `__tests__/unit/server/server-types.unit.test.ts`
+  - Covered:
+    - strict request schema validation (including unknown-key rejection)
+    - prompt/messages payload validation
+    - server event type acceptance/rejection behavior
+  - Added focused SSE route lifecycle coverage:
+    - `__tests__/unit/server/api-route-events-stream.unit.test.ts`
+  - Covered:
+    - SSE response headers
+    - streamed `state_update` payload emission
+    - unsubscribe cleanup on request close
 
 ---
 
