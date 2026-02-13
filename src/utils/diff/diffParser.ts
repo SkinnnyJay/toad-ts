@@ -1,3 +1,4 @@
+import { LIMIT } from "@/config/limits";
 import { DIFF_LINE_TYPE } from "@/constants/diff-types";
 import type { DiffHunk, DiffLine, DiffStats, FileDiff } from "@/types/diff.types";
 import { type Change, diffLines } from "diff";
@@ -5,7 +6,7 @@ import { type Change, diffLines } from "diff";
 /**
  * Default number of context lines to show around changes
  */
-const DEFAULT_CONTEXT_LINES = 3;
+const DEFAULT_CONTEXT_LINES = LIMIT.DIFF_CONTEXT_LINES;
 
 /**
  * Detects the programming language from a filename extension
@@ -146,7 +147,7 @@ export function groupIntoHunks(
       const distanceToNextChange =
         nextChangeIdx !== undefined ? nextChangeIdx - i : Number.POSITIVE_INFINITY;
 
-      if (distanceToNextChange > contextLines * 2) {
+      if (distanceToNextChange > contextLines * LIMIT.RETRY_EXPONENTIAL_BASE) {
         // Close current hunk
         const hunk = createHunk(currentHunk, hunkOldStart, hunkNewStart);
         hunks.push(hunk);
