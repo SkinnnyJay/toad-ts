@@ -427,6 +427,12 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Extended harness error helper and test coverage:
     - `src/harness/harness-error-messages.ts` (`formatHarnessNotFoundError`)
     - `__tests__/unit/harness/harness-error-messages.unit.test.ts`
+- Additional hook decision literal hardening:
+  - Added `src/constants/hook-decision-keywords.ts` for allow/deny decision tokens.
+  - Replaced raw decision strings in:
+    - `src/hooks/hook-prompt-runner.ts`
+  - Added focused test:
+    - `__tests__/unit/constants/hook-decision-keywords.unit.test.ts`
 
 ---
 

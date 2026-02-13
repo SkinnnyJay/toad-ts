@@ -2,6 +2,7 @@ import type { AgentInfo } from "@/agents/agent-manager";
 import type { SubAgentRunner } from "@/agents/subagent-runner";
 import { TIMEOUT } from "@/config/timeouts";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { HOOK_DECISION_KEYWORD } from "@/constants/hook-decision-keywords";
 import { INDENT_SPACES } from "@/constants/json-format";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import type { HookContext, HookDecision, PromptHookRunner } from "@/hooks/hook-manager";
@@ -90,10 +91,18 @@ const buildPrompt = (prompt: string, context: HookContext): string => {
 
 const parseDecision = (text: string): HookDecision => {
   const normalized = text.trim().toLowerCase();
-  if (normalized.startsWith("deny") || normalized.startsWith("block") || normalized === "no") {
+  if (
+    normalized.startsWith(HOOK_DECISION_KEYWORD.DENY) ||
+    normalized.startsWith(HOOK_DECISION_KEYWORD.BLOCK) ||
+    normalized === HOOK_DECISION_KEYWORD.NO
+  ) {
     return { allow: false, message: text.trim() };
   }
-  if (normalized.startsWith("allow") || normalized.startsWith("approve") || normalized === "yes") {
+  if (
+    normalized.startsWith(HOOK_DECISION_KEYWORD.ALLOW) ||
+    normalized.startsWith(HOOK_DECISION_KEYWORD.APPROVE) ||
+    normalized === HOOK_DECISION_KEYWORD.YES
+  ) {
     return { allow: true, message: text.trim() };
   }
   return { allow: true, message: text.trim() };
