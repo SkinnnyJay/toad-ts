@@ -1,5 +1,17 @@
 # Scratchpad Journal
 
+## 2026-02-13 (server auth response deduplication)
+- Refactored `src/server/server-auth.ts` to reuse shared response helper:
+  - replaced duplicated unauthorized `writeHead + end(JSON.stringify(...))` branches
+    with `sendErrorResponse(...)` calls
+  - centralized auth challenge header usage via shared constants
+  - normalized bearer token prefix handling with one constant
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/server-auth.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (shared server response helper extraction)
 - Added `src/server/http-response.ts` with reusable helpers:
   - `sendJsonResponse()`

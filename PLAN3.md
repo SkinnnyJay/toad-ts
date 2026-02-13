@@ -829,6 +829,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - JSON response content-type behavior
     - optional content-length header behavior
     - canonical error payload serialization
+- Additional auth middleware response deduplication hardening:
+  - Refactored:
+    - `src/server/server-auth.ts`
+  - Refactor goal:
+    - reuse shared server error response helper for unauthorized branches and remove
+      duplicated response serialization/header blocks.
+  - Preserved behavior:
+    - `WWW-Authenticate: Bearer` challenge header
+    - both bearer-token and raw-token acceptance paths
+  - Coverage:
+    - existing server auth unit tests and headless integration tests validated semantics.
 
 ---
 

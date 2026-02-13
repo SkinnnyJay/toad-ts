@@ -2,7 +2,19 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
+import { sendErrorResponse } from "@/server/http-response";
 import { EnvManager } from "@/utils/env/env.utils";
+
+const AUTH_HEADER = {
+  "WWW-Authenticate": "Bearer",
+} as const;
+
+const BEARER_TOKEN_PREFIX = "Bearer ";
+
+const rejectUnauthorized = (res: ServerResponse, message: string): boolean => {
+  sendErrorResponse(res, HTTP_STATUS.UNAUTHORIZED, message, { headers: AUTH_HEADER });
+  return false;
+};
 
 /**
  * Basic auth middleware for the headless server.
@@ -17,23 +29,15 @@ export const checkServerAuth = (req: IncomingMessage, res: ServerResponse): bool
 
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    res.writeHead(HTTP_STATUS.UNAUTHORIZED, {
-      "Content-Type": "application/json",
-      "WWW-Authenticate": "Bearer",
-    });
-    res.end(JSON.stringify({ error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED }));
-    return false;
+    return rejectUnauthorized(res, SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED);
   }
 
   // Support "Bearer <token>" format
-  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader;
+  const token = authHeader.startsWith(BEARER_TOKEN_PREFIX)
+    ? authHeader.slice(BEARER_TOKEN_PREFIX.length)
+    : authHeader;
   if (token !== password) {
-    res.writeHead(HTTP_STATUS.UNAUTHORIZED, {
-      "Content-Type": "application/json",
-      "WWW-Authenticate": "Bearer",
-    });
-    res.end(JSON.stringify({ error: SERVER_RESPONSE_MESSAGE.INVALID_CREDENTIALS }));
-    return false;
+    return rejectUnauthorized(res, SERVER_RESPONSE_MESSAGE.INVALID_CREDENTIALS);
   }
 
   return true;

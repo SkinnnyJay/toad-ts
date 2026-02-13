@@ -71,6 +71,10 @@
   - extracted JSON/error response writer behavior into shared server utility
   - refactored headless + API route modules to reuse response helpers
   - added focused unit coverage for header/body semantics
+- Added auth response deduplication:
+  - refactored server auth middleware to reuse shared error response helper
+  - removed duplicated unauthorized response serialization logic
+  - preserved Bearer/raw-token auth semantics with existing unit+integration coverage
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
