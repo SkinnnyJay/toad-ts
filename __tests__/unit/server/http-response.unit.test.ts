@@ -70,4 +70,28 @@ describe("http-response helpers", () => {
       body: { error: "Bad request" },
     });
   });
+
+  it("enforces json content-type when custom headers are provided", () => {
+    const { response, getCaptured } = createResponseCapture();
+    sendJsonResponse(
+      response,
+      200,
+      { ok: true },
+      {
+        headers: {
+          "Content-Type": "text/plain",
+          "WWW-Authenticate": "Bearer",
+        },
+      }
+    );
+
+    expect(getCaptured()).toEqual({
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "WWW-Authenticate": "Bearer",
+      },
+      body: { ok: true },
+    });
+  });
 });

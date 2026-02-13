@@ -83,6 +83,10 @@
   - created focused unit coverage for `createDefaultHarnessConfig`
   - validated cursor feature-flag gating for unset and numeric-truthy env paths
   - validated environment argument override parsing for default harness commands
+- Added HTTP response helper header hardening:
+  - response helper now enforces JSON content-type even when custom headers are passed
+  - added focused coverage for custom-header merge semantics
+  - validated downstream auth usage remains correct
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

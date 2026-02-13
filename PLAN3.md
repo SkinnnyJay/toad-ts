@@ -864,6 +864,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - lock env argument-override parsing behavior in default harness config builder
   - Complementary validation:
     - paired with existing fallback env tests for `/api/agents` route behavior.
+- Additional HTTP response header hardening:
+  - Updated:
+    - `src/server/http-response.ts`
+  - Hardening change:
+    - response header merge order now preserves `Content-Type: application/json` as
+      authoritative even if caller-provided headers attempt to override it.
+  - Extended coverage:
+    - `__tests__/unit/server/http-response.unit.test.ts`
+  - Covered:
+    - custom-header merge behavior retaining JSON content type while preserving
+      additional caller headers.
 
 ---
 

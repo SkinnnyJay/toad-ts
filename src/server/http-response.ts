@@ -13,8 +13,8 @@ export const sendJsonResponse = (
 ): void => {
   const body = JSON.stringify(payload);
   const headers: OutgoingHttpHeaders = {
-    "Content-Type": "application/json",
     ...(options.headers ?? {}),
+    "Content-Type": "application/json",
   };
   if (options.includeContentLength) {
     headers["Content-Length"] = Buffer.byteLength(body);

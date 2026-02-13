@@ -1,5 +1,18 @@
 # Scratchpad Journal
 
+## 2026-02-13 (HTTP response helper content-type hardening)
+- Updated `src/server/http-response.ts`:
+  - changed header merge order so JSON content-type remains authoritative even when
+    custom headers include a content-type override
+- Extended tests:
+  - `__tests__/unit/server/http-response.unit.test.ts`
+  - added assertion for custom-header merge behavior preserving JSON content type
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/http-response.unit.test.ts __tests__/unit/server/server-auth.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (default harness fallback coverage)
 - Added unit test file:
   - `__tests__/unit/harness/default-harness-config.unit.test.ts`
