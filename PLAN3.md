@@ -450,6 +450,14 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Replaced:
     - `Unknown harness: <id>` → `formatHarnessNotConfiguredError(<id>)`
     - `No adapter registered for <id>` → `formatHarnessAdapterNotRegisteredError(<id>)`
+- Additional server event literal hardening:
+  - Added `STATE_UPDATE` to `src/constants/server-events.ts`.
+  - Replaced raw `"state_update"` usage in:
+    - `src/server/api-routes.ts` (`eventsStream`)
+  - Expanded event schema coverage in:
+    - `src/server/server-types.ts` (`serverEventSchema`)
+  - Added focused test:
+    - `__tests__/unit/constants/server-events.unit.test.ts`
 
 ---
 

@@ -42,6 +42,7 @@ export const serverEventSchema = z.object({
     SERVER_EVENT.SESSION_CREATED,
     SERVER_EVENT.SESSION_UPDATE,
     SERVER_EVENT.SESSION_CLOSED,
+    SERVER_EVENT.STATE_UPDATE,
   ]),
   timestamp: z.number(),
   payload: z.record(z.unknown()),

@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadAppConfig } from "@/config/app-config";
 import { HTTP_METHOD } from "@/constants/http-methods";
 import { HTTP_STATUS } from "@/constants/http-status";
+import { SERVER_EVENT } from "@/constants/server-events";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
@@ -140,7 +141,7 @@ export const eventsStream: RouteHandler = async (_req, res) => {
 
   const unsubscribe = useAppStore.subscribe((state) => {
     const data = JSON.stringify({
-      type: "state_update",
+      type: SERVER_EVENT.STATE_UPDATE,
       currentSessionId: state.currentSessionId,
       connectionStatus: state.connectionStatus,
     });
