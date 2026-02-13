@@ -479,6 +479,14 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Replaced raw `10_000` GH command timeouts in:
     - `src/core/repo-workflow.ts`
     - `src/core/pr-status.ts`
+- Additional PR status test hardening:
+  - Added focused unit coverage for `src/core/pr-status.ts`:
+    - `__tests__/unit/core/pr-status.unit.test.ts`
+  - Covered:
+    - `gh pr view` parsing normalization
+    - missing PR payload fallback (`null`)
+    - command failure fallback (`null`)
+    - status-color mapping behavior
 
 ---
 
