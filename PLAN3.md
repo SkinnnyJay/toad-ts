@@ -2185,3 +2185,18 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock robustness semantics so harness-level connect failures do not
       destabilize headless server request handling.
+
+## Execution Log Addendum — 2026-02-13 (cursor feature-flag adapter-disable coverage)
+
+- Additional harness feature-flag integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for runtime behavior when cursor harness is
+      configured in harness config but cursor adapter is disabled via
+      `TOADSTOOL_CURSOR_CLI_ENABLED=false`.
+    - verifies session creation returns canonical adapter-not-registered
+      response for `cursor-cli` rather than silently selecting another harness.
+  - Goal:
+    - lock deterministic cursor feature-flag semantics at the harness-registry
+      boundary for config-driven default harness selection.

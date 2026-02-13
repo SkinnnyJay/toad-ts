@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added cursor feature-flag adapter-disable integration coverage:
+  - headless integration now verifies that when `cursor-cli` is configured as
+    default harness but cursor adapter is disabled by env flag, session create
+    returns canonical adapter-not-registered response
+  - locks config + registry feature-flag boundary behavior for cursor harness
+    selection
 - Added cursor connect-failure resilience integration coverage:
   - headless integration now verifies cursor harness connect failures return
     canonical server errors when cursor feature flag is enabled with a missing

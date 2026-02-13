@@ -151,6 +151,8 @@
     config file contains malformed JSON
   - added headless integration coverage for cursor harness connect failures,
     including post-failure server responsiveness via mock harness sessions
+  - added headless integration coverage for cursor feature-flag disabled
+    adapter behavior when cursor harness remains configured in harness config
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

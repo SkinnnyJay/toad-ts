@@ -1919,3 +1919,24 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Cursor feature-flag adapter-disable integration coverage)
+
+### Summary
+- Added headless integration coverage for config + feature-flag mismatch where:
+  - `cursor-cli` is configured as default harness in harness config.
+  - cursor adapter is disabled via `TOADSTOOL_CURSOR_CLI_ENABLED=false`.
+- Test validates session creation returns canonical
+  `formatHarnessAdapterNotRegisteredError("cursor-cli")` response.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
