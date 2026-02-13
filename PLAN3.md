@@ -548,6 +548,13 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - `/api/files/search` bad-request path when `q` query is missing
     - `/api/files/search` success path with placeholder results for valid query
+- Additional session route handler coverage:
+  - Added focused unit coverage:
+    - `__tests__/unit/server/api-route-session-handlers.unit.test.ts`
+  - Covered:
+    - `/api/sessions` filtering behavior for undefined session entries
+    - `/api/sessions/:id` validation + not-found + success paths
+    - `/api/sessions/:id/messages` validation + success paths
 - Additional fallback-env integration coverage for agent listing:
   - Added focused unit coverage for feature-flagged fallback behavior:
     - `__tests__/unit/server/api-route-fallback-env.unit.test.ts`
