@@ -1,3 +1,5 @@
+import { LIMIT } from "@/config/limits";
+
 export interface RetryWithBackoffOptions {
   maxAttempts: number;
   baseMs: number;
@@ -38,7 +40,7 @@ export async function retryWithBackoff<T>(
         throw normalized;
       }
 
-      const delay = Math.min(baseMs * 2 ** (attempt - 1), capMs);
+      const delay = Math.min(baseMs * LIMIT.RETRY_EXPONENTIAL_BASE ** (attempt - 1), capMs);
       onRetry?.({ attempt, delayMs: delay, error: normalized });
       await sleep(delay);
     }

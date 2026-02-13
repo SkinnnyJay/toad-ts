@@ -174,7 +174,7 @@ export class ACPConnection extends EventEmitter<ACPConnectionEvents> {
   }
 
   calculateBackoff(attempt: number): number {
-    const raw = this.backoffBaseMs * 2 ** (attempt - 1);
+    const raw = this.backoffBaseMs * LIMIT.RETRY_EXPONENTIAL_BASE ** (attempt - 1);
     return Math.min(raw, this.backoffCapMs);
   }
 
