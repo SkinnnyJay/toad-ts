@@ -1796,3 +1796,23 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Default-harness cursor flag parsing coverage)
+
+### Summary
+- Expanded default harness config unit coverage for cursor feature-flag parsing:
+  - padded truthy value (`" true "`) includes cursor harness
+  - falsey/invalid values (`"false"`, `"0"`, `"maybe"`) exclude cursor harness
+    even when cursor command/args overrides are present
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/harness/default-harness-config.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅

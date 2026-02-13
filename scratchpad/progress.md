@@ -139,6 +139,8 @@
     lack registered adapters returning 404 adapter-not-registered responses
   - added headless integration coverage for fallback to default harness config
     when harness config loading fails at startup
+  - expanded default-harness cursor feature-flag test coverage for padded
+    truthy and falsey/invalid env-value variants
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

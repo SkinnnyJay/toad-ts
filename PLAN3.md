@@ -2095,3 +2095,17 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock resilience semantics for headless startup when user/project harness
       configuration is present but invalid.
+
+## Execution Log Addendum — 2026-02-13 (default-harness cursor flag parsing coverage)
+
+- Additional harness default-config feature-flag hardening:
+  - Updated:
+    - `__tests__/unit/harness/default-harness-config.unit.test.ts`
+  - Hardening changes:
+    - expanded cursor feature-flag coverage for default harness config:
+      - padded truthy flag (`" true "`) includes cursor harness
+      - falsey/invalid flags (`"false"`, `"0"`, `"maybe"`) exclude cursor
+        harness even when cursor command/args overrides are provided
+  - Goal:
+    - lock deterministic cursor feature-flag parsing semantics for default
+      harness construction across common string env-value variants.

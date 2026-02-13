@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added default-harness cursor feature-flag parsing coverage:
+  - padded truthy cursor flag values now covered for harness inclusion behavior
+  - falsey/invalid cursor flag variants now covered for harness exclusion
+    behavior even with cursor command/args overrides
 - Added harness-config fallback-on-load-failure integration coverage:
   - headless integration now verifies startup falls back to default harness
     config when configured harness file is invalid

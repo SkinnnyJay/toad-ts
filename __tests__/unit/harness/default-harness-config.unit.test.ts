@@ -34,6 +34,29 @@ describe("createDefaultHarnessConfig", () => {
     });
   });
 
+  it("includes cursor harness when cursor feature flag is padded true", () => {
+    const result = createDefaultHarnessConfig({
+      [ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]: " true ",
+    });
+    const harnessIds = Object.keys(result.harnesses);
+
+    expect(harnessIds).toContain(HARNESS_DEFAULT.CURSOR_CLI_ID);
+  });
+
+  it.each(["false", "0", "maybe"] as const)(
+    "does not include cursor harness when cursor feature flag is %s",
+    (flagValue) => {
+      const result = createDefaultHarnessConfig({
+        [ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]: flagValue,
+        [ENV_KEY.TOADSTOOL_CURSOR_COMMAND]: "cursor-custom",
+        [ENV_KEY.TOADSTOOL_CURSOR_ARGS]: "--mode plan",
+      });
+      const harnessIds = Object.keys(result.harnesses);
+
+      expect(harnessIds).not.toContain(HARNESS_DEFAULT.CURSOR_CLI_ID);
+    }
+  );
+
   it("parses command argument overrides from environment", () => {
     const result = createDefaultHarnessConfig({
       [ENV_KEY.TOADSTOOL_CLAUDE_ARGS]: "--sandbox enabled --force",
