@@ -686,6 +686,12 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - invalid JSON behavior for `/api/tui/append-prompt`
     - oversized payload behavior for `/api/tui/execute-command` returns `400` with canonical error
+- Additional auth/method-ordering integration hardening:
+  - Extended integration coverage:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Covered:
+    - auth challenge precedence over method validation for protected `/api/*` routes
+      (`401` on unauthenticated request, `405` on authenticated unsupported method)
 
 ---
 

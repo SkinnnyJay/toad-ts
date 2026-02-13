@@ -1,5 +1,15 @@
 # Scratchpad Journal
 
+## 2026-02-13 (auth/method-ordering integration hardening)
+- Extended `__tests__/integration/server/headless-server.integration.test.ts` to lock auth
+  precedence semantics for protected `/api/*` endpoints:
+  - unauthenticated unsupported method returns auth challenge (`401`)
+  - authenticated unsupported method returns method semantic (`405`)
+- Validation:
+  - Targeted: `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (API route body-size hardening)
 - Updated `src/server/api-routes.ts` request-body parser to enforce
   `SERVER_CONFIG.MAX_BODY_BYTES` and throw canonical `REQUEST_BODY_TOO_LARGE`.

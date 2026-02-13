@@ -329,4 +329,38 @@ describe("headless server", () => {
       await server.close();
     }
   });
+
+  it("applies auth checks before method-not-allowed semantics on api routes", async () => {
+    process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD] = "secret";
+    EnvManager.resetInstance();
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const unauthenticatedResponse = await fetch(`${baseUrl}/api/config`, {
+        method: "POST",
+      });
+      expect(unauthenticatedResponse.status).toBe(401);
+      expect(unauthenticatedResponse.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const authenticatedResponse = await fetch(`${baseUrl}/api/config`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedResponse.status).toBe(405);
+      await expect(authenticatedResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+    } finally {
+      await server.close();
+      delete process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD];
+      EnvManager.resetInstance();
+    }
+  });
 });

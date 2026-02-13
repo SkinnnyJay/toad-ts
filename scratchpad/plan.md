@@ -35,6 +35,8 @@
 - Added API route body parsing hardening:
   - request body limit enforcement aligned to server max-body config
   - integration coverage for invalid JSON and oversized payload behavior
+- Added auth/method-ordering hardening:
+  - integration coverage confirming auth challenge precedence on protected API routes
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
