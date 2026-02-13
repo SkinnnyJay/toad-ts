@@ -542,6 +542,12 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `/api/tui/append-prompt` success path for valid text
     - `/api/tui/execute-command` bad-request path for empty command
     - `/api/tui/execute-command` success path for valid command
+- Additional file-search route handler coverage:
+  - Added focused unit coverage:
+    - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - Covered:
+    - `/api/files/search` bad-request path when `q` query is missing
+    - `/api/files/search` success path with placeholder results for valid query
 - Additional fallback-env integration coverage for agent listing:
   - Added focused unit coverage for feature-flagged fallback behavior:
     - `__tests__/unit/server/api-route-fallback-env.unit.test.ts`
