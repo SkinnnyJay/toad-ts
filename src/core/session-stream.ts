@@ -9,6 +9,7 @@ import { nanoid } from "nanoid";
 import { TIMEOUT } from "@/config/timeouts";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { CONTENT_MODE } from "@/constants/content-modes";
+import { ENV_VALUE } from "@/constants/env-values";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-marks";
 import { SESSION_MODE } from "@/constants/session-modes";
@@ -72,7 +73,7 @@ export class SessionStream {
     this.now = options.now ?? (() => Date.now());
     this.messageIdFactory =
       options.messageIdFactory ?? (() => MessageIdSchema.parse(`msg-${nanoid()}`));
-    this.bufferEnabled = EnvManager.getInstance().getEnvironment() !== "test";
+    this.bufferEnabled = EnvManager.getInstance().getEnvironment() !== ENV_VALUE.TEST;
 
     this.handler.on("block", (payload) => this.handleBlock(payload));
     this.handler.on("done", (payload) => this.handleDone(payload));

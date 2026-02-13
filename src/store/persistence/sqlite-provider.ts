@@ -1,5 +1,6 @@
 import { Worker } from "node:worker_threads";
 
+import { ENV_VALUE } from "@/constants/env-values";
 import { PERSISTENCE_REQUEST_TYPE } from "@/constants/persistence-request-types";
 import { SessionSnapshotSchema } from "@/store/session-persistence";
 import { MessageSchema, SessionSchema } from "@/types/domain";
@@ -167,7 +168,7 @@ class SqliteDirectClient implements SqliteClient {
 export const createSqlitePersistenceProvider = (
   config: NonNullable<PersistenceConfig["sqlite"]>
 ): PersistenceProvider => {
-  const useWorker = EnvManager.getInstance().getEnvironment() !== "test";
+  const useWorker = EnvManager.getInstance().getEnvironment() !== ENV_VALUE.TEST;
   const client: SqliteClient = useWorker
     ? new SqliteWorkerClient({ filePath: config.filePath })
     : new SqliteDirectClient(config.filePath);
