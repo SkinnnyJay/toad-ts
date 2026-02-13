@@ -14,6 +14,9 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added SSE pre-closed response cleanup hardening:
+  - events stream now proactively cleans up immediately when response is already ended/destroyed
+  - added focused unit coverage for pre-closed response path
 - Added file-search key-normalization hardening:
   - query key matching now normalizes key names for duplicate detection across case variants
   - added coverage for uppercase keys, mixed-case duplicate rejection, and encoded-separator values

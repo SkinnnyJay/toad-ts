@@ -1,5 +1,21 @@
 # Scratchpad Journal
 
+## 2026-02-13 (SSE pre-closed response cleanup hardening)
+- Updated `src/server/api-routes.ts`:
+  - events stream now immediately cleans up subscriptions if response is already
+    ended/destroyed when handler attaches the store subscription
+- Extended `__tests__/unit/server/api-route-events-stream.unit.test.ts`:
+  - added coverage for pre-closed response cleanup path (`writableEnded=true`)
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/api-route-events-stream.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (file-search key-normalization hardening)
 - Updated `src/server/api-routes.ts`:
   - query parameter key matching now normalizes case and trims names

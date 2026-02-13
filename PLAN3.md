@@ -1537,3 +1537,18 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - uppercase `Q` key acceptance parity for single-query requests
     - mixed-case duplicate `q` + `Q` rejection path
     - encoded separator decoding behavior for query values
+
+## Execution Log Addendum — 2026-02-13 (SSE pre-closed response cleanup hardening)
+
+- Additional events-stream lifecycle hardening:
+  - Updated:
+    - `src/server/api-routes.ts`
+  - Hardening change:
+    - SSE route now immediately performs subscription cleanup when response is
+      already ended or destroyed at subscription time, avoiding stale store
+      subscriptions on pre-closed response paths.
+  - Extended:
+    - `__tests__/unit/server/api-route-events-stream.unit.test.ts`
+  - Covered:
+    - immediate cleanup path when `response.writableEnded === true` before
+      first stream callback.

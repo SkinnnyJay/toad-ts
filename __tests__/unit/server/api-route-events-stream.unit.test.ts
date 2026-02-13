@@ -222,4 +222,21 @@ describe("eventsStream handler", () => {
     expect(unsubscribe).toHaveBeenCalledTimes(1);
     expect(getCaptured().writes).toEqual([]);
   });
+
+  it("cleans up immediately when response is already ended", async () => {
+    const subscribeMock = await getSubscribeMock();
+    const unsubscribe = vi.fn();
+    subscribeMock.mockImplementation(() => unsubscribe);
+
+    const request = new EventEmitter() as IncomingMessage;
+    const { response } = createResponseCapture();
+    Object.defineProperty(response, "writableEnded", {
+      value: true,
+      configurable: true,
+    });
+
+    await eventsStream(request, response, {});
+
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+  });
 });

@@ -222,6 +222,11 @@ export const eventsStream: RouteHandler = async (_req, res) => {
     }
   });
 
+  if (res.writableEnded || res.destroyed) {
+    cleanup();
+    return;
+  }
+
   _req.once("close", cleanup);
   _req.once("aborted", cleanup);
   _req.once("error", cleanup);
