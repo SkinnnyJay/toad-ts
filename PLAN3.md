@@ -559,6 +559,12 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - protected endpoints reject missing authorization.
     - protected endpoints reject invalid bearer credentials.
     - protected endpoints accept valid bearer credentials and complete session creation.
+- Additional repo workflow remote-url parsing coverage:
+  - Extended `__tests__/unit/core/repo-workflow-info.unit.test.ts`
+    with SSH remote parsing scenario.
+  - Covered:
+    - owner/repository extraction from SSH-style git remotes
+      (`git@github.com:<owner>/<repo>.git`)
 
 ---
 

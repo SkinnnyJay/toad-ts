@@ -38,7 +38,10 @@ const getIsGitCleanMock = async () => {
   return module.isGitClean as unknown as ReturnType<typeof vi.fn>;
 };
 
-const buildExecaImplementation = (checksPayload: Array<{ status: string; conclusion: string }>) => {
+const buildExecaImplementation = (
+  checksPayload: Array<{ status: string; conclusion: string }>,
+  remoteUrl = "https://github.com/acme/toad-ts.git"
+) => {
   return async (command: string, args?: string[], options?: unknown) => {
     const key = `${command} ${(args ?? []).join(" ")}`.trim();
     if (key === "git rev-parse --show-toplevel") {
@@ -54,7 +57,7 @@ const buildExecaImplementation = (checksPayload: Array<{ status: string; conclus
       return { stdout: "", stderr: "", exitCode: 0 };
     }
     if (key === "git config --get remote.origin.url") {
-      return { stdout: "https://github.com/acme/toad-ts.git\n", stderr: "", exitCode: 0 };
+      return { stdout: `${remoteUrl}\n`, stderr: "", exitCode: 0 };
     }
     if (key === "gh pr checks --json name,status,conclusion") {
       expect(options).toMatchObject({ timeout: TIMEOUT.GH_CLI_MS });
@@ -221,5 +224,31 @@ describe("getRepoWorkflowInfo", () => {
     expect(info.checksStatus).toBe("pending");
     expect(info.status).toBe(REPO_WORKFLOW_STATUS.OPEN);
     expect(info.action).toBe(REPO_WORKFLOW_ACTION[REPO_WORKFLOW_STATUS.OPEN]);
+  });
+
+  it("parses owner and repo from ssh remote url", async () => {
+    const execaMock = await getExecaMock();
+    const prStatusMock = await getPrStatusMock();
+    const isGitCleanMock = await getIsGitCleanMock();
+
+    execaMock.mockImplementation(
+      buildExecaImplementation(
+        [{ status: "completed", conclusion: "success" }],
+        "git@github.com:octocat/hello-world.git"
+      )
+    );
+    prStatusMock.mockResolvedValue({
+      number: 7,
+      title: "SSH remote parse",
+      url: "https://github.com/octocat/hello-world/pull/7",
+      state: "open",
+      reviewDecision: PR_REVIEW_STATUS.APPROVED,
+    });
+    isGitCleanMock.mockResolvedValue(true);
+
+    const info = await getRepoWorkflowInfo("/workspace");
+
+    expect(info.owner).toBe("octocat");
+    expect(info.repoName).toBe("hello-world");
   });
 });
