@@ -360,16 +360,9 @@ if (process.argv.includes("--json")) {
 }
 
 // Exit codes
-const hasCriticalOrHigh = critical.length > 0 || high.length > 0;
-
-if (STRICT_MODE && hasCriticalOrHigh) {
-  console.log("\n❌ Strict mode: failing due to Critical/High severity issues");
-  process.exit(1);
-}
-
 if (STRICT_MODE && issues.length > 0) {
-  console.log("\n⚠️  Strict mode: warnings found (use --json for machine-readable output)");
-  process.exit(0);
+  console.log("\n❌ Strict mode: failing because issues were detected");
+  process.exit(1);
 }
 
 console.log("\n✅ Non-strict mode: warnings only (use --strict to fail on Critical/High)");
