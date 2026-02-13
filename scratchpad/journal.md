@@ -1,5 +1,20 @@
 # Scratchpad Journal
 
+## 2026-02-13 (shared server response helper extraction)
+- Added `src/server/http-response.ts` with reusable helpers:
+  - `sendJsonResponse()`
+  - `sendErrorResponse()`
+- Refactored response writers in:
+  - `src/server/api-routes.ts`
+  - `src/server/headless-server.ts`
+- Added focused unit coverage:
+  - `__tests__/unit/server/http-response.unit.test.ts`
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/http-response.unit.test.ts __tests__/unit/server/api-route-tui-handlers.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (unified server route classifier pipeline)
 - Added `src/server/server-route-classifier.ts` to compose:
   - core-route classification

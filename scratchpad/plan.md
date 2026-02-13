@@ -67,6 +67,10 @@
 - Added unified server route classification abstraction:
   - composed core + api route classification outcomes in one helper
   - headless server now uses unified route classifier decision pipeline
+- Added shared HTTP response helpers:
+  - extracted JSON/error response writer behavior into shared server utility
+  - refactored headless + API route modules to reuse response helpers
+  - added focused unit coverage for header/body semantics
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

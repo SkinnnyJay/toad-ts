@@ -6,6 +6,7 @@ import { SERVER_EVENT } from "@/constants/server-events";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
+import { sendJsonResponse } from "@/server/http-response";
 import { parseJsonRequestBody } from "@/server/request-body";
 import { useAppStore } from "@/store/app-store";
 import type { Session, SessionId } from "@/types/domain";
@@ -16,9 +17,7 @@ export type RouteHandler = (
 ) => Promise<void>;
 
 const sendJson = (res: ServerResponse, status: number, payload: unknown): void => {
-  const body = JSON.stringify(payload);
-  res.writeHead(status, { "Content-Type": "application/json" });
-  res.end(body);
+  sendJsonResponse(res, status, payload);
 };
 
 const mapRequestBodyError = (error: unknown): string => {

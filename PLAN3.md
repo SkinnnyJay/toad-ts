@@ -814,6 +814,21 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - method-not-allowed classification (core + api)
     - API match classification
     - unhandled fallback classification
+- Additional server response helper consolidation hardening:
+  - Added:
+    - `src/server/http-response.ts`
+  - Refactored:
+    - `src/server/api-routes.ts`
+    - `src/server/headless-server.ts`
+  - Refactor goal:
+    - centralize shared JSON + error response write behavior to reduce duplication and
+      lock response header semantics with focused unit coverage.
+  - Added unit coverage:
+    - `__tests__/unit/server/http-response.unit.test.ts`
+  - Covered:
+    - JSON response content-type behavior
+    - optional content-length header behavior
+    - canonical error payload serialization
 
 ---
 

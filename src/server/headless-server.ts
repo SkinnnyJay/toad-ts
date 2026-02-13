@@ -15,6 +15,7 @@ import {
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { createHarnessRegistry, isCursorHarnessEnabled } from "@/harness/harnessRegistryFactory";
+import { sendErrorResponse, sendJsonResponse } from "@/server/http-response";
 import { parseJsonRequestBody } from "@/server/request-body";
 import { checkServerAuth } from "@/server/server-auth";
 import type { ServerRuntimeConfig } from "@/server/server-config";
@@ -38,18 +39,11 @@ export interface HeadlessServer {
 
 const logger = createClassLogger("HeadlessServer");
 
-const sendJson = (res: ServerResponse, status: number, payload: unknown): void => {
-  const body = JSON.stringify(payload);
-  res.writeHead(status, {
-    "Content-Type": "application/json",
-    "Content-Length": Buffer.byteLength(body),
-  });
-  res.end(body);
-};
+const sendJson = (res: ServerResponse, status: number, payload: unknown): void =>
+  sendJsonResponse(res, status, payload, { includeContentLength: true });
 
-const sendError = (res: ServerResponse, status: number, message: string): void => {
-  sendJson(res, status, { error: message });
-};
+const sendError = (res: ServerResponse, status: number, message: string): void =>
+  sendErrorResponse(res, status, message, { includeContentLength: true });
 
 export const startHeadlessServer = async (
   options: HeadlessServerOptions = {}
