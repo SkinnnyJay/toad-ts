@@ -30,9 +30,9 @@ export interface PruneResult {
 }
 
 const CONTEXT_LEVEL_THRESHOLDS = {
-  MEDIUM: 0.5,
-  HIGH: 0.8,
-  CRITICAL: 0.95,
+  MEDIUM: LIMIT.CONTEXT_LEVEL_MEDIUM_THRESHOLD,
+  HIGH: LIMIT.CONTEXT_LEVEL_HIGH_THRESHOLD,
+  CRITICAL: LIMIT.CONTEXT_LEVEL_CRITICAL_THRESHOLD,
 } as const;
 
 const estimateTokens = (text: string): number =>
