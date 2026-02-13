@@ -157,6 +157,8 @@
     disabled cursor adapter does not block configured mock harness operation
   - added headless integration coverage for default cursor-harness connection
     failure while preserving follow-up mock session creation continuity
+  - added headless integration coverage for default cursor-harness adapter
+    disablement while preserving follow-up mock session creation continuity
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

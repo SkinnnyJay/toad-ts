@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added default cursor disabled partial-availability integration coverage:
+  - headless integration now verifies default session creation fails with
+    canonical adapter-not-registered response when `defaultHarness` is
+    `cursor-cli` but cursor adapter is disabled
+  - validates explicit `mock` session creation still succeeds in the same
+    server instance under that default-harness failure condition
 - Added default cursor connect-failure integration coverage:
   - headless integration now verifies default-harness session creation returns
     canonical server error when `cursor-cli` is default and connection checks
