@@ -51,13 +51,19 @@ export interface UseAppKeyboardShortcutsResult {
  * Focus target mapping for number shortcuts.
  * Command/Ctrl + 1-5 maps to different focus targets.
  */
-export const FOCUS_NUMBER_MAP: Record<string, FocusTarget> = {
+export const FOCUS_NUMBER_MAP = {
   "1": FOCUS_TARGET.FILES,
   "2": FOCUS_TARGET.PLAN,
   "3": FOCUS_TARGET.CONTEXT,
   "4": FOCUS_TARGET.SESSIONS,
   "5": FOCUS_TARGET.AGENT,
   "6": FOCUS_TARGET.TODOS,
+} as const;
+
+export type FocusShortcutKey = keyof typeof FOCUS_NUMBER_MAP;
+
+export const isFocusShortcutKey = (keyName: string): keyName is FocusShortcutKey => {
+  return Object.hasOwn(FOCUS_NUMBER_MAP, keyName);
 };
 
 /**
@@ -150,10 +156,10 @@ export function useAppKeyboardShortcuts({
       return;
     }
 
-    if ((key.meta || key.ctrl) && /^[1-6]$/.test(keyName)) {
+    if ((key.meta || key.ctrl) && isFocusShortcutKey(keyName)) {
       key.preventDefault();
       key.stopPropagation();
-      setFocusTarget(FOCUS_NUMBER_MAP[keyName] ?? FOCUS_TARGET.CHAT);
+      setFocusTarget(FOCUS_NUMBER_MAP[keyName]);
       return;
     }
 
