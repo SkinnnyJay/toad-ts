@@ -93,12 +93,29 @@ const STATUS_STRINGS = [
   "ready",
 ];
 
-const stripQuotedContentAndLineComment = (line: string): string => {
+interface QuoteStripState {
+  inSingleQuote: boolean;
+  inDoubleQuote: boolean;
+  inTemplateQuote: boolean;
+  isEscaped: boolean;
+}
+
+const INITIAL_QUOTE_STRIP_STATE: QuoteStripState = {
+  inSingleQuote: false,
+  inDoubleQuote: false,
+  inTemplateQuote: false,
+  isEscaped: false,
+};
+
+const stripQuotedContentAndLineComment = (
+  line: string,
+  previousState: QuoteStripState
+): { strippedLine: string; nextState: QuoteStripState } => {
   let result = "";
-  let inSingleQuote = false;
-  let inDoubleQuote = false;
-  let inTemplateQuote = false;
-  let isEscaped = false;
+  let inSingleQuote = previousState.inSingleQuote;
+  let inDoubleQuote = previousState.inDoubleQuote;
+  let inTemplateQuote = previousState.inTemplateQuote;
+  let isEscaped = previousState.isEscaped;
 
   for (let i = 0; i < line.length; i += 1) {
     const current = line[i];
@@ -164,7 +181,15 @@ const stripQuotedContentAndLineComment = (line: string): string => {
     result += current;
   }
 
-  return result;
+  return {
+    strippedLine: result,
+    nextState: {
+      inSingleQuote,
+      inDoubleQuote,
+      inTemplateQuote,
+      isEscaped,
+    },
+  };
 };
 
 function scanFile(filePath: string): void {
@@ -174,9 +199,14 @@ function scanFile(filePath: string): void {
     const content = readFileSync(filePath, "utf-8");
     const lines = content.split("\n");
 
+    let quoteStripState: QuoteStripState = INITIAL_QUOTE_STRIP_STATE;
+
     lines.forEach((line, index) => {
       const lineNum = index + 1;
       const trimmedLine = line.trim();
+      const strippedLineResult = stripQuotedContentAndLineComment(line, quoteStripState);
+      const lineWithoutQuotedContent = strippedLineResult.strippedLine;
+      quoteStripState = strippedLineResult.nextState;
 
       // Check for type literals: type X = "a" | "b" | "c"
       const typeLiteralMatch = trimmedLine.match(
@@ -230,7 +260,6 @@ function scanFile(filePath: string): void {
       }
 
       // Check for magic numbers (non-trivial)
-      const lineWithoutQuotedContent = stripQuotedContentAndLineComment(line);
       const magicNumberMatch = lineWithoutQuotedContent.match(/\b([2-9]|[1-9]\d{2,})\b/);
       if (magicNumberMatch) {
         const number = magicNumberMatch[1];
