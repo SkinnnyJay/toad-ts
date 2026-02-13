@@ -519,6 +519,12 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - fallback behavior when git/gh metadata is unavailable
     - `gh pr checks` timeout wiring through `TIMEOUT.GH_CLI_MS`
     - checks outcome classification (`pass`/`fail`/`pending`) driving workflow status
+- Additional cursor harness default-config hardening:
+  - Updated `createDefaultHarnessConfig` to honor `TOADSTOOL_CURSOR_CLI_ENABLED` and
+    only include Cursor harness defaults when explicitly enabled.
+  - Updated harness adapter unit coverage to validate:
+    - Cursor is excluded by default from generated fallback harness config.
+    - Cursor command/args overrides still work when explicitly enabled.
 
 ---
 
