@@ -2064,3 +2064,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - preserve deterministic server behavior when clients request valid-but-
       unavailable harness ids.
+
+## Execution Log Addendum — 2026-02-13 (unregistered adapter create-session coverage)
+
+- Additional headless server integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for create-session when default harness is
+      configured but corresponding adapter is not registered in harness
+      registry.
+    - test provisions isolated temp harness config, verifies server returns:
+      - `404 Not Found`
+      - `formatHarnessAdapterNotRegisteredError("custom")`
+  - Goal:
+    - lock deterministic failure semantics for runtime adapter lookup gaps in
+      session creation flow.

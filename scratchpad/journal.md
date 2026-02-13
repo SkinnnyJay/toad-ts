@@ -1754,3 +1754,24 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Unregistered adapter create-session integration coverage)
+
+### Summary
+- Added headless integration coverage for create-session when configured default
+  harness exists but no matching adapter is registered.
+- Test provisions temporary isolated harness config and asserts:
+  - `404 Not Found`
+  - `formatHarnessAdapterNotRegisteredError("custom")`
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅

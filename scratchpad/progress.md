@@ -135,6 +135,8 @@
     canonical invalid-id message as other non-canonical inputs
   - added headless integration coverage for canonical-but-unconfigured harness
     ids returning 404 harness-not-configured responses
+  - added headless integration coverage for configured default harness ids that
+    lack registered adapters returning 404 adapter-not-registered responses
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

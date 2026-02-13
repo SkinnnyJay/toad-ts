@@ -1,13 +1,20 @@
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { request as httpRequest } from "node:http";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { WebSocket } from "ws";
 import { z } from "zod";
 
 import { SERVER_CONFIG } from "@/config/server";
 import { ENV_KEY } from "@/constants/env-keys";
+import { FILE_PATH } from "@/constants/file-paths";
 import { SERVER_EVENT } from "@/constants/server-events";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
-import { formatHarnessNotConfiguredError } from "@/harness/harness-error-messages";
+import {
+  formatHarnessAdapterNotRegisteredError,
+  formatHarnessNotConfiguredError,
+} from "@/harness/harness-error-messages";
 import { HARNESS_ID_VALIDATION_MESSAGE } from "@/harness/harness-id";
 import { startHeadlessServer } from "@/server/headless-server";
 import { createSessionResponseSchema, serverEventSchema } from "@/server/server-types";
@@ -467,6 +474,65 @@ describe("headless server", () => {
       });
     } finally {
       await server.close();
+    }
+  });
+
+  it("returns not found when selected harness adapter is not registered", async () => {
+    const temporaryRoot = await mkdtemp(path.join(tmpdir(), "toadstool-headless-"));
+    const harnessDirectory = path.join(temporaryRoot, FILE_PATH.TOADSTOOL_DIR);
+    const harnessFilePath = path.join(harnessDirectory, FILE_PATH.HARNESSES_JSON);
+    const originalHome = process.env.HOME;
+    const originalCwd = process.cwd();
+
+    await mkdir(harnessDirectory, { recursive: true });
+    await writeFile(
+      harnessFilePath,
+      JSON.stringify(
+        {
+          defaultHarness: "custom",
+          harnesses: {
+            custom: {
+              name: "Custom",
+              command: "custom-cli",
+            },
+          },
+        },
+        null,
+        2
+      )
+    );
+
+    process.env.HOME = temporaryRoot;
+    process.chdir(temporaryRoot);
+    EnvManager.resetInstance();
+
+    let server: Awaited<ReturnType<typeof startHeadlessServer>> | null = null;
+    try {
+      server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+      const { host, port } = server.address();
+      const baseUrl = `http://${host}:${port}`;
+
+      const response = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      expect(response.status).toBe(404);
+      await expect(response.json()).resolves.toEqual({
+        error: formatHarnessAdapterNotRegisteredError("custom"),
+      });
+    } finally {
+      if (server) {
+        await server.close();
+      }
+      process.chdir(originalCwd);
+      if (originalHome === undefined) {
+        process.env.HOME = undefined;
+      } else {
+        process.env.HOME = originalHome;
+      }
+      EnvManager.resetInstance();
+      await rm(temporaryRoot, { recursive: true, force: true });
     }
   });
 

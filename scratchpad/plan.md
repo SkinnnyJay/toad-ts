@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added unregistered-adapter create-session integration coverage:
+  - headless integration now verifies configured default harnesses without a
+    registered adapter return `404` adapter-not-registered errors
+  - added isolated temp project/home harness-config setup in integration
+    coverage to lock runtime adapter lookup failure semantics
 - Added unknown-harness create-session integration coverage:
   - headless integration now verifies canonical but unconfigured harness ids
     return `404` with formatted harness-not-configured message
