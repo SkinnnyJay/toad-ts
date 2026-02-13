@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added hook IPC invalid-body diagnostics hardening:
+  - hook IPC now emits structured warnings for request-body parse failures while
+    preserving canonical 400 response mappings
+  - added focused assertions for warning metadata across malformed JSON,
+    oversized body, and parser-rejection stream failure paths
 - Added hook IPC request-stream failure mapping coverage:
   - added focused unit coverage for aborted-stream and stream-error parser
     rejection paths in hook IPC endpoint handling

@@ -1615,3 +1615,24 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - prevent regressions where premature request stream termination errors
       accidentally leak as non-canonical responses.
+
+## Execution Log Addendum — 2026-02-13 (hook IPC invalid-body diagnostics hardening)
+
+- Additional hook IPC operational diagnostics hardening:
+  - Updated:
+    - `src/core/cursor/hook-ipc-server.ts`
+    - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+  - Hardening changes:
+    - hook IPC now emits structured warning logs for request-body parse failures
+      before returning `400` responses.
+    - warning metadata includes:
+      - normalized mapped response message
+      - original parse/read failure detail
+    - preserves canonical response behavior while improving observability for
+      malformed/oversized/stream-failure request scenarios.
+  - Extended coverage:
+    - malformed JSON path emits diagnostics warning and canonical `INVALID_REQUEST`
+    - oversized request body path emits diagnostics warning and canonical
+      `REQUEST_BODY_TOO_LARGE`
+    - parser-rejection stream lifecycle paths continue to map to canonical
+      `INVALID_REQUEST` while emitting diagnostics warnings.

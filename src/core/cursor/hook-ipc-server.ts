@@ -45,11 +45,22 @@ const sendError = (res: http.ServerResponse, status: number, message: string): v
   sendJson(res, status, { error: message });
 };
 
-const mapHookRequestBodyError = (error: unknown): string => {
+interface HookRequestBodyErrorMapping {
+  readonly message: string;
+  readonly error: string;
+}
+
+const mapHookRequestBodyError = (error: unknown): HookRequestBodyErrorMapping => {
   if (error instanceof Error && error.message === SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE) {
-    return SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE;
+    return {
+      message: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE,
+      error: error.message,
+    };
   }
-  return SERVER_RESPONSE_MESSAGE.INVALID_REQUEST;
+  return {
+    message: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+    error: error instanceof Error ? error.message : String(error),
+  };
 };
 
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> => {
@@ -150,7 +161,12 @@ export class HookIpcServer {
         }
         payload = parsedPayload.data;
       } catch (error) {
-        sendError(res, HTTP_STATUS.BAD_REQUEST, mapHookRequestBodyError(error));
+        const mappedError = mapHookRequestBodyError(error);
+        this.logger.warn("Hook IPC invalid request body", {
+          error: mappedError.error,
+          mappedMessage: mappedError.message,
+        });
+        sendError(res, HTTP_STATUS.BAD_REQUEST, mappedError.message);
         return;
       }
 

@@ -1,5 +1,24 @@
 # Scratchpad Journal
 
+## 2026-02-13 (hook IPC invalid-body diagnostics hardening)
+- Updated `src/core/cursor/hook-ipc-server.ts`:
+  - request-body parse failures now emit structured warning telemetry before
+    canonical 400 responses are returned
+  - warning metadata includes normalized mapped message and original parse error
+- Extended `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`:
+  - malformed JSON and oversized payload paths now assert warning emission
+  - parser-rejection stream-failure scenarios now assert warning metadata
+    alongside canonical `INVALID_REQUEST` response mapping
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (hook IPC request-stream failure mapping coverage)
 - Updated `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`:
   - added parser rejection coverage for request-stream lifecycle failures:

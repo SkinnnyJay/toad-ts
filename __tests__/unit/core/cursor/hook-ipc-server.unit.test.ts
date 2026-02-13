@@ -85,6 +85,13 @@ const HOOK_REQUEST_STREAM_ERROR = {
   STREAM_ERROR: "socket hang up",
 } as const;
 
+const getHookIpcWarnSpy = (hookServer: HookIpcServer) => {
+  const logger = Reflect.get(hookServer, "logger") as {
+    warn: (message: string, metadata?: Record<string, unknown>) => void;
+  };
+  return vi.spyOn(logger, "warn");
+};
+
 describe("HookIpcServer", () => {
   let server: HookIpcServer | null = null;
 
@@ -231,6 +238,7 @@ describe("HookIpcServer", () => {
 
   it("returns bad request for malformed JSON payloads", async () => {
     server = new HookIpcServer({ transport: "http" });
+    const warnSpy = getHookIpcWarnSpy(server);
     const endpoint = await server.start();
 
     const response = await requestHttpEndpoint(endpoint, "POST", "{invalid");
@@ -239,6 +247,14 @@ describe("HookIpcServer", () => {
       status: HTTP_STATUS.BAD_REQUEST,
       payload: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
     });
+    expect(warnSpy).toHaveBeenCalledWith(
+      "Hook IPC invalid request body",
+      expect.objectContaining({
+        mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+        error: expect.any(String),
+      })
+    );
+    warnSpy.mockRestore();
   });
 
   it("returns bad request for schema-invalid payloads", async () => {
@@ -280,6 +296,7 @@ describe("HookIpcServer", () => {
 
   it("returns request-body-too-large for oversized payloads", async () => {
     server = new HookIpcServer({ transport: "http" });
+    const warnSpy = getHookIpcWarnSpy(server);
     const endpoint = await server.start();
 
     const response = await requestHttpEndpoint(
@@ -292,6 +309,11 @@ describe("HookIpcServer", () => {
       status: HTTP_STATUS.BAD_REQUEST,
       payload: { error: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE },
     });
+    expect(warnSpy).toHaveBeenCalledWith("Hook IPC invalid request body", {
+      mappedMessage: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE,
+      error: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE,
+    });
+    warnSpy.mockRestore();
   });
 
   it.each([HOOK_REQUEST_STREAM_ERROR.ABORTED, HOOK_REQUEST_STREAM_ERROR.STREAM_ERROR])(
@@ -302,6 +324,7 @@ describe("HookIpcServer", () => {
         .mockRejectedValueOnce(new Error(streamErrorMessage));
 
       server = new HookIpcServer({ transport: "http" });
+      const warnSpy = getHookIpcWarnSpy(server);
       const endpoint = await server.start();
 
       const response = await requestHttpEndpoint(
@@ -314,7 +337,12 @@ describe("HookIpcServer", () => {
         status: HTTP_STATUS.BAD_REQUEST,
         payload: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
       });
+      expect(warnSpy).toHaveBeenCalledWith("Hook IPC invalid request body", {
+        error: streamErrorMessage,
+        mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      });
 
+      warnSpy.mockRestore();
       parseBodySpy.mockRestore();
     }
   );

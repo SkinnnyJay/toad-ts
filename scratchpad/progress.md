@@ -91,6 +91,8 @@
     (Claude/Cursor now fall back to default command names)
   - hardened hook IPC request-stream failure-path coverage for aborted/error body
     read scenarios to lock canonical invalid-request response mapping
+  - hardened hook IPC invalid-body diagnostics with structured warning logs and
+    focused assertions for malformed/oversized/stream-failure parse paths
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
