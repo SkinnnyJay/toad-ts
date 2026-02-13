@@ -61,4 +61,32 @@ describe("check-magic-literals strict mode", () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("No magic literals detected");
   });
+
+  it("fails when quoted status literals are used in control flow", () => {
+    const cwd = createTempWorkspace();
+    writeFileSync(
+      join(cwd, "src", "status-string.ts"),
+      'const status = "pending";\nif (status === "error") {\n  throw new Error("boom");\n}\n',
+      "utf8"
+    );
+
+    const result = runLiteralCheckStrict(cwd);
+
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain('Status string "error"');
+  });
+
+  it("does not flag comparisons against status identifiers", () => {
+    const cwd = createTempWorkspace();
+    writeFileSync(
+      join(cwd, "src", "status-identifier.ts"),
+      'const status = "pending";\nconst error = "error";\nif (status === error) {\n  throw new Error("boom");\n}\n',
+      "utf8"
+    );
+
+    const result = runLiteralCheckStrict(cwd);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("No magic literals detected");
+  });
 });

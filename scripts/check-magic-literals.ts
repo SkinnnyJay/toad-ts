@@ -11,8 +11,8 @@
  *   tsx scripts/check-magic-literals.ts [--strict]
  *
  * Exit codes:
- *   0 - No issues found (or non-strict mode with warnings)
- *   1 - Critical issues found (strict mode only)
+ *   0 - No issues found
+ *   1 - Issues found in strict mode
  */
 
 import { readFileSync } from "node:fs";
