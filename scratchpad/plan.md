@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added cursor default-config disablement integration coverage:
+  - headless integration now verifies that with cursor disabled in default
+    harness configuration, explicit `cursor-cli` requests return canonical
+    harness-not-configured responses
+  - validates explicit `mock` session creation still succeeds in the same
+    server instance under default-config cursor disablement
 - Added harness-registry factory fallback unit coverage:
   - harness registry factory unit tests now cover `includeMock: false`
     adapter-list behavior

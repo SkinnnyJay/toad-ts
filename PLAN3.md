@@ -2264,3 +2264,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock deterministic harness-registry feature-flag fallback semantics and
       adapter-list construction behavior.
+
+## Execution Log Addendum — 2026-02-13 (cursor default-config disablement coverage)
+
+- Additional default-config + feature-flag integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for runtime behavior when cursor is disabled in
+      default harness configuration (no custom harness config file).
+    - verifies `harnessId: "cursor-cli"` returns canonical harness-not-configured
+      response under default-config cursor disablement.
+    - verifies explicit `mock` session creation remains successful in the same
+      server instance.
+  - Goal:
+    - lock default-config feature-flag semantics so disabled cursor harnesses
+      fail deterministically without impacting available default harnesses.

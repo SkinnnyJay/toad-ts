@@ -524,6 +524,45 @@ describe("headless server", () => {
     }
   });
 
+  it("returns cursor harness not configured when cursor default config is disabled", async () => {
+    const originalCursorEnabled = process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED];
+    process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED] = "false";
+    EnvManager.resetInstance();
+
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const cursorResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.CURSOR_CLI_ID }),
+      });
+      expect(cursorResponse.status).toBe(404);
+      await expect(cursorResponse.json()).resolves.toEqual({
+        error: formatHarnessNotConfiguredError(HARNESS_DEFAULT.CURSOR_CLI_ID),
+      });
+
+      const mockResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.MOCK_ID }),
+      });
+      expect(mockResponse.status).toBe(200);
+      const payload = createSessionResponseSchema.parse(await mockResponse.json());
+      expect(payload.sessionId).toBeTruthy();
+    } finally {
+      await server.close();
+      if (originalCursorEnabled === undefined) {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED] = undefined;
+      } else {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED] = originalCursorEnabled;
+      }
+      EnvManager.resetInstance();
+    }
+  });
+
   it("returns not found when selected harness adapter is not registered", async () => {
     const temporaryRoot = await mkdtemp(path.join(tmpdir(), "toadstool-headless-"));
     const harnessDirectory = path.join(temporaryRoot, FILE_PATH.TOADSTOOL_DIR);

@@ -161,6 +161,8 @@
     disablement while preserving follow-up mock session creation continuity
   - expanded harness-registry factory unit coverage for adapter list assembly
     and unsupported cursor feature-flag fallback defaults
+  - added headless integration coverage for cursor disablement in default
+    harness config with explicit cursor-not-configured semantics
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
