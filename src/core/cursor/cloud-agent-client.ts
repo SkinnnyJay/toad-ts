@@ -62,7 +62,7 @@ export interface CursorCloudWaitForAgentStatusOptions {
 
 const DEFAULT_CURSOR_CLOUD_BASE_URL = "https://api2.cursor.sh";
 
-const shouldRetry = (status: number): boolean => status >= 500;
+const shouldRetry = (status: number): boolean => status >= HTTP_STATUS.INTERNAL_SERVER_ERROR;
 
 const wait = async (durationMs: number): Promise<void> => {
   await new Promise((resolve) => setTimeout(resolve, durationMs));

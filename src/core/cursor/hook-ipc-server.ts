@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
+import { HTTP_STATUS } from "@/constants/http-status";
 import { PERMISSION } from "@/constants/permissions";
 import {
   type CursorHookInput,
@@ -134,13 +135,13 @@ export class HookIpcServer {
         const parsedBody = safeJsonParse(rawBody);
         const parsedPayload = CursorHookInputSchema.safeParse(parsedBody);
         if (!parsedPayload.success) {
-          res.writeHead(400, { "Content-Type": "application/json" });
+          res.writeHead(HTTP_STATUS.BAD_REQUEST, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ error: parsedPayload.error.message }));
           return;
         }
 
         const response = await this.handlePayload(parsedPayload.data);
-        res.writeHead(200, { "Content-Type": "application/json" });
+        res.writeHead(HTTP_STATUS.OK, { "Content-Type": "application/json" });
         res.end(JSON.stringify(response));
       });
     });
