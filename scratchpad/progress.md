@@ -8,6 +8,7 @@
   - added server infrastructure coverage for config resolution, schema contracts, and SSE lifecycle
   - added headless-server edge-route integration coverage for 404/unknown-session flows
   - added route-match and raw-token auth integration parity coverage
+  - added oversized-body handling fix + integration coverage for schema/body edge paths
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

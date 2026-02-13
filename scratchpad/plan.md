@@ -24,6 +24,9 @@
 - Added route/auth parity coverage:
   - route matcher coverage for `/api/tui/submit-prompt`
   - integration coverage for raw-token server authorization flow
+- Added headless request validation hardening:
+  - integration coverage for schema-rejection and oversized-body behavior
+  - server runtime fix mapping oversized-body errors to `400` responses
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

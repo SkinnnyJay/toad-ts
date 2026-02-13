@@ -201,6 +201,13 @@ export const startHeadlessServer = async (
         sendError(res, HTTP_STATUS.BAD_REQUEST, error.message);
         return;
       }
+      if (
+        error instanceof Error &&
+        error.message === SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE
+      ) {
+        sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE);
+        return;
+      }
       logger.error("Server request failed", {
         error: error instanceof Error ? error.message : String(error),
       });

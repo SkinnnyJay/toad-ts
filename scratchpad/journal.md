@@ -1,5 +1,18 @@
 # Scratchpad Journal
 
+## 2026-02-13 (headless request-body/schema edge hardening)
+- Extended `__tests__/integration/server/headless-server.integration.test.ts` to cover:
+  - strict schema rejection when `/sessions` payload includes unexpected keys
+  - oversized request-body handling for `/sessions`
+- Found and fixed runtime mismatch:
+  - previously `REQUEST_BODY_TOO_LARGE` bubbled to generic error handling and returned 500
+  - `src/server/headless-server.ts` now maps that error to `400 Bad Request` with canonical
+    `SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE`
+- Validation:
+  - Targeted: `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (route/auth integration parity hardening)
 - Extended route matcher unit tests in `__tests__/unit/server/api-routes.unit.test.ts` to cover:
   - `POST /api/tui/submit-prompt`

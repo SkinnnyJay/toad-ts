@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { WebSocket } from "ws";
 import { z } from "zod";
 
+import { SERVER_CONFIG } from "@/config/server";
 import { ENV_KEY } from "@/constants/env-keys";
 import { SERVER_EVENT } from "@/constants/server-events";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
@@ -211,6 +212,47 @@ describe("headless server", () => {
       expect(response.status).toBe(404);
       await expect(response.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.SESSION_NOT_FOUND,
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns bad request when session payload fails schema validation", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const response = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: "mock", unexpected: true }),
+      });
+      expect(response.status).toBe(400);
+      const payload = (await response.json()) as { error?: string };
+      expect(typeof payload.error).toBe("string");
+      expect((payload.error ?? "").length).toBeGreaterThan(0);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns request body too large for oversized payloads", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+    const oversizedPayload = "x".repeat(SERVER_CONFIG.MAX_BODY_BYTES + 1);
+
+    try {
+      const response = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: oversizedPayload,
+      });
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE,
       });
     } finally {
       await server.close();

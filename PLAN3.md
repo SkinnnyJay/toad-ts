@@ -650,6 +650,15 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/integration/server/headless-server.integration.test.ts`
   - Covered:
     - raw authorization token flow (`Authorization: <token>`) alongside Bearer support
+- Additional request-body and schema edge hardening for headless server:
+  - Extended integration coverage:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Covered:
+    - strict create-session schema rejection for unexpected request keys
+    - oversized body handling path with `REQUEST_BODY_TOO_LARGE`
+  - Runtime fix:
+    - updated `src/server/headless-server.ts` to treat
+      `REQUEST_BODY_TOO_LARGE` as `400 Bad Request` instead of falling through to `500`
 
 ---
 
