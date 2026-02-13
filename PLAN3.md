@@ -1822,3 +1822,24 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - close remaining diagnostics parity gap for classifier/guard validation
       decisions.
+
+## Execution Log Addendum — 2026-02-13 (api/core classifier handler IDs)
+
+- Additional classifier diagnostics granularity hardening:
+  - Updated:
+    - `src/server/server-route-classifier.ts`
+    - `src/server/headless-server.ts`
+    - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - server route classification now carries explicit classifier handler ids for
+      method-not-allowed and unhandled routes:
+      - `api_route_classifier`
+      - `core_route_classifier`
+    - headless validation telemetry now uses these handler ids directly for
+      method-not-allowed and not-found classifier outcomes.
+    - improved telemetry granularity distinguishes API classifier decisions from
+      core classifier decisions.
+  - Goal:
+    - provide precise classifier-source diagnostics for routing validation
+      outcomes without changing response semantics.

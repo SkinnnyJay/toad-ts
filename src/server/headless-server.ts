@@ -49,7 +49,6 @@ const logger = createClassLogger("HeadlessServer");
 const HEADLESS_ROUTE_HANDLER = {
   SESSION_CREATE: "session_create",
   SESSION_PROMPT: "session_prompt",
-  ROUTE_CLASSIFIER: "route_classifier",
 } as const;
 
 const sendJson = (res: ServerResponse, status: number, payload: unknown): void =>
@@ -152,7 +151,7 @@ export const startHeadlessServer = async (
           logger,
           {
             source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
-            handler: HEADLESS_ROUTE_HANDLER.ROUTE_CLASSIFIER,
+            handler: routeClassification.classifierHandler,
             method: req.method,
             pathname: url.pathname,
           },
@@ -307,7 +306,7 @@ export const startHeadlessServer = async (
         logger,
         {
           source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
-          handler: HEADLESS_ROUTE_HANDLER.ROUTE_CLASSIFIER,
+          handler: routeClassification.classifierHandler,
           method: req.method,
           pathname: url.pathname,
         },

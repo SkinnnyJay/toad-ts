@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added api/core classifier handler IDs:
+  - route classifier now returns explicit `api_route_classifier` /
+    `core_route_classifier` ids for method-not-allowed + unhandled outcomes
+  - headless validation telemetry now uses classifier-provided handler ids for
+    finer-grained diagnostics
 - Added route-classifier/method-guard validation telemetry:
   - headless route-classifier method-not-allowed/not-found paths now emit shared
     validation telemetry with handler id `route_classifier`

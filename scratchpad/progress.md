@@ -111,6 +111,8 @@
     identifiers for session create/prompt schema failures
   - hardened route-classifier and hook method-guard validation telemetry with
     explicit standardized handler identifiers
+  - hardened classifier telemetry precision by distinguishing api/core route
+    classifier handler ids for method-not-allowed and unhandled outcomes
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

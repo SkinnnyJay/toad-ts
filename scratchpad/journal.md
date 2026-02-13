@@ -1,5 +1,31 @@
 # Scratchpad Journal
 
+## 2026-02-13 (api/core classifier handler IDs)
+- Updated:
+  - `src/server/server-route-classifier.ts`
+  - `src/server/headless-server.ts`
+- Changes:
+  - server-route classifier now returns explicit classifier handler ids for
+    method-not-allowed and unhandled outcomes:
+    - `api_route_classifier`
+    - `core_route_classifier`
+  - headless validation telemetry now logs those classifier handler ids for
+    method-not-allowed and not-found responses.
+- Extended tests:
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+    - added expectations for classifier handler ids
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+    - existing coverage exercises updated telemetry paths
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (route-classifier validation telemetry)
 - Updated:
   - `src/server/headless-server.ts`

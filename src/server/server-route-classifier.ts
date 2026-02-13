@@ -13,28 +13,48 @@ export const SERVER_ROUTE_CLASSIFICATION = {
   UNHANDLED: "unhandled",
 } as const;
 
+export const SERVER_ROUTE_HANDLER = {
+  CORE_ROUTE_CLASSIFIER: "core_route_classifier",
+  API_ROUTE_CLASSIFIER: "api_route_classifier",
+} as const;
+
+export type ServerRouteHandler = (typeof SERVER_ROUTE_HANDLER)[keyof typeof SERVER_ROUTE_HANDLER];
+
 type ApiMatchClassification = {
   kind: typeof SERVER_ROUTE_CLASSIFICATION.API_MATCH;
   handler: RouteHandler;
   params: Record<string, string>;
 };
 
+type MethodNotAllowedClassification = {
+  kind: typeof SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED;
+  classifierHandler: ServerRouteHandler;
+};
+
+type UnhandledClassification = {
+  kind: typeof SERVER_ROUTE_CLASSIFICATION.UNHANDLED;
+  classifierHandler: ServerRouteHandler;
+};
+
 type ServerRouteClassification =
   | {
       kind: typeof SERVER_ROUTE_CLASSIFICATION.HEALTH_OK;
     }
-  | {
-      kind: typeof SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED;
-    }
+  | MethodNotAllowedClassification
   | ApiMatchClassification
-  | {
-      kind: typeof SERVER_ROUTE_CLASSIFICATION.UNHANDLED;
-    };
+  | UnhandledClassification;
 
 const classifyApiRouteMatch = (matched: RouteMatchResult): ApiMatchClassification => ({
   kind: SERVER_ROUTE_CLASSIFICATION.API_MATCH,
   handler: matched.handler,
   params: matched.params,
+});
+
+const classifyUnhandledRoute = (pathname: string): UnhandledClassification => ({
+  kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+  classifierHandler: pathname.startsWith("/api/")
+    ? SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER
+    : SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
 });
 
 export const classifyServerRoute = (
@@ -46,7 +66,10 @@ export const classifyServerRoute = (
     return { kind: SERVER_ROUTE_CLASSIFICATION.HEALTH_OK };
   }
   if (coreClassification.kind === CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED) {
-    return { kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED };
+    return {
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    };
   }
 
   const apiClassification = classifyApiRoute(method, pathname);
@@ -54,8 +77,11 @@ export const classifyServerRoute = (
     return classifyApiRouteMatch(apiClassification);
   }
   if (apiClassification.kind === API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED) {
-    return { kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED };
+    return {
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    };
   }
 
-  return { kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED };
+  return classifyUnhandledRoute(pathname);
 };
