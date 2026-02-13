@@ -935,6 +935,18 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - non-API invalid JSON (`POST /sessions`) now matches canonical invalid-request response
       shape used across server endpoints.
+- Additional request-body chunk accounting hardening:
+  - Updated:
+    - `src/server/request-body.ts`
+  - Hardening change:
+    - byte accounting now uses native chunk sizing (`Buffer.length` for buffer chunks,
+      `Buffer.byteLength` for string chunks), preserving accurate max-body enforcement
+      while avoiding unnecessary byte recomputation from re-stringified buffers.
+  - Extended:
+    - `__tests__/unit/server/request-body.unit.test.ts`
+  - Covered:
+    - buffer-chunk request-body handling
+    - exact-byte-limit acceptance behavior
 
 ---
 

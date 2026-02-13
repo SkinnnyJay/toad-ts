@@ -14,8 +14,9 @@ export const readRequestBody = async (
     let receivedBytes = 0;
     let data = "";
     req.on("data", (chunk: Buffer | string) => {
-      const chunkText = chunk.toString();
-      receivedBytes += Buffer.byteLength(chunkText);
+      const chunkText = typeof chunk === "string" ? chunk : chunk.toString();
+      const chunkBytes = typeof chunk === "string" ? Buffer.byteLength(chunk) : chunk.length;
+      receivedBytes += chunkBytes;
       if (receivedBytes > maxBodyBytes) {
         reject(new Error(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE));
         return;

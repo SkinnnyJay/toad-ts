@@ -1,5 +1,20 @@
 # Scratchpad Journal
 
+## 2026-02-13 (request-body chunk accounting hardening)
+- Updated `src/server/request-body.ts`:
+  - byte accounting now reads from native chunk type:
+    - `Buffer.length` for buffer chunks
+    - `Buffer.byteLength(...)` for string chunks
+  - avoids redundant re-encoding while preserving accurate max-body enforcement
+- Extended `__tests__/unit/server/request-body.unit.test.ts`:
+  - buffer-chunk body parsing coverage
+  - exact-byte-limit acceptance coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/request-body.unit.test.ts __tests__/unit/server/api-route-tui-handlers.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (headless invalid-JSON response normalization)
 - Updated `src/server/headless-server.ts`:
   - separated syntax-error handling from zod validation handling

@@ -28,6 +28,13 @@ const emitPayloadChunks = (req: IncomingMessage, payloads: string[]): void => {
   });
 };
 
+const emitBufferPayload = (req: IncomingMessage, payload: string): void => {
+  process.nextTick(() => {
+    req.emit("data", Buffer.from(payload));
+    req.emit("end");
+  });
+};
+
 describe("request-body helpers", () => {
   it("reads request body payload", async () => {
     const req = createRequest();
@@ -59,6 +66,23 @@ describe("request-body helpers", () => {
     emitPayloadChunks(req, ['{"hello":', "true}"]);
 
     await expect(pending).resolves.toBe('{"hello":true}');
+  });
+
+  it("reads request body from buffer chunks", async () => {
+    const req = createRequest();
+    const pending = readRequestBody(req);
+    emitBufferPayload(req, '{"value":"ok"}');
+
+    await expect(pending).resolves.toBe('{"value":"ok"}');
+  });
+
+  it("allows payload exactly at the configured byte limit", async () => {
+    const req = createRequest();
+    const payload = "1234";
+    const pending = readRequestBody(req, Buffer.byteLength(payload));
+    emitPayload(req, payload);
+
+    await expect(pending).resolves.toBe(payload);
   });
 
   it("parses JSON request body payload", async () => {

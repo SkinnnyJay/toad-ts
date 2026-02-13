@@ -107,6 +107,9 @@
 - Added headless invalid-JSON response normalization:
   - syntax-error handling now returns canonical invalid-request response payload
   - aligned non-API invalid JSON behavior with existing API route canonical mapping
+- Added request-body chunk accounting hardening:
+  - request-body helper now measures bytes directly from incoming chunk type (string/buffer)
+  - added focused coverage for buffer chunk inputs and exact-byte-limit acceptance
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

@@ -34,6 +34,7 @@
   - hardened request-body max-size enforcement to use utf-8 byte counts
   - hardened session route parsing against extra-segment subpaths
   - normalized headless invalid-json responses to canonical invalid-request payload
+  - improved request-body helper chunk-type byte accounting and coverage
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
