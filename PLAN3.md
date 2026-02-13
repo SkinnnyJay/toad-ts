@@ -353,6 +353,11 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Added `src/constants/terminal-programs.ts` for terminal program literals.
   - Replaced sidebar raw `"]"` key literal with `KEY_NAME.RIGHT_BRACKET`.
   - Added `__tests__/unit/core/image-renderer.unit.test.ts` coverage for inline image support logic.
+- Additional permission-literal hardening:
+  - Expanded `src/constants/permission-option-kinds.ts` with
+    `REJECT_ONCE` and `REJECT_ALWAYS`.
+  - Replaced raw reject-kind checks in `src/tools/permissions.ts`.
+  - Replaced bridge option-kind literals in `src/core/cli-agent/cli-agent.bridge.ts`.
 
 ---
 

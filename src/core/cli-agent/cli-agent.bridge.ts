@@ -1,4 +1,5 @@
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { PERMISSION_OPTION_KIND } from "@/constants/permission-option-kinds";
 import { PERMISSION } from "@/constants/permissions";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
 import { TOOL_CALL_STATUS } from "@/constants/tool-call-status";
@@ -64,8 +65,8 @@ const buildPermissionRequest = (
       rawInput: event.payload,
     },
     options: [
-      { optionId: PERMISSION.ALLOW, kind: "allow_once" },
-      { optionId: PERMISSION.DENY, kind: "reject_once" },
+      { optionId: PERMISSION.ALLOW, kind: PERMISSION_OPTION_KIND.ALLOW_ONCE },
+      { optionId: PERMISSION.DENY, kind: PERMISSION_OPTION_KIND.REJECT_ONCE },
     ],
   };
 };

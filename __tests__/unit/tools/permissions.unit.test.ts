@@ -1,3 +1,4 @@
+import { PERMISSION_OPTION_KIND } from "@/constants/permission-option-kinds";
 import { PERMISSION } from "@/constants/permissions";
 import { TOOL_KIND } from "@/constants/tool-kinds";
 import { setRulesState } from "@/rules/rules-service";
@@ -23,8 +24,8 @@ describe("createPermissionHandler", () => {
         kind: TOOL_KIND.EXECUTE,
       },
       options: [
-        { optionId: "allow", kind: "allow_once" },
-        { optionId: "deny", kind: "reject_once" },
+        { optionId: "allow", kind: PERMISSION_OPTION_KIND.ALLOW_ONCE },
+        { optionId: "deny", kind: PERMISSION_OPTION_KIND.REJECT_ONCE },
       ],
     };
 
