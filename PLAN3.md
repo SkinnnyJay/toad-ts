@@ -463,6 +463,10 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `src/store/persistence/sqlite-provider.ts`
     - `src/core/session-stream.ts`
   - (`"test"` → `ENV_VALUE.TEST`)
+- Additional cross-tool boolean literal hardening:
+  - Replaced raw `"true"` comparison in Cursor rules parser:
+    - `src/core/cross-tool/universal-loader.ts`
+  - (`alwaysMatch?.[1] === "true"` → `alwaysMatch?.[1] === BOOLEAN_STRINGS.TRUE`)
 
 ---
 
