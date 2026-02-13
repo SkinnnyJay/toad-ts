@@ -1,5 +1,23 @@
 # Scratchpad Journal
 
+## 2026-02-13 (hook IPC shared response helper adoption)
+- Updated `src/core/cursor/hook-ipc-server.ts`:
+  - removed local `sendJson`/`sendError` helpers
+  - switched hook IPC endpoint response writes to shared helpers:
+    - `sendJsonResponse(...)`
+    - `sendErrorResponse(...)`
+  - behavior preserved for canonical method/parse/handler-failure response paths
+    while reducing response serialization duplication.
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (hook IPC invalid-body diagnostics hardening)
 - Updated `src/core/cursor/hook-ipc-server.ts`:
   - request-body parse failures now emit structured warning telemetry before

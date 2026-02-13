@@ -10,6 +10,7 @@ import { HTTP_STATUS } from "@/constants/http-status";
 import { PERMISSION } from "@/constants/permissions";
 import { PLATFORM } from "@/constants/platform";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
+import { sendErrorResponse, sendJsonResponse } from "@/server/http-response";
 import { parseJsonRequestBody } from "@/server/request-body";
 import {
   type CursorHookInput,
@@ -34,15 +35,6 @@ type HookIpcTransport = (typeof HOOK_IPC_TRANSPORT)[keyof typeof HOOK_IPC_TRANSP
 
 const defaultSocketPath = (pid: number): string => {
   return path.join(tmpdir(), `toadstool-cursor-hooks-${pid}.sock`);
-};
-
-const sendJson = (res: http.ServerResponse, status: number, payload: unknown): void => {
-  res.writeHead(status, { "Content-Type": "application/json" });
-  res.end(JSON.stringify(payload));
-};
-
-const sendError = (res: http.ServerResponse, status: number, message: string): void => {
-  sendJson(res, status, { error: message });
 };
 
 interface HookRequestBodyErrorMapping {
@@ -147,7 +139,11 @@ export class HookIpcServer {
 
     const server = http.createServer(async (req, res) => {
       if (req.method !== HTTP_METHOD.POST) {
-        sendError(res, HTTP_STATUS.METHOD_NOT_ALLOWED, SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED);
+        sendErrorResponse(
+          res,
+          HTTP_STATUS.METHOD_NOT_ALLOWED,
+          SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED
+        );
         return;
       }
 
@@ -156,7 +152,7 @@ export class HookIpcServer {
         const parsedBody = await parseJsonRequestBody<unknown>(req);
         const parsedPayload = CursorHookInputSchema.safeParse(parsedBody);
         if (!parsedPayload.success) {
-          sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
+          sendErrorResponse(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
           return;
         }
         payload = parsedPayload.data;
@@ -166,18 +162,22 @@ export class HookIpcServer {
           error: mappedError.error,
           mappedMessage: mappedError.message,
         });
-        sendError(res, HTTP_STATUS.BAD_REQUEST, mappedError.message);
+        sendErrorResponse(res, HTTP_STATUS.BAD_REQUEST, mappedError.message);
         return;
       }
 
       try {
         const response = await this.handlePayload(payload);
-        sendJson(res, HTTP_STATUS.OK, response);
+        sendJsonResponse(res, HTTP_STATUS.OK, response);
       } catch (error) {
         this.logger.error("Hook IPC request failed", {
           error: error instanceof Error ? error.message : String(error),
         });
-        sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, SERVER_RESPONSE_MESSAGE.SERVER_ERROR);
+        sendErrorResponse(
+          res,
+          HTTP_STATUS.INTERNAL_SERVER_ERROR,
+          SERVER_RESPONSE_MESSAGE.SERVER_ERROR
+        );
       }
     });
 

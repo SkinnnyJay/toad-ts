@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added hook IPC shared response helper adoption:
+  - hook IPC endpoint now uses shared `sendJsonResponse`/`sendErrorResponse`
+    helpers instead of local response serialization functions
+  - preserves canonical response semantics and reduces duplicated response code
 - Added hook IPC invalid-body diagnostics hardening:
   - hook IPC now emits structured warnings for request-body parse failures while
     preserving canonical 400 response mappings

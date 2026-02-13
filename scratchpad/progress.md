@@ -93,6 +93,8 @@
     read scenarios to lock canonical invalid-request response mapping
   - hardened hook IPC invalid-body diagnostics with structured warning logs and
     focused assertions for malformed/oversized/stream-failure parse paths
+  - hardened hook IPC response-path deduplication by reusing shared server
+    JSON/error response helpers
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

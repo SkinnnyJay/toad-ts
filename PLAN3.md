@@ -1636,3 +1636,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
       `REQUEST_BODY_TOO_LARGE`
     - parser-rejection stream lifecycle paths continue to map to canonical
       `INVALID_REQUEST` while emitting diagnostics warnings.
+
+## Execution Log Addendum — 2026-02-13 (hook IPC shared response helper adoption)
+
+- Additional hook IPC response-path deduplication hardening:
+  - Updated:
+    - `src/core/cursor/hook-ipc-server.ts`
+  - Refactor changes:
+    - replaced local JSON/error response serialization helpers with shared
+      server response utility:
+      - `sendJsonResponse(...)`
+      - `sendErrorResponse(...)`
+    - preserved canonical status/error behavior while removing duplicate
+      response-writing logic in hook IPC endpoint handling.
+  - Validation:
+    - existing hook IPC unit coverage remains green, including method handling,
+      malformed/oversized/stream-failure parse paths, and server-error mapping.
