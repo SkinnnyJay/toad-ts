@@ -1,5 +1,15 @@
 # Scratchpad Journal
 
+## 2026-02-13 (non-API auth-ordering coverage)
+- Extended `__tests__/integration/server/headless-server.integration.test.ts` with explicit
+  auth-ordering checks for a non-API protected route:
+  - unauthenticated `GET /sessions` returns `401` with auth challenge
+  - authenticated `GET /sessions` returns `405 Method not allowed`
+- Validation:
+  - Targeted: `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (shared request parser consolidation)
 - Added `src/server/request-body.ts` with shared helpers:
   - `readRequestBody()`

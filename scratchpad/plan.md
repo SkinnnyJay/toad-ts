@@ -47,6 +47,8 @@
   - extracted shared server request-body utility
   - refactored headless + api route parsing to use shared implementation
   - added direct utility unit coverage
+- Added non-API auth-ordering validation:
+  - integration coverage locking auth-before-method semantics for `/sessions`
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

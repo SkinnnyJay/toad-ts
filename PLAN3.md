@@ -732,6 +732,13 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - parser success/failure paths
     - invalid JSON direct-invocation behavior
     - oversized payload handling via shared parser
+- Additional non-API auth-ordering coverage:
+  - Extended integration coverage:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Covered:
+    - auth challenge precedence over method semantics for non-API protected route:
+      - `GET /sessions` without auth => `401 Authorization required`
+      - `GET /sessions` with valid auth => `405 Method not allowed`
 
 ---
 
