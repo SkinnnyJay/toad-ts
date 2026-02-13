@@ -1135,6 +1135,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - whitespace-padded queued checks classified as pending
     - whitespace-padded cancelled checks classified as failing
+- Additional UTF-8 BOM request-body parsing hardening:
+  - Updated:
+    - `src/server/request-body.ts`
+  - Hardening change:
+    - JSON request parser now strips a leading UTF-8 BOM before empty-body fallback
+      checks and JSON parsing.
+  - Extended:
+    - `__tests__/unit/server/request-body.unit.test.ts`
+  - Covered:
+    - BOM-prefixed valid JSON payload parsing
+    - BOM-only payload with empty-body fallback
 
 ---
 

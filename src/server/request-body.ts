@@ -14,6 +14,11 @@ const REQUEST_STREAM_EVENT = {
   CLOSE: "close",
 } as const;
 
+const UTF8_BOM = "\uFEFF";
+
+const stripUtf8Bom = (payload: string): string =>
+  payload.startsWith(UTF8_BOM) ? payload.slice(UTF8_BOM.length) : payload;
+
 export const readRequestBody = async (
   req: IncomingMessage,
   maxBodyBytes = SERVER_CONFIG.MAX_BODY_BYTES
@@ -80,8 +85,9 @@ export const parseJsonRequestBody = async <TPayload>(
   options?: ParseJsonRequestBodyOptions<TPayload>
 ): Promise<TPayload> => {
   const body = await readRequestBody(req);
-  if (body.length === 0 && options?.emptyBodyValue !== undefined) {
+  const normalizedBody = stripUtf8Bom(body);
+  if (normalizedBody.length === 0 && options?.emptyBodyValue !== undefined) {
     return options.emptyBodyValue;
   }
-  return JSON.parse(body) as TPayload;
+  return JSON.parse(normalizedBody) as TPayload;
 };

@@ -121,6 +121,22 @@ describe("request-body helpers", () => {
     await expect(pending).resolves.toEqual({});
   });
 
+  it("parses JSON payload prefixed by utf-8 bom", async () => {
+    const req = createRequest();
+    const pending = parseJsonRequestBody<{ value: string }>(req);
+    emitPayload(req, '\uFEFF{"value":"ok"}');
+
+    await expect(pending).resolves.toEqual({ value: "ok" });
+  });
+
+  it("treats utf-8 bom only payload as empty body fallback", async () => {
+    const req = createRequest();
+    const pending = parseJsonRequestBody<Record<string, never>>(req, { emptyBodyValue: {} });
+    emitPayload(req, "\uFEFF");
+
+    await expect(pending).resolves.toEqual({});
+  });
+
   it("rejects on invalid JSON payload", async () => {
     const req = createRequest();
     const pending = parseJsonRequestBody<{ value: string }>(req);

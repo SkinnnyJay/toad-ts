@@ -166,6 +166,9 @@
 - Added check-status whitespace normalization hardening:
   - repo workflow checks parser now trims status/conclusion fields before classification
   - added unit coverage for whitespace-padded pending/failing check states
+- Added UTF-8 BOM JSON parsing hardening:
+  - request-body JSON parser now strips leading UTF-8 BOM before parsing
+  - added unit coverage for BOM-prefixed JSON and BOM-only empty-body fallback
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
