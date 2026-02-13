@@ -6,7 +6,7 @@ import { UI } from "@/config/ui";
 import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-marks";
 import { RENDER_STAGE, type RenderStage } from "@/constants/render-stage";
 import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
-import { loadHarnessConfig } from "@/harness/harnessConfig";
+import { HARNESS_CONFIG_ERROR, loadHarnessConfig } from "@/harness/harnessConfig";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import { loadRules } from "@/rules/rules-loader";
 import { setRulesState } from "@/rules/rules-service";
@@ -179,7 +179,10 @@ export function useSessionHydration({
         const parsedDefault = AgentIdSchema.safeParse(defaultHarnessId);
         const defaultAgent = parsedDefault.success ? infoMap.get(parsedDefault.data) : undefined;
         setDefaultAgentId(defaultAgent?.id ?? null);
-        if (error instanceof Error && error.message !== "No harnesses configured.") {
+        if (
+          error instanceof Error &&
+          error.message !== HARNESS_CONFIG_ERROR.NO_HARNESSES_CONFIGURED
+        ) {
           setLoadError(error.message);
         }
         await loadRulesState();

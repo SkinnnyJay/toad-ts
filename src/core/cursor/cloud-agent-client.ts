@@ -155,6 +155,14 @@ export class CursorCloudAgentClient {
     return CursorCloudFollowupResponseSchema.parse(payload);
   }
 
+  public async addFollowup(
+    agentId: string,
+    prompt: string | CursorCloudFollowupRequest
+  ): Promise<CursorCloudFollowupResponse> {
+    const request = typeof prompt === "string" ? { prompt } : prompt;
+    return this.followupAgent(agentId, request);
+  }
+
   public async stopAgent(agentId: string): Promise<CursorCloudStopResponse> {
     const payload = await this.request(
       "POST",
@@ -220,9 +228,17 @@ export class CursorCloudAgentClient {
     return CursorCloudReposSchema.parse(payload);
   }
 
+  public async listRepositories(): Promise<CursorCloudRepos> {
+    return this.listRepos();
+  }
+
   public async getKeyInfo(): Promise<CursorCloudKeyInfo> {
     const payload = await this.request("GET", CURSOR_CLOUD_ENDPOINT.KEY_INFO);
     return CursorCloudKeyInfoSchema.parse(payload);
+  }
+
+  public async getApiKeyInfo(): Promise<CursorCloudKeyInfo> {
+    return this.getKeyInfo();
   }
 
   private async request(method: string, endpoint: string, body?: unknown): Promise<unknown> {

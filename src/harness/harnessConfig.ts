@@ -12,6 +12,9 @@ import { z } from "zod";
 
 const ENV_PATTERN = /\$(\w+)|\$\{([^}]+)\}/g;
 const DEFAULT_CONFIG_FILENAME = "harnesses.json";
+export const HARNESS_CONFIG_ERROR = {
+  NO_HARNESSES_CONFIGURED: "No harnesses configured.",
+} as const;
 
 const permissionValueSchema = z.enum([PERMISSION.ALLOW, PERMISSION.DENY, PERMISSION.ASK]);
 
@@ -274,7 +277,7 @@ export const loadHarnessConfig = async (
 
   const availableIds = Object.keys(resolvedHarnesses);
   if (availableIds.length === 0) {
-    throw new Error("No harnesses configured.");
+    throw new Error(HARNESS_CONFIG_ERROR.NO_HARNESSES_CONFIGURED);
   }
 
   const selectedId = resolveHarnessId(

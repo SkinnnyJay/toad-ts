@@ -7,6 +7,7 @@ import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { PERMISSION } from "@/constants/permissions";
+import { PLATFORM } from "@/constants/platform";
 import {
   type CursorHookInput,
   CursorHookInputSchema,
@@ -96,7 +97,9 @@ export class HookIpcServer {
   public constructor(options: HookIpcServerOptions = {}) {
     const transport =
       options.transport ??
-      (process.platform === "win32" ? HOOK_IPC_TRANSPORT.HTTP : HOOK_IPC_TRANSPORT.UNIX_SOCKET);
+      (process.platform === PLATFORM.WIN32
+        ? HOOK_IPC_TRANSPORT.HTTP
+        : HOOK_IPC_TRANSPORT.UNIX_SOCKET);
 
     this.transport = transport;
     this.socketPath = options.socketPath ?? defaultSocketPath(process.pid);

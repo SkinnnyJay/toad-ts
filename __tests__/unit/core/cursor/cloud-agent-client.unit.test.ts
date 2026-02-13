@@ -94,12 +94,12 @@ describe("CursorCloudAgentClient", () => {
     });
 
     await client.launchAgent({ prompt: "launch" });
-    await client.followupAgent("a-1", { prompt: "continue" });
+    await client.addFollowup("a-1", "continue");
     await client.stopAgent("a-1");
     await client.deleteAgent("a-1");
     await client.getConversation("a-1");
-    await client.listRepos();
-    await client.getKeyInfo();
+    await client.listRepositories();
+    await client.getApiKeyInfo();
 
     const calledUrls = fetchMock.mock.calls.map((entry) => entry[0] as string);
     expect(calledUrls).toEqual([

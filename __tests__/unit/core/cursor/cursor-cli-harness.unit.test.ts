@@ -170,6 +170,8 @@ class FakeHooksGenerator extends HooksConfigGenerator {
     return {
       hooksPath: "/workspace/.cursor/hooks.json",
       shimPath: "/workspace/.cursor/toadstool-cursor-hook-shim.mjs",
+      nodeShimPath: "/workspace/.cursor/toadstool-cursor-hook-shim.mjs",
+      bashShimPath: "/workspace/.cursor/toadstool-cursor-hook-shim.sh",
       restore: async () => {
         this.restored = true;
       },

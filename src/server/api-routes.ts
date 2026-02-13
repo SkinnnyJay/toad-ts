@@ -2,6 +2,8 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadAppConfig } from "@/config/app-config";
 import { HTTP_METHOD } from "@/constants/http-methods";
 import { HTTP_STATUS } from "@/constants/http-status";
+import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
+import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { useAppStore } from "@/store/app-store";
 import type { Session, SessionId } from "@/types/domain";
 type RouteHandler = (
@@ -85,8 +87,23 @@ export const getConfig: RouteHandler = async (_req, res) => {
 // ── Agent Endpoints ────────────────────────────────────────────────────────
 
 export const listAgents: RouteHandler = async (_req, res) => {
-  // Return registered agents from store
-  sendJson(res, HTTP_STATUS.OK, { agents: [] });
+  try {
+    const config = await loadHarnessConfig().catch(() => createDefaultHarnessConfig());
+    const agents = Object.values(config.harnesses).map((harness) => ({
+      id: harness.id,
+      name: harness.name,
+      command: harness.command,
+      cwd: harness.cwd,
+    }));
+    sendJson(res, HTTP_STATUS.OK, {
+      agents,
+      defaultHarnessId: config.harnessId,
+    });
+  } catch (error) {
+    sendJson(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, {
+      error: error instanceof Error ? error.message : "Failed to load harnesses",
+    });
+  }
 };
 
 // ── File Endpoints ─────────────────────────────────────────────────────────
