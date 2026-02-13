@@ -1,5 +1,18 @@
 # Scratchpad Journal
 
+## 2026-02-13 (PLAN3 hardening continuation)
+- Added coverage for repo workflow check outcome classification (`pass`/`fail`/`pending`) and
+  status mapping.
+- Added fallback safety by gating default Cursor harness injection behind
+  `TOADSTOOL_CURSOR_CLI_ENABLED` in `createDefaultHarnessConfig`.
+- Added route handler test coverage for `/api/agents`:
+  - loaded-config happy path
+  - fallback-to-default path
+  - dual-failure 500 path
+- Added env-driven fallback coverage ensuring Cursor appears in fallback agent list only when
+  the cursor feature flag is enabled.
+- Added `scratchpad/plan.md` as the canonical active-plan pointer expected by workspace rules.
+
 ## 2026-02-10 (Phase 0: PLAN2 Cursor CLI prerequisites)
 - Branch: `feature/cursor-cli-harness`.
 - Fixture paths: `__tests__/fixtures/cursor/ndjson/` (hello-response.ndjson, hello-stderr.txt, tool-use-response.ndjson, tool-use-stderr.txt), `__tests__/fixtures/cursor/status-output.txt`, `__tests__/fixtures/cursor/models-output.txt`, `__tests__/fixtures/cursor/ls-output.txt`. Directories `hooks/` and `cloud-api/` created with `.gitkeep`.
