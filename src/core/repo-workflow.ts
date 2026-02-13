@@ -45,6 +45,7 @@ const GH_CHECK = {
   STARTUP_FAILURE: "startup_failure",
   IN_PROGRESS: "in_progress",
   QUEUED: "queued",
+  PENDING: "pending",
 } as const;
 
 async function getRemoteOriginUrl(cwd: string): Promise<string | null> {
@@ -149,6 +150,7 @@ async function getPrChecksStatus(cwd: string): Promise<"pass" | "fail" | "pendin
       (c) =>
         (c.status ?? "").toLowerCase() === GH_CHECK.IN_PROGRESS ||
         (c.status ?? "").toLowerCase() === GH_CHECK.QUEUED ||
+        (c.status ?? "").toLowerCase() === GH_CHECK.PENDING ||
         (c.conclusion ?? "") === ""
     );
     if (hasFail) return "fail";

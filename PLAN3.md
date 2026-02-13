@@ -991,6 +991,15 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - bearer token acceptance with surrounding whitespace
     - raw token acceptance with surrounding whitespace
+- Additional repo checks pending-status hardening:
+  - Updated:
+    - `src/core/repo-workflow.ts`
+  - Hardening change:
+    - checks-status classification now explicitly maps `status: "pending"` to pending.
+  - Extended:
+    - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
+  - Covered:
+    - pending status classification behavior for PR checks results.
 
 ---
 

@@ -249,6 +249,29 @@ describe("getRepoWorkflowInfo", () => {
     expect(info.status).toBe(REPO_WORKFLOW_STATUS.OPEN);
   });
 
+  it("treats pending checks as pending", async () => {
+    const execaMock = await getExecaMock();
+    const prStatusMock = await getPrStatusMock();
+    const isGitCleanMock = await getIsGitCleanMock();
+
+    execaMock.mockImplementation(
+      buildExecaImplementation([{ status: "pending", conclusion: "pending" }])
+    );
+    prStatusMock.mockResolvedValue({
+      number: 42,
+      title: "Pending checks",
+      url: "https://github.com/acme/toad-ts/pull/42",
+      state: "open",
+      reviewDecision: PR_REVIEW_STATUS.UNKNOWN,
+    });
+    isGitCleanMock.mockResolvedValue(true);
+
+    const info = await getRepoWorkflowInfo("/workspace");
+
+    expect(info.checksStatus).toBe("pending");
+    expect(info.status).toBe(REPO_WORKFLOW_STATUS.OPEN);
+  });
+
   it("marks workflow as failing when checks are cancelled", async () => {
     const execaMock = await getExecaMock();
     const prStatusMock = await getPrStatusMock();

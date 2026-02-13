@@ -122,6 +122,9 @@
 - Added auth header whitespace hardening:
   - server auth now trims authorization header and extracted token values
   - tolerant handling for bearer/raw token values with surrounding whitespace
+- Added repo checks pending-state parity hardening:
+  - repo checks classifier now recognizes explicit `pending` status as pending
+  - added unit coverage to lock pending-status mapping behavior
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

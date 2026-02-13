@@ -39,6 +39,7 @@
   - improved server auth bearer-scheme parsing robustness
   - expanded repo workflow checks-status classification for queued/cancelled outcomes
   - normalized server auth token parsing for surrounding whitespace
+  - added explicit pending-status classification in repo workflow checks mapping
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
