@@ -534,6 +534,14 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `listAgents` successful response from loaded harness config
     - fallback path to `createDefaultHarnessConfig` when config loading fails
     - internal-server-error response when both primary and fallback config resolution fail
+- Additional TUI route handler coverage hardening:
+  - Added focused unit coverage:
+    - `__tests__/unit/server/api-route-tui-handlers.unit.test.ts`
+  - Covered:
+    - `/api/tui/append-prompt` bad-request path for empty text
+    - `/api/tui/append-prompt` success path for valid text
+    - `/api/tui/execute-command` bad-request path for empty command
+    - `/api/tui/execute-command` success path for valid command
 - Additional fallback-env integration coverage for agent listing:
   - Added focused unit coverage for feature-flagged fallback behavior:
     - `__tests__/unit/server/api-route-fallback-env.unit.test.ts`
