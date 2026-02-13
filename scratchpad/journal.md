@@ -1,5 +1,27 @@
 # Scratchpad Journal
 
+## 2026-02-13 (CLI env-command blank fallback hardening)
+- Updated runtime command resolution:
+  - `src/core/claude-cli-harness.ts`
+  - `src/core/cursor/cursor-cli-connection.ts`
+- Changes:
+  - command env values are now trimmed before use
+  - whitespace-only env command overrides now fall back to harness defaults
+    instead of being treated as executable command names
+- Extended tests:
+  - `__tests__/unit/core/claude-cli-harness.unit.test.ts`
+  - `__tests__/unit/core/cursor/cursor-cli-connection.unit.test.ts`
+  - added explicit blank-command env fallback assertions
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/claude-cli-harness.unit.test.ts __tests__/unit/core/cursor/cursor-cli-connection.unit.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (hook IPC request-body parser hardening)
 - Updated `src/core/cursor/hook-ipc-server.ts`:
   - replaced ad-hoc body chunk parsing with shared `parseJsonRequestBody(...)`

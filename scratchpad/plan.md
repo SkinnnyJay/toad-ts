@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added CLI env-command blank fallback hardening:
+  - Claude and Cursor runtime command resolution now trims env command inputs
+    and falls back to harness defaults for whitespace-only overrides
+  - added focused unit coverage for blank-command env behavior in:
+    - `claude-cli-harness.unit.test.ts`
+    - `cursor-cli-connection.unit.test.ts`
 - Added hook IPC request-body parser hardening:
   - switched hook IPC body parsing to shared request parser helper
   - added oversized payload coverage with canonical request-body-too-large response

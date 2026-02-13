@@ -1581,3 +1581,21 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Covered:
     - oversized payload path returns canonical request-body-too-large response
     - non-object payload validation coverage remains green with shared parser
+
+## Execution Log Addendum — 2026-02-13 (CLI env-command blank fallback hardening)
+
+- Additional harness runtime command-resolution hardening:
+  - Updated:
+    - `src/core/claude-cli-harness.ts`
+    - `src/core/cursor/cursor-cli-connection.ts`
+  - Hardening changes:
+    - command resolution from environment now trims whitespace and falls back to
+      default harness commands when env values are blank.
+    - this prevents accidental runtime spawn attempts with whitespace-only command
+      values in `TOADSTOOL_CLAUDE_COMMAND` / `TOADSTOOL_CURSOR_COMMAND`.
+  - Extended:
+    - `__tests__/unit/core/claude-cli-harness.unit.test.ts`
+    - `__tests__/unit/core/cursor/cursor-cli-connection.unit.test.ts`
+  - Covered:
+    - Claude harness defaults to `HARNESS_DEFAULT.CLAUDE_COMMAND` for blank env command.
+    - Cursor connection defaults to `HARNESS_DEFAULT.CURSOR_COMMAND` for blank env command.

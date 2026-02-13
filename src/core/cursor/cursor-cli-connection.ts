@@ -103,6 +103,11 @@ const parseArgs = (rawValue: string): string[] => {
     .filter((value) => value.length > 0);
 };
 
+const resolveCommand = (value: string | undefined, fallback: string): string => {
+  const normalizedValue = value?.trim();
+  return normalizedValue && normalizedValue.length > 0 ? normalizedValue : fallback;
+};
+
 const toLines = (value: string): string[] => {
   return value
     .split(/\r?\n/)
@@ -126,7 +131,10 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
     const commandFromEnv = baseEnv[ENV_KEY.TOADSTOOL_CURSOR_COMMAND];
     const argsFromEnv = baseEnv[ENV_KEY.TOADSTOOL_CURSOR_ARGS];
 
-    this.command = options.command ?? commandFromEnv ?? HARNESS_DEFAULT.CURSOR_COMMAND;
+    this.command = resolveCommand(
+      options.command,
+      resolveCommand(commandFromEnv, HARNESS_DEFAULT.CURSOR_COMMAND)
+    );
     const resolvedArgs =
       options.args ?? (argsFromEnv ? parseArgs(argsFromEnv) : [...HARNESS_DEFAULT.CURSOR_ARGS]);
     this.env = baseEnv;

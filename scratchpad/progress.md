@@ -87,6 +87,8 @@
   - hardened SSE lifecycle cleanup for pre-closed response streams
   - hardened hook IPC request-shape coverage for non-object JSON payload handling
   - hardened hook IPC request-body parsing via shared parser + oversized payload coverage
+  - hardened CLI runtime command resolution for blank env command overrides
+    (Claude/Cursor now fall back to default command names)
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

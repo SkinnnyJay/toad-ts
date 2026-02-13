@@ -4,6 +4,7 @@ import path from "node:path";
 import { PassThrough } from "node:stream";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { ENV_KEY } from "@/constants/env-keys";
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { CursorCliConnection } from "@/core/cursor/cursor-cli-connection";
 import { CLI_AGENT_MODE, CLI_AGENT_SANDBOX_MODE } from "@/types/cli-agent.types";
 import { EventEmitter } from "eventemitter3";
@@ -224,6 +225,21 @@ describe("CursorCliConnection", () => {
 
     expect(calls[0]?.args).toContain("--api-key");
     expect(calls[0]?.args).toContain("api-key-123");
+  });
+
+  it("falls back to default cursor command when env command is blank", async () => {
+    const fixture = readFixture("__tests__/fixtures/cursor/status-output.txt");
+    const { spawnFn, calls } = createSpawnFn([{ stdout: fixture, exitCode: 0 }]);
+    const connection = new CursorCliConnection({
+      spawnFn,
+      env: {
+        [ENV_KEY.TOADSTOOL_CURSOR_COMMAND]: "   ",
+      },
+    });
+
+    await connection.verifyAuth();
+
+    expect(calls[0]?.command).toBe(HARNESS_DEFAULT.CURSOR_COMMAND);
   });
 
   it("passes prompt execution flags for mode/workspace/sandbox/browser/mcp approvals", async () => {
