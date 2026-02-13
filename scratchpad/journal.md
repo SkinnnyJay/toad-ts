@@ -1,5 +1,31 @@
 # Scratchpad Journal
 
+## 2026-02-13 (non-origin-form request-target integration coverage)
+- Extended `__tests__/integration/server/headless-server.integration.test.ts`:
+  - added raw HTTP request-target coverage for:
+    - protocol-relative target rejection (`//example.com/...`)
+    - absolute target rejection (`http://example.com/...`)
+  - both now lock canonical `INVALID_REQUEST` responses end-to-end
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/request-url.unit.test.ts __tests__/unit/server/api-route-file-search.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
+## 2026-02-13 (protocol-relative request-target hardening)
+- Updated `src/server/request-url.ts`:
+  - parser now rejects protocol-relative request targets (`//...`)
+- Extended:
+  - `__tests__/unit/server/request-url.unit.test.ts`
+    - added protocol-relative target rejection coverage
+  - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+    - added protocol-relative target invalid-request coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/request-url.unit.test.ts __tests__/unit/server/api-route-file-search.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (request-target strictness hardening)
 - Updated `src/server/request-url.ts`:
   - parser now requires origin-form request targets (`/...`)

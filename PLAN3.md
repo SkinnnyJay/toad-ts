@@ -1431,3 +1431,21 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Covered:
     - absolute request-target rejection in parser
     - file-search absolute-target canonical invalid-request response
+- Additional protocol-relative request-target hardening:
+  - Updated:
+    - `src/server/request-url.ts`
+  - Hardening change:
+    - request-url parser now rejects protocol-relative targets (`//...`) to keep
+      parsing restricted to origin-form request targets.
+  - Extended:
+    - `__tests__/unit/server/request-url.unit.test.ts`
+    - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - Covered:
+    - protocol-relative target rejection in parser
+    - file-search protocol-relative-target canonical invalid-request response
+- Additional non-origin-form request-target integration hardening:
+  - Extended:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Covered:
+    - absolute request-target rejection end-to-end
+    - protocol-relative request-target rejection end-to-end

@@ -1,3 +1,4 @@
+import { request as httpRequest } from "node:http";
 import { describe, expect, it } from "vitest";
 import { WebSocket } from "ws";
 import { z } from "zod";
@@ -21,6 +22,33 @@ const waitForOpen = (socket: WebSocket): Promise<void> => {
     socket.on("open", () => resolve());
   });
 };
+
+const requestWithRawPath = (
+  host: string,
+  port: number,
+  requestPath: string
+): Promise<{ statusCode: number; body: unknown }> =>
+  new Promise((resolve, reject) => {
+    const req = httpRequest({ host, port, path: requestPath, method: "GET" }, (res) => {
+      const chunks: string[] = [];
+      res.setEncoding("utf8");
+      res.on("data", (chunk) => chunks.push(chunk));
+      res.on("end", () => {
+        const payload = chunks.join("");
+        if (payload.length === 0) {
+          resolve({ statusCode: res.statusCode ?? 0, body: null });
+          return;
+        }
+        try {
+          resolve({ statusCode: res.statusCode ?? 0, body: JSON.parse(payload) });
+        } catch {
+          resolve({ statusCode: res.statusCode ?? 0, body: payload });
+        }
+      });
+    });
+    req.on("error", reject);
+    req.end();
+  });
 
 describe("headless server", () => {
   it("handles session creation and prompts", async () => {
@@ -160,6 +188,35 @@ describe("headless server", () => {
       expect(invalidTuiPayloadResponse.status).toBe(400);
       await expect(invalidTuiPayloadResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns bad request for non-origin-form request targets", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+
+    try {
+      const protocolRelativeRequest = await requestWithRawPath(
+        host,
+        port,
+        "//example.com/api/files/search?q=notes"
+      );
+      expect(protocolRelativeRequest).toEqual({
+        statusCode: 400,
+        body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+      });
+
+      const absoluteRequest = await requestWithRawPath(
+        host,
+        port,
+        "http://example.com/api/files/search?q=notes"
+      );
+      expect(absoluteRequest).toEqual({
+        statusCode: 400,
+        body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
       });
     } finally {
       await server.close();

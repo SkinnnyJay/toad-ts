@@ -76,6 +76,8 @@
   - hardened request-url parsing for missing URL inputs
   - hardened request-url parsing for whitespace-padded url/host inputs
   - hardened request-url parsing by rejecting absolute request targets
+  - hardened request-url parsing by rejecting protocol-relative targets
+  - expanded headless integration coverage for non-origin-form request targets
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

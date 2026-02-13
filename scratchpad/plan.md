@@ -232,6 +232,12 @@
 - Added request-target strictness hardening:
   - shared parser now rejects non-origin-form request targets (absolute URLs)
   - file-search route now returns invalid-request for absolute request targets
+- Added protocol-relative request-target hardening:
+  - shared parser now rejects `//...` request targets explicitly
+  - file-search route now returns invalid-request for protocol-relative targets
+- Added non-origin-form integration coverage:
+  - headless integration now validates absolute/protocol-relative request-target
+    rejection through raw HTTP request paths
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
