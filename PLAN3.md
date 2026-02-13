@@ -1105,6 +1105,15 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - owner/repo extraction from `SSH://git@host:port/owner/repo.git`
       to lock protocol-case-insensitive parsing behavior.
+- Additional `git+ssh` remote parsing hardening:
+  - Updated:
+    - `src/core/repo-workflow.ts`
+  - Hardening change:
+    - ssh-protocol remote parsing now accepts `git+ssh://` URL prefixes.
+  - Extended:
+    - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
+  - Covered:
+    - owner/repo extraction from `git+ssh://git@host/owner/repo.git`
 
 ---
 

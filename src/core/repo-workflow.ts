@@ -79,7 +79,7 @@ function parseOwnerRepoFromUrl(url: string): { owner: string; repo: string } | n
     return { owner: scpSshMatch[1] ?? "", repo: normalizeRepoName(scpSshMatch[2] ?? "") };
   }
   const sshProtocolMatch = trimmed.match(
-    /^ssh:\/\/(?:[^@]+@)?[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i
+    /^(?:git\+)?ssh:\/\/(?:[^@]+@)?[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i
   );
   if (sshProtocolMatch) {
     return {

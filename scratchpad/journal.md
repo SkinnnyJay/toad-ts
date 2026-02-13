@@ -1,5 +1,16 @@
 # Scratchpad Journal
 
+## 2026-02-13 (git+ssh remote parsing hardening)
+- Updated `src/core/repo-workflow.ts`:
+  - ssh-protocol matcher now accepts optional `git+ssh://` prefix
+- Extended `__tests__/unit/core/repo-workflow-info.unit.test.ts`:
+  - added git+ssh remote parse coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/repo-workflow-info.unit.test.ts __tests__/unit/core/repo-workflow.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (uppercase SSH protocol parse coverage)
 - Extended `__tests__/unit/core/repo-workflow-info.unit.test.ts`:
   - added uppercase `SSH://...` remote parse coverage

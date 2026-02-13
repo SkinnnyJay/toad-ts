@@ -51,6 +51,7 @@
   - hardened remote parser for uppercase `.GIT` suffix variants
   - hardened scp-style remote parsing for missing user prefixes
   - added explicit uppercase SSH protocol remote parsing coverage
+  - hardened repo remote parser for `git+ssh://` protocol URLs
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

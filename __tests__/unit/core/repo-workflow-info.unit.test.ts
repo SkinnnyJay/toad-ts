@@ -451,6 +451,32 @@ describe("getRepoWorkflowInfo", () => {
     expect(info.repoName).toBe("hello-world");
   });
 
+  it("parses owner and repo from git+ssh protocol remote url", async () => {
+    const execaMock = await getExecaMock();
+    const prStatusMock = await getPrStatusMock();
+    const isGitCleanMock = await getIsGitCleanMock();
+
+    execaMock.mockImplementation(
+      buildExecaImplementation(
+        [{ status: "completed", conclusion: "success" }],
+        "git+ssh://git@github.com/octocat/hello-world.git"
+      )
+    );
+    prStatusMock.mockResolvedValue({
+      number: 16,
+      title: "git+ssh protocol parse",
+      url: "https://github.com/octocat/hello-world/pull/16",
+      state: "open",
+      reviewDecision: PR_REVIEW_STATUS.APPROVED,
+    });
+    isGitCleanMock.mockResolvedValue(true);
+
+    const info = await getRepoWorkflowInfo("/workspace");
+
+    expect(info.owner).toBe("octocat");
+    expect(info.repoName).toBe("hello-world");
+  });
+
   it("parses owner and repo from uppercase HTTPS remote url", async () => {
     const execaMock = await getExecaMock();
     const prStatusMock = await getPrStatusMock();

@@ -157,6 +157,9 @@
   - added workflow info unit coverage for `host:owner/repo.git` remotes
 - Added uppercase SSH protocol parsing coverage:
   - added workflow info unit coverage for `SSH://...` protocol-case variant remotes
+- Added git+ssh remote parsing hardening:
+  - repo parser now accepts `git+ssh://...` remote URLs
+  - added workflow info unit coverage for git+ssh protocol remotes
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
