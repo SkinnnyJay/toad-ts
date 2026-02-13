@@ -125,6 +125,9 @@
 - Added repo checks pending-state parity hardening:
   - repo checks classifier now recognizes explicit `pending` status as pending
   - added unit coverage to lock pending-status mapping behavior
+- Added ssh remote trailing-slash parsing hardening:
+  - repo remote parser now accepts scp-style ssh remotes with trailing slash suffix
+  - added unit coverage to lock owner/repo extraction for this remote variant
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

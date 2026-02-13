@@ -1000,6 +1000,15 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
   - Covered:
     - pending status classification behavior for PR checks results.
+- Additional ssh-remote trailing-slash parsing hardening:
+  - Updated:
+    - `src/core/repo-workflow.ts`
+  - Hardening change:
+    - scp-style ssh remote parsing now tolerates trailing slash suffixes.
+  - Extended:
+    - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
+  - Covered:
+    - owner/repo extraction for `git@host:owner/repo.git/` remote format.
 
 ---
 

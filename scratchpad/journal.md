@@ -1,5 +1,16 @@
 # Scratchpad Journal
 
+## 2026-02-13 (ssh remote trailing-slash parsing hardening)
+- Updated `src/core/repo-workflow.ts`:
+  - scp-style ssh remote parser now tolerates trailing slash (`git@host:owner/repo.git/`)
+- Extended `__tests__/unit/core/repo-workflow-info.unit.test.ts`:
+  - added coverage for owner/repo extraction from ssh remotes with trailing slash
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/repo-workflow-info.unit.test.ts __tests__/unit/core/repo-workflow.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (repo checks explicit-pending status hardening)
 - Updated `src/core/repo-workflow.ts`:
   - checks-status classifier now explicitly treats `status: "pending"` as pending
