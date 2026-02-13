@@ -94,6 +94,9 @@
 - Added hook IPC schema-error coverage:
   - extended hook IPC unit tests to cover schema-invalid JSON payloads
   - validated canonical invalid-request response mapping remains stable
+- Added API agents integration contract coverage:
+  - strengthened `/api/agents` integration assertions for defaultHarnessId semantics
+  - now validates default harness id is present and corresponds to a returned agent id
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

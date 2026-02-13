@@ -1,5 +1,17 @@
 # Scratchpad Journal
 
+## 2026-02-13 (/api/agents integration contract hardening)
+- Updated `__tests__/integration/server/api-routes.integration.test.ts`:
+  - strengthened `/api/agents` assertions to validate:
+    - non-empty agents list
+    - `defaultHarnessId` is present
+    - `defaultHarnessId` corresponds to one of the returned agent ids
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/integration/server/api-routes.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (hook IPC schema-invalid payload coverage)
 - Extended `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`:
   - added explicit assertion for schema-invalid JSON payload handling

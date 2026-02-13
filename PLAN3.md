@@ -888,6 +888,13 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - schema-invalid JSON payload path (valid JSON, missing required hook fields)
     - canonical `400` invalid-request response mapping stability for hook IPC endpoint
+- Additional `/api/agents` integration contract hardening:
+  - Extended:
+    - `__tests__/integration/server/api-routes.integration.test.ts`
+  - Covered:
+    - response includes `defaultHarnessId`
+    - `defaultHarnessId` maps to an id present in the returned `agents` list
+    - response contract remains non-empty for the agent list path
 
 ---
 

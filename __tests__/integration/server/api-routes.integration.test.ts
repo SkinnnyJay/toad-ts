@@ -118,7 +118,15 @@ describe("API Routes Integration", () => {
 
     const result = getResult();
     expect(result.status).toBe(200);
-    expect(Array.isArray((result.body as { agents: unknown[] }).agents)).toBe(true);
+    const body = result.body as {
+      agents: Array<{ id: string }>;
+      defaultHarnessId: string;
+    };
+    expect(Array.isArray(body.agents)).toBe(true);
+    expect(body.agents.length).toBeGreaterThan(0);
+    expect(typeof body.defaultHarnessId).toBe("string");
+    const agentIds = body.agents.map((agent) => agent.id);
+    expect(agentIds).toContain(body.defaultHarnessId);
   });
 
   it("GET /api/sessions/:id/messages should return empty for new session", async () => {
