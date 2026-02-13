@@ -526,6 +526,13 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - Cursor is excluded by default from generated fallback harness config.
     - Cursor command/args overrides still work when explicitly enabled.
     - Cursor remains excluded when command/args overrides are set but feature flag is false.
+- Additional API route handler coverage hardening:
+  - Added focused unit coverage for server route handlers:
+    - `__tests__/unit/server/api-route-handlers.unit.test.ts`
+  - Covered:
+    - `listAgents` successful response from loaded harness config
+    - fallback path to `createDefaultHarnessConfig` when config loading fails
+    - internal-server-error response when both primary and fallback config resolution fail
 
 ---
 
