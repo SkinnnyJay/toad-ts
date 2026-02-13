@@ -58,6 +58,9 @@
 - Added API route classification abstraction:
   - centralized API route outcome classification (match/method-not-allowed/not-found)
   - headless server now consumes classification helper instead of ad-hoc route probing
+- Added core route classification abstraction:
+  - centralized non-API route method classification for headless dispatch
+  - dedicated unit coverage for health/sessions/prompt/messages route decisions
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

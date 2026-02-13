@@ -771,6 +771,20 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/server/api-routes.unit.test.ts`
   - Covered:
     - classification behavior for matched routes, unsupported methods, and unknown paths
+- Additional core route classification hardening:
+  - Added:
+    - `src/server/core-route-classifier.ts`
+  - Runtime update:
+    - `src/server/headless-server.ts`
+  - Refactor:
+    - extracted core-route classification into dedicated helper:
+      - `HEALTH_OK`
+      - `METHOD_NOT_ALLOWED`
+      - `UNHANDLED`
+  - Extended unit coverage:
+    - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - Covered:
+    - core route method semantics for health/sessions/prompt/messages paths and fallthrough cases
 
 ---
 

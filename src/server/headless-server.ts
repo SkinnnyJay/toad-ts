@@ -16,6 +16,7 @@ import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { createHarnessRegistry, isCursorHarnessEnabled } from "@/harness/harnessRegistryFactory";
 import { API_ROUTE_CLASSIFICATION, classifyApiRoute } from "@/server/api-routes";
+import { CORE_ROUTE_DECISION, classifyCoreRoute } from "@/server/core-route-classifier";
 import { parseJsonRequestBody } from "@/server/request-body";
 import { checkServerAuth } from "@/server/server-auth";
 import type { ServerRuntimeConfig } from "@/server/server-config";
@@ -36,28 +37,6 @@ export interface HeadlessServer {
 }
 
 const logger = createClassLogger("HeadlessServer");
-
-const isMethodAllowedForCoreRoute = (method: string, pathname: string): boolean => {
-  if (pathname === SERVER_PATH.HEALTH) {
-    return method === HTTP_METHOD.GET;
-  }
-  if (pathname === SERVER_PATH.SESSIONS) {
-    return method === HTTP_METHOD.POST;
-  }
-  if (pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
-    const [_, __, sessionId, action] = pathname.split("/");
-    if (!sessionId || !action) {
-      return true;
-    }
-    if (action === SERVER_PATH.SEGMENT_PROMPT) {
-      return method === HTTP_METHOD.POST;
-    }
-    if (action === SERVER_PATH.SEGMENT_MESSAGES) {
-      return method === HTTP_METHOD.GET;
-    }
-  }
-  return true;
-};
 
 const sendJson = (res: ServerResponse, status: number, payload: unknown): void => {
   const body = JSON.stringify(payload);
@@ -102,11 +81,13 @@ export const startHeadlessServer = async (
       }
       const url = new URL(req.url, `http://${req.headers.host ?? "localhost"}`);
 
-      if (req.method === HTTP_METHOD.GET && url.pathname === SERVER_PATH.HEALTH) {
+      const coreRouteDecision = classifyCoreRoute(req.method, url.pathname);
+
+      if (coreRouteDecision.kind === CORE_ROUTE_DECISION.HEALTH_OK) {
         sendJson(res, HTTP_STATUS.OK, { status: "ok" });
         return;
       }
-      if (!isMethodAllowedForCoreRoute(req.method, url.pathname)) {
+      if (coreRouteDecision.kind === CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED) {
         sendError(res, HTTP_STATUS.METHOD_NOT_ALLOWED, SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED);
         return;
       }

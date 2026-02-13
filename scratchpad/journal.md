@@ -1,5 +1,19 @@
 # Scratchpad Journal
 
+## 2026-02-13 (core route classification extraction)
+- Added `src/server/core-route-classifier.ts` with explicit decision model for core routes:
+  - `HEALTH_OK`
+  - `METHOD_NOT_ALLOWED`
+  - `UNHANDLED`
+- Refactored `src/server/headless-server.ts` to consume `classifyCoreRoute()`.
+- Added unit coverage:
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (API route classification refactor)
 - Added route classification abstraction in `src/server/api-routes.ts`:
   - `API_ROUTE_CLASSIFICATION`
