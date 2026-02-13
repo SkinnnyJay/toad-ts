@@ -1507,3 +1507,24 @@
 - 0 type errors, 0 lint errors
 - 479 files linted cleanly
 - 2026-02-10 19:05 - Switched typecheck script to use npx for npm support.
+
+## 2026-02-13 (Classifier metadata boundary hardening)
+
+### Summary
+- Extracted shared classifier handler ids into
+  `src/constants/server-route-classifier-handlers.ts`.
+- Updated `classifyApiRoute(...)` so `METHOD_NOT_ALLOWED` and `NOT_FOUND`
+  outcomes include explicit `classifierHandler` metadata.
+- Updated `classifyServerRoute(...)` to consume API classifier handler metadata
+  for API method-not-allowed outcomes.
+- Expanded `api-routes.unit` expectations to lock the new classifier metadata.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅

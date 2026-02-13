@@ -14,6 +14,14 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added API classifier boundary metadata hardening:
+  - extracted shared classifier handler constants to
+    `server-route-classifier-handlers`
+  - `classifyApiRoute(...)` now returns explicit classifier handler ids for
+    method-not-allowed and not-found outcomes
+  - server route classifier now reuses API classifier metadata for API
+    method-not-allowed classification
+  - expanded `api-routes.unit` assertions for classifier metadata
 - Added api/core classifier handler IDs:
   - route classifier now returns explicit `api_route_classifier` /
     `core_route_classifier` ids for method-not-allowed + unhandled outcomes

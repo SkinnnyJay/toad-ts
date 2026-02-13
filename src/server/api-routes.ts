@@ -4,6 +4,7 @@ import { HTTP_METHOD } from "@/constants/http-methods";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { SERVER_EVENT } from "@/constants/server-events";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
+import { SERVER_ROUTE_CLASSIFIER_HANDLER } from "@/constants/server-route-classifier-handlers";
 import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { normalizeHttpMethod } from "@/server/http-method-normalization";
@@ -374,9 +375,11 @@ type ApiRouteClassification =
     }
   | {
       kind: typeof API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED;
+      classifierHandler: typeof SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER;
     }
   | {
       kind: typeof API_ROUTE_CLASSIFICATION.NOT_FOUND;
+      classifierHandler: typeof SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER;
     };
 
 export const API_ROUTES: Route[] = [
@@ -461,7 +464,13 @@ export const classifyApiRoute = (method: string, pathname: string): ApiRouteClas
   }
   const knownPath = API_ROUTES.some((route) => route.pattern.test(pathname));
   if (knownPath) {
-    return { kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED };
+    return {
+      kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+    };
   }
-  return { kind: API_ROUTE_CLASSIFICATION.NOT_FOUND };
+  return {
+    kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+    classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+  };
 };

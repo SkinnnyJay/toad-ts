@@ -1843,3 +1843,27 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - provide precise classifier-source diagnostics for routing validation
       outcomes without changing response semantics.
+
+## Execution Log Addendum — 2026-02-13 (api-route classifier boundary metadata)
+
+- Additional classifier metadata hardening:
+  - Updated:
+    - `src/constants/server-route-classifier-handlers.ts`
+    - `src/server/api-routes.ts`
+    - `src/server/server-route-classifier.ts`
+    - `__tests__/unit/server/api-routes.unit.test.ts`
+  - Hardening changes:
+    - extracted shared classifier handler constants to a dedicated constants
+      module for reuse across route-classification layers.
+    - API route classification now carries explicit classifier handler metadata
+      for both:
+      - `METHOD_NOT_ALLOWED`
+      - `NOT_FOUND`
+    - server route classifier now reuses API classifier handler metadata
+      directly for API method-not-allowed outcomes while preserving existing
+      core-vs-api unhandled route behavior.
+    - expanded API route classifier unit assertions to lock classifier handler
+      metadata in method-not-allowed/not-found responses.
+  - Goal:
+    - push classifier-source metadata closer to classification boundaries and
+      keep downstream telemetry plumbing deterministic.

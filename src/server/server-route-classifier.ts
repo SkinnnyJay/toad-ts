@@ -1,3 +1,7 @@
+import {
+  SERVER_ROUTE_CLASSIFIER_HANDLER,
+  type ServerRouteClassifierHandler,
+} from "@/constants/server-route-classifier-handlers";
 import type { RouteHandler } from "@/server/api-routes";
 import {
   API_ROUTE_CLASSIFICATION,
@@ -13,12 +17,8 @@ export const SERVER_ROUTE_CLASSIFICATION = {
   UNHANDLED: "unhandled",
 } as const;
 
-export const SERVER_ROUTE_HANDLER = {
-  CORE_ROUTE_CLASSIFIER: "core_route_classifier",
-  API_ROUTE_CLASSIFIER: "api_route_classifier",
-} as const;
-
-export type ServerRouteHandler = (typeof SERVER_ROUTE_HANDLER)[keyof typeof SERVER_ROUTE_HANDLER];
+export const SERVER_ROUTE_HANDLER = SERVER_ROUTE_CLASSIFIER_HANDLER;
+export type ServerRouteHandler = ServerRouteClassifierHandler;
 
 type ApiMatchClassification = {
   kind: typeof SERVER_ROUTE_CLASSIFICATION.API_MATCH;
@@ -53,8 +53,8 @@ const classifyApiRouteMatch = (matched: RouteMatchResult): ApiMatchClassificatio
 const classifyUnhandledRoute = (pathname: string): UnhandledClassification => ({
   kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
   classifierHandler: pathname.startsWith("/api/")
-    ? SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER
-    : SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    ? SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER
+    : SERVER_ROUTE_CLASSIFIER_HANDLER.CORE_ROUTE_CLASSIFIER,
 });
 
 export const classifyServerRoute = (
@@ -68,7 +68,7 @@ export const classifyServerRoute = (
   if (coreClassification.kind === CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED) {
     return {
       kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
-      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+      classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.CORE_ROUTE_CLASSIFIER,
     };
   }
 
@@ -79,7 +79,7 @@ export const classifyServerRoute = (
   if (apiClassification.kind === API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED) {
     return {
       kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
-      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+      classifierHandler: apiClassification.classifierHandler,
     };
   }
 
