@@ -142,4 +142,66 @@ describe("headless server", () => {
       await server.close();
     }
   });
+
+  it("returns not found for unknown top-level endpoints", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const response = await fetch(`${baseUrl}/unknown-endpoint`);
+      expect(response.status).toBe(404);
+      await expect(response.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns unknown endpoint for unsupported session subroutes", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const postResponse = await fetch(`${baseUrl}/sessions/session-1/unsupported`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "Hello" }),
+      });
+      expect(postResponse.status).toBe(404);
+      await expect(postResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const getResponse = await fetch(`${baseUrl}/sessions/session-1/unsupported`);
+      expect(getResponse.status).toBe(404);
+      await expect(getResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns session not found when prompting a missing runtime session", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const response = await fetch(`${baseUrl}/sessions/session-missing/prompt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "Hello" }),
+      });
+      expect(response.status).toBe(404);
+      await expect(response.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.SESSION_NOT_FOUND,
+      });
+    } finally {
+      await server.close();
+    }
+  });
 });

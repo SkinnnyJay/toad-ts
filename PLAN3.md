@@ -634,6 +634,13 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - SSE response headers
     - streamed `state_update` payload emission
     - unsubscribe cleanup on request close
+- Additional headless-server edge-route integration coverage:
+  - Extended:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Covered:
+    - unknown top-level endpoint returns `404 Not found`
+    - unsupported session subroutes return `404 Unknown endpoint`
+    - prompt calls for missing runtime sessions return `404 Session not found`
 
 ---
 

@@ -18,6 +18,9 @@
   - `server-config` runtime resolution behavior
   - `server-types` request/event schema contracts
   - `eventsStream` SSE lifecycle and unsubscribe cleanup
+- Added headless-server integration edge coverage:
+  - unknown endpoints and unsupported subroutes
+  - missing session prompt behavior
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

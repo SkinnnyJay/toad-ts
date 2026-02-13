@@ -6,6 +6,7 @@
   - strengthened fallback and feature-flag behavior coverage
   - expanded repo workflow and server route unit coverage
   - added server infrastructure coverage for config resolution, schema contracts, and SSE lifecycle
+  - added headless-server edge-route integration coverage for 404/unknown-session flows
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

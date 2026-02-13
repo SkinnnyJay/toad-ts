@@ -1,5 +1,16 @@
 # Scratchpad Journal
 
+## 2026-02-13 (headless edge-route integration hardening)
+- Extended `__tests__/integration/server/headless-server.integration.test.ts` with route edge-case
+  coverage for:
+  - unknown top-level endpoint handling
+  - unsupported session subroute handling
+  - prompt requests targeting missing runtime sessions
+- Validation:
+  - Targeted: `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (server infrastructure coverage hardening)
 - Added new focused server unit test files:
   - `__tests__/unit/server/server-config.unit.test.ts`
