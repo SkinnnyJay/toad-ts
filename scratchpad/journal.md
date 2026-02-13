@@ -1,5 +1,22 @@
 # Scratchpad Journal
 
+## 2026-02-13 (mixed-chunk request-body hardening)
+- Updated `src/server/request-body.ts`:
+  - request-body chunk handling now routes both string and buffer chunks through
+    one UTF-8 decoder path for consistent ordering and byte accounting
+- Extended `__tests__/unit/server/request-body.unit.test.ts`:
+  - added mixed string+buffer chunk payload success coverage
+  - added malformed partial-buffer then string chunk decode-order coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/request-body.unit.test.ts __tests__/unit/server/api-route-tui-handlers.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (auth-header type hardening)
 - Updated `src/server/server-auth.ts`:
   - added authorization header normalization guard requiring non-empty string values

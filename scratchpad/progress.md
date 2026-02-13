@@ -82,6 +82,7 @@
   - hardened default harness env-override behavior for blank command and explicit empty args inputs
   - hardened harness env-substitution output validation and env-map merge precedence coverage
   - hardened server auth handling for non-string and whitespace-only authorization header values
+  - hardened request-body mixed string/buffer chunk decoding consistency and ordering
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

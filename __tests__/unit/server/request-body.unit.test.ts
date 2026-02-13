@@ -44,6 +44,15 @@ const emitBufferChunks = (req: IncomingMessage, chunks: Buffer[]): void => {
   });
 };
 
+const emitMixedChunks = (req: IncomingMessage, chunks: Array<Buffer | string>): void => {
+  process.nextTick(() => {
+    for (const chunk of chunks) {
+      req.emit("data", chunk);
+    }
+    req.emit("end");
+  });
+};
+
 const emitAborted = (req: IncomingMessage): void => {
   process.nextTick(() => {
     req.emit("aborted");
@@ -103,6 +112,22 @@ describe("request-body helpers", () => {
     emitBufferPayload(req, '{"value":"ok"}');
 
     await expect(pending).resolves.toBe('{"value":"ok"}');
+  });
+
+  it("reads payload across mixed string and buffer chunks", async () => {
+    const req = createRequest();
+    const pending = readRequestBody(req);
+    emitMixedChunks(req, ['{"value":"', Buffer.from("ok"), '"}']);
+
+    await expect(pending).resolves.toBe('{"value":"ok"}');
+  });
+
+  it("preserves decoder ordering for mixed malformed buffer and string chunks", async () => {
+    const req = createRequest();
+    const pending = readRequestBody(req);
+    emitMixedChunks(req, [Buffer.from([0xf0, 0x9f]), "abc"]);
+
+    await expect(pending).resolves.toBe("\uFFFDabc");
   });
 
   it("reads utf-8 payloads split across buffer chunks", async () => {

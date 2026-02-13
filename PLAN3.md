@@ -1505,3 +1505,18 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Covered:
     - array-shaped authorization header rejection path
     - whitespace-only authorization header rejection path
+
+## Execution Log Addendum — 2026-02-13 (mixed-chunk request-body hardening)
+
+- Additional request-body decoding hardening:
+  - Updated:
+    - `src/server/request-body.ts`
+  - Hardening change:
+    - all incoming request chunks are now decoded through a unified UTF-8
+      decoder path (including string chunks) to preserve decode ordering and
+      consistent byte accounting across mixed string/buffer chunk streams.
+  - Extended:
+    - `__tests__/unit/server/request-body.unit.test.ts`
+  - Covered:
+    - mixed string+buffer chunk payload parsing
+    - decoder ordering for malformed partial-buffer followed by string chunk

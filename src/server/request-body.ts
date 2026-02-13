@@ -20,6 +20,9 @@ const UTF8_BOM = "\uFEFF";
 const stripUtf8Bom = (payload: string): string =>
   payload.startsWith(UTF8_BOM) ? payload.slice(UTF8_BOM.length) : payload;
 
+const toUtf8Buffer = (chunk: Buffer | string): Buffer =>
+  typeof chunk === "string" ? Buffer.from(chunk) : chunk;
+
 export const readRequestBody = async (
   req: IncomingMessage,
   maxBodyBytes = SERVER_CONFIG.MAX_BODY_BYTES
@@ -31,8 +34,9 @@ export const readRequestBody = async (
     let data = "";
     const utf8Decoder = new StringDecoder("utf8");
     const onData = (chunk: Buffer | string): void => {
-      const chunkText = typeof chunk === "string" ? chunk : utf8Decoder.write(chunk);
-      const chunkBytes = typeof chunk === "string" ? Buffer.byteLength(chunk) : chunk.length;
+      const chunkBuffer = toUtf8Buffer(chunk);
+      const chunkText = utf8Decoder.write(chunkBuffer);
+      const chunkBytes = chunkBuffer.length;
       receivedBytes += chunkBytes;
       if (receivedBytes > maxBodyBytes) {
         rejectOnce(new Error(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE));

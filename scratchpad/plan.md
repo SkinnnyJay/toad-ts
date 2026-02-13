@@ -14,6 +14,9 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added mixed-chunk request-body decoding hardening:
+  - unified UTF-8 decode path now handles both string and buffer chunks
+  - added mixed chunk and malformed partial-buffer ordering coverage
 - Added auth-header type hardening in server auth middleware:
   - normalized authorization values now require a single non-empty string
   - array/empty header values now map to canonical authorization-required failures
