@@ -49,6 +49,7 @@ const logger = createClassLogger("HeadlessServer");
 const HEADLESS_ROUTE_HANDLER = {
   SESSION_CREATE: "session_create",
   SESSION_PROMPT: "session_prompt",
+  ROUTE_CLASSIFIER: "route_classifier",
 } as const;
 
 const sendJson = (res: ServerResponse, status: number, payload: unknown): void =>
@@ -147,6 +148,19 @@ export const startHeadlessServer = async (
         return;
       }
       if (routeClassification.kind === SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED) {
+        logRequestValidationFailure(
+          logger,
+          {
+            source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
+            handler: HEADLESS_ROUTE_HANDLER.ROUTE_CLASSIFIER,
+            method: req.method,
+            pathname: url.pathname,
+          },
+          {
+            error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+            mappedMessage: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+          }
+        );
         sendError(res, HTTP_STATUS.METHOD_NOT_ALLOWED, SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED);
         return;
       }
@@ -289,6 +303,19 @@ export const startHeadlessServer = async (
         return;
       }
 
+      logRequestValidationFailure(
+        logger,
+        {
+          source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
+          handler: HEADLESS_ROUTE_HANDLER.ROUTE_CLASSIFIER,
+          method: req.method,
+          pathname: url.pathname,
+        },
+        {
+          error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+          mappedMessage: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+        }
+      );
       sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.NOT_FOUND);
     } catch (error) {
       if (

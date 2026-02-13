@@ -86,6 +86,10 @@ const HOOK_REQUEST_STREAM_ERROR = {
   STREAM_ERROR: "socket hang up",
 } as const;
 
+const HOOK_IPC_HANDLER = {
+  METHOD_GUARD: "method_guard",
+} as const;
+
 const getHookIpcWarnSpy = (hookServer: HookIpcServer) => {
   const logger = Reflect.get(hookServer, "logger") as {
     warn: (message: string, metadata?: Record<string, unknown>) => void;
@@ -227,6 +231,7 @@ describe("HookIpcServer", () => {
 
   it("returns method not allowed for non-POST requests", async () => {
     server = new HookIpcServer({ transport: "http" });
+    const warnSpy = getHookIpcWarnSpy(server);
     const endpoint = await server.start();
 
     const response = await requestHttpEndpoint(endpoint, "GET");
@@ -235,6 +240,15 @@ describe("HookIpcServer", () => {
       status: HTTP_STATUS.METHOD_NOT_ALLOWED,
       payload: { error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED },
     });
+    expect(warnSpy).toHaveBeenCalledWith("Request validation failed", {
+      source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+      handler: HOOK_IPC_HANDLER.METHOD_GUARD,
+      method: "GET",
+      pathname: "/",
+      error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      mappedMessage: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+    });
+    warnSpy.mockRestore();
   });
 
   it("returns bad request for malformed JSON payloads", async () => {

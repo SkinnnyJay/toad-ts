@@ -109,6 +109,8 @@
     validation paths using shared standardized validation logging
   - hardened headless session validation telemetry with explicit handler
     identifiers for session create/prompt schema failures
+  - hardened route-classifier and hook method-guard validation telemetry with
+    explicit standardized handler identifiers
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

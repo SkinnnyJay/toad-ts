@@ -37,6 +37,10 @@ const HOOK_IPC_TRANSPORT = {
   HTTP: "http",
 } as const;
 
+const HOOK_IPC_HANDLER = {
+  METHOD_GUARD: "method_guard",
+} as const;
+
 type HookIpcTransport = (typeof HOOK_IPC_TRANSPORT)[keyof typeof HOOK_IPC_TRANSPORT];
 
 const defaultSocketPath = (pid: number): string => {
@@ -127,6 +131,19 @@ export class HookIpcServer {
 
     const server = http.createServer(async (req, res) => {
       if (req.method !== HTTP_METHOD.POST) {
+        logRequestValidationFailure(
+          this.logger,
+          {
+            source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+            handler: HOOK_IPC_HANDLER.METHOD_GUARD,
+            method: req.method ?? "",
+            pathname: req.url ?? HOOK_IPC_DEFAULT.PATHNAME,
+          },
+          {
+            error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+            mappedMessage: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+          }
+        );
         sendErrorResponse(
           res,
           HTTP_STATUS.METHOD_NOT_ALLOWED,

@@ -1,5 +1,27 @@
 # Scratchpad Journal
 
+## 2026-02-13 (route-classifier validation telemetry)
+- Updated:
+  - `src/server/headless-server.ts`
+  - `src/core/cursor/hook-ipc-server.ts`
+- Changes:
+  - headless route-classifier method-not-allowed/not-found responses now emit
+    shared validation telemetry with handler id `route_classifier`
+  - hook IPC method guard (non-POST) now emits shared validation telemetry with
+    handler id `method_guard`
+- Extended tests:
+  - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+    - added method-not-allowed validation telemetry assertion
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (session validation handler identifiers)
 - Updated `src/server/headless-server.ts`:
   - introduced headless session route handler identifiers in validation

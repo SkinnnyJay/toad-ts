@@ -1803,3 +1803,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - provide finer-grained handler context in validation telemetry for session
       routes.
+
+## Execution Log Addendum — 2026-02-13 (route-classifier validation telemetry)
+
+- Additional route-classifier diagnostics hardening:
+  - Updated:
+    - `src/server/headless-server.ts`
+    - `src/core/cursor/hook-ipc-server.ts`
+    - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+  - Hardening changes:
+    - headless route-classifier `METHOD_NOT_ALLOWED` and `NOT_FOUND` responses
+      now emit shared `Request validation failed` telemetry with handler id
+      `route_classifier`.
+    - hook IPC non-POST method guard now emits shared validation telemetry with
+      handler id `method_guard`.
+    - standardized handler identifiers now cover route classifier + method guard
+      validation events in addition to parse/schema validation paths.
+  - Goal:
+    - close remaining diagnostics parity gap for classifier/guard validation
+      decisions.

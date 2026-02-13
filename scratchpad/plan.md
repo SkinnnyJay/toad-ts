@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added route-classifier/method-guard validation telemetry:
+  - headless route-classifier method-not-allowed/not-found paths now emit shared
+    validation telemetry with handler id `route_classifier`
+  - hook IPC non-POST method guard now emits shared validation telemetry with
+    handler id `method_guard`
 - Added headless session validation handler identifiers:
   - session create/prompt schema validation failures now include explicit
     handler ids in shared validation telemetry (`session_create`, `session_prompt`)
