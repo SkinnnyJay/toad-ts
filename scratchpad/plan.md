@@ -202,6 +202,9 @@
 - Added events-stream aborted-request cleanup hardening:
   - SSE subscriptions now clean up when request emits `aborted`
   - added unit coverage for aborted + close event idempotency
+- Added events-stream write-failure cleanup hardening:
+  - SSE update writes now fail-safe and trigger cleanup when response write throws
+  - added unit coverage for write-failure cleanup behavior
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

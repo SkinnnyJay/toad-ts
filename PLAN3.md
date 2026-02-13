@@ -1320,3 +1320,13 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - `__tests__/unit/server/api-route-events-stream.unit.test.ts`
   - Covered:
     - request-aborted cleanup path with idempotency via subsequent close event
+- Additional events-stream write-failure cleanup hardening:
+  - Updated:
+    - `src/server/api-routes.ts`
+  - Hardening change:
+    - SSE state-update writes now fail-safe; write exceptions trigger idempotent
+      subscription cleanup instead of propagating stream callback errors.
+  - Extended:
+    - `__tests__/unit/server/api-route-events-stream.unit.test.ts`
+  - Covered:
+    - response write-failure cleanup path

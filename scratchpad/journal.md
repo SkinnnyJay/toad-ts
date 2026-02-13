@@ -1,5 +1,17 @@
 # Scratchpad Journal
 
+## 2026-02-13 (events-stream write-failure cleanup)
+- Updated `src/server/api-routes.ts`:
+  - events-stream update callback now catches `res.write(...)` failures
+  - write failures trigger idempotent SSE cleanup instead of surfacing exceptions
+- Extended `__tests__/unit/server/api-route-events-stream.unit.test.ts`:
+  - added write-failure cleanup coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/api-route-events-stream.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (events-stream aborted-request cleanup)
 - Updated `src/server/api-routes.ts`:
   - events stream now subscribes to request `aborted` events for cleanup

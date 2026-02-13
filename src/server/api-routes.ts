@@ -177,16 +177,8 @@ export const eventsStream: RouteHandler = async (_req, res) => {
     Connection: "keep-alive",
   });
 
-  const unsubscribe = useAppStore.subscribe((state) => {
-    const data = JSON.stringify({
-      type: SERVER_EVENT.STATE_UPDATE,
-      currentSessionId: state.currentSessionId,
-      connectionStatus: state.connectionStatus,
-    });
-    res.write(`data: ${data}\n\n`);
-  });
-
   let isCleanedUp = false;
+  let unsubscribe: () => void = () => {};
   const cleanup = (): void => {
     if (isCleanedUp) {
       return;
@@ -194,6 +186,23 @@ export const eventsStream: RouteHandler = async (_req, res) => {
     isCleanedUp = true;
     unsubscribe();
   };
+
+  unsubscribe = useAppStore.subscribe((state) => {
+    if (res.writableEnded || res.destroyed) {
+      cleanup();
+      return;
+    }
+    try {
+      const data = JSON.stringify({
+        type: SERVER_EVENT.STATE_UPDATE,
+        currentSessionId: state.currentSessionId,
+        connectionStatus: state.connectionStatus,
+      });
+      res.write(`data: ${data}\n\n`);
+    } catch {
+      cleanup();
+    }
+  });
 
   _req.once("close", cleanup);
   _req.once("aborted", cleanup);

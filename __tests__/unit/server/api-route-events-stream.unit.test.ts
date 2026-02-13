@@ -164,4 +164,34 @@ describe("eventsStream handler", () => {
 
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
+
+  it("unsubscribes when writing stream update throws", async () => {
+    const subscribeMock = await getSubscribeMock();
+    const unsubscribe = vi.fn();
+    let listener: ((state: { currentSessionId: string; connectionStatus: string }) => void) | null =
+      null;
+    subscribeMock.mockImplementation((callback) => {
+      listener = callback as (state: {
+        currentSessionId: string;
+        connectionStatus: string;
+      }) => void;
+      return unsubscribe;
+    });
+
+    const request = new EventEmitter() as IncomingMessage;
+    const { response } = createResponseCapture();
+    response.write = (): boolean => {
+      throw new Error("write failure");
+    };
+
+    await eventsStream(request, response, {});
+
+    expect(() =>
+      listener?.({
+        currentSessionId: "session-1",
+        connectionStatus: "connected",
+      })
+    ).not.toThrow();
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+  });
 });
