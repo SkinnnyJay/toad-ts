@@ -94,4 +94,28 @@ describe("http-response helpers", () => {
       body: { ok: true },
     });
   });
+
+  it("strips case-variant managed headers before writing json headers", () => {
+    const payload = { ok: true };
+    const body = JSON.stringify(payload);
+    const { response, getCaptured } = createResponseCapture();
+    sendJsonResponse(response, 200, payload, {
+      includeContentLength: true,
+      headers: {
+        "content-type": "text/plain",
+        "content-length": "1",
+        "WWW-Authenticate": "Bearer",
+      },
+    });
+
+    expect(getCaptured()).toEqual({
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(body),
+        "WWW-Authenticate": "Bearer",
+      },
+      body: payload,
+    });
+  });
 });

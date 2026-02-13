@@ -1,5 +1,18 @@
 # Scratchpad Journal
 
+## 2026-02-13 (response-helper managed-header sanitization)
+- Updated `src/server/http-response.ts`:
+  - strips case-variant managed headers (`content-type`, `content-length`) from caller
+    header inputs before writing canonical JSON headers
+  - prevents duplicate/competing header casing variants
+- Extended `__tests__/unit/server/http-response.unit.test.ts`:
+  - added coverage for lowercase managed header override attempts
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/http-response.unit.test.ts __tests__/unit/server/server-auth.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (ssh remote trailing-slash parsing hardening)
 - Updated `src/core/repo-workflow.ts`:
   - scp-style ssh remote parser now tolerates trailing slash (`git@host:owner/repo.git/`)

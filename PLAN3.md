@@ -1009,6 +1009,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
   - Covered:
     - owner/repo extraction for `git@host:owner/repo.git/` remote format.
+- Additional response-helper managed-header sanitization hardening:
+  - Updated:
+    - `src/server/http-response.ts`
+  - Hardening change:
+    - shared response helper now strips case-variant managed headers from custom
+      header inputs to avoid duplicate/conflicting content-type/content-length entries.
+  - Extended:
+    - `__tests__/unit/server/http-response.unit.test.ts`
+  - Covered:
+    - lowercase managed header override suppression behavior while preserving
+      non-managed custom headers.
 
 ---
 

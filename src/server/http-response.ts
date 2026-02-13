@@ -5,6 +5,27 @@ export interface JsonResponseOptions {
   readonly headers?: OutgoingHttpHeaders;
 }
 
+const MANAGED_HEADER = {
+  CONTENT_TYPE: "content-type",
+  CONTENT_LENGTH: "content-length",
+  JSON_CONTENT_TYPE: "application/json",
+} as const;
+
+const stripManagedHeaders = (headers: OutgoingHttpHeaders | undefined): OutgoingHttpHeaders => {
+  const sanitizedHeaders: OutgoingHttpHeaders = {};
+  for (const [header, value] of Object.entries(headers ?? {})) {
+    const normalized = header.toLowerCase();
+    if (
+      normalized === MANAGED_HEADER.CONTENT_TYPE ||
+      normalized === MANAGED_HEADER.CONTENT_LENGTH
+    ) {
+      continue;
+    }
+    sanitizedHeaders[header] = value;
+  }
+  return sanitizedHeaders;
+};
+
 export const sendJsonResponse = (
   res: ServerResponse,
   status: number,
@@ -13,8 +34,8 @@ export const sendJsonResponse = (
 ): void => {
   const body = JSON.stringify(payload);
   const headers: OutgoingHttpHeaders = {
-    ...(options.headers ?? {}),
-    "Content-Type": "application/json",
+    ...stripManagedHeaders(options.headers),
+    "Content-Type": MANAGED_HEADER.JSON_CONTENT_TYPE,
   };
   if (options.includeContentLength) {
     headers["Content-Length"] = Buffer.byteLength(body);
