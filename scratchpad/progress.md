@@ -119,6 +119,8 @@
     metadata only for `/api/` paths while keeping `/api` root as core-unhandled
   - hardened harness-config id resolution by trimming whitespace-only CLI/user/
     project harness-id values before fallback and lookup
+  - hardened harness-config file parsing with explicit rejection for invalid
+    harness ids that include leading/trailing whitespace
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added invalid harness-id config guard hardening:
+  - harness-config loader now rejects harness ids with leading/trailing
+    whitespace (including whitespace-only ids)
+  - added explicit invalid harness-id formatter for standardized diagnostics
+  - expanded harness config/error-message unit coverage for invalid-id paths
 - Added harness-id whitespace normalization hardening:
   - harness id resolver now trims CLI/user/project harness-id inputs before
     applying precedence

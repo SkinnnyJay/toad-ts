@@ -1906,3 +1906,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - strengthen harness/config fallback behavior around whitespace edge cases
       without changing precedence semantics for valid ids.
+
+## Execution Log Addendum — 2026-02-13 (invalid harness-id config guard)
+
+- Additional harness config input hardening:
+  - Updated:
+    - `src/harness/harnessConfig.ts`
+    - `src/harness/harness-error-messages.ts`
+    - `__tests__/unit/harness/harness-config.unit.test.ts`
+    - `__tests__/unit/harness/harness-error-messages.unit.test.ts`
+  - Hardening changes:
+    - added explicit invalid harness-id formatter for standardized diagnostics.
+    - harness config loading now rejects harness ids that are:
+      - whitespace-only
+      - padded with leading/trailing whitespace
+    - added focused unit coverage for invalid harness-id rejection and message
+      formatting behavior.
+  - Goal:
+    - prevent ambiguous harness selection semantics from malformed harness-id
+      keys while preserving existing behavior for valid ids.

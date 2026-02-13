@@ -6,7 +6,10 @@ import { ERROR_CODE } from "@/constants/error-codes";
 import { FILE_PATH } from "@/constants/file-paths";
 import { PERMISSION } from "@/constants/permissions";
 import { TOOL_KIND } from "@/constants/tool-kinds";
-import { formatHarnessNotFoundError } from "@/harness/harness-error-messages";
+import {
+  formatHarnessNotFoundError,
+  formatInvalidHarnessIdError,
+} from "@/harness/harness-error-messages";
 import { CLI_AGENT_MODE } from "@/types/cli-agent.types";
 import { EnvManager } from "@/utils/env/env.utils";
 import { z } from "zod";
@@ -195,6 +198,14 @@ const resolveHarnessConfig = (
   });
 };
 
+const validateHarnessId = (id: string): string => {
+  const normalizedId = id.trim();
+  if (normalizedId.length === 0 || normalizedId !== id) {
+    throw new Error(formatInvalidHarnessIdError(id));
+  }
+  return normalizedId;
+};
+
 const expandEnvString = (value: string, env: NodeJS.ProcessEnv): string => {
   return value.replace(ENV_PATTERN, (_, direct, braced) => {
     const key = direct ?? braced;
@@ -274,8 +285,9 @@ export const loadHarnessConfig = async (
   const resolvedHarnesses: Record<string, HarnessConfig> = {};
 
   for (const [id, definition] of Object.entries(mergedConfig.harnesses)) {
-    resolvedHarnesses[id] = expandHarnessConfig(
-      resolveHarnessConfig(id, definition, projectRoot),
+    const harnessId = validateHarnessId(id);
+    resolvedHarnesses[harnessId] = expandHarnessConfig(
+      resolveHarnessConfig(harnessId, definition, projectRoot),
       env
     );
   }

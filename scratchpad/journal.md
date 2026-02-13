@@ -1571,3 +1571,26 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Invalid harness-id config guard hardening)
+
+### Summary
+- Added `formatInvalidHarnessIdError(...)` to centralize malformed harness-id
+  diagnostics.
+- Harness config loading now rejects harness ids with surrounding whitespace
+  (including whitespace-only ids), preventing ambiguous/hidden id mismatches.
+- Expanded focused unit coverage for:
+  - invalid harness-id rejection in config loading
+  - invalid harness-id message formatting helper
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/harness/harness-config.unit.test.ts __tests__/unit/harness/harness-error-messages.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅

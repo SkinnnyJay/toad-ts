@@ -2,7 +2,10 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { FILE_PATH } from "@/constants/file-paths";
-import { formatHarnessNotFoundError } from "@/harness/harness-error-messages";
+import {
+  formatHarnessNotFoundError,
+  formatInvalidHarnessIdError,
+} from "@/harness/harness-error-messages";
 import { CLI_AGENT_MODE } from "@/types/cli-agent.types";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -429,5 +432,24 @@ describe("harnessConfig", () => {
         harnessId: "missing",
       })
     ).rejects.toThrow(formatHarnessNotFoundError("missing"));
+  });
+
+  it("throws when harness id contains surrounding whitespace", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "alpha",
+      harnesses: {
+        " alpha ": {
+          name: "Alpha",
+          command: "alpha",
+        },
+      },
+    });
+
+    await expect(loadHarnessConfig({ projectRoot, homedir: userRoot })).rejects.toThrow(
+      formatInvalidHarnessIdError(" alpha ")
+    );
   });
 });
