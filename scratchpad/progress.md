@@ -55,6 +55,7 @@
   - hardened SSE stream close-handling to avoid duplicate unsubscribe calls
   - hardened repo checks-status parsing for whitespace-padded gh output fields
   - hardened JSON request parsing for UTF-8 BOM-prefixed payloads
+  - hardened file-search URL parsing when request host header is missing
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

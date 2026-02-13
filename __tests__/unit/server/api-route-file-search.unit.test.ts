@@ -32,10 +32,10 @@ const createResponseCapture = (): {
   };
 };
 
-const createRequest = (url: string): IncomingMessage => {
+const createRequest = (url: string, host?: string): IncomingMessage => {
   return {
     url,
-    headers: { host: "127.0.0.1:4141" },
+    headers: { host: host ?? "127.0.0.1:4141" },
   } as unknown as IncomingMessage;
 };
 
@@ -59,6 +59,22 @@ describe("api-routes searchFiles handler", () => {
     expect(getCaptured()).toEqual({
       statusCode: HTTP_STATUS.OK,
       body: { query: "readme", results: [] },
+    });
+  });
+
+  it("parses query successfully when request host header is absent", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    const request = {
+      url: "/api/files/search?q=notes",
+      headers: {},
+    } as unknown as IncomingMessage;
+
+    await searchFiles(request, response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "notes", results: [] },
     });
   });
 });

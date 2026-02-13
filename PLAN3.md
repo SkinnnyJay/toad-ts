@@ -1146,6 +1146,16 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - BOM-prefixed valid JSON payload parsing
     - BOM-only payload with empty-body fallback
+- Additional file-search host-header fallback hardening:
+  - Updated:
+    - `src/server/api-routes.ts`
+  - Hardening change:
+    - file-search URL parsing now falls back to `localhost` when request host
+      header is absent, preventing host-derived URL base edge failures.
+  - Extended:
+    - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - Covered:
+    - successful query parsing for hostless request headers
 
 ---
 

@@ -16,6 +16,8 @@ export type RouteHandler = (
   params: Record<string, string>
 ) => Promise<void>;
 
+const REQUEST_URL_DEFAULT_HOST = "localhost";
+
 const sendJson = (res: ServerResponse, status: number, payload: unknown): void => {
   sendJsonResponse(res, status, payload);
 };
@@ -115,7 +117,7 @@ export const listAgents: RouteHandler = async (_req, res) => {
 // ── File Endpoints ─────────────────────────────────────────────────────────
 
 export const searchFiles: RouteHandler = async (req, res) => {
-  const url = new URL(req.url ?? "", `http://${req.headers.host}`);
+  const url = new URL(req.url ?? "", `http://${req.headers.host ?? REQUEST_URL_DEFAULT_HOST}`);
   const query = url.searchParams.get("q") ?? "";
   if (!query) {
     sendJson(res, HTTP_STATUS.BAD_REQUEST, {

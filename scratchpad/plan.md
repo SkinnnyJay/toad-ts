@@ -169,6 +169,9 @@
 - Added UTF-8 BOM JSON parsing hardening:
   - request-body JSON parser now strips leading UTF-8 BOM before parsing
   - added unit coverage for BOM-prefixed JSON and BOM-only empty-body fallback
+- Added search-files host-header fallback hardening:
+  - file-search URL parser now defaults to localhost when host header is absent
+  - added unit coverage for hostless request parsing path
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
