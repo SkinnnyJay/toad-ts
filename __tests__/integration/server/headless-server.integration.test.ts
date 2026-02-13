@@ -166,6 +166,42 @@ describe("headless server", () => {
     }
   });
 
+  it("enforces file-search query validation semantics", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const validResponse = await fetch(`${baseUrl}/api/files/search?q=readme`);
+      expect(validResponse.status).toBe(200);
+      await expect(validResponse.json()).resolves.toEqual({
+        query: "readme",
+        results: [],
+      });
+
+      const duplicateQueryResponse = await fetch(`${baseUrl}/api/files/search?q=readme&q=notes`);
+      expect(duplicateQueryResponse.status).toBe(400);
+      await expect(duplicateQueryResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      });
+
+      const encodedKeyResponse = await fetch(`${baseUrl}/api/files/search?%71=readme`);
+      expect(encodedKeyResponse.status).toBe(200);
+      await expect(encodedKeyResponse.json()).resolves.toEqual({
+        query: "readme",
+        results: [],
+      });
+
+      const malformedKeyResponse = await fetch(`${baseUrl}/api/files/search?%E0%A4%A=readme`);
+      expect(malformedKeyResponse.status).toBe(400);
+      await expect(malformedKeyResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
   it("returns not found for unknown top-level endpoints", async () => {
     const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
     const { host, port } = server.address();

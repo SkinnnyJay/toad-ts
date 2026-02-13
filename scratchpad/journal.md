@@ -1,5 +1,18 @@
 # Scratchpad Journal
 
+## 2026-02-13 (headless file-search integration coverage)
+- Extended `__tests__/integration/server/headless-server.integration.test.ts`:
+  - added file-search integration assertions for:
+    - valid query handling
+    - duplicate `q` rejection
+    - encoded key acceptance
+    - malformed encoded key rejection
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/api-route-file-search.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (file-search encoded-key hardening)
 - Updated `src/server/api-routes.ts`:
   - query parameter name parsing now uses strict form decoding

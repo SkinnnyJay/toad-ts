@@ -217,6 +217,9 @@
 - Added file-search encoded-key hardening:
   - search route now decodes query-parameter names with strict decoding
   - supports encoded `q` key and rejects malformed encoded parameter names
+- Added headless file-search integration hardening:
+  - added end-to-end coverage for file-search duplicate/encoded/malformed query keys
+  - locks server-level response semantics for these file-search edge cases
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

@@ -1372,3 +1372,11 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Covered:
     - encoded key name acceptance (`?%71=readme`)
     - malformed key-encoding rejection
+- Additional headless file-search integration hardening:
+  - Extended:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Covered:
+    - valid file-search query response contract
+    - duplicate query parameter rejection
+    - encoded key name acceptance
+    - malformed key-encoding rejection
