@@ -15,11 +15,10 @@ import {
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { createHarnessRegistry, isCursorHarnessEnabled } from "@/harness/harnessRegistryFactory";
-import { API_ROUTE_CLASSIFICATION, classifyApiRoute } from "@/server/api-routes";
-import { CORE_ROUTE_DECISION, classifyCoreRoute } from "@/server/core-route-classifier";
 import { parseJsonRequestBody } from "@/server/request-body";
 import { checkServerAuth } from "@/server/server-auth";
 import type { ServerRuntimeConfig } from "@/server/server-config";
+import { SERVER_ROUTE_CLASSIFICATION, classifyServerRoute } from "@/server/server-route-classifier";
 import { createSessionRequestSchema, promptSessionRequestSchema } from "@/server/server-types";
 import { parseSessionRoutePath } from "@/server/session-route-path";
 import { useAppStore } from "@/store/app-store";
@@ -82,14 +81,18 @@ export const startHeadlessServer = async (
       }
       const url = new URL(req.url, `http://${req.headers.host ?? "localhost"}`);
 
-      const coreRouteDecision = classifyCoreRoute(req.method, url.pathname);
+      const routeClassification = classifyServerRoute(req.method, url.pathname);
 
-      if (coreRouteDecision.kind === CORE_ROUTE_DECISION.HEALTH_OK) {
+      if (routeClassification.kind === SERVER_ROUTE_CLASSIFICATION.HEALTH_OK) {
         sendJson(res, HTTP_STATUS.OK, { status: "ok" });
         return;
       }
-      if (coreRouteDecision.kind === CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED) {
+      if (routeClassification.kind === SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED) {
         sendError(res, HTTP_STATUS.METHOD_NOT_ALLOWED, SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED);
+        return;
+      }
+      if (routeClassification.kind === SERVER_ROUTE_CLASSIFICATION.API_MATCH) {
+        await routeClassification.handler(req, res, routeClassification.params);
         return;
       }
 
@@ -176,17 +179,6 @@ export const startHeadlessServer = async (
         }
         const messages = store.getState().getMessagesForSession(parsedSession.data);
         sendJson(res, HTTP_STATUS.OK, { messages });
-        return;
-      }
-
-      // Try API routes from api-routes.ts
-      const apiRoute = classifyApiRoute(req.method ?? HTTP_METHOD.GET, url.pathname);
-      if (apiRoute.kind === API_ROUTE_CLASSIFICATION.MATCH) {
-        await apiRoute.handler(req, res, apiRoute.params);
-        return;
-      }
-      if (apiRoute.kind === API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED) {
-        sendError(res, HTTP_STATUS.METHOD_NOT_ALLOWED, SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED);
         return;
       }
 

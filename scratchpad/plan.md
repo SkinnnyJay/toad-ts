@@ -64,6 +64,9 @@
 - Added session path parser abstraction:
   - centralized parsing for `/sessions/:id/:action` paths
   - reused in headless dispatch and core route classifier
+- Added unified server route classification abstraction:
+  - composed core + api route classification outcomes in one helper
+  - headless server now uses unified route classifier decision pipeline
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

@@ -799,6 +799,21 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - valid session path parsing
     - no-action path parsing
     - non-session path fallback (`null`)
+- Additional unified route classifier pipeline hardening:
+  - Added:
+    - `src/server/server-route-classifier.ts`
+  - Runtime update:
+    - `src/server/headless-server.ts`
+  - Refactor:
+    - composed core-route and API-route classifiers behind one server-route classification
+      helper used by headless dispatch.
+  - Extended unit coverage:
+    - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - Covered:
+    - health success classification
+    - method-not-allowed classification (core + api)
+    - API match classification
+    - unhandled fallback classification
 
 ---
 

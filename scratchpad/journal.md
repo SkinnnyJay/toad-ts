@@ -1,5 +1,18 @@
 # Scratchpad Journal
 
+## 2026-02-13 (unified server route classifier pipeline)
+- Added `src/server/server-route-classifier.ts` to compose:
+  - core-route classification
+  - api-route classification
+- Updated `src/server/headless-server.ts` to consume unified route classification outcomes.
+- Added dedicated unit coverage:
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (session route path parser extraction)
 - Added `src/server/session-route-path.ts` to centralize parsing of `/sessions/:id/:action` paths.
 - Refactored consumers:

@@ -9,7 +9,7 @@ import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { parseJsonRequestBody } from "@/server/request-body";
 import { useAppStore } from "@/store/app-store";
 import type { Session, SessionId } from "@/types/domain";
-type RouteHandler = (
+export type RouteHandler = (
   req: IncomingMessage,
   res: ServerResponse,
   params: Record<string, string>
@@ -268,10 +268,7 @@ export const API_ROUTES: Route[] = [
   },
 ];
 
-export const matchRoute = (
-  method: string,
-  pathname: string
-): { handler: RouteHandler; params: Record<string, string> } | null => {
+export const matchRoute = (method: string, pathname: string): RouteMatchResult | null => {
   for (const route of API_ROUTES) {
     if (route.method !== method) continue;
     const match = pathname.match(route.pattern);
@@ -286,6 +283,11 @@ export const matchRoute = (
   }
   return null;
 };
+
+export interface RouteMatchResult {
+  handler: RouteHandler;
+  params: Record<string, string>;
+}
 
 export const classifyApiRoute = (method: string, pathname: string): ApiRouteClassification => {
   const matched = matchRoute(method, pathname);
