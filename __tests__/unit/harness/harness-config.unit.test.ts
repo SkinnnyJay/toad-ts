@@ -106,6 +106,52 @@ describe("harnessConfig", () => {
     expect(result.harness.cwd).toBe("/tmp/project");
   });
 
+  it("merges project and user env maps before expansion", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "claude",
+      harnesses: {
+        claude: {
+          name: "Claude",
+          command: "claude",
+          env: {
+            PROJECT_TOKEN: "$PROJECT_TOKEN",
+            SHARED: "project",
+          },
+        },
+      },
+    });
+
+    await writeHarnessFile(userRoot, {
+      harnesses: {
+        claude: {
+          env: {
+            SHARED: "$USER_SHARED",
+            USER_ONLY: "$USER_ONLY",
+          },
+        },
+      },
+    });
+
+    const result = await loadHarnessConfig({
+      projectRoot,
+      homedir: userRoot,
+      env: {
+        PROJECT_TOKEN: "project-secret",
+        USER_SHARED: "user-wins",
+        USER_ONLY: "from-user",
+      },
+    });
+
+    expect(result.harness.env).toEqual({
+      PROJECT_TOKEN: "project-secret",
+      SHARED: "user-wins",
+      USER_ONLY: "from-user",
+    });
+  });
+
   it("merges permission overrides", async () => {
     projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
     userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
@@ -199,6 +245,29 @@ describe("harnessConfig", () => {
       loadHarnessConfig({
         projectRoot,
         homedir: userRoot,
+      })
+    ).rejects.toThrow();
+  });
+
+  it("throws when env expansion empties required command", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "claude",
+      harnesses: {
+        claude: {
+          name: "Claude",
+          command: "$MISSING_COMMAND",
+        },
+      },
+    });
+
+    await expect(
+      loadHarnessConfig({
+        projectRoot,
+        homedir: userRoot,
+        env: {},
       })
     ).rejects.toThrow();
   });

@@ -1475,3 +1475,18 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Covered:
     - explicit empty args override behavior across claude/gemini/codex/cursor
     - blank command override fallback behavior across claude/gemini/codex/cursor
+
+## Execution Log Addendum — 2026-02-13 (harness env-expansion validation hardening)
+
+- Additional harness config expansion hardening:
+  - Updated:
+    - `src/harness/harnessConfig.ts`
+  - Hardening change:
+    - expanded harness configs are now re-validated through `harnessConfigSchema`
+      after env-variable substitution to prevent invalid empty command/cwd values
+      from escaping config loading.
+  - Extended:
+    - `__tests__/unit/harness/harness-config.unit.test.ts`
+  - Covered:
+    - project/user env-map merge precedence before expansion
+    - failure path when env expansion empties required command fields

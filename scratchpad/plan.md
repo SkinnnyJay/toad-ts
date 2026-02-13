@@ -14,6 +14,9 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added harness env-expansion validation hardening:
+  - expanded harness configs are now re-validated after env substitution
+  - added focused coverage for env-map merge precedence and missing-command expansion failure
 - Added default harness env-override hardening:
   - command overrides now trim whitespace and fall back to defaults when blank
   - explicit empty-string args overrides now resolve to empty argument arrays

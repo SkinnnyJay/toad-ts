@@ -1,5 +1,22 @@
 # Scratchpad Journal
 
+## 2026-02-13 (harness env-expansion validation hardening)
+- Updated `src/harness/harnessConfig.ts`:
+  - env-expanded harness config payloads are now re-parsed via `harnessConfigSchema`
+    before returning from `loadHarnessConfig`
+- Extended `__tests__/unit/harness/harness-config.unit.test.ts`:
+  - added project/user env-map merge precedence coverage
+  - added missing-env command expansion failure coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/harness/harness-config.unit.test.ts __tests__/unit/harness/default-harness-config.unit.test.ts __tests__/unit/server/api-route-fallback-env.unit.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (default harness env-override hardening)
 - Updated `src/harness/defaultHarnessConfig.ts`:
   - command env overrides now trim and fall back to defaults when blank

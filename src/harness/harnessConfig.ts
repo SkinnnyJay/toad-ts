@@ -208,7 +208,7 @@ const expandHarnessConfig = (config: HarnessConfig, env: NodeJS.ProcessEnv): Har
     expandedEnv[key] = expandEnvString(value, env);
   }
 
-  return {
+  return harnessConfigSchema.parse({
     ...config,
     command: expandEnvString(config.command, env),
     args: config.args.map((arg) => expandEnvString(arg, env)),
@@ -221,7 +221,7 @@ const expandHarnessConfig = (config: HarnessConfig, env: NodeJS.ProcessEnv): Har
           model: config.cursor.model ? expandEnvString(config.cursor.model, env) : undefined,
         }
       : undefined,
-  };
+  });
 };
 
 const resolveHarnessId = (
