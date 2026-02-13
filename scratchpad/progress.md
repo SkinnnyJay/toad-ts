@@ -97,6 +97,8 @@
     JSON/error response helpers
   - hardened request parsing consistency with shared request-error normalization
     utility reused by API routes, hook IPC, and headless server
+  - hardened headless route-local parse failure control flow with route-context
+    diagnostics and localized parse-error handling
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

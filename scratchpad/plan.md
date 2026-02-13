@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added headless route-local parse handling hardening:
+  - body parse failures for session creation/prompt routes are now handled in
+    localized route-level catch blocks with contextual warning diagnostics
+  - preserved shared parse-error normalization while tightening control-flow
+    boundaries for request parsing
 - Added shared request-error normalization utility:
   - centralized request body parse error normalization/classification for server
     entrypoints

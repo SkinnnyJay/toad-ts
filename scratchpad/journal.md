@@ -1,5 +1,24 @@
 # Scratchpad Journal
 
+## 2026-02-13 (headless route-local parse handling hardening)
+- Updated `src/server/headless-server.ts`:
+  - route-level request-body parse handling added for:
+    - `POST /sessions`
+    - `POST /sessions/:id/prompt`
+  - parse failures now map and return from route-local catch blocks using shared
+    parse-error classification, with route-context warning diagnostics
+    (`method`, `pathname`, `mappedMessage`, `error`).
+  - reduced dependence on top-level request catch for route body-parse failures.
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (shared request-error normalization utility)
 - Added `src/server/request-error-normalization.ts` with shared helpers:
   - `normalizeRequestBodyParseError(...)`

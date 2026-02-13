@@ -1675,3 +1675,21 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Coverage:
     - added focused unit coverage for request-error classification behavior.
     - existing API/hook/headless targeted tests remained green.
+
+## Execution Log Addendum — 2026-02-13 (headless route-local parse handling hardening)
+
+- Additional headless request parsing control-flow hardening:
+  - Updated:
+    - `src/server/headless-server.ts`
+  - Hardening changes:
+    - moved request-body parse failure handling into route-local try/catch scopes
+      for:
+      - `POST /sessions`
+      - `POST /sessions/:id/prompt`
+    - added route-context warning diagnostics (method + pathname + mapped message)
+      for canonical parse failures.
+    - preserved shared parse-error classification while reducing reliance on
+      top-level catch for route-specific body parsing behavior.
+  - Goal:
+    - improve operational diagnostics and make parse-failure control flow more
+      explicit at the exact route boundary where parsing occurs.

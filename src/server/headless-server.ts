@@ -47,6 +47,25 @@ const sendJson = (res: ServerResponse, status: number, payload: unknown): void =
 const sendError = (res: ServerResponse, status: number, message: string): void =>
   sendErrorResponse(res, status, message, { includeContentLength: true });
 
+const handleRequestParsingFailure = (
+  res: ServerResponse,
+  error: unknown,
+  context: { method: string; pathname: string }
+): boolean => {
+  const parsedRequestError = classifyRequestParsingError(error);
+  if (!parsedRequestError) {
+    return false;
+  }
+  logger.warn("Headless request parsing failed", {
+    method: context.method,
+    pathname: context.pathname,
+    error: error instanceof Error ? error.message : String(error),
+    mappedMessage: parsedRequestError,
+  });
+  sendError(res, HTTP_STATUS.BAD_REQUEST, parsedRequestError);
+  return true;
+};
+
 export const startHeadlessServer = async (
   options: HeadlessServerOptions = {}
 ): Promise<HeadlessServer> => {
@@ -97,7 +116,17 @@ export const startHeadlessServer = async (
       }
 
       if (req.method === HTTP_METHOD.POST && url.pathname === SERVER_PATH.SESSIONS) {
-        const raw = await parseJsonRequestBody<unknown>(req, { emptyBodyValue: {} });
+        let raw: unknown;
+        try {
+          raw = await parseJsonRequestBody<unknown>(req, { emptyBodyValue: {} });
+        } catch (error) {
+          if (
+            handleRequestParsingFailure(res, error, { method: req.method, pathname: url.pathname })
+          ) {
+            return;
+          }
+          throw error;
+        }
         const payload = createSessionRequestSchema.parse(raw);
         const harnessId = payload.harnessId ?? harnessConfigResult.harnessId;
         const harnessConfig = harnessConfigResult.harnesses[harnessId];
@@ -154,7 +183,17 @@ export const startHeadlessServer = async (
           sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.SESSION_NOT_FOUND);
           return;
         }
-        const raw = await parseJsonRequestBody<unknown>(req);
+        let raw: unknown;
+        try {
+          raw = await parseJsonRequestBody<unknown>(req);
+        } catch (error) {
+          if (
+            handleRequestParsingFailure(res, error, { method: req.method, pathname: url.pathname })
+          ) {
+            return;
+          }
+          throw error;
+        }
         const payload = promptSessionRequestSchema.parse(raw);
         const response = await runtime.prompt({
           sessionId: parsedSession.data,
@@ -184,11 +223,6 @@ export const startHeadlessServer = async (
 
       sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.NOT_FOUND);
     } catch (error) {
-      const parsedRequestError = classifyRequestParsingError(error);
-      if (parsedRequestError) {
-        sendError(res, HTTP_STATUS.BAD_REQUEST, parsedRequestError);
-        return;
-      }
       if (error instanceof ZodError) {
         sendError(res, HTTP_STATUS.BAD_REQUEST, error.message);
         return;
