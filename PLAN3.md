@@ -551,6 +551,7 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - missing auth header rejection
     - invalid credential rejection
     - Bearer-token success path
+    - raw-token (non-Bearer) success path
 - Additional headless-server auth integration coverage:
   - Extended `__tests__/integration/server/headless-server.integration.test.ts`
     with authenticated-request scenarios.
