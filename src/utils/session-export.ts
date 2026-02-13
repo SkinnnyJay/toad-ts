@@ -2,6 +2,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { ENCODING } from "@/constants/encodings";
 import { FILE_PATH } from "@/constants/file-paths";
+import { INDENT_SPACES } from "@/constants/json-format";
 import {
   FORMAT_JSON,
   FORMAT_MARKDOWN,
@@ -95,7 +96,7 @@ export const exportSessionToFile = async (options: SessionExportOptions): Promis
   const format = resolveExportFormat(normalized);
 
   if (format === FORMAT_JSON) {
-    await writeFile(normalized, JSON.stringify(payload, null, 2), ENCODING.UTF8);
+    await writeFile(normalized, JSON.stringify(payload, null, INDENT_SPACES), ENCODING.UTF8);
     return normalized;
   }
 
@@ -106,10 +107,10 @@ export const exportSessionToFile = async (options: SessionExportOptions): Promis
   }
 
   const zip = new JSZip();
-  zip.file("session.json", JSON.stringify(payload, null, 2));
+  zip.file("session.json", JSON.stringify(payload, null, INDENT_SPACES));
   zip.file("session.md", formatSessionMarkdown(payload.session, payload.messages));
   if (payload.contextAttachments && payload.contextAttachments.length > 0) {
-    zip.file("attachments.json", JSON.stringify(payload.contextAttachments, null, 2));
+    zip.file("attachments.json", JSON.stringify(payload.contextAttachments, null, INDENT_SPACES));
   }
   const buffer = await zip.generateAsync({ type: "nodebuffer" });
   await writeFile(normalized, buffer);

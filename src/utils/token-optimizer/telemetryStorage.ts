@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { ENCODING } from "@/constants/encodings";
 import { ERROR_CODE } from "@/constants/error-codes";
+import { INDENT_SPACES } from "@/constants/json-format";
 
 import { z } from "zod";
 import { invalidateCachedText, readTextCached } from "./stubs/fs";
@@ -63,7 +64,7 @@ const readSnapshots = async (filePath: string): Promise<AnalyticsSnapshot[]> => 
 
 const writeSnapshots = async (filePath: string, snapshots: AnalyticsSnapshot[]): Promise<void> => {
   await mkdir(dirname(filePath), { recursive: true });
-  await writeFile(filePath, JSON.stringify(snapshots, null, 2), ENCODING.UTF8);
+  await writeFile(filePath, JSON.stringify(snapshots, null, INDENT_SPACES), ENCODING.UTF8);
   invalidateCachedText(filePath);
 };
 

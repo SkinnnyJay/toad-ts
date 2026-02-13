@@ -16,6 +16,7 @@ import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { ERROR_CODE } from "@/constants/error-codes";
 import { HOOK_EVENT_VALUES } from "@/constants/hook-events";
+import { INDENT_SPACES } from "@/constants/json-format";
 import { KEYBIND_ACTION } from "@/constants/keybind-actions";
 import { KEYBIND } from "@/constants/keybinds";
 import { parseBooleanEnvFlag } from "@/utils/env/boolean-flags";
@@ -473,6 +474,6 @@ export const saveAppConfig = async (
   const filePath = resolveGlobalConfigPath(homeDir);
   await mkdir(path.dirname(filePath), { recursive: true });
   const payload = serializeConfig(config);
-  const contents = JSON.stringify(payload, null, 2);
+  const contents = JSON.stringify(payload, null, INDENT_SPACES);
   await writeFile(filePath, contents, ENCODING.UTF8);
 };

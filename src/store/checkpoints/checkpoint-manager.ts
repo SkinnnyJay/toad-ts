@@ -7,6 +7,7 @@ import { CHECKPOINT_DIRECTION, type CheckpointDirection } from "@/constants/chec
 import { CHECKPOINT, SNAPSHOT_TARGET, type SnapshotTarget } from "@/constants/checkpoints";
 import { ENCODING } from "@/constants/encodings";
 import { FILE_PATH } from "@/constants/file-paths";
+import { INDENT_SPACES } from "@/constants/json-format";
 import { REWIND_MODE, type RewindMode } from "@/constants/rewind-modes";
 import type { AppStore } from "@/store/app-store";
 import {
@@ -398,7 +399,7 @@ export class CheckpointManager {
     const dir = resolveCheckpointDir(checkpoint.sessionId);
     await mkdir(dir, { recursive: true });
     const filePath = buildCheckpointPath(checkpoint.sessionId, checkpoint.id);
-    await writeFile(filePath, JSON.stringify(checkpoint, null, 2), ENCODING.UTF8);
+    await writeFile(filePath, JSON.stringify(checkpoint, null, INDENT_SPACES), ENCODING.UTF8);
   }
 
   private async removeCheckpointFile(

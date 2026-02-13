@@ -2,6 +2,7 @@ import { readFile, stat, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { ENCODING } from "@/constants/encodings";
+import { INDENT_SPACES } from "@/constants/json-format";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { z } from "zod";
 
@@ -40,7 +41,7 @@ const saveStore = async (store: WorkspaceStore): Promise<void> => {
   const filePath = resolveStorePath();
   const { mkdir } = await import("node:fs/promises");
   await mkdir(WORKSPACE_DIR, { recursive: true });
-  await writeFile(filePath, JSON.stringify(store, null, 2), ENCODING.UTF8);
+  await writeFile(filePath, JSON.stringify(store, null, INDENT_SPACES), ENCODING.UTF8);
 };
 
 export class WorkspaceManager {

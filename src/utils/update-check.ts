@@ -4,6 +4,7 @@ import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { ERROR_CODE } from "@/constants/error-codes";
 import { FILE_PATH } from "@/constants/file-paths";
+import { INDENT_SPACES } from "@/constants/json-format";
 import { CHECK_INTERVAL_MS, FETCH_TIMEOUT_MS, REGISTRY_BASE_URL } from "@/constants/update-check";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
@@ -75,7 +76,7 @@ const writeCache = async (
 ): Promise<void> => {
   const dir = path.join(cwd, FILE_PATH.TOADSTOOL_DIR);
   await mkdir(dir, { recursive: true });
-  await writeFile(cachePath(cwd), JSON.stringify(payload, null, 2), ENCODING.UTF8);
+  await writeFile(cachePath(cwd), JSON.stringify(payload, null, INDENT_SPACES), ENCODING.UTF8);
 };
 
 const fetchLatestVersion = async (packageName: string): Promise<string | null> => {
