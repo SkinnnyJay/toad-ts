@@ -1,5 +1,16 @@
 # Scratchpad Journal
 
+## 2026-02-13 (git protocol remote parsing hardening)
+- Updated `src/core/repo-workflow.ts`:
+  - added support for parsing owner/repo from `git://` remote URLs
+- Extended `__tests__/unit/core/repo-workflow-info.unit.test.ts`:
+  - added `git://github.com/owner/repo.git` parsing coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/repo-workflow-info.unit.test.ts __tests__/unit/core/repo-workflow.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (repo-workflow literal hygiene)
 - Updated `src/core/repo-workflow.ts`:
   - extracted `gh pr checks --json` field list string into named constant

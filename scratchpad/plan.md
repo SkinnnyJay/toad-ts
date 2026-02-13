@@ -140,6 +140,9 @@
 - Added repo-workflow literal hygiene hardening:
   - extracted GH checks JSON field list into named constant
   - replaced raw PR-state/review-decision literals with domain constants
+- Added git-protocol remote parsing hardening:
+  - repo remote parser now supports `git://host/owner/repo.git` URLs
+  - added workflow info unit coverage for git protocol remotes
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

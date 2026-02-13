@@ -87,6 +87,13 @@ function parseOwnerRepoFromUrl(url: string): { owner: string; repo: string } | n
   if (httpsMatch) {
     return { owner: httpsMatch[1] ?? "", repo: (httpsMatch[2] ?? "").replace(/\.git$/, "") };
   }
+  const gitProtocolMatch = trimmed.match(/^git:\/\/[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i);
+  if (gitProtocolMatch) {
+    return {
+      owner: gitProtocolMatch[1] ?? "",
+      repo: (gitProtocolMatch[2] ?? "").replace(/\.git$/, ""),
+    };
+  }
   return null;
 }
 

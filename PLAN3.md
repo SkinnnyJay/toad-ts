@@ -1049,6 +1049,15 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
       to reduce literal drift risk.
   - Validation:
     - existing repo workflow unit coverage remained green.
+- Additional git-protocol remote parsing hardening:
+  - Updated:
+    - `src/core/repo-workflow.ts`
+  - Hardening change:
+    - owner/repo parser now supports `git://host/owner/repo(.git)` remote URLs.
+  - Extended:
+    - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
+  - Covered:
+    - owner/repo extraction from a git-protocol remote value.
 
 ---
 

@@ -398,4 +398,30 @@ describe("getRepoWorkflowInfo", () => {
     expect(info.owner).toBe("octocat");
     expect(info.repoName).toBe("hello-world");
   });
+
+  it("parses owner and repo from git protocol remote url", async () => {
+    const execaMock = await getExecaMock();
+    const prStatusMock = await getPrStatusMock();
+    const isGitCleanMock = await getIsGitCleanMock();
+
+    execaMock.mockImplementation(
+      buildExecaImplementation(
+        [{ status: "completed", conclusion: "success" }],
+        "git://github.com/octocat/hello-world.git"
+      )
+    );
+    prStatusMock.mockResolvedValue({
+      number: 11,
+      title: "Git protocol parse",
+      url: "https://github.com/octocat/hello-world/pull/11",
+      state: "open",
+      reviewDecision: PR_REVIEW_STATUS.APPROVED,
+    });
+    isGitCleanMock.mockResolvedValue(true);
+
+    const info = await getRepoWorkflowInfo("/workspace");
+
+    expect(info.owner).toBe("octocat");
+    expect(info.repoName).toBe("hello-world");
+  });
 });
