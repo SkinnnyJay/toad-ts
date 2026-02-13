@@ -70,6 +70,14 @@ describe("HarnessAdapter", () => {
       expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]).toBeDefined();
     });
 
+    it("should include cursor harness when enabled via numeric truthy flag", () => {
+      const result = createDefaultHarnessConfig({
+        [ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]: "1",
+      });
+
+      expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]).toBeDefined();
+    });
+
     it("should keep cursor harness disabled when command overrides exist but flag is false", () => {
       const result = createDefaultHarnessConfig({
         [ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]: "false",
