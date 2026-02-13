@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added unknown-harness create-session integration coverage:
+  - headless integration now verifies canonical but unconfigured harness ids
+    return `404` with formatted harness-not-configured message
+  - locks unresolved harness-selection semantics at session-creation boundary
 - Added empty harness-id message parity hardening:
   - create-session harness-id schema now emits canonical invalid-id message for
     empty string values (parity with padded/whitespace-only values)

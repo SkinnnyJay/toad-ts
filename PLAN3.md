@@ -2050,3 +2050,17 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - enforce deterministic harness-id validation messaging for all
       non-canonical request payload variants.
+
+## Execution Log Addendum — 2026-02-13 (unknown harness create-session coverage)
+
+- Additional headless server integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added explicit integration coverage for create-session requests with a
+      canonical but unconfigured harness id.
+    - locks `404` response semantics with `formatHarnessNotConfiguredError(...)`
+      payload for unresolved harness selection at session-creation boundary.
+  - Goal:
+    - preserve deterministic server behavior when clients request valid-but-
+      unavailable harness ids.

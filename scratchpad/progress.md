@@ -133,6 +133,8 @@
     message across harness config errors and session request schema failures
   - hardened create-session schema so empty harness-id values share the same
     canonical invalid-id message as other non-canonical inputs
+  - added headless integration coverage for canonical-but-unconfigured harness
+    ids returning 404 harness-not-configured responses
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

@@ -7,6 +7,7 @@ import { SERVER_CONFIG } from "@/config/server";
 import { ENV_KEY } from "@/constants/env-keys";
 import { SERVER_EVENT } from "@/constants/server-events";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
+import { formatHarnessNotConfiguredError } from "@/harness/harness-error-messages";
 import { HARNESS_ID_VALIDATION_MESSAGE } from "@/harness/harness-id";
 import { startHeadlessServer } from "@/server/headless-server";
 import { createSessionResponseSchema, serverEventSchema } from "@/server/server-types";
@@ -444,6 +445,26 @@ describe("headless server", () => {
       const payload = (await response.json()) as { error?: string };
       expect(typeof payload.error).toBe("string");
       expect(payload.error).toContain(HARNESS_ID_VALIDATION_MESSAGE.NON_CANONICAL);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns not found when requested harness id is not configured", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const response = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: "missing-harness" }),
+      });
+      expect(response.status).toBe(404);
+      await expect(response.json()).resolves.toEqual({
+        error: formatHarnessNotConfiguredError("missing-harness"),
+      });
     } finally {
       await server.close();
     }
