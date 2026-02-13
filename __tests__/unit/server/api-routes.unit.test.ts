@@ -1,4 +1,4 @@
-import { matchRoute } from "@/server/api-routes";
+import { API_ROUTE_CLASSIFICATION, classifyApiRoute, matchRoute } from "@/server/api-routes";
 import { describe, expect, it } from "vitest";
 
 describe("API Routes", () => {
@@ -60,6 +60,23 @@ describe("API Routes", () => {
     it("should return null for unknown routes", () => {
       expect(matchRoute("GET", "/api/unknown")).toBeNull();
       expect(matchRoute("PUT", "/api/sessions")).toBeNull();
+    });
+  });
+
+  describe("classifyApiRoute", () => {
+    it("classifies known path with matching method as match", () => {
+      const result = classifyApiRoute("GET", "/api/config");
+      expect(result.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+    });
+
+    it("classifies known path with unsupported method as method not allowed", () => {
+      const result = classifyApiRoute("POST", "/api/config");
+      expect(result).toEqual({ kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED });
+    });
+
+    it("classifies unknown path as not found", () => {
+      const result = classifyApiRoute("GET", "/api/does-not-exist");
+      expect(result).toEqual({ kind: API_ROUTE_CLASSIFICATION.NOT_FOUND });
     });
   });
 });

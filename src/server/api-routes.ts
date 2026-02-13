@@ -200,6 +200,25 @@ export interface Route {
   paramNames: string[];
 }
 
+export const API_ROUTE_CLASSIFICATION = {
+  MATCH: "match",
+  METHOD_NOT_ALLOWED: "method_not_allowed",
+  NOT_FOUND: "not_found",
+} as const;
+
+type ApiRouteClassification =
+  | {
+      kind: typeof API_ROUTE_CLASSIFICATION.MATCH;
+      handler: RouteHandler;
+      params: Record<string, string>;
+    }
+  | {
+      kind: typeof API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED;
+    }
+  | {
+      kind: typeof API_ROUTE_CLASSIFICATION.NOT_FOUND;
+    };
+
 export const API_ROUTES: Route[] = [
   { method: HTTP_METHOD.GET, pattern: /^\/api\/sessions$/, handler: listSessions, paramNames: [] },
   {
@@ -266,4 +285,20 @@ export const matchRoute = (
     return { handler: route.handler, params };
   }
   return null;
+};
+
+export const classifyApiRoute = (method: string, pathname: string): ApiRouteClassification => {
+  const matched = matchRoute(method, pathname);
+  if (matched) {
+    return {
+      kind: API_ROUTE_CLASSIFICATION.MATCH,
+      handler: matched.handler,
+      params: matched.params,
+    };
+  }
+  const knownPath = API_ROUTES.some((route) => route.pattern.test(pathname));
+  if (knownPath) {
+    return { kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED };
+  }
+  return { kind: API_ROUTE_CLASSIFICATION.NOT_FOUND };
 };

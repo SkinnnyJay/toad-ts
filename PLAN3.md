@@ -759,6 +759,18 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/integration/server/headless-server.integration.test.ts`
   - Covered:
     - explicit invalid JSON canonical error response for `/api/tui/append-prompt`
+- Additional API route classification hardening:
+  - Runtime updates:
+    - `src/server/api-routes.ts`
+    - `src/server/headless-server.ts`
+  - Refactor:
+    - introduced route classification model (`MATCH` / `METHOD_NOT_ALLOWED` / `NOT_FOUND`)
+      via `classifyApiRoute()`.
+    - replaced ad-hoc route-pattern probing in headless dispatch with classification helper.
+  - Extended unit coverage:
+    - `__tests__/unit/server/api-routes.unit.test.ts`
+  - Covered:
+    - classification behavior for matched routes, unsupported methods, and unknown paths
 
 ---
 

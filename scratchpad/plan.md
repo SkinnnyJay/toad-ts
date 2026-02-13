@@ -55,6 +55,9 @@
 - Added request-error normalization:
   - direct TUI route parse failures now return canonical invalid-request payloads
   - targeted unit/integration coverage updated for exact canonical error expectations
+- Added API route classification abstraction:
+  - centralized API route outcome classification (match/method-not-allowed/not-found)
+  - headless server now consumes classification helper instead of ad-hoc route probing
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
