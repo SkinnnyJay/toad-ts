@@ -555,6 +555,14 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `/api/sessions` filtering behavior for undefined session entries
     - `/api/sessions/:id` validation + not-found + success paths
     - `/api/sessions/:id/messages` validation + success paths
+- Additional config/delete route handler coverage:
+  - Added focused unit coverage:
+    - `__tests__/unit/server/api-route-config-delete.unit.test.ts`
+  - Covered:
+    - `/api/config` success path
+    - `/api/config` Error/non-Error failure paths
+    - `/api/sessions/:id` delete validation + success paths
+    - `/api/tui/submit-prompt` success path
 - Additional fallback-env integration coverage for agent listing:
   - Added focused unit coverage for feature-flagged fallback behavior:
     - `__tests__/unit/server/api-route-fallback-env.unit.test.ts`
