@@ -122,4 +122,24 @@ describe("headless server", () => {
       EnvManager.resetInstance();
     }
   });
+
+  it("returns bad request for invalid JSON payloads", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const invalidPayloadResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{invalid",
+      });
+      expect(invalidPayloadResponse.status).toBe(400);
+      const payload = (await invalidPayloadResponse.json()) as { error?: string };
+      expect(typeof payload.error).toBe("string");
+      expect(payload.error?.length ?? 0).toBeGreaterThan(0);
+    } finally {
+      await server.close();
+    }
+  });
 });

@@ -581,6 +581,12 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - protected endpoints reject invalid bearer credentials.
     - protected endpoints accept valid bearer credentials and complete session creation.
     - protected auth failures include `WWW-Authenticate: Bearer` challenge header
+- Additional headless-server JSON validation coverage:
+  - Extended `__tests__/integration/server/headless-server.integration.test.ts`
+    with invalid-request-body scenario.
+  - Covered:
+    - malformed JSON payload handling returns bad-request response
+    - error payload includes human-readable parse failure message
 - Additional repo workflow remote-url parsing coverage:
   - Extended `__tests__/unit/core/repo-workflow-info.unit.test.ts`
     with SSH remote parsing scenario.
