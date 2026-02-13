@@ -37,6 +37,15 @@ export interface RepoWorkflowInfo {
 }
 
 const GIT_REMOTE_ORIGIN_URL = "remote.origin.url";
+const GH_CHECK = {
+  FAILURE: "failure",
+  CANCELLED: "cancelled",
+  TIMED_OUT: "timed_out",
+  ACTION_REQUIRED: "action_required",
+  STARTUP_FAILURE: "startup_failure",
+  IN_PROGRESS: "in_progress",
+  QUEUED: "queued",
+} as const;
 
 async function getRemoteOriginUrl(cwd: string): Promise<string | null> {
   try {
@@ -126,9 +135,21 @@ async function getPrChecksStatus(cwd: string): Promise<"pass" | "fail" | "pendin
     });
     const data = JSON.parse(stdout) as Array<{ status?: string; conclusion?: string }>;
     if (!Array.isArray(data) || data.length === 0) return null;
-    const hasFail = data.some((c) => (c.conclusion ?? c.status ?? "").toLowerCase() === "failure");
+    const hasFail = data.some((c) => {
+      const conclusion = (c.conclusion ?? c.status ?? "").toLowerCase();
+      return (
+        conclusion === GH_CHECK.FAILURE ||
+        conclusion === GH_CHECK.CANCELLED ||
+        conclusion === GH_CHECK.TIMED_OUT ||
+        conclusion === GH_CHECK.ACTION_REQUIRED ||
+        conclusion === GH_CHECK.STARTUP_FAILURE
+      );
+    });
     const hasPending = data.some(
-      (c) => (c.status ?? "").toLowerCase() === "in_progress" || (c.conclusion ?? "") === ""
+      (c) =>
+        (c.status ?? "").toLowerCase() === GH_CHECK.IN_PROGRESS ||
+        (c.status ?? "").toLowerCase() === GH_CHECK.QUEUED ||
+        (c.conclusion ?? "") === ""
     );
     if (hasFail) return "fail";
     if (hasPending) return "pending";

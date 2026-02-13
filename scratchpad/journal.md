@@ -1,5 +1,19 @@
 # Scratchpad Journal
 
+## 2026-02-13 (repo workflow checks-status classification hardening)
+- Updated `src/core/repo-workflow.ts`:
+  - `getPrChecksStatus()` now classifies:
+    - queued checks as `pending`
+    - cancelled/timed_out/action_required/startup_failure conclusions as `fail`
+- Extended `__tests__/unit/core/repo-workflow-info.unit.test.ts`:
+  - queued-checks pending classification coverage
+  - cancelled-checks failing classification coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/repo-workflow-info.unit.test.ts __tests__/unit/core/repo-workflow.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (server auth bearer-scheme robustness)
 - Updated `src/server/server-auth.ts`:
   - bearer token extraction now uses case-insensitive scheme matching

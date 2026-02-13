@@ -116,6 +116,9 @@
 - Added auth bearer-scheme robustness hardening:
   - server auth now accepts case-insensitive bearer scheme prefixes
   - preserved raw-token support and canonical unauthorized response behavior
+- Added repo checks-status classification hardening:
+  - repo workflow check classification now treats queued checks as pending
+  - repo workflow check classification now treats cancelled checks as failing
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

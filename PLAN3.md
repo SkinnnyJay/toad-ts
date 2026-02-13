@@ -968,6 +968,18 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - lowercase bearer-scheme token acceptance
     - unchanged raw-token acceptance path behavior
+- Additional repo workflow checks-status classification hardening:
+  - Updated:
+    - `src/core/repo-workflow.ts`
+  - Hardening change:
+    - PR check status classification now:
+      - treats queued checks as pending
+      - treats cancelled/timed_out/action_required/startup_failure conclusions as failing
+  - Extended:
+    - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
+  - Covered:
+    - queued checks pending classification behavior
+    - cancelled checks failing classification behavior
 
 ---
 
