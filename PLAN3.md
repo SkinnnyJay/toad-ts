@@ -980,6 +980,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - queued checks pending classification behavior
     - cancelled checks failing classification behavior
+- Additional auth header whitespace normalization hardening:
+  - Updated:
+    - `src/server/server-auth.ts`
+  - Hardening change:
+    - authorization header and extracted token values are now trimmed before comparison,
+      improving robustness for clients that include leading/trailing whitespace.
+  - Extended:
+    - `__tests__/unit/server/server-auth.unit.test.ts`
+  - Covered:
+    - bearer token acceptance with surrounding whitespace
+    - raw token acceptance with surrounding whitespace
 
 ---
 

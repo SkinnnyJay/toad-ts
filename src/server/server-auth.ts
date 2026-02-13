@@ -33,7 +33,7 @@ export const checkServerAuth = (req: IncomingMessage, res: ServerResponse): bool
   }
 
   // Support "Bearer <token>" format
-  const token = authHeader.replace(BEARER_TOKEN_PREFIX_PATTERN, "");
+  const token = authHeader.trim().replace(BEARER_TOKEN_PREFIX_PATTERN, "").trim();
   if (token !== password) {
     return rejectUnauthorized(res, SERVER_RESPONSE_MESSAGE.INVALID_CREDENTIALS);
   }

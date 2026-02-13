@@ -1,5 +1,18 @@
 # Scratchpad Journal
 
+## 2026-02-13 (server auth header whitespace normalization)
+- Updated `src/server/server-auth.ts`:
+  - authorization header parsing now trims incoming header and extracted token values
+  - preserves case-insensitive bearer support and raw-token compatibility
+- Extended `__tests__/unit/server/server-auth.unit.test.ts`:
+  - added bearer token with surrounding whitespace acceptance
+  - added raw token with surrounding whitespace acceptance
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/server-auth.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (repo workflow checks-status classification hardening)
 - Updated `src/core/repo-workflow.ts`:
   - `getPrChecksStatus()` now classifies:

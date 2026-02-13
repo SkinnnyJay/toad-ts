@@ -119,6 +119,9 @@
 - Added repo checks-status classification hardening:
   - repo workflow check classification now treats queued checks as pending
   - repo workflow check classification now treats cancelled checks as failing
+- Added auth header whitespace hardening:
+  - server auth now trims authorization header and extracted token values
+  - tolerant handling for bearer/raw token values with surrounding whitespace
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
