@@ -1,5 +1,19 @@
 # Scratchpad Journal
 
+## 2026-02-13 (hook IPC non-object payload coverage)
+- Updated `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`:
+  - added explicit coverage for non-object JSON request bodies (array + primitive)
+  - locked canonical `400 INVALID_REQUEST` response semantics
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (SSE pre-closed response cleanup hardening)
 - Updated `src/server/api-routes.ts`:
   - events stream now immediately cleans up subscriptions if response is already

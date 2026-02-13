@@ -1552,3 +1552,15 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Covered:
     - immediate cleanup path when `response.writableEnded === true` before
       first stream callback.
+
+## Execution Log Addendum — 2026-02-13 (hook IPC non-object payload coverage)
+
+- Additional hook IPC request-shape hardening:
+  - Updated:
+    - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+  - Coverage additions:
+    - non-object JSON request bodies (array / primitive string) now explicitly
+      assert canonical `400 INVALID_REQUEST` handling for hook IPC endpoint.
+  - Goal:
+    - lock request-shape guard behavior and prevent regressions where non-object
+      JSON payloads accidentally bypass schema-invalid response semantics.

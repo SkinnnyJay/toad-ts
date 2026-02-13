@@ -14,6 +14,9 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added hook IPC non-object payload coverage hardening:
+  - locked canonical invalid-request behavior for array and primitive JSON payloads
+    sent to hook IPC endpoint
 - Added SSE pre-closed response cleanup hardening:
   - events stream now proactively cleans up immediately when response is already ended/destroyed
   - added focused unit coverage for pre-closed response path

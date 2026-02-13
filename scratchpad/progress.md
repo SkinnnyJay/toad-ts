@@ -85,6 +85,7 @@
   - hardened request-body mixed string/buffer chunk decoding consistency and ordering
   - hardened file-search key normalization for mixed-case duplicate query detection
   - hardened SSE lifecycle cleanup for pre-closed response streams
+  - hardened hook IPC request-shape coverage for non-object JSON payload handling
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

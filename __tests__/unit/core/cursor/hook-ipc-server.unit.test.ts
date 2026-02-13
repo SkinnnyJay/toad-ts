@@ -243,6 +243,27 @@ describe("HookIpcServer", () => {
     });
   });
 
+  it("returns bad request for non-object JSON payloads", async () => {
+    server = new HookIpcServer({ transport: "http" });
+    const endpoint = await server.start();
+
+    const arrayPayloadResponse = await requestHttpEndpoint(endpoint, "POST", JSON.stringify([]));
+    expect(arrayPayloadResponse).toEqual({
+      status: HTTP_STATUS.BAD_REQUEST,
+      payload: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+
+    const primitivePayloadResponse = await requestHttpEndpoint(
+      endpoint,
+      "POST",
+      JSON.stringify("invalid")
+    );
+    expect(primitivePayloadResponse).toEqual({
+      status: HTTP_STATUS.BAD_REQUEST,
+      payload: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
   it("returns server error when hook handler throws", async () => {
     server = new HookIpcServer({ transport: "http" });
     server.setHandlers({
