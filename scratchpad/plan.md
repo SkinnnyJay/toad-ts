@@ -149,6 +149,9 @@
 - Added scp-SSH custom-user parsing hardening:
   - repo parser now accepts scp ssh remotes with non-`git` user prefixes
   - added workflow info unit coverage for `alice@host:owner/repo.git`
+- Added uppercase `.GIT` suffix remote parsing hardening:
+  - repo parser now normalizes case-variant `.git` suffixes
+  - added workflow info unit coverage for `.../repo.GIT` remotes
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

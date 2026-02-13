@@ -1079,6 +1079,16 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
   - Covered:
     - owner/repo extraction from `alice@github.com:octocat/hello-world.git`
+- Additional uppercase `.GIT` suffix parsing hardening:
+  - Updated:
+    - `src/core/repo-workflow.ts`
+  - Hardening change:
+    - remote owner/repo extraction now normalizes case-variant `.git` suffixes
+      (e.g. `.GIT`) across supported remote URL patterns.
+  - Extended:
+    - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
+  - Covered:
+    - owner/repo extraction from `https://.../hello-world.GIT`
 
 ---
 

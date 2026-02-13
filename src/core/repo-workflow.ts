@@ -39,6 +39,7 @@ export interface RepoWorkflowInfo {
 
 const GIT_REMOTE_ORIGIN_URL = "remote.origin.url";
 const GH_PR_CHECKS_JSON_FIELDS = "name,status,conclusion";
+const REMOTE_GIT_SUFFIX_PATTERN = /\.git$/i;
 const PR_STATE = {
   MERGED: "merged",
   CLOSED: "closed",
@@ -55,6 +56,9 @@ const GH_CHECK = {
   PENDING: "pending",
 } as const;
 
+const normalizeRepoName = (repoName: string): string =>
+  repoName.replace(REMOTE_GIT_SUFFIX_PATTERN, "");
+
 async function getRemoteOriginUrl(cwd: string): Promise<string | null> {
   try {
     const { stdout } = await execa("git", ["config", "--get", GIT_REMOTE_ORIGIN_URL], {
@@ -70,9 +74,9 @@ async function getRemoteOriginUrl(cwd: string): Promise<string | null> {
 
 function parseOwnerRepoFromUrl(url: string): { owner: string; repo: string } | null {
   const trimmed = url.trim();
-  const scpSshMatch = trimmed.match(/^(?:[^@]+@)[^:]+:([^/]+)\/([^/]+?)(?:\.git)?\/?$/);
+  const scpSshMatch = trimmed.match(/^(?:[^@]+@)[^:]+:([^/]+)\/([^/]+?)(?:\.git)?\/?$/i);
   if (scpSshMatch) {
-    return { owner: scpSshMatch[1] ?? "", repo: (scpSshMatch[2] ?? "").replace(/\.git$/, "") };
+    return { owner: scpSshMatch[1] ?? "", repo: normalizeRepoName(scpSshMatch[2] ?? "") };
   }
   const sshProtocolMatch = trimmed.match(
     /^ssh:\/\/(?:[^@]+@)?[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i
@@ -80,18 +84,18 @@ function parseOwnerRepoFromUrl(url: string): { owner: string; repo: string } | n
   if (sshProtocolMatch) {
     return {
       owner: sshProtocolMatch[1] ?? "",
-      repo: (sshProtocolMatch[2] ?? "").replace(/\.git$/, ""),
+      repo: normalizeRepoName(sshProtocolMatch[2] ?? ""),
     };
   }
   const httpsMatch = trimmed.match(/^https?:\/\/[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i);
   if (httpsMatch) {
-    return { owner: httpsMatch[1] ?? "", repo: (httpsMatch[2] ?? "").replace(/\.git$/, "") };
+    return { owner: httpsMatch[1] ?? "", repo: normalizeRepoName(httpsMatch[2] ?? "") };
   }
   const gitProtocolMatch = trimmed.match(/^git:\/\/[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i);
   if (gitProtocolMatch) {
     return {
       owner: gitProtocolMatch[1] ?? "",
-      repo: (gitProtocolMatch[2] ?? "").replace(/\.git$/, ""),
+      repo: normalizeRepoName(gitProtocolMatch[2] ?? ""),
     };
   }
   return null;
