@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { ENCODING } from "@/constants/encodings";
 import { ERROR_CODE } from "@/constants/error-codes";
 import { FILE_PATH } from "@/constants/file-paths";
+import { INDENT_SPACES } from "@/constants/json-format";
 import type { AgentId } from "@/types/domain";
 import { AgentIdSchema } from "@/types/domain";
 import { type Settings, defaultSettings, settingsSchema } from "./settings-schema";
@@ -39,7 +40,7 @@ const readSettingsFile = async (): Promise<Settings | null> => {
 const writeSettingsFile = async (settings: Settings): Promise<void> => {
   try {
     await mkdir(SETTINGS_DIR, { recursive: true });
-    const contents = JSON.stringify(settings, null, 2);
+    const contents = JSON.stringify(settings, null, INDENT_SPACES);
     await writeFile(SETTINGS_FILE, contents, ENCODING.UTF8);
   } catch (error) {
     if (error instanceof Error) {
