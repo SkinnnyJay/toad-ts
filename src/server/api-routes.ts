@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadAppConfig } from "@/config/app-config";
 import { HTTP_METHOD } from "@/constants/http-methods";
 import { HTTP_STATUS } from "@/constants/http-status";
+import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { useAppStore } from "@/store/app-store";
@@ -39,12 +40,14 @@ export const listSessions: RouteHandler = async (_req, res) => {
 export const getSession: RouteHandler = async (_req, res, params) => {
   const sessionId = params.id as SessionId | undefined;
   if (!sessionId) {
-    sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: "Session ID required" });
+    sendJson(res, HTTP_STATUS.BAD_REQUEST, {
+      error: SERVER_RESPONSE_MESSAGE.SESSION_ID_REQUIRED,
+    });
     return;
   }
   const session = useAppStore.getState().getSession(sessionId);
   if (!session) {
-    sendJson(res, HTTP_STATUS.NOT_FOUND, { error: "Session not found" });
+    sendJson(res, HTTP_STATUS.NOT_FOUND, { error: SERVER_RESPONSE_MESSAGE.SESSION_NOT_FOUND });
     return;
   }
   sendJson(res, HTTP_STATUS.OK, { session });
@@ -53,7 +56,9 @@ export const getSession: RouteHandler = async (_req, res, params) => {
 export const deleteSession: RouteHandler = async (_req, res, params) => {
   const sessionId = params.id as SessionId | undefined;
   if (!sessionId) {
-    sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: "Session ID required" });
+    sendJson(res, HTTP_STATUS.BAD_REQUEST, {
+      error: SERVER_RESPONSE_MESSAGE.SESSION_ID_REQUIRED,
+    });
     return;
   }
   sendJson(res, HTTP_STATUS.OK, { deleted: sessionId });
@@ -64,7 +69,9 @@ export const deleteSession: RouteHandler = async (_req, res, params) => {
 export const listMessages: RouteHandler = async (_req, res, params) => {
   const sessionId = params.id as SessionId | undefined;
   if (!sessionId) {
-    sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: "Session ID required" });
+    sendJson(res, HTTP_STATUS.BAD_REQUEST, {
+      error: SERVER_RESPONSE_MESSAGE.SESSION_ID_REQUIRED,
+    });
     return;
   }
   const messages = useAppStore.getState().getMessagesForSession(sessionId);
@@ -79,7 +86,7 @@ export const getConfig: RouteHandler = async (_req, res) => {
     sendJson(res, HTTP_STATUS.OK, { config });
   } catch (error) {
     sendJson(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, {
-      error: error instanceof Error ? error.message : "Failed to load config",
+      error: error instanceof Error ? error.message : SERVER_RESPONSE_MESSAGE.FAILED_TO_LOAD_CONFIG,
     });
   }
 };
@@ -101,7 +108,8 @@ export const listAgents: RouteHandler = async (_req, res) => {
     });
   } catch (error) {
     sendJson(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, {
-      error: error instanceof Error ? error.message : "Failed to load harnesses",
+      error:
+        error instanceof Error ? error.message : SERVER_RESPONSE_MESSAGE.FAILED_TO_LOAD_HARNESSES,
     });
   }
 };
@@ -112,7 +120,9 @@ export const searchFiles: RouteHandler = async (req, res) => {
   const url = new URL(req.url ?? "", `http://${req.headers.host}`);
   const query = url.searchParams.get("q") ?? "";
   if (!query) {
-    sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: "Query parameter 'q' required" });
+    sendJson(res, HTTP_STATUS.BAD_REQUEST, {
+      error: SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED,
+    });
     return;
   }
   // Placeholder - would integrate with SearchService
@@ -148,7 +158,7 @@ export const appendPrompt: RouteHandler = async (req, res) => {
   const body = await readBody(req);
   const { text } = JSON.parse(body) as { text?: string };
   if (!text) {
-    sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: "Text required" });
+    sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: SERVER_RESPONSE_MESSAGE.TEXT_REQUIRED });
     return;
   }
   sendJson(res, HTTP_STATUS.OK, { queued: true, text });
@@ -162,7 +172,9 @@ export const executeCommand: RouteHandler = async (req, res) => {
   const body = await readBody(req);
   const { command } = JSON.parse(body) as { command?: string };
   if (!command) {
-    sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: "Command required" });
+    sendJson(res, HTTP_STATUS.BAD_REQUEST, {
+      error: SERVER_RESPONSE_MESSAGE.COMMAND_REQUIRED,
+    });
     return;
   }
   sendJson(res, HTTP_STATUS.OK, { executed: true, command });

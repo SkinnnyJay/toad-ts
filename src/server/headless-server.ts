@@ -4,6 +4,7 @@ import { HTTP_METHOD } from "@/constants/http-methods";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { SERVER_EVENT } from "@/constants/server-events";
 import { SERVER_PATH } from "@/constants/server-paths";
+import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { SessionManager } from "@/core/session-manager";
 import { SessionStream } from "@/core/session-stream";
 import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
@@ -37,7 +38,7 @@ const readBody = async (req: IncomingMessage): Promise<string> => {
     req.on("data", (chunk: Buffer | string) => {
       data += chunk.toString();
       if (data.length > SERVER_CONFIG.MAX_BODY_BYTES) {
-        reject(new Error("Request body too large."));
+        reject(new Error(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE));
       }
     });
     req.on("end", () => resolve(data));
@@ -85,7 +86,7 @@ export const startHeadlessServer = async (
   const server = http.createServer(async (req, res) => {
     try {
       if (!req.url || !req.method) {
-        sendError(res, HTTP_STATUS.BAD_REQUEST, "Invalid request.");
+        sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
         return;
       }
 
@@ -144,17 +145,17 @@ export const startHeadlessServer = async (
       if (req.method === HTTP_METHOD.POST && url.pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
         const [_, __, sessionId, action] = url.pathname.split("/");
         if (!sessionId || action !== SERVER_PATH.SEGMENT_PROMPT) {
-          sendError(res, HTTP_STATUS.NOT_FOUND, "Unknown endpoint.");
+          sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT);
           return;
         }
         const parsedSession = SessionIdSchema.safeParse(sessionId);
         if (!parsedSession.success) {
-          sendError(res, HTTP_STATUS.BAD_REQUEST, "Invalid session id.");
+          sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_SESSION_ID);
           return;
         }
         const runtime = runtimes.get(parsedSession.data);
         if (!runtime) {
-          sendError(res, HTTP_STATUS.NOT_FOUND, "Session not found.");
+          sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.SESSION_NOT_FOUND);
           return;
         }
         const raw = await parseJson(req);
@@ -170,12 +171,12 @@ export const startHeadlessServer = async (
       if (req.method === HTTP_METHOD.GET && url.pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
         const [_, __, sessionId, resource] = url.pathname.split("/");
         if (!sessionId || resource !== SERVER_PATH.SEGMENT_MESSAGES) {
-          sendError(res, HTTP_STATUS.NOT_FOUND, "Unknown endpoint.");
+          sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT);
           return;
         }
         const parsedSession = SessionIdSchema.safeParse(sessionId);
         if (!parsedSession.success) {
-          sendError(res, HTTP_STATUS.BAD_REQUEST, "Invalid session id.");
+          sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_SESSION_ID);
           return;
         }
         const messages = store.getState().getMessagesForSession(parsedSession.data);
@@ -190,7 +191,7 @@ export const startHeadlessServer = async (
         return;
       }
 
-      sendError(res, HTTP_STATUS.NOT_FOUND, "Not found.");
+      sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.NOT_FOUND);
     } catch (error) {
       if (error instanceof ZodError || error instanceof SyntaxError) {
         sendError(res, HTTP_STATUS.BAD_REQUEST, error.message);
@@ -199,7 +200,7 @@ export const startHeadlessServer = async (
       logger.error("Server request failed", {
         error: error instanceof Error ? error.message : String(error),
       });
-      sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, "Server error.");
+      sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, SERVER_RESPONSE_MESSAGE.SERVER_ERROR);
     }
   });
 

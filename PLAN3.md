@@ -392,6 +392,11 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `src/core/cross-tool/init-generator.ts`
   - Replaced raw `"win32"` platform checks in:
     - `src/core/cli-agent/cli-agent-process-runner.ts`
+- Additional non-Cursor error-message consolidation hardening:
+  - Added `src/constants/server-response-messages.ts` for shared server API response text.
+  - Replaced raw server response/error literals in:
+    - `src/server/headless-server.ts`
+    - `src/server/api-routes.ts`
 
 ---
 
