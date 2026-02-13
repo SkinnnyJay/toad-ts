@@ -1743,3 +1743,25 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Coverage:
     - added unit coverage validating telemetry helper normalization behavior.
     - updated hook IPC unit assertions to lock shared telemetry schema.
+
+## Execution Log Addendum — 2026-02-13 (shared request-validation telemetry parity)
+
+- Additional non-parse request failure telemetry hardening:
+  - Updated:
+    - `src/server/request-error-normalization.ts`
+    - `src/core/cursor/hook-ipc-server.ts`
+    - `src/server/headless-server.ts`
+    - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+    - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+  - Hardening changes:
+    - introduced `logRequestValidationFailure(...)` helper with standardized
+      source/context metadata schema.
+    - hook IPC now logs schema-validation payload failures via shared
+      request-validation telemetry helper before returning canonical
+      `INVALID_REQUEST`.
+    - headless server now logs `ZodError` validation failures via shared
+      request-validation telemetry helper while preserving existing response
+      behavior.
+  - Goal:
+    - extend telemetry parity from parse failures to validation failures across
+      server entrypoints, using one standardized schema.

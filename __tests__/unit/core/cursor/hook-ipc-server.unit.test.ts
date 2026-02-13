@@ -263,6 +263,7 @@ describe("HookIpcServer", () => {
 
   it("returns bad request for schema-invalid payloads", async () => {
     server = new HookIpcServer({ transport: "http" });
+    const warnSpy = getHookIpcWarnSpy(server);
     const endpoint = await server.start();
 
     const response = await requestHttpEndpoint(
@@ -275,6 +276,17 @@ describe("HookIpcServer", () => {
       status: HTTP_STATUS.BAD_REQUEST,
       payload: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
     });
+    expect(warnSpy).toHaveBeenCalledWith(
+      "Request validation failed",
+      expect.objectContaining({
+        source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+        method: "POST",
+        pathname: "/",
+        mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+        error: expect.any(String),
+      })
+    );
+    warnSpy.mockRestore();
   });
 
   it("returns bad request for non-object JSON payloads", async () => {

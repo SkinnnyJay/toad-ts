@@ -24,6 +24,21 @@ export interface RequestParsingFailureContext {
 }
 
 const REQUEST_PARSING_FAILURE_LOG_MESSAGE = "Request parsing failed";
+const REQUEST_VALIDATION_FAILURE_LOG_MESSAGE = "Request validation failed";
+
+export interface RequestValidationFailureDetails {
+  readonly error: string;
+  readonly mappedMessage: string;
+}
+
+const normalizeRequestFailureContext = (
+  context: RequestParsingFailureContext
+): Record<string, unknown> => ({
+  source: context.source,
+  method: normalizeHttpMethod(context.method),
+  pathname: context.pathname.trim(),
+  ...(context.handler ? { handler: context.handler } : {}),
+});
 
 const isRequestBodyTooLargeError = (error: unknown): boolean =>
   error instanceof Error && error.message === SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE;
@@ -55,12 +70,21 @@ export const logRequestParsingFailure = (
   details: NormalizedRequestBodyParseError
 ): void => {
   logger.warn(REQUEST_PARSING_FAILURE_LOG_MESSAGE, {
-    source: context.source,
-    method: normalizeHttpMethod(context.method),
-    pathname: context.pathname.trim(),
-    ...(context.handler ? { handler: context.handler } : {}),
+    ...normalizeRequestFailureContext(context),
     error: details.error,
     mappedMessage: details.message,
+  });
+};
+
+export const logRequestValidationFailure = (
+  logger: Logger,
+  context: RequestParsingFailureContext,
+  details: RequestValidationFailureDetails
+): void => {
+  logger.warn(REQUEST_VALIDATION_FAILURE_LOG_MESSAGE, {
+    ...normalizeRequestFailureContext(context),
+    error: details.error,
+    mappedMessage: details.mappedMessage,
   });
 };
 

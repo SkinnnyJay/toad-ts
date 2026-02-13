@@ -15,6 +15,7 @@ import { parseJsonRequestBody } from "@/server/request-body";
 import {
   REQUEST_PARSING_SOURCE,
   logRequestParsingFailure,
+  logRequestValidationFailure,
   normalizeRequestBodyParseErrorDetails,
 } from "@/server/request-error-normalization";
 import {
@@ -139,6 +140,18 @@ export class HookIpcServer {
         const parsedBody = await parseJsonRequestBody<unknown>(req);
         const parsedPayload = CursorHookInputSchema.safeParse(parsedBody);
         if (!parsedPayload.success) {
+          logRequestValidationFailure(
+            this.logger,
+            {
+              source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+              method: req.method ?? "",
+              pathname: req.url ?? HOOK_IPC_DEFAULT.PATHNAME,
+            },
+            {
+              error: parsedPayload.error.message,
+              mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+            }
+          );
           sendErrorResponse(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
           return;
         }

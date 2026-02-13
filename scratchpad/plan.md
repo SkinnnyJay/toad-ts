@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added shared request-validation telemetry parity:
+  - introduced shared validation telemetry helper and reused it for hook IPC
+    schema-invalid payloads and headless zod-validation failures
+  - expanded unit coverage for validation telemetry helper + hook schema-invalid
+    warning assertions under standardized telemetry schema
 - Added shared request-parse telemetry helper:
   - introduced shared parse-failure logging helper and source constants
   - standardized warning metadata keys for API/headless/hook parse failures

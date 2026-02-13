@@ -3,6 +3,7 @@ import {
   REQUEST_PARSING_SOURCE,
   classifyRequestParsingError,
   logRequestParsingFailure,
+  logRequestValidationFailure,
   normalizeRequestBodyParseError,
   normalizeRequestBodyParseErrorDetails,
 } from "@/server/request-error-normalization";
@@ -75,6 +76,34 @@ describe("request-error-normalization", () => {
       method: "POST",
       pathname: "/api/tui/append-prompt",
       handler: "append_prompt",
+      mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      error: UNKNOWN_ERROR_MESSAGE,
+    });
+  });
+
+  it("logs normalized validation metadata with standardized keys", () => {
+    const warn = vi.fn();
+    const logger = { warn } as {
+      warn: (message: string, metadata?: Record<string, unknown>) => void;
+    };
+
+    logRequestValidationFailure(
+      logger,
+      {
+        source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+        method: " post ",
+        pathname: " / ",
+      },
+      {
+        mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+        error: UNKNOWN_ERROR_MESSAGE,
+      }
+    );
+
+    expect(warn).toHaveBeenCalledWith("Request validation failed", {
+      source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+      method: "POST",
+      pathname: "/",
       mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
       error: UNKNOWN_ERROR_MESSAGE,
     });

@@ -103,6 +103,8 @@
     error/aborted request-body coverage
   - hardened parse-failure telemetry consistency with a shared logging helper
     and standardized metadata keys across API/headless/hook paths
+  - hardened request-validation telemetry parity with shared standardized logging
+    for hook IPC schema failures and headless zod validation failures
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

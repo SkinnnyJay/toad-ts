@@ -1,5 +1,33 @@
 # Scratchpad Journal
 
+## 2026-02-13 (shared request-validation telemetry parity)
+- Updated:
+  - `src/server/request-error-normalization.ts`
+  - `src/core/cursor/hook-ipc-server.ts`
+  - `src/server/headless-server.ts`
+- Changes:
+  - added shared `logRequestValidationFailure(...)` helper for non-parse request
+    failure telemetry
+  - hook IPC schema-validation failures now emit standardized validation telemetry
+    before canonical invalid-request responses
+  - headless `ZodError` validation path now emits standardized validation
+    telemetry with shared source/context schema
+- Extended tests:
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+    - added validation telemetry helper normalization coverage
+  - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+    - added schema-invalid payload warning assertion for shared validation
+      telemetry message/schema
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (shared request-parse telemetry helper)
 - Updated:
   - `src/server/request-error-normalization.ts`

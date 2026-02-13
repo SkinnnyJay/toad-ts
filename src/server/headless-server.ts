@@ -21,6 +21,7 @@ import {
   REQUEST_PARSING_SOURCE,
   classifyRequestParsingError,
   logRequestParsingFailure,
+  logRequestValidationFailure,
   normalizeRequestBodyParseErrorDetails,
 } from "@/server/request-error-normalization";
 import { parseRequestUrl } from "@/server/request-url";
@@ -233,6 +234,18 @@ export const startHeadlessServer = async (
       sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.NOT_FOUND);
     } catch (error) {
       if (error instanceof ZodError) {
+        logRequestValidationFailure(
+          logger,
+          {
+            source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
+            method: req.method ?? "",
+            pathname: req.url ?? "",
+          },
+          {
+            error: error.message,
+            mappedMessage: error.message,
+          }
+        );
         sendError(res, HTTP_STATUS.BAD_REQUEST, error.message);
         return;
       }
