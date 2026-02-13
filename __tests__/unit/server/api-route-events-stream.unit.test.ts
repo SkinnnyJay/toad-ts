@@ -194,4 +194,32 @@ describe("eventsStream handler", () => {
     ).not.toThrow();
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
+
+  it("ignores stale stream callbacks after cleanup", async () => {
+    const subscribeMock = await getSubscribeMock();
+    const unsubscribe = vi.fn();
+    let listener: ((state: { currentSessionId: string; connectionStatus: string }) => void) | null =
+      null;
+    subscribeMock.mockImplementation((callback) => {
+      listener = callback as (state: {
+        currentSessionId: string;
+        connectionStatus: string;
+      }) => void;
+      return unsubscribe;
+    });
+
+    const request = new EventEmitter() as IncomingMessage;
+    const { response, getCaptured } = createResponseCapture();
+
+    await eventsStream(request, response, {});
+    request.emit("close");
+
+    listener?.({
+      currentSessionId: "session-1",
+      connectionStatus: "connected",
+    });
+
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+    expect(getCaptured().writes).toEqual([]);
+  });
 });

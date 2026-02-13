@@ -1330,3 +1330,13 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - `__tests__/unit/server/api-route-events-stream.unit.test.ts`
   - Covered:
     - response write-failure cleanup path
+- Additional events-stream stale-callback guard hardening:
+  - Updated:
+    - `src/server/api-routes.ts`
+  - Hardening change:
+    - SSE update callback now exits immediately after cleanup has run, preventing
+      stale callback invocations from writing to the stream.
+  - Extended:
+    - `__tests__/unit/server/api-route-events-stream.unit.test.ts`
+  - Covered:
+    - post-cleanup stale-callback no-write behavior

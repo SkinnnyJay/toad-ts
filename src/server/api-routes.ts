@@ -188,6 +188,9 @@ export const eventsStream: RouteHandler = async (_req, res) => {
   };
 
   unsubscribe = useAppStore.subscribe((state) => {
+    if (isCleanedUp) {
+      return;
+    }
     if (res.writableEnded || res.destroyed) {
       cleanup();
       return;

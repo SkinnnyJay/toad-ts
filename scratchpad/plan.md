@@ -205,6 +205,9 @@
 - Added events-stream write-failure cleanup hardening:
   - SSE update writes now fail-safe and trigger cleanup when response write throws
   - added unit coverage for write-failure cleanup behavior
+- Added events-stream stale-callback guard hardening:
+  - SSE callback now no-ops after cleanup to prevent writes from stale listeners
+  - added unit coverage locking post-cleanup callback behavior
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
