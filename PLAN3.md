@@ -675,6 +675,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - unsupported methods for known API routes (`/api/config`, `/api/tui/execute-command`)
       return canonical `METHOD_NOT_ALLOWED` payload
+- Additional API route request-body hardening:
+  - Runtime update:
+    - `src/server/api-routes.ts`
+  - Behavior update:
+    - API route JSON body parsing now enforces `SERVER_CONFIG.MAX_BODY_BYTES` and raises
+      canonical `REQUEST_BODY_TOO_LARGE`.
+  - Extended integration coverage:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Covered:
+    - invalid JSON behavior for `/api/tui/append-prompt`
+    - oversized payload behavior for `/api/tui/execute-command` returns `400` with canonical error
 
 ---
 

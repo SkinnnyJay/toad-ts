@@ -32,6 +32,9 @@
 - Added API method semantics hardening:
   - known `/api/*` unsupported methods now return `405`
   - integration coverage for canonical method-not-allowed response
+- Added API route body parsing hardening:
+  - request body limit enforcement aligned to server max-body config
+  - integration coverage for invalid JSON and oversized payload behavior
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

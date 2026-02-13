@@ -1,5 +1,16 @@
 # Scratchpad Journal
 
+## 2026-02-13 (API route body-size hardening)
+- Updated `src/server/api-routes.ts` request-body parser to enforce
+  `SERVER_CONFIG.MAX_BODY_BYTES` and throw canonical `REQUEST_BODY_TOO_LARGE`.
+- Extended `__tests__/integration/server/headless-server.integration.test.ts` to cover:
+  - invalid JSON handling for `/api/tui/append-prompt`
+  - oversized payload handling for `/api/tui/execute-command`
+- Validation:
+  - Targeted: `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (API method semantics hardening)
 - Updated `src/server/headless-server.ts` to return `405 Method not allowed` for known `/api/*`
   paths when method is unsupported.

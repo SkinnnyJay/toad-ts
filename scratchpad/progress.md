@@ -11,6 +11,7 @@
   - added oversized-body handling fix + integration coverage for schema/body edge paths
   - added unknown-session messages endpoint behavior coverage
   - added 405 method semantics for known API routes with unsupported methods
+  - added API route body-size limits + invalid JSON/oversized payload integration coverage
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

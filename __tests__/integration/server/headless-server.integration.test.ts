@@ -151,6 +151,16 @@ describe("headless server", () => {
       const payload = (await invalidPayloadResponse.json()) as { error?: string };
       expect(typeof payload.error).toBe("string");
       expect(payload.error?.length ?? 0).toBeGreaterThan(0);
+
+      const invalidTuiPayloadResponse = await fetch(`${baseUrl}/api/tui/append-prompt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{invalid",
+      });
+      expect(invalidTuiPayloadResponse.status).toBe(400);
+      const tuiPayload = (await invalidTuiPayloadResponse.json()) as { error?: string };
+      expect(typeof tuiPayload.error).toBe("string");
+      expect(tuiPayload.error?.length ?? 0).toBeGreaterThan(0);
     } finally {
       await server.close();
     }
@@ -291,6 +301,29 @@ describe("headless server", () => {
       expect(executeResponse.status).toBe(405);
       await expect(executeResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("returns body-too-large error for oversized api route payloads", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+    const oversizedPayload = JSON.stringify({
+      command: "x".repeat(SERVER_CONFIG.MAX_BODY_BYTES + 1),
+    });
+
+    try {
+      const response = await fetch(`${baseUrl}/api/tui/execute-command`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: oversizedPayload,
+      });
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE,
       });
     } finally {
       await server.close();

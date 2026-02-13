@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadAppConfig } from "@/config/app-config";
+import { SERVER_CONFIG } from "@/config/server";
 import { HTTP_METHOD } from "@/constants/http-methods";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { SERVER_EVENT } from "@/constants/server-events";
@@ -25,6 +26,9 @@ const readBody = async (req: IncomingMessage): Promise<string> =>
     let data = "";
     req.on("data", (chunk: Buffer | string) => {
       data += chunk.toString();
+      if (data.length > SERVER_CONFIG.MAX_BODY_BYTES) {
+        reject(new Error(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE));
+      }
     });
     req.on("end", () => resolve(data));
     req.on("error", reject);
