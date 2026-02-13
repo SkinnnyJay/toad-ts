@@ -525,6 +525,7 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Updated harness adapter unit coverage to validate:
     - Cursor is excluded by default from generated fallback harness config.
     - Cursor command/args overrides still work when explicitly enabled.
+    - Cursor remains excluded when command/args overrides are set but feature flag is false.
 
 ---
 

@@ -70,6 +70,16 @@ describe("HarnessAdapter", () => {
       expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]).toBeDefined();
     });
 
+    it("should keep cursor harness disabled when command overrides exist but flag is false", () => {
+      const result = createDefaultHarnessConfig({
+        [ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]: "false",
+        [ENV_KEY.TOADSTOOL_CURSOR_COMMAND]: "agent",
+        [ENV_KEY.TOADSTOOL_CURSOR_ARGS]: "-p",
+      });
+
+      expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]).toBeUndefined();
+    });
+
     it("should validate config with schema", () => {
       const result = createDefaultHarnessConfig({});
 
