@@ -93,6 +93,80 @@ const STATUS_STRINGS = [
   "ready",
 ];
 
+const stripQuotedContentAndLineComment = (line: string): string => {
+  let result = "";
+  let inSingleQuote = false;
+  let inDoubleQuote = false;
+  let inTemplateQuote = false;
+  let isEscaped = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const current = line[i];
+    const next = line[i + 1];
+
+    if (current === undefined) {
+      continue;
+    }
+
+    if (isEscaped) {
+      isEscaped = false;
+      continue;
+    }
+
+    if (current === "\\") {
+      isEscaped = true;
+      if (!inSingleQuote && !inDoubleQuote && !inTemplateQuote) {
+        result += current;
+      }
+      continue;
+    }
+
+    if (inSingleQuote) {
+      if (current === "'") {
+        inSingleQuote = false;
+      }
+      continue;
+    }
+
+    if (inDoubleQuote) {
+      if (current === '"') {
+        inDoubleQuote = false;
+      }
+      continue;
+    }
+
+    if (inTemplateQuote) {
+      if (current === "`") {
+        inTemplateQuote = false;
+      }
+      continue;
+    }
+
+    if (current === "/" && next === "/") {
+      break;
+    }
+
+    if (current === "'") {
+      inSingleQuote = true;
+      continue;
+    }
+
+    if (current === '"') {
+      inDoubleQuote = true;
+      continue;
+    }
+
+    if (current === "`") {
+      inTemplateQuote = true;
+      continue;
+    }
+
+    result += current;
+  }
+
+  return result;
+};
+
 function scanFile(filePath: string): void {
   if (shouldIgnore(filePath)) return;
 
@@ -156,7 +230,8 @@ function scanFile(filePath: string): void {
       }
 
       // Check for magic numbers (non-trivial)
-      const magicNumberMatch = line.match(/\b([2-9]|[1-9]\d{2,})\b/);
+      const lineWithoutQuotedContent = stripQuotedContentAndLineComment(line);
+      const magicNumberMatch = lineWithoutQuotedContent.match(/\b([2-9]|[1-9]\d{2,})\b/);
       if (magicNumberMatch) {
         const number = magicNumberMatch[1];
         // Skip obvious cases: array indices, common patterns, config files, percentages in CSS
