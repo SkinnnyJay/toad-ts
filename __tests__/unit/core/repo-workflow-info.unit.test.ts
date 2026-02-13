@@ -39,7 +39,7 @@ const getIsGitCleanMock = async () => {
 };
 
 const buildExecaImplementation = (
-  checksPayload: Array<{ status: string; conclusion: string }>,
+  checksPayload: Array<{ status: unknown; conclusion: unknown }>,
   remoteUrl = "https://github.com/acme/toad-ts.git"
 ) => {
   return async (command: string, args?: string[], options?: unknown) => {
@@ -339,6 +339,29 @@ describe("getRepoWorkflowInfo", () => {
 
     expect(info.checksStatus).toBe("fail");
     expect(info.status).toBe(REPO_WORKFLOW_STATUS.CI_FAILING);
+  });
+
+  it("ignores non-string check fields without throwing", async () => {
+    const execaMock = await getExecaMock();
+    const prStatusMock = await getPrStatusMock();
+    const isGitCleanMock = await getIsGitCleanMock();
+
+    execaMock.mockImplementation(
+      buildExecaImplementation([{ status: 42, conclusion: null as unknown }])
+    );
+    prStatusMock.mockResolvedValue({
+      number: 42,
+      title: "Malformed checks payload",
+      url: "https://github.com/acme/toad-ts/pull/42",
+      state: "open",
+      reviewDecision: PR_REVIEW_STATUS.UNKNOWN,
+    });
+    isGitCleanMock.mockResolvedValue(true);
+
+    const info = await getRepoWorkflowInfo("/workspace");
+
+    expect(info.checksStatus).toBe("pending");
+    expect(info.status).toBe(REPO_WORKFLOW_STATUS.OPEN);
   });
 
   it("parses owner and repo from ssh remote url", async () => {

@@ -64,8 +64,8 @@ const GH_CHECK = {
 const normalizeRepoName = (repoName: string): string =>
   repoName.replace(REMOTE_GIT_SUFFIX_PATTERN, "");
 
-const normalizeCheckField = (value: string | undefined): string =>
-  value?.trim().toLowerCase() ?? "";
+const normalizeCheckField = (value: unknown): string =>
+  typeof value === "string" ? value.trim().toLowerCase() : "";
 
 async function getRemoteOriginUrl(cwd: string): Promise<string | null> {
   try {

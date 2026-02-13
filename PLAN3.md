@@ -1449,3 +1449,13 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Covered:
     - absolute request-target rejection end-to-end
     - protocol-relative request-target rejection end-to-end
+- Additional repo-workflow check-field type hardening:
+  - Updated:
+    - `src/core/repo-workflow.ts`
+  - Hardening change:
+    - check-field normalization now safely handles non-string GH checks payload
+      values instead of assuming string shape.
+  - Extended:
+    - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
+  - Covered:
+    - malformed non-string check payload classification path

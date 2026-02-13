@@ -1,5 +1,17 @@
 # Scratchpad Journal
 
+## 2026-02-13 (repo-workflow check-field type hardening)
+- Updated `src/core/repo-workflow.ts`:
+  - `normalizeCheckField` now safely handles unknown/non-string values from
+    GH checks payload parsing
+- Extended `__tests__/unit/core/repo-workflow-info.unit.test.ts`:
+  - added malformed check-field payload coverage (non-string status/conclusion)
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/repo-workflow-info.unit.test.ts __tests__/unit/core/repo-workflow.unit.test.ts __tests__/unit/core/pr-status.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (non-origin-form request-target integration coverage)
 - Extended `__tests__/integration/server/headless-server.integration.test.ts`:
   - added raw HTTP request-target coverage for:

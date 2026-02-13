@@ -238,6 +238,9 @@
 - Added non-origin-form integration coverage:
   - headless integration now validates absolute/protocol-relative request-target
     rejection through raw HTTP request paths
+- Added repo-workflow check-field type hardening:
+  - check-field normalizer now safely handles non-string GH check payload fields
+  - added unit coverage for malformed check-status payload shapes
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
