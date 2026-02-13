@@ -214,6 +214,9 @@
 - Added file-search duplicate-query hardening:
   - search route now rejects duplicated `q` params as invalid requests
   - added unit coverage for duplicated query-parameter behavior
+- Added file-search encoded-key hardening:
+  - search route now decodes query-parameter names with strict decoding
+  - supports encoded `q` key and rejects malformed encoded parameter names
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

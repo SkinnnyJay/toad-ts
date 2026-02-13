@@ -70,6 +70,7 @@
   - hardened SSE callback behavior after cleanup to prevent stale writes
   - hardened repo workflow derivation against padded state/review fields
   - hardened file-search behavior for duplicate query parameter inputs
+  - hardened file-search behavior for encoded/malformed query parameter names
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

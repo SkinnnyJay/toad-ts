@@ -35,6 +35,9 @@ const mapRequestBodyError = (error: unknown): string => {
   return SERVER_RESPONSE_MESSAGE.INVALID_REQUEST;
 };
 
+const decodeFormQueryComponent = (rawValue: string): string =>
+  decodeURIComponent(rawValue.replace(FORM_SPACE_PATTERN, FORM_SPACE_REPLACEMENT));
+
 const getRawQueryParamValues = (search: string, paramName: string): string[] => {
   const query = search.startsWith("?") ? search.slice(1) : search;
   if (query.length === 0) {
@@ -42,20 +45,14 @@ const getRawQueryParamValues = (search: string, paramName: string): string[] => 
   }
   const values: string[] = [];
   for (const segment of query.split(QUERY_PARAM_SEPARATOR)) {
-    if (segment === paramName) {
-      values.push("");
-      continue;
-    }
-    const [name, ...rest] = segment.split(QUERY_PARAM_ASSIGNMENT);
+    const [rawName, ...rest] = segment.split(QUERY_PARAM_ASSIGNMENT);
+    const name = decodeFormQueryComponent(rawName ?? "");
     if (name === paramName) {
       values.push(rest.join(QUERY_PARAM_ASSIGNMENT));
     }
   }
   return values;
 };
-
-const decodeFormQueryParam = (rawValue: string): string =>
-  decodeURIComponent(rawValue.replace(FORM_SPACE_PATTERN, FORM_SPACE_REPLACEMENT));
 
 // ── Session Endpoints ──────────────────────────────────────────────────────
 
@@ -161,7 +158,7 @@ export const searchFiles: RouteHandler = async (req, res) => {
       return;
     }
     const rawQuery = rawQueries[0];
-    const query = decodeFormQueryParam(rawQuery ?? "").trim();
+    const query = decodeFormQueryComponent(rawQuery ?? "").trim();
     if (!query) {
       sendJson(res, HTTP_STATUS.BAD_REQUEST, {
         error: SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED,

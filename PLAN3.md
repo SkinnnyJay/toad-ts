@@ -1361,3 +1361,14 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - `__tests__/unit/server/api-route-file-search.unit.test.ts`
   - Covered:
     - duplicate query parameter rejection (`q=readme&q=notes`)
+- Additional file-search encoded-key hardening:
+  - Updated:
+    - `src/server/api-routes.ts`
+  - Hardening change:
+    - query-parameter name parsing now uses strict decoding; encoded `q` keys are
+      accepted while malformed encoded key names return invalid-request errors.
+  - Extended:
+    - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - Covered:
+    - encoded key name acceptance (`?%71=readme`)
+    - malformed key-encoding rejection

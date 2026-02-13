@@ -1,5 +1,19 @@
 # Scratchpad Journal
 
+## 2026-02-13 (file-search encoded-key hardening)
+- Updated `src/server/api-routes.ts`:
+  - query parameter name parsing now uses strict form decoding
+  - encoded key names (e.g. `%71`) are accepted for `q`
+  - malformed encoded key names now return canonical `INVALID_REQUEST`
+- Extended `__tests__/unit/server/api-route-file-search.unit.test.ts`:
+  - added encoded-key success case (`?%71=readme`)
+  - added malformed key-encoding rejection case
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/api-route-file-search.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (file-search duplicate-query hardening)
 - Updated `src/server/api-routes.ts`:
   - query extraction now collects all `q` values

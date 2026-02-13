@@ -132,4 +132,26 @@ describe("api-routes searchFiles handler", () => {
       body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
     });
   });
+
+  it("accepts percent-encoded query parameter names", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?%71=readme"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "readme", results: [] },
+    });
+  });
+
+  it("returns bad request when query parameter name has malformed encoding", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?%E0%A4%A=readme"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
 });
