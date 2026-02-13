@@ -855,6 +855,15 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - non-POST method handling (`405`)
     - malformed JSON payload handling (`400`)
     - thrown handler failure handling (`500`)
+- Additional default harness fallback coverage hardening:
+  - Added:
+    - `__tests__/unit/harness/default-harness-config.unit.test.ts`
+  - Coverage goals:
+    - lock default harness composition when cursor feature flag is unset
+    - lock cursor inclusion behavior when feature flag is numeric truthy (`"1"`)
+    - lock env argument-override parsing behavior in default harness config builder
+  - Complementary validation:
+    - paired with existing fallback env tests for `/api/agents` route behavior.
 
 ---
 

@@ -79,6 +79,10 @@
   - standardized method/invalid-payload/server-error responses for hook IPC HTTP endpoint
   - added top-level request failure handling with canonical server error payload
   - expanded hook IPC unit coverage for method, malformed JSON, and thrown-handler paths
+- Added default harness fallback coverage:
+  - created focused unit coverage for `createDefaultHarnessConfig`
+  - validated cursor feature-flag gating for unset and numeric-truthy env paths
+  - validated environment argument override parsing for default harness commands
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

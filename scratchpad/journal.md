@@ -1,5 +1,18 @@
 # Scratchpad Journal
 
+## 2026-02-13 (default harness fallback coverage)
+- Added unit test file:
+  - `__tests__/unit/harness/default-harness-config.unit.test.ts`
+- Covered:
+  - default harness set composition when cursor flag is unset
+  - cursor harness inclusion with numeric truthy flag (`TOADSTOOL_CURSOR_CLI_ENABLED=1`)
+  - argument override parsing for claude/gemini/codex/cursor defaults
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/harness/default-harness-config.unit.test.ts __tests__/unit/server/api-route-fallback-env.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (hook IPC request hardening)
 - Updated `src/core/cursor/hook-ipc-server.ts`:
   - switched method check to `HTTP_METHOD.POST`
