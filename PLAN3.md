@@ -406,6 +406,11 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED`
   - Updated focused test:
     - `__tests__/unit/constants/http-status.unit.test.ts`
+- Additional truthy-env literal hardening:
+  - Replaced duplicated allow-escape truthy checks with `TRUTHY_STRINGS` in:
+    - `src/core/fs-handler.ts`
+    - `src/core/search/search-service.ts`
+    - `src/core/terminal-handler.ts`
 
 ---
 

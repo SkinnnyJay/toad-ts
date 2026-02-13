@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { isAbsolute, normalize, resolve } from "node:path";
 import { TERMINAL_KILL_GRACE_MS } from "@/config/timeouts";
+import { TRUTHY_STRINGS } from "@/constants/boolean-strings";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { SIGNAL } from "@/constants/signals";
@@ -27,7 +28,7 @@ const shouldAllowEscape = (env?: NodeJS.ProcessEnv, override?: boolean): boolean
   const raw = source[ENV_KEY.TOADSTOOL_ALLOW_ESCAPE];
   if (!raw) return false;
   const normalized = raw.trim().toLowerCase();
-  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
+  return TRUTHY_STRINGS.has(normalized);
 };
 
 const isPathEscape = (value: string): boolean => {
