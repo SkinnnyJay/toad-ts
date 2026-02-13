@@ -1241,6 +1241,11 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - `gh pr view` invocation options include expected `cwd` and GH CLI timeout
     - default `cwd` fallback path when explicit cwd argument is omitted
+- Additional file-search plus-decoding contract coverage:
+  - Extended:
+    - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - Covered:
+    - `+` form-encoding behavior in query values (decoded as spaces)
 
 ---
 

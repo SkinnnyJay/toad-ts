@@ -84,6 +84,17 @@ describe("api-routes searchFiles handler", () => {
     });
   });
 
+  it("decodes plus signs in query parameter values as spaces", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=readme+notes"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "readme notes", results: [] },
+    });
+  });
+
   it("parses query successfully when request host header is absent", async () => {
     const { response, getCaptured } = createResponseCapture();
 

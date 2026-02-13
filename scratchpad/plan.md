@@ -196,6 +196,9 @@
 - Added events-stream error-path cleanup hardening:
   - SSE subscriptions now clean up on request/response error events
   - added unit coverage for response-error and request-error cleanup paths
+- Added file-search plus-decoding contract coverage:
+  - locked behavior that `q=readme+notes` decodes to `readme notes`
+  - expanded focused file-search unit coverage without changing runtime behavior
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
