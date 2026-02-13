@@ -1,9 +1,11 @@
+import { CURSOR_EVENT_TYPE } from "@/constants/cursor-event-types";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { CliAgentProcessRunner } from "@/core/cli-agent/cli-agent-process-runner";
 import type { CliAgentAuthStatus } from "@/types/cli-agent.types";
 import {
+  CLI_AGENT_MODE,
   type CliAgentInstallInfo,
   CliAgentInstallInfoSchema,
   type CliAgentModelsResponse,
@@ -247,11 +249,15 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
       events.push(event);
       parser.drain(1);
       this.emit("streamEvent", event);
-      if (event.type === "system") {
+      if (event.type === CURSOR_EVENT_TYPE.SYSTEM) {
         observedSessionId = event.session_id;
         this.latestSessionId = event.session_id;
       }
-      if (event.type === "result" && "result" in event && typeof event.result === "string") {
+      if (
+        event.type === CURSOR_EVENT_TYPE.RESULT &&
+        "result" in event &&
+        typeof event.result === "string"
+      ) {
         resultText = event.result;
       }
     });
@@ -308,7 +314,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
     if (input.model) {
       args.push(CURSOR_CLI_ARG.MODEL, input.model);
     }
-    if (input.mode && input.mode !== "agent") {
+    if (input.mode && input.mode !== CLI_AGENT_MODE.AGENT) {
       args.push(CURSOR_CLI_ARG.MODE, input.mode);
     }
     if (input.workspacePath) {

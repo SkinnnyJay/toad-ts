@@ -438,6 +438,12 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Replaced raw `"harnesses.json"` usage in:
     - `src/harness/harnessConfig.ts`
     - `__tests__/unit/harness/harness-config.unit.test.ts`
+- Additional cursor event/mode literal hardening:
+  - Replaced raw Cursor stream event type literals in:
+    - `src/core/cursor/cursor-cli-connection.ts`
+    - (`"system"`, `"result"` → `CURSOR_EVENT_TYPE.*`)
+  - Replaced raw mode literal:
+    - (`"agent"` → `CLI_AGENT_MODE.AGENT`) in `cursor-cli-connection.ts`
 
 ---
 
