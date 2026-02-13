@@ -38,6 +38,36 @@ const getIsGitCleanMock = async () => {
   return module.isGitClean as unknown as ReturnType<typeof vi.fn>;
 };
 
+const buildExecaImplementation = (checksPayload: Array<{ status: string; conclusion: string }>) => {
+  return async (command: string, args?: string[], options?: unknown) => {
+    const key = `${command} ${(args ?? []).join(" ")}`.trim();
+    if (key === "git rev-parse --show-toplevel") {
+      return { stdout: "/workspace", stderr: "", exitCode: 0 };
+    }
+    if (key === "git rev-parse --abbrev-ref HEAD") {
+      return { stdout: "feature/refactor\n", stderr: "", exitCode: 0 };
+    }
+    if (key === "git rev-list --count --left-right HEAD...@{u}") {
+      return { stdout: "1 0\n", stderr: "", exitCode: 0 };
+    }
+    if (key === "git status --porcelain") {
+      return { stdout: "", stderr: "", exitCode: 0 };
+    }
+    if (key === "git config --get remote.origin.url") {
+      return { stdout: "https://github.com/acme/toad-ts.git\n", stderr: "", exitCode: 0 };
+    }
+    if (key === "gh pr checks --json name,status,conclusion") {
+      expect(options).toMatchObject({ timeout: TIMEOUT.GH_CLI_MS });
+      return {
+        stdout: JSON.stringify(checksPayload),
+        stderr: "",
+        exitCode: 0,
+      };
+    }
+    throw new Error(`Unexpected command: ${key}`);
+  };
+};
+
 describe("getRepoWorkflowInfo", () => {
   beforeEach(async () => {
     const execaMock = await getExecaMock();
@@ -143,5 +173,53 @@ describe("getRepoWorkflowInfo", () => {
     expect(info.checksStatus).toBeNull();
     expect(info.status).toBe(REPO_WORKFLOW_STATUS.LOCAL_CLEAN);
     expect(info.action).toBe(REPO_WORKFLOW_ACTION[REPO_WORKFLOW_STATUS.LOCAL_CLEAN]);
+  });
+
+  it("marks workflow as CI failing when checks report failure", async () => {
+    const execaMock = await getExecaMock();
+    const prStatusMock = await getPrStatusMock();
+    const isGitCleanMock = await getIsGitCleanMock();
+
+    execaMock.mockImplementation(
+      buildExecaImplementation([{ status: "completed", conclusion: "failure" }])
+    );
+    prStatusMock.mockResolvedValue({
+      number: 42,
+      title: "Improve reliability",
+      url: "https://github.com/acme/toad-ts/pull/42",
+      state: "open",
+      reviewDecision: PR_REVIEW_STATUS.APPROVED,
+    });
+    isGitCleanMock.mockResolvedValue(true);
+
+    const info = await getRepoWorkflowInfo("/workspace");
+
+    expect(info.checksStatus).toBe("fail");
+    expect(info.status).toBe(REPO_WORKFLOW_STATUS.CI_FAILING);
+    expect(info.action).toBe(REPO_WORKFLOW_ACTION[REPO_WORKFLOW_STATUS.CI_FAILING]);
+  });
+
+  it("keeps open status when checks are pending", async () => {
+    const execaMock = await getExecaMock();
+    const prStatusMock = await getPrStatusMock();
+    const isGitCleanMock = await getIsGitCleanMock();
+
+    execaMock.mockImplementation(
+      buildExecaImplementation([{ status: "in_progress", conclusion: "" }])
+    );
+    prStatusMock.mockResolvedValue({
+      number: 42,
+      title: "Improve reliability",
+      url: "https://github.com/acme/toad-ts/pull/42",
+      state: "open",
+      reviewDecision: PR_REVIEW_STATUS.UNKNOWN,
+    });
+    isGitCleanMock.mockResolvedValue(true);
+
+    const info = await getRepoWorkflowInfo("/workspace");
+
+    expect(info.checksStatus).toBe("pending");
+    expect(info.status).toBe(REPO_WORKFLOW_STATUS.OPEN);
+    expect(info.action).toBe(REPO_WORKFLOW_ACTION[REPO_WORKFLOW_STATUS.OPEN]);
   });
 });

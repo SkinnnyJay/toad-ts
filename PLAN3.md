@@ -518,6 +518,7 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - owner/repository parsing from remote URL
     - fallback behavior when git/gh metadata is unavailable
     - `gh pr checks` timeout wiring through `TIMEOUT.GH_CLI_MS`
+    - checks outcome classification (`pass`/`fail`/`pending`) driving workflow status
 
 ---
 
