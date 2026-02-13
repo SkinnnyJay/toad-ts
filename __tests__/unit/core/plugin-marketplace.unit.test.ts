@@ -45,6 +45,9 @@ describe("plugin-marketplace", () => {
 
   it("returns plugins from registry when fetch succeeds", async () => {
     const plugins = [createPlugin()];
+    const abortTimeoutSpy = vi
+      .spyOn(AbortSignal, "timeout")
+      .mockReturnValue(new AbortController().signal);
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ plugins }),
@@ -52,6 +55,7 @@ describe("plugin-marketplace", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(fetchPluginRegistry("https://registry.test")).resolves.toEqual(plugins);
+    expect(abortTimeoutSpy).toHaveBeenCalledWith(TIMEOUT.PLUGIN_REGISTRY_FETCH_MS);
     expect(fetchMock).toHaveBeenCalledWith(
       "https://registry.test",
       expect.objectContaining({
@@ -59,6 +63,7 @@ describe("plugin-marketplace", () => {
         headers: { Accept: "application/json" },
       })
     );
+    abortTimeoutSpy.mockRestore();
   });
 
   it("returns empty list when registry fetch is unavailable", async () => {

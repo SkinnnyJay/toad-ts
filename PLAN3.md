@@ -509,6 +509,7 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - formatter command dispatch and failure-path handling
     - plugin registry fetch success/failure behavior
     - plugin install command timeout usage and invalid-command guard
+    - plugin registry timeout constant wiring (`AbortSignal.timeout`)
 
 ---
 
