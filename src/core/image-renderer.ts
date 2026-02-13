@@ -1,4 +1,7 @@
 import { LIMIT } from "@/config/limits";
+import { ENV_KEY } from "@/constants/env-keys";
+import { TERMINAL_KEYWORD, TERMINAL_PROGRAM } from "@/constants/terminal-programs";
+import { EnvManager } from "@/utils/env/env.utils";
 
 const BLOCK_CHARS = [" ", "░", "▒", "▓", "█"];
 
@@ -56,13 +59,14 @@ export const renderImageAsAscii = (
  * Check if the terminal supports inline image display (iTerm2/Kitty protocol).
  */
 export const supportsInlineImages = (): boolean => {
-  const term = process.env.TERM_PROGRAM ?? "";
-  const termEnv = process.env.TERM ?? "";
+  const env = EnvManager.getInstance().getSnapshot();
+  const term = env[ENV_KEY.TERM_PROGRAM] ?? "";
+  const termEnv = env[ENV_KEY.TERM] ?? "";
   return (
-    term === "iTerm.app" ||
-    term === "WezTerm" ||
-    termEnv.includes("kitty") ||
-    Boolean(process.env.KITTY_PID)
+    term === TERMINAL_PROGRAM.ITERM_APP ||
+    term === TERMINAL_PROGRAM.WEZTERM ||
+    termEnv.includes(TERMINAL_KEYWORD.KITTY) ||
+    Boolean(env[ENV_KEY.KITTY_PID])
   );
 };
 

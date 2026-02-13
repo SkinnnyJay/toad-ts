@@ -1,6 +1,7 @@
 import { createInterface } from "node:readline/promises";
 import { z } from "zod";
 
+import { ENV_VALUE } from "@/constants/env-values";
 import { TOOL_KIND } from "@/constants/tool-kinds";
 import { TOOL_NAME } from "@/constants/tool-names";
 import type { ToolDefinition } from "@/tools/types";
@@ -27,7 +28,7 @@ export const questionTool: ToolDefinition<QuestionToolOutput> = {
   execute: async (input) => {
     const parsed = QuestionInputSchema.parse(input);
     const fallback = resolveFallback(parsed.default);
-    if (EnvManager.getInstance().getEnvironment() === "test") {
+    if (EnvManager.getInstance().getEnvironment() === ENV_VALUE.TEST) {
       return { ok: true, output: { answer: fallback } };
     }
 

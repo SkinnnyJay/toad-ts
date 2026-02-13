@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { LIMIT } from "@/config/limits";
 import { TRUTHY_STRINGS } from "@/constants/boolean-strings";
 import { ENV_KEY } from "@/constants/env-keys";
+import { ENV_VALUE } from "@/constants/env-values";
 import { PLATFORM } from "@/constants/platform";
 import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
@@ -289,7 +290,7 @@ export class ShellSessionManager {
   constructor(private readonly options: ShellSessionOptions = {}) {}
 
   async execute(command: string, options: ShellCommandOptions = {}): Promise<ShellCommandResult> {
-    if (EnvManager.getInstance().getEnvironment() === "test") {
+    if (EnvManager.getInstance().getEnvironment() === ENV_VALUE.TEST) {
       const session = new ShellSession(this.options);
       try {
         return await session.execute(command, options);

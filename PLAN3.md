@@ -346,6 +346,13 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - `__tests__/unit/core/cursor/cloud-agent-client.unit.test.ts`
   - `__tests__/unit/core/cursor/cursor-cli-harness.unit.test.ts`
   - `__tests__/integration/core/cursor-harness.integration.test.ts`
+- Follow-up literal hygiene hardening pass:
+  - Added `src/constants/env-values.ts` and replaced direct `"test"` environment comparisons.
+  - Removed direct `process.env` reads from `src/core/image-renderer.ts` by using `EnvManager`
+    snapshot + env-key constants.
+  - Added `src/constants/terminal-programs.ts` for terminal program literals.
+  - Replaced sidebar raw `"]"` key literal with `KEY_NAME.RIGHT_BRACKET`.
+  - Added `__tests__/unit/core/image-renderer.unit.test.ts` coverage for inline image support logic.
 
 ---
 

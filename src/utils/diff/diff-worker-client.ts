@@ -1,5 +1,6 @@
 import { Worker } from "node:worker_threads";
 
+import { ENV_VALUE } from "@/constants/env-values";
 import { EnvManager } from "@/utils/env/env.utils";
 import { nanoid } from "nanoid";
 
@@ -77,7 +78,7 @@ class DiffWorkerClient {
 }
 
 const diffWorkerClient =
-  EnvManager.getInstance().getEnvironment() === "test" ? null : new DiffWorkerClient();
+  EnvManager.getInstance().getEnvironment() === ENV_VALUE.TEST ? null : new DiffWorkerClient();
 
 export const computeDiffInWorker = async (
   params: Omit<DiffWorkerRequest, "id">
