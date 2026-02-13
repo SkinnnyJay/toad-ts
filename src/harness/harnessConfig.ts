@@ -248,11 +248,8 @@ const resolveHarnessId = (
   projectDefault: string | undefined,
   availableIds: string[]
 ): string => {
-  if (cliHarnessId !== undefined && cliHarnessId.trim().length === 0) {
-    throw new Error(formatInvalidHarnessIdError(cliHarnessId));
-  }
-
-  const normalizedCliHarnessId = cliHarnessId?.trim();
+  const normalizedCliHarnessId =
+    cliHarnessId === undefined ? undefined : validateHarnessId(cliHarnessId);
   const normalizedUserDefault = userDefault?.trim();
   const normalizedProjectDefault = projectDefault?.trim();
 

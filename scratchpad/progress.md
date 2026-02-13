@@ -125,6 +125,8 @@
     selections with canonical invalid-id diagnostics
   - hardened configured defaultHarness validation for project/user config files
     to reject whitespace-only and padded harness ids
+  - hardened explicit CLI harness-id selection to require canonical ids (no
+    trimming/coercion of padded values)
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

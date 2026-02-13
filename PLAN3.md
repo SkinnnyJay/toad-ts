@@ -1963,3 +1963,25 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - enforce deterministic default-harness semantics by failing fast on
       malformed configured defaults instead of implicitly coercing values.
+
+## Execution Log Addendum — 2026-02-13 (strict explicit CLI harness-id validation)
+
+- Additional explicit harness selector hardening:
+  - Updated:
+    - `src/harness/harnessConfig.ts`
+    - `__tests__/unit/harness/harness-config.unit.test.ts`
+  - Hardening changes:
+    - explicit CLI harness-id inputs now use the shared strict harness-id
+      validator:
+      - exact ids resolve normally
+      - padded ids reject (instead of trimming)
+      - whitespace-only ids reject
+    - removes implicit coercion of CLI harness-id input and aligns explicit
+      selection behavior with configured id validation semantics.
+    - expanded focused unit coverage for:
+      - exact explicit id success
+      - padded explicit id rejection
+      - whitespace-only explicit id rejection
+  - Goal:
+    - make explicit harness selection fail fast and deterministic by requiring
+      canonical harness-id input from CLI callers.

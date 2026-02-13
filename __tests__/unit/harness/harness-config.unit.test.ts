@@ -379,7 +379,7 @@ describe("harnessConfig", () => {
     );
   });
 
-  it("trims explicit CLI harness id before lookup", async () => {
+  it("resolves explicit CLI harness id when value is exact", async () => {
     projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
     userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
 
@@ -400,11 +400,38 @@ describe("harnessConfig", () => {
     const result = await loadHarnessConfig({
       projectRoot,
       homedir: userRoot,
-      harnessId: " beta ",
+      harnessId: "beta",
     });
 
     expect(result.harnessId).toBe("beta");
     expect(result.harness.command).toBe("beta-cli");
+  });
+
+  it("rejects explicit CLI harness id when value is padded with whitespace", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "alpha",
+      harnesses: {
+        alpha: {
+          name: "Alpha",
+          command: "alpha-cli",
+        },
+        beta: {
+          name: "Beta",
+          command: "beta-cli",
+        },
+      },
+    });
+
+    await expect(
+      loadHarnessConfig({
+        projectRoot,
+        homedir: userRoot,
+        harnessId: " beta ",
+      })
+    ).rejects.toThrow(formatInvalidHarnessIdError(" beta "));
   });
 
   it("rejects explicit CLI harness id when value is whitespace-only", async () => {

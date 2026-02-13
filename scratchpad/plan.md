@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added strict explicit CLI harness-id validation hardening:
+  - explicit CLI harness-id selection now requires canonical ids
+    (padded/whitespace-only ids reject)
+  - exact explicit harness-id selection continues to resolve normally
+  - expanded harness-config unit coverage for exact vs padded/blank explicit
+    CLI harness-id behavior
 - Added default-harness id validation hardening:
   - project/user `defaultHarness` values now reject whitespace-only and padded
     ids via shared invalid-id validation

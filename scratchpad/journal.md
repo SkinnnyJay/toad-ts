@@ -1639,3 +1639,27 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Strict explicit CLI harness-id validation)
+
+### Summary
+- Updated explicit CLI harness-id resolution to use shared strict harness-id
+  validation.
+- Explicit CLI ids now require canonical formatting:
+  - exact id succeeds
+  - padded id rejects
+  - whitespace-only id rejects
+- Expanded harness-config unit coverage for exact/padded/blank explicit CLI id
+  behavior.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/harness/harness-config.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
