@@ -141,6 +141,8 @@
     when harness config loading fails at startup
   - expanded default-harness cursor feature-flag test coverage for padded
     truthy and falsey/invalid env-value variants
+  - added direct unit coverage for shared env boolean-flag parsing utility
+    across truthy, falsey, and unsupported string inputs
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

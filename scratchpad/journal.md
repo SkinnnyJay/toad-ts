@@ -1816,3 +1816,24 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Boolean env-flag parser coverage)
+
+### Summary
+- Added direct unit coverage for `parseBooleanEnvFlag(...)`:
+  - undefined input behavior
+  - truthy values (`true`, padded/case-insensitive, `1`)
+  - falsey values (`false`, padded/case-insensitive, `0`)
+  - unsupported values (`""`, whitespace-only, `yes`, `no`, `2`)
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/boolean-flags.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅

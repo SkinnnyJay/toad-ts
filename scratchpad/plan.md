@@ -14,6 +14,9 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added boolean env-flag parser coverage:
+  - added focused unit tests for `parseBooleanEnvFlag(...)` truthy/falsey/
+    unsupported input variants, including padded and case-insensitive values
 - Added default-harness cursor feature-flag parsing coverage:
   - padded truthy cursor flag values now covered for harness inclusion behavior
   - falsey/invalid cursor flag variants now covered for harness exclusion

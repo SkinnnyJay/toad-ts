@@ -2109,3 +2109,18 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock deterministic cursor feature-flag parsing semantics for default
       harness construction across common string env-value variants.
+
+## Execution Log Addendum — 2026-02-13 (boolean env-flag parser unit coverage)
+
+- Additional env parsing hardening:
+  - Updated:
+    - `__tests__/unit/utils/boolean-flags.unit.test.ts`
+  - Hardening changes:
+    - added focused unit coverage for `parseBooleanEnvFlag(...)` behavior:
+      - `undefined` input
+      - truthy variants (`true`, padded `true`, `1`, case-insensitive values)
+      - falsey variants (`false`, padded `false`, `0`, case-insensitive values)
+      - unsupported values (`""`, whitespace-only, `yes`, `no`, `2`)
+  - Goal:
+    - lock deterministic env-boolean parsing semantics used by harness feature
+      flags and avoid regressions in permissive string handling.
