@@ -1089,6 +1089,16 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
   - Covered:
     - owner/repo extraction from `https://.../hello-world.GIT`
+- Additional scp-style no-user remote parsing hardening:
+  - Updated:
+    - `src/core/repo-workflow.ts`
+  - Hardening change:
+    - scp-style owner/repo extraction now accepts remotes without an explicit user
+      prefix (e.g. `host:owner/repo.git`) in addition to `user@host:...` forms.
+  - Extended:
+    - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
+  - Covered:
+    - owner/repo extraction from `github.com:octocat/hello-world.git`
 
 ---
 

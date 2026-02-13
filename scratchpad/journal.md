@@ -1,5 +1,16 @@
 # Scratchpad Journal
 
+## 2026-02-13 (scp remote no-user parsing hardening)
+- Updated `src/core/repo-workflow.ts`:
+  - generalized scp-style remote matcher to allow missing `user@` prefix
+- Extended `__tests__/unit/core/repo-workflow-info.unit.test.ts`:
+  - added no-user scp remote parse coverage (`github.com:owner/repo.git`)
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/repo-workflow-info.unit.test.ts __tests__/unit/core/repo-workflow.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (uppercase .GIT remote suffix parsing hardening)
 - Updated `src/core/repo-workflow.ts`:
   - added case-insensitive repo-name normalization for `.git` suffix removal

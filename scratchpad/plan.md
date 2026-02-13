@@ -152,6 +152,9 @@
 - Added uppercase `.GIT` suffix remote parsing hardening:
   - repo parser now normalizes case-variant `.git` suffixes
   - added workflow info unit coverage for `.../repo.GIT` remotes
+- Added scp-remote no-user parsing hardening:
+  - repo parser now accepts scp-style remotes without explicit user prefix
+  - added workflow info unit coverage for `host:owner/repo.git` remotes
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

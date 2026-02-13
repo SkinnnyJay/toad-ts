@@ -347,6 +347,32 @@ describe("getRepoWorkflowInfo", () => {
     expect(info.repoName).toBe("hello-world");
   });
 
+  it("parses owner and repo from scp ssh remote url without user", async () => {
+    const execaMock = await getExecaMock();
+    const prStatusMock = await getPrStatusMock();
+    const isGitCleanMock = await getIsGitCleanMock();
+
+    execaMock.mockImplementation(
+      buildExecaImplementation(
+        [{ status: "completed", conclusion: "success" }],
+        "github.com:octocat/hello-world.git"
+      )
+    );
+    prStatusMock.mockResolvedValue({
+      number: 14,
+      title: "No-user scp parse",
+      url: "https://github.com/octocat/hello-world/pull/14",
+      state: "open",
+      reviewDecision: PR_REVIEW_STATUS.APPROVED,
+    });
+    isGitCleanMock.mockResolvedValue(true);
+
+    const info = await getRepoWorkflowInfo("/workspace");
+
+    expect(info.owner).toBe("octocat");
+    expect(info.repoName).toBe("hello-world");
+  });
+
   it("parses owner and repo from ssh remote url with trailing slash", async () => {
     const execaMock = await getExecaMock();
     const prStatusMock = await getPrStatusMock();

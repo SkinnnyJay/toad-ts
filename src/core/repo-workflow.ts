@@ -74,7 +74,7 @@ async function getRemoteOriginUrl(cwd: string): Promise<string | null> {
 
 function parseOwnerRepoFromUrl(url: string): { owner: string; repo: string } | null {
   const trimmed = url.trim();
-  const scpSshMatch = trimmed.match(/^(?:[^@]+@)[^:]+:([^/]+)\/([^/]+?)(?:\.git)?\/?$/i);
+  const scpSshMatch = trimmed.match(/^(?:[^@]+@)?[^:]+:([^/]+)\/([^/]+?)(?:\.git)?\/?$/i);
   if (scpSshMatch) {
     return { owner: scpSshMatch[1] ?? "", repo: normalizeRepoName(scpSshMatch[2] ?? "") };
   }
