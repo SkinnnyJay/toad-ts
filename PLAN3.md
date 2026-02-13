@@ -1058,6 +1058,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
   - Covered:
     - owner/repo extraction from a git-protocol remote value.
+- Additional request-stream abort/close hardening:
+  - Updated:
+    - `src/server/request-body.ts`
+  - Hardening change:
+    - request-body reader now rejects aborted or prematurely closed request streams
+      and cleans up listeners once settled.
+  - Extended:
+    - `__tests__/unit/server/request-body.unit.test.ts`
+  - Covered:
+    - stream `aborted` event rejection
+    - stream `close` before `end` rejection
 
 ---
 

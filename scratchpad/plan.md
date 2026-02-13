@@ -143,6 +143,9 @@
 - Added git-protocol remote parsing hardening:
   - repo remote parser now supports `git://host/owner/repo.git` URLs
   - added workflow info unit coverage for git protocol remotes
+- Added request-stream abort/close hardening:
+  - request-body helper now rejects aborted/prematurely closed streams
+  - listener cleanup added to avoid stale handlers after settlement
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

@@ -35,6 +35,18 @@ const emitBufferPayload = (req: IncomingMessage, payload: string): void => {
   });
 };
 
+const emitAborted = (req: IncomingMessage): void => {
+  process.nextTick(() => {
+    req.emit("aborted");
+  });
+};
+
+const emitClosed = (req: IncomingMessage): void => {
+  process.nextTick(() => {
+    req.emit("close");
+  });
+};
+
 describe("request-body helpers", () => {
   it("reads request body payload", async () => {
     const req = createRequest();
@@ -127,5 +139,21 @@ describe("request-body helpers", () => {
     });
 
     await expect(pending).rejects.toThrow("stream failed");
+  });
+
+  it("rejects when request stream is aborted", async () => {
+    const req = createRequest();
+    const pending = readRequestBody(req);
+    emitAborted(req);
+
+    await expect(pending).rejects.toThrow(SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
+  });
+
+  it("rejects when request stream closes before end event", async () => {
+    const req = createRequest();
+    const pending = readRequestBody(req);
+    emitClosed(req);
+
+    await expect(pending).rejects.toThrow(SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
   });
 });

@@ -46,6 +46,7 @@
   - hardened repo remote URL parser for uppercase scheme variants
   - improved repo-workflow literal hygiene for PR/check constants
   - hardened repo remote parser for `git://` protocol URLs
+  - hardened request-body handling for aborted/prematurely closed streams
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
