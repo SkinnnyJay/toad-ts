@@ -875,6 +875,13 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - custom-header merge behavior retaining JSON content type while preserving
       additional caller headers.
+- Additional harness config selection hardening:
+  - Extended:
+    - `__tests__/unit/harness/harness-config.unit.test.ts`
+  - Covered:
+    - single-harness auto-selection when no default harness is configured
+    - canonical no-default error path when multiple harnesses have no defaults
+    - formatted unknown-harness error path for explicit `harnessId` overrides
 
 ---
 

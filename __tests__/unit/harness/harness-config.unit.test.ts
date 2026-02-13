@@ -2,10 +2,11 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { FILE_PATH } from "@/constants/file-paths";
+import { formatHarnessNotFoundError } from "@/harness/harness-error-messages";
 import { CLI_AGENT_MODE } from "@/types/cli-agent.types";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { loadHarnessConfig } from "@/harness/harnessConfig";
+import { HARNESS_CONFIG_ERROR, loadHarnessConfig } from "@/harness/harnessConfig";
 
 const writeHarnessFile = async (root: string, data: unknown): Promise<string> => {
   const dir = path.join(root, ".toadstool");
@@ -247,5 +248,69 @@ describe("harnessConfig", () => {
       force: true,
       browser: true,
     });
+  });
+
+  it("auto-selects the only configured harness when no default is provided", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      harnesses: {
+        only: {
+          name: "Only",
+          command: "only-cli",
+        },
+      },
+    });
+
+    const result = await loadHarnessConfig({ projectRoot, homedir: userRoot });
+
+    expect(result.harnessId).toBe("only");
+    expect(result.harness.command).toBe("only-cli");
+  });
+
+  it("throws when multiple harnesses exist and no default is configured", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      harnesses: {
+        alpha: {
+          name: "Alpha",
+          command: "alpha",
+        },
+        beta: {
+          name: "Beta",
+          command: "beta",
+        },
+      },
+    });
+
+    await expect(loadHarnessConfig({ projectRoot, homedir: userRoot })).rejects.toThrow(
+      HARNESS_CONFIG_ERROR.NO_DEFAULT_HARNESS_CONFIGURED
+    );
+  });
+
+  it("throws harness-not-found for unknown explicit harness id", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "alpha",
+      harnesses: {
+        alpha: {
+          name: "Alpha",
+          command: "alpha",
+        },
+      },
+    });
+
+    await expect(
+      loadHarnessConfig({
+        projectRoot,
+        homedir: userRoot,
+        harnessId: "missing",
+      })
+    ).rejects.toThrow(formatHarnessNotFoundError("missing"));
   });
 });

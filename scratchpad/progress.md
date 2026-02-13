@@ -28,6 +28,7 @@
   - hardened hook IPC HTTP request handling and added error-path coverage
   - added direct unit coverage for default harness config feature-flag/fallback behavior
   - hardened JSON response helper content-type header precedence behavior
+  - expanded harness config selection edge-case unit coverage
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

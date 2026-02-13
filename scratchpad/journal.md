@@ -1,5 +1,16 @@
 # Scratchpad Journal
 
+## 2026-02-13 (harness config selection edge coverage)
+- Extended `__tests__/unit/harness/harness-config.unit.test.ts` with selection edge-paths:
+  - auto-select sole harness when no default is configured
+  - throw `NO_DEFAULT_HARNESS_CONFIGURED` when multiple harnesses exist without defaults
+  - throw formatted harness-not-found error for explicit unknown `harnessId`
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/harness/harness-config.unit.test.ts __tests__/unit/harness/default-harness-config.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (HTTP response helper content-type hardening)
 - Updated `src/server/http-response.ts`:
   - changed header merge order so JSON content-type remains authoritative even when

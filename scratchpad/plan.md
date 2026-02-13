@@ -87,6 +87,10 @@
   - response helper now enforces JSON content-type even when custom headers are passed
   - added focused coverage for custom-header merge semantics
   - validated downstream auth usage remains correct
+- Added harness config selection edge coverage:
+  - locked single-harness auto-selection behavior when no default is provided
+  - locked no-default error behavior when multiple harnesses are configured
+  - locked explicit unknown harness-id failure path formatting
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
