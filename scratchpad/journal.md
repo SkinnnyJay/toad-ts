@@ -1528,3 +1528,23 @@
   - `npx vitest run` ✅
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (API not-found boundary propagation hardening)
+
+### Summary
+- Updated `classifyServerRoute(...)` to run API route classification only when
+  pathname starts with `/api/`.
+- API not-found classification metadata is now propagated directly into server
+  `UNHANDLED` results for API-path requests.
+- Added focused unit coverage that `/api` (without trailing slash) remains a
+  core-unhandled route classification.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/api-routes.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅

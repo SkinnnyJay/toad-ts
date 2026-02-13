@@ -115,6 +115,8 @@
     classifier handler ids for method-not-allowed and unhandled outcomes
   - hardened API route classifier boundaries to carry classifier handler
     metadata for method-not-allowed and not-found outcomes
+  - hardened server-route classification to propagate API not-found classifier
+    metadata only for `/api/` paths while keeping `/api` root as core-unhandled
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

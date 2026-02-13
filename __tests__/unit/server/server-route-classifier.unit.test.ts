@@ -51,6 +51,14 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies /api root path as core unhandled", () => {
+    const result = classifyServerRoute(HTTP_METHOD.GET, "/api");
+    expect(result).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies unknown api routes as unhandled with api handler id", () => {
     const result = classifyServerRoute(HTTP_METHOD.GET, "/api/unknown");
     expect(result).toEqual({

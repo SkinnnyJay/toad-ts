@@ -50,11 +50,9 @@ const classifyApiRouteMatch = (matched: RouteMatchResult): ApiMatchClassificatio
   params: matched.params,
 });
 
-const classifyUnhandledRoute = (pathname: string): UnhandledClassification => ({
+const classifyUnhandledCoreRoute = (): UnhandledClassification => ({
   kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
-  classifierHandler: pathname.startsWith("/api/")
-    ? SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER
-    : SERVER_ROUTE_CLASSIFIER_HANDLER.CORE_ROUTE_CLASSIFIER,
+  classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.CORE_ROUTE_CLASSIFIER,
 });
 
 export const classifyServerRoute = (
@@ -72,16 +70,22 @@ export const classifyServerRoute = (
     };
   }
 
-  const apiClassification = classifyApiRoute(method, pathname);
-  if (apiClassification.kind === API_ROUTE_CLASSIFICATION.MATCH) {
-    return classifyApiRouteMatch(apiClassification);
-  }
-  if (apiClassification.kind === API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED) {
+  const isApiPath = pathname.startsWith("/api/");
+  if (isApiPath) {
+    const apiClassification = classifyApiRoute(method, pathname);
+    if (apiClassification.kind === API_ROUTE_CLASSIFICATION.MATCH) {
+      return classifyApiRouteMatch(apiClassification);
+    }
+    if (apiClassification.kind === API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED) {
+      return {
+        kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: apiClassification.classifierHandler,
+      };
+    }
     return {
-      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: apiClassification.classifierHandler,
     };
   }
-
-  return classifyUnhandledRoute(pathname);
+  return classifyUnhandledCoreRoute();
 };

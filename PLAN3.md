@@ -1867,3 +1867,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - push classifier-source metadata closer to classification boundaries and
       keep downstream telemetry plumbing deterministic.
+
+## Execution Log Addendum — 2026-02-13 (api not-found boundary propagation)
+
+- Additional server-route classifier boundary hardening:
+  - Updated:
+    - `src/server/server-route-classifier.ts`
+    - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - Hardening changes:
+    - server route classifier now runs API classification only for `/api/`
+      request targets, avoiding unnecessary API-classifier evaluation on
+      non-API paths.
+    - API not-found outcomes now propagate their classifier handler metadata
+      directly into server `UNHANDLED` classification results.
+    - core unhandled route classification is now explicit and isolated.
+    - added focused unit coverage for `/api` root target classification to lock
+      core-unhandled behavior.
+  - Goal:
+    - keep classifier-source metadata aligned with route classification
+      boundaries while preserving existing response semantics.

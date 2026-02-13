@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added API not-found boundary propagation hardening:
+  - server route classifier now only runs API classification for `/api/` paths
+  - API not-found outcomes now propagate classifier handler metadata directly
+    into server `UNHANDLED` classification decisions
+  - added focused unit coverage for `/api` root path classification to lock
+    core-unhandled behavior
 - Added API classifier boundary metadata hardening:
   - extracted shared classifier handler constants to
     `server-route-classifier-handlers`
