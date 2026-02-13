@@ -1599,3 +1599,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Covered:
     - Claude harness defaults to `HARNESS_DEFAULT.CLAUDE_COMMAND` for blank env command.
     - Cursor connection defaults to `HARNESS_DEFAULT.CURSOR_COMMAND` for blank env command.
+
+## Execution Log Addendum — 2026-02-13 (hook IPC request-stream failure mapping coverage)
+
+- Additional hook IPC request lifecycle hardening:
+  - Updated:
+    - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+  - Hardening changes:
+    - added focused coverage for request body reader stream-failure paths by
+      simulating parser rejections for:
+      - aborted request stream lifecycle errors
+      - generic request stream error lifecycle failures
+    - locks canonical hook IPC response mapping to
+      `400 INVALID_REQUEST` for non-size body read failures.
+  - Goal:
+    - prevent regressions where premature request stream termination errors
+      accidentally leak as non-canonical responses.

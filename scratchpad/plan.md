@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added hook IPC request-stream failure mapping coverage:
+  - added focused unit coverage for aborted-stream and stream-error parser
+    rejection paths in hook IPC endpoint handling
+  - locks canonical `400 INVALID_REQUEST` response behavior for non-size body
+    reader lifecycle failures
 - Added CLI env-command blank fallback hardening:
   - Claude and Cursor runtime command resolution now trims env command inputs
     and falls back to harness defaults for whitespace-only overrides

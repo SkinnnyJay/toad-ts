@@ -6,7 +6,8 @@ import { HTTP_STATUS } from "@/constants/http-status";
 import { PERMISSION } from "@/constants/permissions";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { type HookIpcEndpoint, HookIpcServer } from "@/core/cursor/hook-ipc-server";
-import { afterEach, describe, expect, it } from "vitest";
+import * as requestBody from "@/server/request-body";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const postJson = async (endpoint: HookIpcEndpoint, payload: Record<string, unknown>) => {
   if (endpoint.transport === "http" && endpoint.url) {
@@ -71,6 +72,18 @@ const requestHttpEndpoint = async (
     payload: (await response.json()) as Record<string, unknown>,
   };
 };
+
+const createValidHookPayload = (): Record<string, string> => ({
+  conversation_id: "conv-1",
+  generation_id: "gen-1",
+  model: "opus-4.6-thinking",
+  hook_event_name: CURSOR_HOOK_EVENT.PRE_TOOL_USE,
+});
+
+const HOOK_REQUEST_STREAM_ERROR = {
+  ABORTED: "request aborted",
+  STREAM_ERROR: "socket hang up",
+} as const;
 
 describe("HookIpcServer", () => {
   let server: HookIpcServer | null = null;
@@ -280,6 +293,31 @@ describe("HookIpcServer", () => {
       payload: { error: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE },
     });
   });
+
+  it.each([HOOK_REQUEST_STREAM_ERROR.ABORTED, HOOK_REQUEST_STREAM_ERROR.STREAM_ERROR])(
+    "returns bad request when body reader fails with '%s'",
+    async (streamErrorMessage) => {
+      const parseBodySpy = vi
+        .spyOn(requestBody, "parseJsonRequestBody")
+        .mockRejectedValueOnce(new Error(streamErrorMessage));
+
+      server = new HookIpcServer({ transport: "http" });
+      const endpoint = await server.start();
+
+      const response = await requestHttpEndpoint(
+        endpoint,
+        "POST",
+        JSON.stringify(createValidHookPayload())
+      );
+
+      expect(response).toEqual({
+        status: HTTP_STATUS.BAD_REQUEST,
+        payload: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+      });
+
+      parseBodySpy.mockRestore();
+    }
+  );
 
   it("returns server error when hook handler throws", async () => {
     server = new HookIpcServer({ transport: "http" });

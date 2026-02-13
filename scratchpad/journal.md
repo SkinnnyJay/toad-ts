@@ -1,5 +1,22 @@
 # Scratchpad Journal
 
+## 2026-02-13 (hook IPC request-stream failure mapping coverage)
+- Updated `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`:
+  - added parser rejection coverage for request-stream lifecycle failures:
+    - aborted-stream style errors
+    - generic stream-error style failures
+  - verifies both paths return canonical `400 INVALID_REQUEST` from hook IPC endpoint
+    rather than leaking non-canonical error handling.
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (CLI env-command blank fallback hardening)
 - Updated runtime command resolution:
   - `src/core/claude-cli-harness.ts`
