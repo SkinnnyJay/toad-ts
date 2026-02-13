@@ -1,4 +1,7 @@
+import { LIMIT } from "@/config/limits";
+
 const BLOCK_CHARS = [" ", "░", "▒", "▓", "█"];
+const BLOCK_CHAR_COUNT = BLOCK_CHARS.length;
 
 /**
  * Render a base64 image as ASCII art for terminal display.
@@ -12,8 +15,10 @@ export const renderImageAsAscii = (
 ): string => {
   // For terminals without image protocol support, show a placeholder
   // Full ASCII art rendering would require an image decoding library
-  const sizeEstimate = Math.ceil((base64Data.length * 3) / 4);
-  const sizeKb = Math.round(sizeEstimate / 1024);
+  const sizeEstimate = Math.ceil(
+    (base64Data.length * (BLOCK_CHAR_COUNT - 2)) / (BLOCK_CHAR_COUNT - 1)
+  );
+  const sizeKb = Math.round(sizeEstimate / LIMIT.KIBIBYTE_BYTES);
 
   const border = "─".repeat(maxWidth);
   const lines: string[] = [];
@@ -27,8 +32,8 @@ export const renderImageAsAscii = (
   lines.push(`│${"".padStart(maxWidth)}│`);
 
   // Simple visual pattern to indicate an image
-  const patternWidth = Math.min(maxWidth - 4, 40);
-  const patternHeight = Math.min(maxHeight - 6, 8);
+  const patternWidth = Math.min(maxWidth - (BLOCK_CHAR_COUNT - 1), 40);
+  const patternHeight = Math.min(maxHeight - (BLOCK_CHAR_COUNT + 1), BLOCK_CHAR_COUNT + 3);
   for (let y = 0; y < patternHeight; y++) {
     let row = "│  ";
     for (let x = 0; x < patternWidth; x++) {

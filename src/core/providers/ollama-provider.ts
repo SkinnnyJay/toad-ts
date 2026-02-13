@@ -1,3 +1,4 @@
+import { LIMIT } from "@/config/limits";
 import type {
   ProviderAdapter,
   ProviderMessage,
@@ -30,7 +31,7 @@ export class OllamaProvider implements ProviderAdapter {
       return (data.models ?? []).map((model) => ({
         id: model.name,
         name: model.name,
-        contextWindow: 8192,
+        contextWindow: LIMIT.OLLAMA_DEFAULT_CONTEXT,
         supportsStreaming: true,
       }));
     } catch {

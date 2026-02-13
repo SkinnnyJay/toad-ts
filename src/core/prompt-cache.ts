@@ -1,9 +1,10 @@
+import { LIMIT } from "@/config/limits";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 
 const logger = createClassLogger("PromptCache");
 
-const DEFAULT_MAX_ENTRIES = 50;
-const DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const DEFAULT_MAX_ENTRIES = LIMIT.PROMPT_CACHE_MAX_ENTRIES;
+const DEFAULT_TTL_MS = LIMIT.PROMPT_CACHE_TTL_MS;
 
 interface CacheEntry {
   key: string;

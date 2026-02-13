@@ -1,3 +1,5 @@
+import { LIMIT } from "@/config/limits";
+import { HTTP_STATUS } from "@/constants/http-status";
 import type {
   ProviderAdapter,
   ProviderMessage,
@@ -82,7 +84,7 @@ export class AnthropicProvider implements ProviderAdapter {
 
     const body = {
       model: params.model,
-      max_tokens: params.maxTokens ?? 4096,
+      max_tokens: params.maxTokens ?? LIMIT.PROVIDER_DEFAULT_MAX_TOKENS,
       messages: chatMessages.map((message) => ({
         role: message.role,
         content: message.content,
@@ -177,9 +179,9 @@ export class AnthropicProvider implements ProviderAdapter {
           max_tokens: 1,
           messages: [{ role: "user", content: "hi" }],
         }),
-        signal: AbortSignal.timeout(10_000),
+        signal: AbortSignal.timeout(LIMIT.PROVIDER_HEALTH_TIMEOUT_MS),
       });
-      return { ok: response.ok || response.status === 400 };
+      return { ok: response.ok || response.status === HTTP_STATUS.BAD_REQUEST };
     } catch (error) {
       return { ok: false, error: error instanceof Error ? error.message : String(error) };
     }
