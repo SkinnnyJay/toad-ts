@@ -10,6 +10,7 @@ import { HTTP_STATUS } from "@/constants/http-status";
 import { PERMISSION } from "@/constants/permissions";
 import { PLATFORM } from "@/constants/platform";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
+import { parseJsonRequestBody } from "@/server/request-body";
 import {
   type CursorHookInput,
   CursorHookInputSchema,
@@ -35,14 +36,6 @@ const defaultSocketPath = (pid: number): string => {
   return path.join(tmpdir(), `toadstool-cursor-hooks-${pid}.sock`);
 };
 
-const safeJsonParse = (raw: string): unknown => {
-  try {
-    return JSON.parse(raw);
-  } catch (_error) {
-    return null;
-  }
-};
-
 const sendJson = (res: http.ServerResponse, status: number, payload: unknown): void => {
   res.writeHead(status, { "Content-Type": "application/json" });
   res.end(JSON.stringify(payload));
@@ -50,6 +43,13 @@ const sendJson = (res: http.ServerResponse, status: number, payload: unknown): v
 
 const sendError = (res: http.ServerResponse, status: number, message: string): void => {
   sendJson(res, status, { error: message });
+};
+
+const mapHookRequestBodyError = (error: unknown): string => {
+  if (error instanceof Error && error.message === SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE) {
+    return SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE;
+  }
+  return SERVER_RESPONSE_MESSAGE.INVALID_REQUEST;
 };
 
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> => {
@@ -140,29 +140,29 @@ export class HookIpcServer {
         return;
       }
 
-      const bodyChunks: string[] = [];
-      req.on("data", (chunk: Buffer | string) => {
-        bodyChunks.push(chunk.toString());
-      });
-      req.on("end", async () => {
-        try {
-          const rawBody = bodyChunks.join("");
-          const parsedBody = safeJsonParse(rawBody);
-          const parsedPayload = CursorHookInputSchema.safeParse(parsedBody);
-          if (!parsedPayload.success) {
-            sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
-            return;
-          }
-
-          const response = await this.handlePayload(parsedPayload.data);
-          sendJson(res, HTTP_STATUS.OK, response);
-        } catch (error) {
-          this.logger.error("Hook IPC request failed", {
-            error: error instanceof Error ? error.message : String(error),
-          });
-          sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, SERVER_RESPONSE_MESSAGE.SERVER_ERROR);
+      let payload: CursorHookInput;
+      try {
+        const parsedBody = await parseJsonRequestBody<unknown>(req);
+        const parsedPayload = CursorHookInputSchema.safeParse(parsedBody);
+        if (!parsedPayload.success) {
+          sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
+          return;
         }
-      });
+        payload = parsedPayload.data;
+      } catch (error) {
+        sendError(res, HTTP_STATUS.BAD_REQUEST, mapHookRequestBodyError(error));
+        return;
+      }
+
+      try {
+        const response = await this.handlePayload(payload);
+        sendJson(res, HTTP_STATUS.OK, response);
+      } catch (error) {
+        this.logger.error("Hook IPC request failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+        sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, SERVER_RESPONSE_MESSAGE.SERVER_ERROR);
+      }
     });
 
     this.server = server;

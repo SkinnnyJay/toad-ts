@@ -1564,3 +1564,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock request-shape guard behavior and prevent regressions where non-object
       JSON payloads accidentally bypass schema-invalid response semantics.
+
+## Execution Log Addendum — 2026-02-13 (hook IPC request-body parser hardening)
+
+- Additional hook IPC request parsing hardening:
+  - Updated:
+    - `src/core/cursor/hook-ipc-server.ts`
+  - Hardening changes:
+    - hook IPC request parsing now reuses shared `parseJsonRequestBody(...)`
+      stream helper for robust chunk/error/abort handling
+    - request-body parse errors now map to canonical bad-request responses:
+      - malformed payloads -> `INVALID_REQUEST`
+      - oversized payloads -> `REQUEST_BODY_TOO_LARGE`
+  - Extended:
+    - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+  - Covered:
+    - oversized payload path returns canonical request-body-too-large response
+    - non-object payload validation coverage remains green with shared parser

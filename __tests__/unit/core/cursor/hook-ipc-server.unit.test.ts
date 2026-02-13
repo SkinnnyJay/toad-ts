@@ -1,4 +1,5 @@
 import http from "node:http";
+import { SERVER_CONFIG } from "@/config/server";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { HTTP_STATUS } from "@/constants/http-status";
@@ -261,6 +262,22 @@ describe("HookIpcServer", () => {
     expect(primitivePayloadResponse).toEqual({
       status: HTTP_STATUS.BAD_REQUEST,
       payload: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
+  it("returns request-body-too-large for oversized payloads", async () => {
+    server = new HookIpcServer({ transport: "http" });
+    const endpoint = await server.start();
+
+    const response = await requestHttpEndpoint(
+      endpoint,
+      "POST",
+      `"${"x".repeat(SERVER_CONFIG.MAX_BODY_BYTES + 1)}"`
+    );
+
+    expect(response).toEqual({
+      status: HTTP_STATUS.BAD_REQUEST,
+      payload: { error: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE },
     });
   });
 

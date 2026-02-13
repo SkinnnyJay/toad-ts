@@ -1,5 +1,24 @@
 # Scratchpad Journal
 
+## 2026-02-13 (hook IPC request-body parser hardening)
+- Updated `src/core/cursor/hook-ipc-server.ts`:
+  - replaced ad-hoc body chunk parsing with shared `parseJsonRequestBody(...)`
+    helper for robust stream parsing/error handling parity
+  - added canonical bad-request error mapping for parse failures:
+    - malformed -> `INVALID_REQUEST`
+    - oversized -> `REQUEST_BODY_TOO_LARGE`
+- Extended `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`:
+  - added oversized hook payload rejection coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (hook IPC non-object payload coverage)
 - Updated `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`:
   - added explicit coverage for non-object JSON request bodies (array + primitive)
