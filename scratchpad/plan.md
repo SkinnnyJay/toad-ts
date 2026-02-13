@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added partial harness-availability integration coverage:
+  - headless integration now verifies disabled `cursor-cli` adapter returns
+    canonical adapter-not-registered responses while configured `mock` harness
+    remains operational in the same server instance
+  - locks mixed harness availability behavior for feature-flagged adapter
+    disablement scenarios
 - Added cursor feature-flag adapter-disable integration coverage:
   - headless integration now verifies that when `cursor-cli` is configured as
     default harness but cursor adapter is disabled by env flag, session create

@@ -2200,3 +2200,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock deterministic cursor feature-flag semantics at the harness-registry
       boundary for config-driven default harness selection.
+
+## Execution Log Addendum — 2026-02-13 (partial harness availability coverage)
+
+- Additional headless harness-registry resilience hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for mixed harness availability where
+      `cursor-cli` is configured but disabled by feature flag while `mock`
+      remains registered and available.
+    - verifies explicit `cursor-cli` session creation returns canonical
+      adapter-not-registered response.
+    - verifies explicit `mock` session creation still succeeds in the same
+      server instance.
+  - Goal:
+    - lock partial-availability semantics so disabled adapters fail cleanly
+      without impacting operational configured harnesses.

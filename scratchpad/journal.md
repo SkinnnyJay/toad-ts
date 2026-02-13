@@ -1940,3 +1940,25 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Partial harness availability integration coverage)
+
+### Summary
+- Added headless integration coverage for mixed harness availability when:
+  - `cursor-cli` is configured but adapter is disabled by feature flag.
+  - `mock` harness is simultaneously configured and adapter remains registered.
+- Test validates:
+  - explicit `cursor-cli` requests return canonical adapter-not-registered response.
+  - explicit `mock` requests still succeed in the same running server.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
