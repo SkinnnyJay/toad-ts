@@ -242,10 +242,34 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
       });
 
+      const mixedCaseDuplicateQueryResponse = await fetch(
+        `${baseUrl}/api/files/search?q=readme&Q=notes`
+      );
+      expect(mixedCaseDuplicateQueryResponse.status).toBe(400);
+      await expect(mixedCaseDuplicateQueryResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      });
+
       const encodedKeyResponse = await fetch(`${baseUrl}/api/files/search?%71=readme`);
       expect(encodedKeyResponse.status).toBe(200);
       await expect(encodedKeyResponse.json()).resolves.toEqual({
         query: "readme",
+        results: [],
+      });
+
+      const uppercaseKeyResponse = await fetch(`${baseUrl}/api/files/search?Q=readme`);
+      expect(uppercaseKeyResponse.status).toBe(200);
+      await expect(uppercaseKeyResponse.json()).resolves.toEqual({
+        query: "readme",
+        results: [],
+      });
+
+      const encodedSeparatorValueResponse = await fetch(
+        `${baseUrl}/api/files/search?q=readme%26notes`
+      );
+      expect(encodedSeparatorValueResponse.status).toBe(200);
+      await expect(encodedSeparatorValueResponse.json()).resolves.toEqual({
+        query: "readme&notes",
         results: [],
       });
 

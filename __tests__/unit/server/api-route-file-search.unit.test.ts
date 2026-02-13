@@ -199,6 +199,39 @@ describe("api-routes searchFiles handler", () => {
     });
   });
 
+  it("accepts uppercase query parameter names", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?Q=readme"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "readme", results: [] },
+    });
+  });
+
+  it("returns bad request when mixed-case query parameter names are duplicated", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=readme&Q=notes"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
+  it("decodes encoded separators within query values", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=readme%26notes"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "readme&notes", results: [] },
+    });
+  });
+
   it("returns bad request when query parameter name has malformed encoding", async () => {
     const { response, getCaptured } = createResponseCapture();
 

@@ -14,6 +14,9 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added file-search key-normalization hardening:
+  - query key matching now normalizes key names for duplicate detection across case variants
+  - added coverage for uppercase keys, mixed-case duplicate rejection, and encoded-separator values
 - Added mixed-chunk request-body decoding hardening:
   - unified UTF-8 decode path now handles both string and buffer chunks
   - added mixed chunk and malformed partial-buffer ordering coverage

@@ -38,16 +38,19 @@ const mapRequestBodyError = (error: unknown): string => {
 const decodeFormQueryComponent = (rawValue: string): string =>
   decodeURIComponent(rawValue.replace(FORM_SPACE_PATTERN, FORM_SPACE_REPLACEMENT));
 
+const normalizeQueryParamName = (rawName: string): string => rawName.trim().toLowerCase();
+
 const getRawQueryParamValues = (search: string, paramName: string): string[] => {
   const query = search.startsWith("?") ? search.slice(1) : search;
   if (query.length === 0) {
     return [];
   }
+  const normalizedParamName = normalizeQueryParamName(paramName);
   const values: string[] = [];
   for (const segment of query.split(QUERY_PARAM_SEPARATOR)) {
     const [rawName, ...rest] = segment.split(QUERY_PARAM_ASSIGNMENT);
-    const name = decodeFormQueryComponent(rawName ?? "");
-    if (name === paramName) {
+    const name = normalizeQueryParamName(decodeFormQueryComponent(rawName ?? ""));
+    if (name === normalizedParamName) {
       values.push(rest.join(QUERY_PARAM_ASSIGNMENT));
     }
   }

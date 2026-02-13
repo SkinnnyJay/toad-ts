@@ -1520,3 +1520,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Covered:
     - mixed string+buffer chunk payload parsing
     - decoder ordering for malformed partial-buffer followed by string chunk
+
+## Execution Log Addendum — 2026-02-13 (file-search key-normalization hardening)
+
+- Additional file-search query parsing hardening:
+  - Updated:
+    - `src/server/api-routes.ts`
+  - Hardening change:
+    - query key-name matching now normalizes case and trims names before matching,
+      preventing mixed-case duplicate `q` parameters from bypassing duplicate-query
+      invalid-request semantics.
+  - Extended:
+    - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Covered:
+    - uppercase `Q` key acceptance parity for single-query requests
+    - mixed-case duplicate `q` + `Q` rejection path
+    - encoded separator decoding behavior for query values

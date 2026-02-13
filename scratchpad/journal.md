@@ -1,5 +1,27 @@
 # Scratchpad Journal
 
+## 2026-02-13 (file-search key-normalization hardening)
+- Updated `src/server/api-routes.ts`:
+  - query parameter key matching now normalizes case and trims names
+  - mixed-case duplicate query keys (`q` + `Q`) now follow canonical duplicate-query
+    invalid-request behavior
+- Extended tests:
+  - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Added coverage for:
+  - uppercase key-name acceptance parity
+  - mixed-case duplicate key-name rejection
+  - encoded separator decoding in query values
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/api-route-file-search.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/api-routes.unit.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (mixed-chunk request-body hardening)
 - Updated `src/server/request-body.ts`:
   - request-body chunk handling now routes both string and buffer chunks through
