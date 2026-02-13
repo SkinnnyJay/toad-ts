@@ -594,6 +594,59 @@ describe("headless server", () => {
     }
   });
 
+  it("falls back to default harness config when configured harnesses are empty", async () => {
+    const temporaryRoot = await mkdtemp(path.join(tmpdir(), "toadstool-headless-empty-"));
+    const harnessDirectory = path.join(temporaryRoot, FILE_PATH.TOADSTOOL_DIR);
+    const harnessFilePath = path.join(harnessDirectory, FILE_PATH.HARNESSES_JSON);
+    const originalHome = process.env.HOME;
+    const originalCwd = process.cwd();
+
+    await mkdir(harnessDirectory, { recursive: true });
+    await writeFile(
+      harnessFilePath,
+      JSON.stringify(
+        {
+          defaultHarness: "empty",
+          harnesses: {},
+        },
+        null,
+        2
+      )
+    );
+
+    process.env.HOME = temporaryRoot;
+    process.chdir(temporaryRoot);
+    EnvManager.resetInstance();
+
+    let server: Awaited<ReturnType<typeof startHeadlessServer>> | null = null;
+    try {
+      server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+      const { host, port } = server.address();
+      const baseUrl = `http://${host}:${port}`;
+
+      const response = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: "mock" }),
+      });
+      expect(response.status).toBe(200);
+      const payload = createSessionResponseSchema.parse(await response.json());
+      expect(payload.sessionId).toBeTruthy();
+    } finally {
+      if (server) {
+        await server.close();
+      }
+      process.chdir(originalCwd);
+      if (originalHome === undefined) {
+        process.env.HOME = undefined;
+      } else {
+        process.env.HOME = originalHome;
+      }
+      EnvManager.resetInstance();
+      await rm(temporaryRoot, { recursive: true, force: true });
+    }
+  });
+
   it("returns request body too large for oversized payloads", async () => {
     const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
     const { host, port } = server.address();

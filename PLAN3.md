@@ -2096,6 +2096,21 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - lock resilience semantics for headless startup when user/project harness
       configuration is present but invalid.
 
+## Execution Log Addendum — 2026-02-13 (empty harness-config fallback coverage)
+
+- Additional startup fallback integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for startup fallback when harness config loads
+      successfully but resolves to no configured harnesses (empty harness map).
+    - test provisions isolated temp harness config with `harnesses: {}` and
+      verifies session creation still succeeds via fallback default config using
+      `mock` harness.
+  - Goal:
+    - lock resilience semantics for empty-yet-valid harness config files at
+      headless startup boundary.
+
 ## Execution Log Addendum — 2026-02-13 (default-harness cursor flag parsing coverage)
 
 - Additional harness default-config feature-flag hardening:

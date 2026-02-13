@@ -143,6 +143,8 @@
     truthy and falsey/invalid env-value variants
   - added direct unit coverage for shared env boolean-flag parsing utility
     across truthy, falsey, and unsupported string inputs
+  - added headless integration coverage for startup fallback when harness config
+    resolves to an empty harness map
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

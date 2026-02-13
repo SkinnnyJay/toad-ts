@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added empty harness-config fallback integration coverage:
+  - headless integration now verifies startup falls back to default harness
+    config when configured harnesses map is empty
+  - validates successful session creation via fallback `mock` harness under
+    empty harness-config conditions
 - Added boolean env-flag parser coverage:
   - added focused unit tests for `parseBooleanEnvFlag(...)` truthy/falsey/
     unsupported input variants, including padded and case-insensitive values
