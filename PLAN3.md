@@ -533,6 +533,12 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `listAgents` successful response from loaded harness config
     - fallback path to `createDefaultHarnessConfig` when config loading fails
     - internal-server-error response when both primary and fallback config resolution fail
+- Additional fallback-env integration coverage for agent listing:
+  - Added focused unit coverage for feature-flagged fallback behavior:
+    - `__tests__/unit/server/api-route-fallback-env.unit.test.ts`
+  - Covered:
+    - `/api/agents` fallback excludes Cursor harness when `TOADSTOOL_CURSOR_CLI_ENABLED` is unset/false
+    - `/api/agents` fallback includes Cursor harness when `TOADSTOOL_CURSOR_CLI_ENABLED=true`
 
 ---
 
