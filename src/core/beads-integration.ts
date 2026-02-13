@@ -1,3 +1,4 @@
+import { TIMEOUT } from "@/config/timeouts";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { execa } from "execa";
 
@@ -10,7 +11,7 @@ const BD_COMMAND = "bd";
  */
 export const isBeadsInstalled = async (): Promise<boolean> => {
   try {
-    await execa("which", [BD_COMMAND], { timeout: 3000 });
+    await execa("which", [BD_COMMAND], { timeout: TIMEOUT.COMMAND_DISCOVERY_MS });
     return true;
   } catch {
     return false;
@@ -25,7 +26,7 @@ export const beadsPrime = async (cwd?: string): Promise<string> => {
   try {
     const { stdout } = await execa(BD_COMMAND, ["prime"], {
       cwd: cwd ?? process.cwd(),
-      timeout: 10_000,
+      timeout: TIMEOUT.BEADS_COMMAND_MS,
     });
     logger.info("Beads prime completed", { output: stdout.slice(0, 200) });
     return stdout;
@@ -44,7 +45,7 @@ export const beadsSync = async (cwd?: string): Promise<string> => {
   try {
     const { stdout } = await execa(BD_COMMAND, ["sync"], {
       cwd: cwd ?? process.cwd(),
-      timeout: 10_000,
+      timeout: TIMEOUT.BEADS_COMMAND_MS,
     });
     logger.info("Beads sync completed");
     return stdout;
@@ -64,7 +65,7 @@ export const beadsImportTasks = async (
   try {
     const { stdout } = await execa(BD_COMMAND, ["tasks", "--json"], {
       cwd: cwd ?? process.cwd(),
-      timeout: 10_000,
+      timeout: TIMEOUT.BEADS_COMMAND_MS,
     });
     const parsed = JSON.parse(stdout) as Array<{ id: string; title: string; status: string }>;
     return parsed;
@@ -85,7 +86,7 @@ export const beadsExportTasks = async (
     await execa(BD_COMMAND, ["import", "--json"], {
       cwd: cwd ?? process.cwd(),
       input,
-      timeout: 10_000,
+      timeout: TIMEOUT.BEADS_COMMAND_MS,
     });
     return true;
   } catch {

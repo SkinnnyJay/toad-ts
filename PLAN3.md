@@ -467,6 +467,13 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Replaced raw `"true"` comparison in Cursor rules parser:
     - `src/core/cross-tool/universal-loader.ts`
   - (`alwaysMatch?.[1] === "true"` → `alwaysMatch?.[1] === BOOLEAN_STRINGS.TRUE`)
+- Additional timeout literal hardening:
+  - Added timeout constants in `src/config/timeouts.ts`:
+    - `COMMAND_DISCOVERY_MS`
+    - `BEADS_COMMAND_MS`
+  - Replaced raw command timeout literals in:
+    - `src/core/lsp-client.ts`
+    - `src/core/beads-integration.ts`
 
 ---
 
