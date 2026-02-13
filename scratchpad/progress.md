@@ -105,6 +105,8 @@
     and standardized metadata keys across API/headless/hook paths
   - hardened request-validation telemetry parity with shared standardized logging
     for hook IPC schema failures and headless zod validation failures
+  - hardened file-search query validation telemetry parity for non-JSON API
+    validation paths using shared standardized validation logging
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

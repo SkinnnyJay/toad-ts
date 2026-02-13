@@ -12,6 +12,7 @@ import { parseJsonRequestBody } from "@/server/request-body";
 import {
   REQUEST_PARSING_SOURCE,
   logRequestParsingFailure,
+  logRequestValidationFailure,
   normalizeRequestBodyParseErrorDetails,
 } from "@/server/request-error-normalization";
 import { parseRequestUrl } from "@/server/request-url";
@@ -32,12 +33,31 @@ const FORM_SPACE_REPLACEMENT = "%20";
 const API_ROUTE_HANDLER = {
   APPEND_PROMPT: "append_prompt",
   EXECUTE_COMMAND: "execute_command",
+  SEARCH_FILES: "search_files",
 } as const;
 
 const logger = createClassLogger("ApiRoutes");
 
 const sendJson = (res: ServerResponse, status: number, payload: unknown): void => {
   sendJsonResponse(res, status, payload);
+};
+
+const logApiValidationFailure = (
+  req: IncomingMessage,
+  handler: string,
+  mappedMessage: string,
+  error: string
+): void => {
+  logRequestValidationFailure(
+    logger,
+    {
+      source: REQUEST_PARSING_SOURCE.API_ROUTES,
+      handler,
+      method: req.method ?? "",
+      pathname: req.url ?? "",
+    },
+    { mappedMessage, error }
+  );
 };
 
 const decodeFormQueryComponent = (rawValue: string): string =>
@@ -152,6 +172,12 @@ export const listAgents: RouteHandler = async (_req, res) => {
 export const searchFiles: RouteHandler = async (req, res) => {
   const url = parseRequestUrl(req);
   if (!url) {
+    logApiValidationFailure(
+      req,
+      API_ROUTE_HANDLER.SEARCH_FILES,
+      SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      SERVER_RESPONSE_MESSAGE.INVALID_REQUEST
+    );
     sendJson(res, HTTP_STATUS.BAD_REQUEST, {
       error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
     });
@@ -160,12 +186,24 @@ export const searchFiles: RouteHandler = async (req, res) => {
   try {
     const rawQueries = getRawQueryParamValues(url.search, SEARCH_QUERY_PARAM_NAME);
     if (rawQueries.length === 0) {
+      logApiValidationFailure(
+        req,
+        API_ROUTE_HANDLER.SEARCH_FILES,
+        SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED,
+        SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED
+      );
       sendJson(res, HTTP_STATUS.BAD_REQUEST, {
         error: SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED,
       });
       return;
     }
     if (rawQueries.length > 1) {
+      logApiValidationFailure(
+        req,
+        API_ROUTE_HANDLER.SEARCH_FILES,
+        SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+        SERVER_RESPONSE_MESSAGE.INVALID_REQUEST
+      );
       sendJson(res, HTTP_STATUS.BAD_REQUEST, {
         error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
       });
@@ -174,6 +212,12 @@ export const searchFiles: RouteHandler = async (req, res) => {
     const rawQuery = rawQueries[0];
     const query = decodeFormQueryComponent(rawQuery ?? "").trim();
     if (!query) {
+      logApiValidationFailure(
+        req,
+        API_ROUTE_HANDLER.SEARCH_FILES,
+        SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED,
+        SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED
+      );
       sendJson(res, HTTP_STATUS.BAD_REQUEST, {
         error: SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED,
       });
@@ -181,7 +225,13 @@ export const searchFiles: RouteHandler = async (req, res) => {
     }
     // Placeholder - would integrate with SearchService
     sendJson(res, HTTP_STATUS.OK, { query, results: [] });
-  } catch {
+  } catch (error) {
+    logApiValidationFailure(
+      req,
+      API_ROUTE_HANDLER.SEARCH_FILES,
+      SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      error instanceof Error ? error.message : String(error)
+    );
     sendJson(res, HTTP_STATUS.BAD_REQUEST, {
       error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
     });

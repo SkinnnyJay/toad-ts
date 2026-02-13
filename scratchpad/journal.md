@@ -1,5 +1,21 @@
 # Scratchpad Journal
 
+## 2026-02-13 (file-search validation telemetry parity)
+- Updated `src/server/api-routes.ts`:
+  - file-search validation failures now emit shared standardized validation
+    telemetry (`Request validation failed`) through `logRequestValidationFailure(...)`
+  - applied to query/URL validation failures (missing, duplicate, malformed,
+    whitespace-only, invalid URL/host paths)
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/api-route-file-search.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (shared request-validation telemetry parity)
 - Updated:
   - `src/server/request-error-normalization.ts`

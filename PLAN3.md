@@ -1765,3 +1765,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - extend telemetry parity from parse failures to validation failures across
       server entrypoints, using one standardized schema.
+
+## Execution Log Addendum — 2026-02-13 (file-search validation telemetry parity)
+
+- Additional API file-search diagnostics parity hardening:
+  - Updated:
+    - `src/server/api-routes.ts`
+  - Hardening changes:
+    - file-search query validation failures now emit shared
+      `Request validation failed` telemetry with standardized source/context
+      schema via `logRequestValidationFailure(...)`.
+    - covered failure paths include:
+      - missing query
+      - duplicate query
+      - whitespace-only query
+      - malformed encoding
+      - malformed request URL/host input
+  - Goal:
+    - complete validation telemetry parity across API handlers, including
+      non-JSON query-validation endpoints.

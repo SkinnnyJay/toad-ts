@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added file-search validation telemetry parity:
+  - search-files query/url validation failures now emit shared standardized
+    validation telemetry
+  - extends validation diagnostics parity to non-JSON API validation paths
 - Added shared request-validation telemetry parity:
   - introduced shared validation telemetry helper and reused it for hook IPC
     schema-invalid payloads and headless zod-validation failures
