@@ -61,6 +61,9 @@
 - Added core route classification abstraction:
   - centralized non-API route method classification for headless dispatch
   - dedicated unit coverage for health/sessions/prompt/messages route decisions
+- Added session path parser abstraction:
+  - centralized parsing for `/sessions/:id/:action` paths
+  - reused in headless dispatch and core route classifier
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

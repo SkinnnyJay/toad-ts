@@ -1,0 +1,23 @@
+import { parseSessionRoutePath } from "@/server/session-route-path";
+import { describe, expect, it } from "vitest";
+
+describe("parseSessionRoutePath", () => {
+  it("parses session id and action from session subroute", () => {
+    expect(parseSessionRoutePath("/sessions/session-1/prompt")).toEqual({
+      sessionId: "session-1",
+      action: "prompt",
+    });
+  });
+
+  it("returns session id with undefined action for single-segment session path", () => {
+    expect(parseSessionRoutePath("/sessions/session-1")).toEqual({
+      sessionId: "session-1",
+      action: undefined,
+    });
+  });
+
+  it("returns null for non-session paths", () => {
+    expect(parseSessionRoutePath("/health")).toBeNull();
+    expect(parseSessionRoutePath("/api/sessions")).toBeNull();
+  });
+});

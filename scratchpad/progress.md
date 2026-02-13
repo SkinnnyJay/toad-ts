@@ -21,6 +21,7 @@
   - normalized direct TUI route parse failures to canonical invalid-request responses
   - added API route classification helper to centralize match/method/not-found semantics
   - extracted core route classifier for health/sessions method semantics
+  - extracted shared session path parser used by headless server and core classifier
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

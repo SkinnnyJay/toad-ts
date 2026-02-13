@@ -785,6 +785,20 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/server/core-route-classifier.unit.test.ts`
   - Covered:
     - core route method semantics for health/sessions/prompt/messages paths and fallthrough cases
+- Additional session-path parsing deduplication:
+  - Added:
+    - `src/server/session-route-path.ts`
+  - Refactored call sites:
+    - `src/server/headless-server.ts`
+    - `src/server/core-route-classifier.ts`
+  - Refactor goal:
+    - remove duplicated `pathname.split("/")` parsing for session subroutes.
+  - Added unit coverage:
+    - `__tests__/unit/server/session-route-path.unit.test.ts`
+  - Covered:
+    - valid session path parsing
+    - no-action path parsing
+    - non-session path fallback (`null`)
 
 ---
 

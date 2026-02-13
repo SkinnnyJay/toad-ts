@@ -1,5 +1,18 @@
 # Scratchpad Journal
 
+## 2026-02-13 (session route path parser extraction)
+- Added `src/server/session-route-path.ts` to centralize parsing of `/sessions/:id/:action` paths.
+- Refactored consumers:
+  - `src/server/headless-server.ts`
+  - `src/server/core-route-classifier.ts`
+- Added focused unit coverage:
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/session-route-path.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (core route classification extraction)
 - Added `src/server/core-route-classifier.ts` with explicit decision model for core routes:
   - `HEALTH_OK`

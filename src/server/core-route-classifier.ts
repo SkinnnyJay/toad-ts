@@ -1,5 +1,6 @@
 import { HTTP_METHOD } from "@/constants/http-methods";
 import { SERVER_PATH } from "@/constants/server-paths";
+import { parseSessionRoutePath } from "@/server/session-route-path";
 
 export const CORE_ROUTE_DECISION = {
   HEALTH_OK: "health_ok",
@@ -35,7 +36,11 @@ export const classifyCoreRoute = (method: string, pathname: string): CoreRouteDe
     return { kind: CORE_ROUTE_DECISION.UNHANDLED };
   }
 
-  const [_, __, sessionId, action] = pathname.split("/");
+  const parsedPath = parseSessionRoutePath(pathname);
+  if (!parsedPath) {
+    return { kind: CORE_ROUTE_DECISION.UNHANDLED };
+  }
+  const { sessionId, action } = parsedPath;
   if (!sessionId || !action) {
     return { kind: CORE_ROUTE_DECISION.UNHANDLED };
   }

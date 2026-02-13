@@ -21,6 +21,7 @@ import { parseJsonRequestBody } from "@/server/request-body";
 import { checkServerAuth } from "@/server/server-auth";
 import type { ServerRuntimeConfig } from "@/server/server-config";
 import { createSessionRequestSchema, promptSessionRequestSchema } from "@/server/server-types";
+import { parseSessionRoutePath } from "@/server/session-route-path";
 import { useAppStore } from "@/store/app-store";
 import { SessionIdSchema } from "@/types/domain";
 import type { SessionId } from "@/types/domain";
@@ -133,7 +134,9 @@ export const startHeadlessServer = async (
       }
 
       if (req.method === HTTP_METHOD.POST && url.pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
-        const [_, __, sessionId, action] = url.pathname.split("/");
+        const parsedRoutePath = parseSessionRoutePath(url.pathname);
+        const sessionId = parsedRoutePath?.sessionId;
+        const action = parsedRoutePath?.action;
         if (!sessionId || action !== SERVER_PATH.SEGMENT_PROMPT) {
           sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT);
           return;
@@ -159,7 +162,9 @@ export const startHeadlessServer = async (
       }
 
       if (req.method === HTTP_METHOD.GET && url.pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
-        const [_, __, sessionId, resource] = url.pathname.split("/");
+        const parsedRoutePath = parseSessionRoutePath(url.pathname);
+        const sessionId = parsedRoutePath?.sessionId;
+        const resource = parsedRoutePath?.action;
         if (!sessionId || resource !== SERVER_PATH.SEGMENT_MESSAGES) {
           sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT);
           return;
