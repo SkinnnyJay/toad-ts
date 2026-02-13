@@ -21,6 +21,13 @@ const sendJson = (res: ServerResponse, status: number, payload: unknown): void =
   res.end(body);
 };
 
+const mapRequestBodyError = (error: unknown): string => {
+  if (error instanceof Error && error.message === SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE) {
+    return SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE;
+  }
+  return SERVER_RESPONSE_MESSAGE.INVALID_REQUEST;
+};
+
 // ── Session Endpoints ──────────────────────────────────────────────────────
 
 export const listSessions: RouteHandler = async (_req, res) => {
@@ -157,7 +164,7 @@ export const appendPrompt: RouteHandler = async (req, res) => {
     sendJson(res, HTTP_STATUS.OK, { queued: true, text });
   } catch (error) {
     sendJson(res, HTTP_STATUS.BAD_REQUEST, {
-      error: error instanceof Error ? error.message : SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      error: mapRequestBodyError(error),
     });
   }
 };
@@ -179,7 +186,7 @@ export const executeCommand: RouteHandler = async (req, res) => {
     sendJson(res, HTTP_STATUS.OK, { executed: true, command });
   } catch (error) {
     sendJson(res, HTTP_STATUS.BAD_REQUEST, {
-      error: error instanceof Error ? error.message : SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      error: mapRequestBodyError(error),
     });
   }
 };

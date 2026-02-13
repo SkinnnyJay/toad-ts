@@ -158,9 +158,9 @@ describe("headless server", () => {
         body: "{invalid",
       });
       expect(invalidTuiPayloadResponse.status).toBe(400);
-      const tuiPayload = (await invalidTuiPayloadResponse.json()) as { error?: string };
-      expect(typeof tuiPayload.error).toBe("string");
-      expect(tuiPayload.error?.length ?? 0).toBeGreaterThan(0);
+      await expect(invalidTuiPayloadResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      });
     } finally {
       await server.close();
     }

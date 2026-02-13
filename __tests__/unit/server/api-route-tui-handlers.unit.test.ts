@@ -99,10 +99,10 @@ describe("api-routes TUI handlers", () => {
   it("appendPrompt returns bad request for invalid JSON payload", async () => {
     const captured = await invokeRawHandler(appendPrompt, "{invalid");
 
-    expect(captured.statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
-    const body = captured.body as { error?: string };
-    expect(typeof body.error).toBe("string");
-    expect((body.error ?? "").length).toBeGreaterThan(0);
+    expect(captured).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
   });
 
   it("executeCommand returns body-too-large error for oversized payload", async () => {

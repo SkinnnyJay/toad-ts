@@ -748,6 +748,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Validation:
     - existing integration coverage remains green for all method-semantics paths
       (API + non-API + auth-ordering).
+- Additional request-error canonicalization hardening:
+  - Runtime update:
+    - `src/server/api-routes.ts`
+  - Behavior update:
+    - direct TUI route handlers now map invalid JSON/read failures to canonical
+      `INVALID_REQUEST` while preserving canonical `REQUEST_BODY_TOO_LARGE` for size overflows.
+  - Extended coverage:
+    - `__tests__/unit/server/api-route-tui-handlers.unit.test.ts`
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Covered:
+    - explicit invalid JSON canonical error response for `/api/tui/append-prompt`
 
 ---
 

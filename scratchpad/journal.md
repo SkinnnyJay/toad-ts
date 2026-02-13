@@ -1,5 +1,18 @@
 # Scratchpad Journal
 
+## 2026-02-13 (request-error canonicalization hardening)
+- Updated `src/server/api-routes.ts` TUI handler error mapping to normalize invalid parse/read
+  failures to `SERVER_RESPONSE_MESSAGE.INVALID_REQUEST`, while preserving explicit
+  `REQUEST_BODY_TOO_LARGE` for size overflows.
+- Updated tests:
+  - `__tests__/unit/server/api-route-tui-handlers.unit.test.ts`
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/api-route-tui-handlers.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (core route method-guard refactor)
 - Refactored `src/server/headless-server.ts` method validation logic by extracting
   `isMethodAllowedForCoreRoute()` to centralize route-method checks and reduce branch duplication.

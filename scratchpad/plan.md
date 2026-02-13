@@ -52,6 +52,9 @@
 - Added method-guard refactor:
   - extracted centralized core-route method validation helper in headless server
   - preserved semantics validated by integration coverage
+- Added request-error normalization:
+  - direct TUI route parse failures now return canonical invalid-request payloads
+  - targeted unit/integration coverage updated for exact canonical error expectations
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
