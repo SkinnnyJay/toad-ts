@@ -1663,3 +1663,28 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Session-request harness-id canonicalization hardening)
+
+### Summary
+- Added shared harness-id utilities for normalization/canonical checks.
+- Updated create-session request schema to reject non-canonical `harnessId`
+  values (padded or whitespace-only) at validation boundary.
+- Reused shared harness-id helper within harness-config id validation to align
+  config/runtime semantics.
+- Expanded focused coverage across:
+  - harness-id utility unit tests
+  - server-types schema unit tests
+  - headless server integration validation behavior
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/harness/harness-id.unit.test.ts __tests__/unit/harness/harness-config.unit.test.ts __tests__/unit/server/server-types.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅

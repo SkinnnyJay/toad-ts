@@ -10,6 +10,7 @@ import {
   formatHarnessNotFoundError,
   formatInvalidHarnessIdError,
 } from "@/harness/harness-error-messages";
+import { isCanonicalHarnessId, normalizeHarnessId } from "@/harness/harness-id";
 import { CLI_AGENT_MODE } from "@/types/cli-agent.types";
 import { EnvManager } from "@/utils/env/env.utils";
 import { z } from "zod";
@@ -199,11 +200,10 @@ const resolveHarnessConfig = (
 };
 
 const validateHarnessId = (id: string): string => {
-  const normalizedId = id.trim();
-  if (normalizedId.length === 0 || normalizedId !== id) {
+  if (!isCanonicalHarnessId(id)) {
     throw new Error(formatInvalidHarnessIdError(id));
   }
-  return normalizedId;
+  return normalizeHarnessId(id);
 };
 
 const validateConfiguredDefaultHarnessId = (harnessId: string | undefined): string | undefined => {

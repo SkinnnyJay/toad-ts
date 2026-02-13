@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added session-request harness-id canonicalization hardening:
+  - shared harness-id utility added for canonical-id checks/normalization
+  - create-session request schema now rejects padded/blank harness ids at
+    validation boundary
+  - harness config id validation now reuses shared harness-id helper for
+    consistent semantics
+  - expanded harness utility + server schema + headless integration coverage
 - Added strict explicit CLI harness-id validation hardening:
   - explicit CLI harness-id selection now requires canonical ids
     (padded/whitespace-only ids reject)

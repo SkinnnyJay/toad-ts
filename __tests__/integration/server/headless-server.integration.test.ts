@@ -408,6 +408,26 @@ describe("headless server", () => {
     }
   });
 
+  it("returns bad request when session payload includes non-canonical harness id", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const response = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: " mock " }),
+      });
+      expect(response.status).toBe(400);
+      const payload = (await response.json()) as { error?: string };
+      expect(typeof payload.error).toBe("string");
+      expect((payload.error ?? "").length).toBeGreaterThan(0);
+    } finally {
+      await server.close();
+    }
+  });
+
   it("returns request body too large for oversized payloads", async () => {
     const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
     const { host, port } = server.address();

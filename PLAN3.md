@@ -1985,3 +1985,27 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - make explicit harness selection fail fast and deterministic by requiring
       canonical harness-id input from CLI callers.
+
+## Execution Log Addendum — 2026-02-13 (session-request harness-id canonicalization)
+
+- Additional server request-validation hardening:
+  - Updated:
+    - `src/harness/harness-id.ts`
+    - `src/harness/harnessConfig.ts`
+    - `src/server/server-types.ts`
+    - `__tests__/unit/harness/harness-id.unit.test.ts`
+    - `__tests__/unit/server/server-types.unit.test.ts`
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - introduced shared harness-id utility helpers for normalization/canonical
+      checks.
+    - create-session request schema now rejects non-canonical `harnessId`
+      values (padded or whitespace-only) at request validation boundary.
+    - harness config id validation now reuses shared harness-id helper for
+      consistent semantics.
+    - expanded unit/integration coverage for canonical harness-id behavior
+      across harness utility, server schema validation, and headless server
+      runtime responses.
+  - Goal:
+    - align harness-id validation semantics across config loading and server
+      request boundaries to avoid ambiguous harness selection behavior.

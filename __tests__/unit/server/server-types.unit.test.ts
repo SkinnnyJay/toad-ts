@@ -34,6 +34,18 @@ describe("server-types schemas", () => {
     expect(result.success).toBe(false);
   });
 
+  it("rejects non-canonical harness id values in create session payload", () => {
+    const paddedHarnessId = createSessionRequestSchema.safeParse({
+      harnessId: " mock ",
+    });
+    const whitespaceHarnessId = createSessionRequestSchema.safeParse({
+      harnessId: "   ",
+    });
+
+    expect(paddedHarnessId.success).toBe(false);
+    expect(whitespaceHarnessId.success).toBe(false);
+  });
+
   it("enforces create session response shape", () => {
     expect(
       createSessionResponseSchema.parse({
