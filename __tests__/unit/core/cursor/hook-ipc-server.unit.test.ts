@@ -227,6 +227,22 @@ describe("HookIpcServer", () => {
     });
   });
 
+  it("returns bad request for schema-invalid payloads", async () => {
+    server = new HookIpcServer({ transport: "http" });
+    const endpoint = await server.start();
+
+    const response = await requestHttpEndpoint(
+      endpoint,
+      "POST",
+      JSON.stringify({ hook_event_name: CURSOR_HOOK_EVENT.PRE_TOOL_USE })
+    );
+
+    expect(response).toEqual({
+      status: HTTP_STATUS.BAD_REQUEST,
+      payload: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
   it("returns server error when hook handler throws", async () => {
     server = new HookIpcServer({ transport: "http" });
     server.setHandlers({

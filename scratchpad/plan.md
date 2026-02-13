@@ -91,6 +91,9 @@
   - locked single-harness auto-selection behavior when no default is provided
   - locked no-default error behavior when multiple harnesses are configured
   - locked explicit unknown harness-id failure path formatting
+- Added hook IPC schema-error coverage:
+  - extended hook IPC unit tests to cover schema-invalid JSON payloads
+  - validated canonical invalid-request response mapping remains stable
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

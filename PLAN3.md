@@ -882,6 +882,12 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - single-harness auto-selection when no default harness is configured
     - canonical no-default error path when multiple harnesses have no defaults
     - formatted unknown-harness error path for explicit `harnessId` overrides
+- Additional hook IPC invalid-payload coverage:
+  - Extended:
+    - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+  - Covered:
+    - schema-invalid JSON payload path (valid JSON, missing required hook fields)
+    - canonical `400` invalid-request response mapping stability for hook IPC endpoint
 
 ---
 

@@ -1,5 +1,15 @@
 # Scratchpad Journal
 
+## 2026-02-13 (hook IPC schema-invalid payload coverage)
+- Extended `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`:
+  - added explicit assertion for schema-invalid JSON payload handling
+  - verifies canonical `400` + `SERVER_RESPONSE_MESSAGE.INVALID_REQUEST` mapping
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (harness config selection edge coverage)
 - Extended `__tests__/unit/harness/harness-config.unit.test.ts` with selection edge-paths:
   - auto-select sole harness when no default is configured
