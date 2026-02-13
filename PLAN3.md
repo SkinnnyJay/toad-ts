@@ -1716,3 +1716,30 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - ensure diagnostics parity across headless, API route, and hook IPC
       request-body parsing paths while preserving canonical responses.
+
+## Execution Log Addendum — 2026-02-13 (shared request-parse telemetry helper)
+
+- Additional request-parse telemetry standardization hardening:
+  - Updated:
+    - `src/server/request-error-normalization.ts`
+    - `src/server/api-routes.ts`
+    - `src/server/headless-server.ts`
+    - `src/core/cursor/hook-ipc-server.ts`
+    - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+    - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+  - Hardening changes:
+    - added shared telemetry helper `logRequestParsingFailure(...)` with
+      standardized metadata keys:
+      - `source`
+      - `method`
+      - `pathname`
+      - `handler` (optional)
+      - `error`
+      - `mappedMessage`
+    - added shared source constants (`REQUEST_PARSING_SOURCE`) for API routes,
+      headless server, and hook IPC.
+    - API/headless/hook request parse warnings now use unified log message and
+      metadata schema.
+  - Coverage:
+    - added unit coverage validating telemetry helper normalization behavior.
+    - updated hook IPC unit assertions to lock shared telemetry schema.

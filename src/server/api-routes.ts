@@ -9,7 +9,11 @@ import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { normalizeHttpMethod } from "@/server/http-method-normalization";
 import { sendJsonResponse } from "@/server/http-response";
 import { parseJsonRequestBody } from "@/server/request-body";
-import { normalizeRequestBodyParseErrorDetails } from "@/server/request-error-normalization";
+import {
+  REQUEST_PARSING_SOURCE,
+  logRequestParsingFailure,
+  normalizeRequestBodyParseErrorDetails,
+} from "@/server/request-error-normalization";
 import { parseRequestUrl } from "@/server/request-url";
 import { useAppStore } from "@/store/app-store";
 import type { Session, SessionId } from "@/types/domain";
@@ -248,13 +252,16 @@ export const appendPrompt: RouteHandler = async (req, res) => {
     sendJson(res, HTTP_STATUS.OK, { queued: true, text });
   } catch (error) {
     const normalizedError = normalizeRequestBodyParseErrorDetails(error);
-    logger.warn("API route request parsing failed", {
-      handler: API_ROUTE_HANDLER.APPEND_PROMPT,
-      method: normalizeHttpMethod(req.method ?? ""),
-      pathname: req.url?.trim() ?? "",
-      error: normalizedError.error,
-      mappedMessage: normalizedError.message,
-    });
+    logRequestParsingFailure(
+      logger,
+      {
+        source: REQUEST_PARSING_SOURCE.API_ROUTES,
+        handler: API_ROUTE_HANDLER.APPEND_PROMPT,
+        method: req.method ?? "",
+        pathname: req.url ?? "",
+      },
+      normalizedError
+    );
     sendJson(res, HTTP_STATUS.BAD_REQUEST, {
       error: normalizedError.message,
     });
@@ -278,13 +285,16 @@ export const executeCommand: RouteHandler = async (req, res) => {
     sendJson(res, HTTP_STATUS.OK, { executed: true, command });
   } catch (error) {
     const normalizedError = normalizeRequestBodyParseErrorDetails(error);
-    logger.warn("API route request parsing failed", {
-      handler: API_ROUTE_HANDLER.EXECUTE_COMMAND,
-      method: normalizeHttpMethod(req.method ?? ""),
-      pathname: req.url?.trim() ?? "",
-      error: normalizedError.error,
-      mappedMessage: normalizedError.message,
-    });
+    logRequestParsingFailure(
+      logger,
+      {
+        source: REQUEST_PARSING_SOURCE.API_ROUTES,
+        handler: API_ROUTE_HANDLER.EXECUTE_COMMAND,
+        method: req.method ?? "",
+        pathname: req.url ?? "",
+      },
+      normalizedError
+    );
     sendJson(res, HTTP_STATUS.BAD_REQUEST, {
       error: normalizedError.message,
     });

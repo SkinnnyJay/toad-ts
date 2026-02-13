@@ -12,7 +12,11 @@ import { PLATFORM } from "@/constants/platform";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { sendErrorResponse, sendJsonResponse } from "@/server/http-response";
 import { parseJsonRequestBody } from "@/server/request-body";
-import { normalizeRequestBodyParseErrorDetails } from "@/server/request-error-normalization";
+import {
+  REQUEST_PARSING_SOURCE,
+  logRequestParsingFailure,
+  normalizeRequestBodyParseErrorDetails,
+} from "@/server/request-error-normalization";
 import {
   type CursorHookInput,
   CursorHookInputSchema,
@@ -141,10 +145,15 @@ export class HookIpcServer {
         payload = parsedPayload.data;
       } catch (error) {
         const mappedError = normalizeRequestBodyParseErrorDetails(error);
-        this.logger.warn("Hook IPC invalid request body", {
-          error: mappedError.error,
-          mappedMessage: mappedError.message,
-        });
+        logRequestParsingFailure(
+          this.logger,
+          {
+            source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+            method: req.method ?? "",
+            pathname: req.url ?? HOOK_IPC_DEFAULT.PATHNAME,
+          },
+          mappedError
+        );
         sendErrorResponse(res, HTTP_STATUS.BAD_REQUEST, mappedError.message);
         return;
       }

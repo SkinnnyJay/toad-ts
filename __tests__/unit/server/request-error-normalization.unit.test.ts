@@ -1,10 +1,12 @@
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import {
+  REQUEST_PARSING_SOURCE,
   classifyRequestParsingError,
+  logRequestParsingFailure,
   normalizeRequestBodyParseError,
   normalizeRequestBodyParseErrorDetails,
 } from "@/server/request-error-normalization";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 const UNKNOWN_ERROR_MESSAGE = "unexpected failure";
 
@@ -44,6 +46,36 @@ describe("request-error-normalization", () => {
 
     expect(normalizeRequestBodyParseErrorDetails(error)).toEqual({
       message: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      error: UNKNOWN_ERROR_MESSAGE,
+    });
+  });
+
+  it("logs normalized parsing metadata with standardized keys", () => {
+    const warn = vi.fn();
+    const logger = { warn } as {
+      warn: (message: string, metadata?: Record<string, unknown>) => void;
+    };
+
+    logRequestParsingFailure(
+      logger,
+      {
+        source: REQUEST_PARSING_SOURCE.API_ROUTES,
+        method: " post ",
+        pathname: " /api/tui/append-prompt ",
+        handler: "append_prompt",
+      },
+      {
+        message: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+        error: UNKNOWN_ERROR_MESSAGE,
+      }
+    );
+
+    expect(warn).toHaveBeenCalledWith("Request parsing failed", {
+      source: REQUEST_PARSING_SOURCE.API_ROUTES,
+      method: "POST",
+      pathname: "/api/tui/append-prompt",
+      handler: "append_prompt",
+      mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
       error: UNKNOWN_ERROR_MESSAGE,
     });
   });

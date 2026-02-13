@@ -17,7 +17,12 @@ import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { createHarnessRegistry, isCursorHarnessEnabled } from "@/harness/harnessRegistryFactory";
 import { sendErrorResponse, sendJsonResponse } from "@/server/http-response";
 import { parseJsonRequestBody } from "@/server/request-body";
-import { classifyRequestParsingError } from "@/server/request-error-normalization";
+import {
+  REQUEST_PARSING_SOURCE,
+  classifyRequestParsingError,
+  logRequestParsingFailure,
+  normalizeRequestBodyParseErrorDetails,
+} from "@/server/request-error-normalization";
 import { parseRequestUrl } from "@/server/request-url";
 import { checkServerAuth } from "@/server/server-auth";
 import type { ServerRuntimeConfig } from "@/server/server-config";
@@ -56,12 +61,16 @@ const handleRequestParsingFailure = (
   if (!parsedRequestError) {
     return false;
   }
-  logger.warn("Headless request parsing failed", {
-    method: context.method,
-    pathname: context.pathname,
-    error: error instanceof Error ? error.message : String(error),
-    mappedMessage: parsedRequestError,
-  });
+  const normalizedError = normalizeRequestBodyParseErrorDetails(error);
+  logRequestParsingFailure(
+    logger,
+    {
+      source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
+      method: context.method,
+      pathname: context.pathname,
+    },
+    normalizedError
+  );
   sendError(res, HTTP_STATUS.BAD_REQUEST, parsedRequestError);
   return true;
 };

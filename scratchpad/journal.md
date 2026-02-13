@@ -1,5 +1,31 @@
 # Scratchpad Journal
 
+## 2026-02-13 (shared request-parse telemetry helper)
+- Updated:
+  - `src/server/request-error-normalization.ts`
+  - `src/server/api-routes.ts`
+  - `src/server/headless-server.ts`
+  - `src/core/cursor/hook-ipc-server.ts`
+- Changes:
+  - introduced shared telemetry helper `logRequestParsingFailure(...)`
+  - standardized parse-failure warning metadata keys across API/headless/hook:
+    - `source`, `method`, `pathname`, optional `handler`, `error`, `mappedMessage`
+  - introduced shared source constants via `REQUEST_PARSING_SOURCE`
+- Extended tests:
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+    - added telemetry helper normalization assertions
+  - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+    - updated warning assertions to shared telemetry message/schema
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts __tests__/unit/server/api-route-tui-handlers.unit.test.ts __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (API parse-failure diagnostics parity)
 - Updated:
   - `src/server/api-routes.ts`

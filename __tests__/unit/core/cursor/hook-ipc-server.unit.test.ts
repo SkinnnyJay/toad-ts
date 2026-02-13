@@ -7,6 +7,7 @@ import { PERMISSION } from "@/constants/permissions";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { type HookIpcEndpoint, HookIpcServer } from "@/core/cursor/hook-ipc-server";
 import * as requestBody from "@/server/request-body";
+import { REQUEST_PARSING_SOURCE } from "@/server/request-error-normalization";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const postJson = async (endpoint: HookIpcEndpoint, payload: Record<string, unknown>) => {
@@ -248,8 +249,11 @@ describe("HookIpcServer", () => {
       payload: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
     });
     expect(warnSpy).toHaveBeenCalledWith(
-      "Hook IPC invalid request body",
+      "Request parsing failed",
       expect.objectContaining({
+        source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+        method: "POST",
+        pathname: "/",
         mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
         error: expect.any(String),
       })
@@ -309,10 +313,16 @@ describe("HookIpcServer", () => {
       status: HTTP_STATUS.BAD_REQUEST,
       payload: { error: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE },
     });
-    expect(warnSpy).toHaveBeenCalledWith("Hook IPC invalid request body", {
-      mappedMessage: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE,
-      error: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE,
-    });
+    expect(warnSpy).toHaveBeenCalledWith(
+      "Request parsing failed",
+      expect.objectContaining({
+        source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+        method: "POST",
+        pathname: "/",
+        mappedMessage: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE,
+        error: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE,
+      })
+    );
     warnSpy.mockRestore();
   });
 
@@ -337,10 +347,16 @@ describe("HookIpcServer", () => {
         status: HTTP_STATUS.BAD_REQUEST,
         payload: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
       });
-      expect(warnSpy).toHaveBeenCalledWith("Hook IPC invalid request body", {
-        error: streamErrorMessage,
-        mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
-      });
+      expect(warnSpy).toHaveBeenCalledWith(
+        "Request parsing failed",
+        expect.objectContaining({
+          source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+          method: "POST",
+          pathname: "/",
+          error: streamErrorMessage,
+          mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+        })
+      );
 
       warnSpy.mockRestore();
       parseBodySpy.mockRestore();

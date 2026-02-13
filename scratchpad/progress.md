@@ -101,6 +101,8 @@
     diagnostics and localized parse-error handling
   - hardened API parse-failure diagnostics parity for TUI handlers plus stream
     error/aborted request-body coverage
+  - hardened parse-failure telemetry consistency with a shared logging helper
+    and standardized metadata keys across API/headless/hook paths
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

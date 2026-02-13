@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added shared request-parse telemetry helper:
+  - introduced shared parse-failure logging helper and source constants
+  - standardized warning metadata keys for API/headless/hook parse failures
+  - expanded unit assertions for shared telemetry schema behavior
 - Added API parse-failure diagnostics parity:
   - API TUI handlers now emit structured warning diagnostics for request-body
     parse failures, aligned with hook IPC/headless diagnostics behavior
