@@ -17,6 +17,7 @@ import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { createHarnessRegistry, isCursorHarnessEnabled } from "@/harness/harnessRegistryFactory";
 import { sendErrorResponse, sendJsonResponse } from "@/server/http-response";
 import { parseJsonRequestBody } from "@/server/request-body";
+import { classifyRequestParsingError } from "@/server/request-error-normalization";
 import { parseRequestUrl } from "@/server/request-url";
 import { checkServerAuth } from "@/server/server-auth";
 import type { ServerRuntimeConfig } from "@/server/server-config";
@@ -183,19 +184,13 @@ export const startHeadlessServer = async (
 
       sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.NOT_FOUND);
     } catch (error) {
+      const parsedRequestError = classifyRequestParsingError(error);
+      if (parsedRequestError) {
+        sendError(res, HTTP_STATUS.BAD_REQUEST, parsedRequestError);
+        return;
+      }
       if (error instanceof ZodError) {
         sendError(res, HTTP_STATUS.BAD_REQUEST, error.message);
-        return;
-      }
-      if (error instanceof SyntaxError) {
-        sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
-        return;
-      }
-      if (
-        error instanceof Error &&
-        error.message === SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE
-      ) {
-        sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE);
         return;
       }
       logger.error("Server request failed", {

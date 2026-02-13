@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added shared request-error normalization utility:
+  - centralized request body parse error normalization/classification for server
+    entrypoints
+  - refactored API routes, hook IPC, and headless server to reuse shared logic
+  - added focused unit coverage for classification behavior
 - Added hook IPC shared response helper adoption:
   - hook IPC endpoint now uses shared `sendJsonResponse`/`sendErrorResponse`
     helpers instead of local response serialization functions

@@ -1,5 +1,28 @@
 # Scratchpad Journal
 
+## 2026-02-13 (shared request-error normalization utility)
+- Added `src/server/request-error-normalization.ts` with shared helpers:
+  - `normalizeRequestBodyParseError(...)`
+  - `classifyRequestParsingError(...)`
+- Refactored consumers:
+  - `src/server/api-routes.ts` now reuses shared parse-error normalization
+  - `src/core/cursor/hook-ipc-server.ts` now reuses shared parse-error normalization
+  - `src/server/headless-server.ts` now classifies canonical parse errors via shared utility
+- Added focused unit coverage:
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+- Behavioral hardening:
+  - headless server now treats canonical invalid-request parse errors from body
+    stream lifecycle failures as `400 INVALID_REQUEST` consistently.
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts __tests__/unit/server/api-route-tui-handlers.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (hook IPC shared response helper adoption)
 - Updated `src/core/cursor/hook-ipc-server.ts`:
   - removed local `sendJson`/`sendError` helpers

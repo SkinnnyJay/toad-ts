@@ -95,6 +95,8 @@
     focused assertions for malformed/oversized/stream-failure parse paths
   - hardened hook IPC response-path deduplication by reusing shared server
     JSON/error response helpers
+  - hardened request parsing consistency with shared request-error normalization
+    utility reused by API routes, hook IPC, and headless server
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

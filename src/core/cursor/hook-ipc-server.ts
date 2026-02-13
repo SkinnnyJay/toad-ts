@@ -12,6 +12,7 @@ import { PLATFORM } from "@/constants/platform";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { sendErrorResponse, sendJsonResponse } from "@/server/http-response";
 import { parseJsonRequestBody } from "@/server/request-body";
+import { normalizeRequestBodyParseError } from "@/server/request-error-normalization";
 import {
   type CursorHookInput,
   CursorHookInputSchema,
@@ -43,14 +44,9 @@ interface HookRequestBodyErrorMapping {
 }
 
 const mapHookRequestBodyError = (error: unknown): HookRequestBodyErrorMapping => {
-  if (error instanceof Error && error.message === SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE) {
-    return {
-      message: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE,
-      error: error.message,
-    };
-  }
+  const message = normalizeRequestBodyParseError(error);
   return {
-    message: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+    message,
     error: error instanceof Error ? error.message : String(error),
   };
 };

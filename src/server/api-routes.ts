@@ -9,6 +9,7 @@ import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { normalizeHttpMethod } from "@/server/http-method-normalization";
 import { sendJsonResponse } from "@/server/http-response";
 import { parseJsonRequestBody } from "@/server/request-body";
+import { normalizeRequestBodyParseError } from "@/server/request-error-normalization";
 import { parseRequestUrl } from "@/server/request-url";
 import { useAppStore } from "@/store/app-store";
 import type { Session, SessionId } from "@/types/domain";
@@ -26,13 +27,6 @@ const FORM_SPACE_REPLACEMENT = "%20";
 
 const sendJson = (res: ServerResponse, status: number, payload: unknown): void => {
   sendJsonResponse(res, status, payload);
-};
-
-const mapRequestBodyError = (error: unknown): string => {
-  if (error instanceof Error && error.message === SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE) {
-    return SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE;
-  }
-  return SERVER_RESPONSE_MESSAGE.INVALID_REQUEST;
 };
 
 const decodeFormQueryComponent = (rawValue: string): string =>
@@ -247,7 +241,7 @@ export const appendPrompt: RouteHandler = async (req, res) => {
     sendJson(res, HTTP_STATUS.OK, { queued: true, text });
   } catch (error) {
     sendJson(res, HTTP_STATUS.BAD_REQUEST, {
-      error: mapRequestBodyError(error),
+      error: normalizeRequestBodyParseError(error),
     });
   }
 };
@@ -269,7 +263,7 @@ export const executeCommand: RouteHandler = async (req, res) => {
     sendJson(res, HTTP_STATUS.OK, { executed: true, command });
   } catch (error) {
     sendJson(res, HTTP_STATUS.BAD_REQUEST, {
-      error: mapRequestBodyError(error),
+      error: normalizeRequestBodyParseError(error),
     });
   }
 };

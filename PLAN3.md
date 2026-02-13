@@ -1652,3 +1652,26 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Validation:
     - existing hook IPC unit coverage remains green, including method handling,
       malformed/oversized/stream-failure parse paths, and server-error mapping.
+
+## Execution Log Addendum — 2026-02-13 (shared request-error normalization utility)
+
+- Additional request parsing consistency hardening:
+  - Added:
+    - `src/server/request-error-normalization.ts`
+    - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+  - Updated:
+    - `src/server/api-routes.ts`
+    - `src/server/headless-server.ts`
+    - `src/core/cursor/hook-ipc-server.ts`
+  - Hardening changes:
+    - centralized request parsing error classification/normalization for:
+      - `REQUEST_BODY_TOO_LARGE`
+      - canonical invalid-request parse failures
+    - API routes + hook IPC now share one normalization function for body-parse
+      failure mapping.
+    - headless server now classifies canonical invalid-request parse errors from
+      stream lifecycle failures (not just syntax errors), improving parity with
+      API and hook IPC behavior.
+  - Coverage:
+    - added focused unit coverage for request-error classification behavior.
+    - existing API/hook/headless targeted tests remained green.
