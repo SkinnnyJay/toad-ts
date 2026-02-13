@@ -105,6 +105,39 @@ export const startHeadlessServer = async (
         sendJson(res, HTTP_STATUS.OK, { status: "ok" });
         return;
       }
+      if (url.pathname === SERVER_PATH.HEALTH) {
+        sendError(res, HTTP_STATUS.METHOD_NOT_ALLOWED, SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED);
+        return;
+      }
+
+      if (url.pathname === SERVER_PATH.SESSIONS && req.method !== HTTP_METHOD.POST) {
+        sendError(res, HTTP_STATUS.METHOD_NOT_ALLOWED, SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED);
+        return;
+      }
+
+      if (url.pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
+        const [_, __, sessionId, action] = url.pathname.split("/");
+        if (sessionId && action === SERVER_PATH.SEGMENT_PROMPT && req.method !== HTTP_METHOD.POST) {
+          sendError(
+            res,
+            HTTP_STATUS.METHOD_NOT_ALLOWED,
+            SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED
+          );
+          return;
+        }
+        if (
+          sessionId &&
+          action === SERVER_PATH.SEGMENT_MESSAGES &&
+          req.method !== HTTP_METHOD.GET
+        ) {
+          sendError(
+            res,
+            HTTP_STATUS.METHOD_NOT_ALLOWED,
+            SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED
+          );
+          return;
+        }
+      }
 
       if (req.method === HTTP_METHOD.POST && url.pathname === SERVER_PATH.SESSIONS) {
         const raw = await parseJson(req);

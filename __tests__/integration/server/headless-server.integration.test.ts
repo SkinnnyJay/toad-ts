@@ -307,6 +307,46 @@ describe("headless server", () => {
     }
   });
 
+  it("returns method not allowed for known non-api routes with unsupported methods", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const healthResponse = await fetch(`${baseUrl}/health`, {
+        method: "POST",
+      });
+      expect(healthResponse.status).toBe(405);
+      await expect(healthResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const sessionsResponse = await fetch(`${baseUrl}/sessions`);
+      expect(sessionsResponse.status).toBe(405);
+      await expect(sessionsResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const promptResponse = await fetch(`${baseUrl}/sessions/session-1/prompt`);
+      expect(promptResponse.status).toBe(405);
+      await expect(promptResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const messagesResponse = await fetch(`${baseUrl}/sessions/session-1/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "ignored" }),
+      });
+      expect(messagesResponse.status).toBe(405);
+      await expect(messagesResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
   it("returns body-too-large error for oversized api route payloads", async () => {
     const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
     const { host, port } = server.address();

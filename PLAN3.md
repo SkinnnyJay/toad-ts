@@ -703,6 +703,19 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - invalid JSON payload handling in direct handler invocation
     - oversized payload handling with canonical `REQUEST_BODY_TOO_LARGE` response
+- Additional non-API method semantics hardening:
+  - Runtime update:
+    - `src/server/headless-server.ts`
+  - Behavior update:
+    - known non-API server routes now return `405 Method not allowed` for unsupported methods:
+      - `/health`
+      - `/sessions`
+      - `/sessions/:id/prompt`
+      - `/sessions/:id/messages`
+  - Extended integration coverage:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Covered:
+    - canonical method-not-allowed payload for unsupported non-API route methods
 
 ---
 

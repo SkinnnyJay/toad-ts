@@ -40,6 +40,9 @@
 - Added direct handler error-path hardening:
   - TUI route handlers now return explicit 400s for parse/read failures
   - unit coverage added for invalid JSON and oversized payload direct invocation
+- Added non-API method semantics hardening:
+  - known non-API routes now emit canonical 405 responses for unsupported methods
+  - integration coverage added for health/sessions method validation paths
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

@@ -1,5 +1,16 @@
 # Scratchpad Journal
 
+## 2026-02-13 (non-API method semantics hardening)
+- Updated `src/server/headless-server.ts` to return canonical `405` responses for unsupported
+  methods on known non-API routes (`/health`, `/sessions`, `/sessions/:id/prompt`,
+  `/sessions/:id/messages`).
+- Extended `__tests__/integration/server/headless-server.integration.test.ts` with explicit
+  coverage for these non-API method validation paths.
+- Validation:
+  - Targeted: `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (direct API handler error-path hardening)
 - Updated `src/server/api-routes.ts` TUI handlers (`appendPrompt`, `executeCommand`) to catch
   parse/read failures and return explicit `400` error responses.
