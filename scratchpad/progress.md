@@ -25,6 +25,7 @@
   - added unified server route classifier composing core+api classification paths
   - extracted shared HTTP JSON/error response helpers and reused across server modules
   - refactored server auth unauthorized responses to reuse shared response helper
+  - hardened hook IPC HTTP request handling and added error-path coverage
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

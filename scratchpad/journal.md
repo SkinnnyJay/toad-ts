@@ -1,5 +1,24 @@
 # Scratchpad Journal
 
+## 2026-02-13 (hook IPC request hardening)
+- Updated `src/core/cursor/hook-ipc-server.ts`:
+  - switched method check to `HTTP_METHOD.POST`
+  - added local JSON/error response helpers to remove repeated response code
+  - normalized invalid payload response to canonical `INVALID_REQUEST`
+  - added top-level try/catch around request handling to return canonical
+    `SERVER_ERROR` on thrown handler failures
+- Expanded unit coverage in:
+  - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+- Added assertions for:
+  - non-POST method rejection (`405`)
+  - malformed JSON rejection (`400`)
+  - thrown handler failure mapping (`500`)
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (server auth response deduplication)
 - Refactored `src/server/server-auth.ts` to reuse shared response helper:
   - replaced duplicated unauthorized `writeHead + end(JSON.stringify(...))` branches

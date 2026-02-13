@@ -1,7 +1,9 @@
 import http from "node:http";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
+import { HTTP_STATUS } from "@/constants/http-status";
 import { PERMISSION } from "@/constants/permissions";
+import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { type HookIpcEndpoint, HookIpcServer } from "@/core/cursor/hook-ipc-server";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -47,6 +49,26 @@ const postJson = async (endpoint: HookIpcEndpoint, payload: Record<string, unkno
   }
 
   throw new Error("Invalid hook endpoint");
+};
+
+const requestHttpEndpoint = async (
+  endpoint: HookIpcEndpoint,
+  method: string,
+  body?: string
+): Promise<{ status: number; payload: Record<string, unknown> }> => {
+  if (endpoint.transport !== "http" || !endpoint.url) {
+    throw new Error("HTTP endpoint required");
+  }
+
+  const response = await fetch(endpoint.url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body,
+  });
+  return {
+    status: response.status,
+    payload: (await response.json()) as Record<string, unknown>,
+  };
 };
 
 describe("HookIpcServer", () => {
@@ -179,5 +201,55 @@ describe("HookIpcServer", () => {
     const p95 = sorted[p95Index] ?? 0;
 
     expect(p95).toBeLessThanOrEqual(CURSOR_LIMIT.HOOK_P95_TARGET_MS);
+  });
+
+  it("returns method not allowed for non-POST requests", async () => {
+    server = new HookIpcServer({ transport: "http" });
+    const endpoint = await server.start();
+
+    const response = await requestHttpEndpoint(endpoint, "GET");
+
+    expect(response).toEqual({
+      status: HTTP_STATUS.METHOD_NOT_ALLOWED,
+      payload: { error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED },
+    });
+  });
+
+  it("returns bad request for malformed JSON payloads", async () => {
+    server = new HookIpcServer({ transport: "http" });
+    const endpoint = await server.start();
+
+    const response = await requestHttpEndpoint(endpoint, "POST", "{invalid");
+
+    expect(response).toEqual({
+      status: HTTP_STATUS.BAD_REQUEST,
+      payload: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
+  it("returns server error when hook handler throws", async () => {
+    server = new HookIpcServer({ transport: "http" });
+    server.setHandlers({
+      permissionRequest: async () => {
+        throw new Error("boom");
+      },
+    });
+    const endpoint = await server.start();
+
+    const response = await requestHttpEndpoint(
+      endpoint,
+      "POST",
+      JSON.stringify({
+        conversation_id: "conv-1",
+        generation_id: "gen-1",
+        model: "opus-4.6-thinking",
+        hook_event_name: CURSOR_HOOK_EVENT.PRE_TOOL_USE,
+      })
+    );
+
+    expect(response).toEqual({
+      status: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      payload: { error: SERVER_RESPONSE_MESSAGE.SERVER_ERROR },
+    });
   });
 });

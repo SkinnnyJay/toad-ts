@@ -75,6 +75,10 @@
   - refactored server auth middleware to reuse shared error response helper
   - removed duplicated unauthorized response serialization logic
   - preserved Bearer/raw-token auth semantics with existing unit+integration coverage
+- Added hook IPC request hardening:
+  - standardized method/invalid-payload/server-error responses for hook IPC HTTP endpoint
+  - added top-level request failure handling with canonical server error payload
+  - expanded hook IPC unit coverage for method, malformed JSON, and thrown-handler paths
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

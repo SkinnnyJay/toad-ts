@@ -840,6 +840,21 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - both bearer-token and raw-token acceptance paths
   - Coverage:
     - existing server auth unit tests and headless integration tests validated semantics.
+- Additional hook IPC request hardening:
+  - Refactored:
+    - `src/core/cursor/hook-ipc-server.ts`
+  - Hardening changes:
+    - method guard now uses `HTTP_METHOD.POST` constant
+    - request handling normalizes malformed payload responses to canonical
+      `SERVER_RESPONSE_MESSAGE.INVALID_REQUEST`
+    - top-level request processing now catches handler failures and returns canonical
+      `SERVER_RESPONSE_MESSAGE.SERVER_ERROR` instead of leaving requests unresolved
+  - Extended unit coverage:
+    - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+  - Covered:
+    - non-POST method handling (`405`)
+    - malformed JSON payload handling (`400`)
+    - thrown handler failure handling (`500`)
 
 ---
 

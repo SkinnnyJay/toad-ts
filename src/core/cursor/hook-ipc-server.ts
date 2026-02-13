@@ -5,6 +5,7 @@ import path from "node:path";
 import { DEFAULT_HOST } from "@/config/server";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
+import { HTTP_METHOD } from "@/constants/http-methods";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { PERMISSION } from "@/constants/permissions";
 import { PLATFORM } from "@/constants/platform";
@@ -40,6 +41,15 @@ const safeJsonParse = (raw: string): unknown => {
   } catch (_error) {
     return null;
   }
+};
+
+const sendJson = (res: http.ServerResponse, status: number, payload: unknown): void => {
+  res.writeHead(status, { "Content-Type": "application/json" });
+  res.end(JSON.stringify(payload));
+};
+
+const sendError = (res: http.ServerResponse, status: number, message: string): void => {
+  sendJson(res, status, { error: message });
 };
 
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> => {
@@ -125,9 +135,8 @@ export class HookIpcServer {
     }
 
     const server = http.createServer(async (req, res) => {
-      if (req.method !== "POST") {
-        res.writeHead(HTTP_STATUS.METHOD_NOT_ALLOWED, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED }));
+      if (req.method !== HTTP_METHOD.POST) {
+        sendError(res, HTTP_STATUS.METHOD_NOT_ALLOWED, SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED);
         return;
       }
 
@@ -136,18 +145,23 @@ export class HookIpcServer {
         bodyChunks.push(chunk.toString());
       });
       req.on("end", async () => {
-        const rawBody = bodyChunks.join("");
-        const parsedBody = safeJsonParse(rawBody);
-        const parsedPayload = CursorHookInputSchema.safeParse(parsedBody);
-        if (!parsedPayload.success) {
-          res.writeHead(HTTP_STATUS.BAD_REQUEST, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: parsedPayload.error.message }));
-          return;
-        }
+        try {
+          const rawBody = bodyChunks.join("");
+          const parsedBody = safeJsonParse(rawBody);
+          const parsedPayload = CursorHookInputSchema.safeParse(parsedBody);
+          if (!parsedPayload.success) {
+            sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
+            return;
+          }
 
-        const response = await this.handlePayload(parsedPayload.data);
-        res.writeHead(HTTP_STATUS.OK, { "Content-Type": "application/json" });
-        res.end(JSON.stringify(response));
+          const response = await this.handlePayload(parsedPayload.data);
+          sendJson(res, HTTP_STATUS.OK, response);
+        } catch (error) {
+          this.logger.error("Hook IPC request failed", {
+            error: error instanceof Error ? error.message : String(error),
+          });
+          sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, SERVER_RESPONSE_MESSAGE.SERVER_ERROR);
+        }
       });
     });
 
