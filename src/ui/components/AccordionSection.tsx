@@ -1,3 +1,4 @@
+import { LIMIT } from "@/config/limits";
 import { COLOR } from "@/constants/colors";
 import { TextAttributes } from "@opentui/core";
 import type { PropsWithChildren, ReactNode } from "react";
@@ -45,7 +46,7 @@ export function AccordionSection({
         paddingBottom={0}
         gap={0}
         width="100%"
-        minHeight={3}
+        minHeight={LIMIT.ACCORDION_MIN_HEIGHT}
         height={height}
       >
         <box

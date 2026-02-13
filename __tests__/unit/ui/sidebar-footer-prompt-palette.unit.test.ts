@@ -76,6 +76,10 @@ describe("StatusFooter", () => {
         sessionMode: SESSION_MODE.AUTO,
         sessionId: SessionIdSchema.parse("session-1234"),
         agentName: "Test Agent",
+        modelName: "gpt-5",
+        cloudAgentCount: 3,
+        workspacePath: "/workspace/toadstool",
+        prStatus: { url: "https://github.com/org/repo/pull/123", reviewDecision: "pass" },
         planProgress: { completed: 1, total: 3 },
         taskProgress: { completed: 2, total: 5 },
       }),
@@ -87,6 +91,10 @@ describe("StatusFooter", () => {
     expect(frame).toContain("1/3");
     expect(frame).toContain("Task");
     expect(frame).toContain("2/5");
+    expect(frame).toContain("WS:");
+    expect(frame).toContain("PR:");
+    expect(frame).toContain("Model:");
+    expect(frame).toContain("Cloud:");
     expect(frame).toContain("Cmd+F");
     expect(frame).toContain("/help");
   });

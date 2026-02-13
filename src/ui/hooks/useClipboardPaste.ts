@@ -1,3 +1,4 @@
+import { CLIPBOARD_PASTE_DEBOUNCE_MS } from "@/config/limits";
 import { isImageFile, loadImageAsBase64 } from "@/core/image-support";
 import type { ImageAttachment } from "@/core/image-support";
 import { createClassLogger } from "@/utils/logging/logger.utils";
@@ -20,7 +21,7 @@ export const useClipboardPaste = () => {
   const handlePaste = useCallback(async (pastedText: string): Promise<ClipboardPasteResult> => {
     const now = Date.now();
     // Debounce rapid paste events
-    if (now - lastPasteTime.current < 100) {
+    if (now - lastPasteTime.current < CLIPBOARD_PASTE_DEBOUNCE_MS) {
       return { text: pastedText, image: null };
     }
     lastPasteTime.current = now;

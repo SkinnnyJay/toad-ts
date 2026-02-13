@@ -2,6 +2,7 @@ import { LIMIT } from "@/config/limits";
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { ENV_KEY } from "@/constants/env-keys";
+import { INDENT_SPACES } from "@/constants/json-format";
 import { DiffRenderer } from "@/ui/components/DiffRenderer";
 import { MarkdownRenderer } from "@/ui/components/MarkdownRenderer";
 import { TRUNCATION_SHORTCUT_HINT, useTruncationToggle } from "@/ui/components/TruncationProvider";
@@ -25,7 +26,7 @@ const formatResultLines = (result: unknown): string[] => {
   if (typeof result === "string") return result.split(/\r?\n/);
 
   try {
-    return JSON.stringify(result, null, 2).split(/\r?\n/);
+    return JSON.stringify(result, null, INDENT_SPACES).split(/\r?\n/);
   } catch {
     return [String(result)];
   }
@@ -107,7 +108,7 @@ const LogBlock = memo(function LogBlock({
     expanded || !isLong ? lines : lines.slice(0, LIMIT.LONG_OUTPUT_LINE_THRESHOLD);
 
   return (
-    <box flexDirection="column" gap={0} paddingLeft={2}>
+    <box flexDirection="column" gap={0} paddingLeft={UI.SIDEBAR_PADDING}>
       <text fg={color} attributes={TextAttributes.BOLD}>
         {label}
       </text>

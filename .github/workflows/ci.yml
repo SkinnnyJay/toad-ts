@@ -30,17 +30,5 @@ jobs:
       - name: Generate Prisma client
         run: bunx prisma generate
 
-      - name: Format check
-        run: bun run format
-
-      - name: Lint
-        run: bun run lint
-
-      - name: Typecheck
-        run: bun run typecheck
-
-      - name: Unit tests
-        run: TEST_TIMEOUT=60 bun run test
-
-      - name: Build
-        run: bun run build
+      - name: Quality gate
+        run: bun run build:test:all

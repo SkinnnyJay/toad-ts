@@ -8,6 +8,7 @@ import { BREADCRUMB_PLACEMENT } from "@/constants/breadcrumb-placement";
 import { COLOR } from "@/constants/colors";
 import { COMMAND_DEFINITIONS, filterSlashCommandsForAgent } from "@/constants/command-definitions";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { DISCOVERY_SUBPATH } from "@/constants/discovery-subpaths";
 import { FOCUS_TARGET } from "@/constants/focus-target";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
@@ -18,18 +19,15 @@ import { RENDER_STAGE } from "@/constants/render-stage";
 import { SESSION_MODE, getNextSessionMode } from "@/constants/session-modes";
 import { formatModeUpdatedMessage } from "@/constants/slash-command-messages";
 import { VIEW, type View } from "@/constants/views";
-import { claudeCliHarnessAdapter } from "@/core/claude-cli-harness";
-import { codexCliHarnessAdapter } from "@/core/codex-cli-harness";
 import {
   filterCommandsForAgent,
   filterSkillsForAgent,
   loadCommands,
   loadSkills,
 } from "@/core/cross-tool";
-import { geminiCliHarnessAdapter } from "@/core/gemini-cli-harness";
-import { mockHarnessAdapter } from "@/core/mock-harness";
+import { CursorCloudAgentClient } from "@/core/cursor/cloud-agent-client";
 import { SessionStream } from "@/core/session-stream";
-import { HarnessRegistry } from "@/harness/harnessRegistry";
+import { createHarnessAdapterList, createHarnessRegistry } from "@/harness/harnessRegistryFactory";
 import { useAppStore } from "@/store/app-store";
 import { useBackgroundTaskStore } from "@/store/background-task-store";
 import { CheckpointManager } from "@/store/checkpoints/checkpoint-manager";
@@ -56,6 +54,7 @@ import { Sidebar } from "@/ui/components/Sidebar";
 import { SkillsCommandsModal } from "@/ui/components/SkillsCommandsModal";
 import { StatusFooter } from "@/ui/components/StatusFooter";
 import { ThemesModal } from "@/ui/components/ThemesModal";
+import { shouldPollCursorCloudAgentCount } from "@/ui/components/cloud-status.utils";
 import {
   useAppConfig,
   useAppKeyboardShortcuts,
@@ -80,6 +79,7 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useShallow } from "zustand/react/shallow";
 export function App(): ReactNode {
   const [view, setView] = useState<View>(VIEW.AGENT_SELECT);
+  const [cloudAgentCount, setCloudAgentCount] = useState<number | undefined>(undefined);
   const [queuedBreadcrumbSkill, setQueuedBreadcrumbSkill] = useState<string | null>(null);
   const [isContextOpen, setIsContextOpen] = useState(false);
   const [isHooksOpen, setIsHooksOpen] = useState(false);
@@ -87,6 +87,7 @@ export function App(): ReactNode {
   const [isAgentDiscoveryOpen, setIsAgentDiscoveryOpen] = useState(false);
   const startupMeasured = useRef(false);
   const currentSessionId = useAppStore((state) => state.currentSessionId);
+  const connectionStatus = useAppStore((state) => state.connectionStatus);
   const theme = useAppStore((state) => state.uiState.theme);
   const getPlanBySession = useAppStore((state) => state.getPlanBySession);
   const setCurrentSession = useAppStore((state) => state.setCurrentSession);
@@ -109,6 +110,15 @@ export function App(): ReactNode {
     return new PersistenceManager(useAppStore, provider, { writeMode, batchDelay });
   }, [persistenceConfig]);
   const checkpointManager = useMemo(() => new CheckpointManager(useAppStore), []);
+  const { config: appConfig, updateConfig } = useAppConfig();
+  const enabledHarnessIds = useMemo(() => {
+    return new Set(
+      createHarnessAdapterList({
+        enableCursor: appConfig.compatibility.cursor,
+        includeMock: false,
+      }).map((adapter) => adapter.id)
+    );
+  }, [appConfig.compatibility.cursor]);
   const {
     isHydrated,
     hasHarnesses,
@@ -126,10 +136,10 @@ export function App(): ReactNode {
     setLoadError,
   } = useSessionHydration({
     persistenceManager,
-    initialProgress: 5,
+    initialProgress: LIMIT.SESSION_HYDRATION_INITIAL_PROGRESS,
     initialStatusMessage: "Preparing…",
+    enabledHarnessIds,
   });
-  const { config: appConfig, updateConfig } = useAppConfig();
   const configDefaultAgentId = useMemo(() => {
     const candidate = appConfig.defaults?.agent;
     if (!candidate) {
@@ -149,16 +159,12 @@ export function App(): ReactNode {
     onStatusMessageChange: setStatusMessage,
     onViewChange: setView,
   });
-  const harnessRegistry = useMemo(
-    () =>
-      new HarnessRegistry([
-        claudeCliHarnessAdapter,
-        geminiCliHarnessAdapter,
-        codexCliHarnessAdapter,
-        mockHarnessAdapter,
-      ]),
-    []
-  );
+  const harnessRegistry = useMemo(() => {
+    return createHarnessRegistry({
+      enableCursor: appConfig.compatibility.cursor,
+      includeMock: true,
+    });
+  }, [appConfig.compatibility.cursor]);
   const sessionStream = useMemo(() => new SessionStream(useAppStore.getState()), []);
   const subAgentRunner = useMemo(
     () =>
@@ -194,6 +200,10 @@ export function App(): ReactNode {
     }
   }, [currentSessionId]);
   const activeSessionId = sessionId ?? currentSessionId;
+  const activeSession = useMemo(
+    () => (activeSessionId ? getSession(activeSessionId) : undefined),
+    [activeSessionId, getSession]
+  );
   const agentContext = useMemo(
     () =>
       selectedAgent
@@ -235,7 +245,7 @@ export function App(): ReactNode {
     return { completed, total: plan.tasks.length };
   }, [currentSessionId, getPlanBySession, sessionId]);
   useEffect(() => {
-    setProgress(5);
+    setProgress(LIMIT.SESSION_HYDRATION_INITIAL_PROGRESS);
     setStatusMessage("Loading TOADSTOOL…");
   }, [setProgress, setStatusMessage]);
   useEffect(() => {
@@ -347,6 +357,43 @@ export function App(): ReactNode {
       setQueuedBreadcrumbSkill(repoWorkflowInfo.action.skill);
     }
   }, [repoWorkflowInfo]);
+
+  useEffect(() => {
+    let disposed = false;
+    if (!shouldPollCursorCloudAgentCount(selectedAgent?.harnessId, connectionStatus)) {
+      setCloudAgentCount(undefined);
+      return;
+    }
+    let cloudClient: CursorCloudAgentClient | undefined;
+    try {
+      cloudClient = new CursorCloudAgentClient();
+    } catch {
+      setCloudAgentCount(undefined);
+      return;
+    }
+
+    const syncCloudAgentCount = async (): Promise<void> => {
+      try {
+        const list = await cloudClient.listAgents({ limit: 10 });
+        if (!disposed) {
+          setCloudAgentCount(list.items.length);
+        }
+      } catch {
+        if (!disposed) {
+          setCloudAgentCount(undefined);
+        }
+      }
+    };
+
+    void syncCloudAgentCount();
+    const intervalId = setInterval(() => {
+      void syncCloudAgentCount();
+    }, CURSOR_LIMIT.CLOUD_STATUS_BAR_POLL_INTERVAL_MS);
+    return () => {
+      disposed = true;
+      clearInterval(intervalId);
+    };
+  }, [connectionStatus, selectedAgent?.harnessId]);
 
   useHookManager({
     hooks: appConfig.hooks,
@@ -639,6 +686,21 @@ export function App(): ReactNode {
                 checkpointStatus={checkpointStatus}
                 contextStats={contextStats ?? undefined}
                 focusTarget={focusTarget}
+                connectionStatus={connectionStatus}
+                sessionMode={activeSession?.mode}
+                sessionId={activeSessionId ?? undefined}
+                agentName={selectedAgent?.name}
+                modelName={activeSession?.metadata?.model}
+                cloudAgentCount={cloudAgentCount}
+                workspacePath={process.cwd()}
+                prStatus={
+                  repoWorkflowInfo?.prUrl
+                    ? {
+                        url: repoWorkflowInfo.prUrl,
+                        reviewDecision: repoWorkflowInfo.checksStatus ?? "unknown",
+                      }
+                    : undefined
+                }
               />
             </box>
           </box>

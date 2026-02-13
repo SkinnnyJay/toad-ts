@@ -1,3 +1,4 @@
+import { LIMIT } from "@/config/limits";
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { KEY_NAME } from "@/constants/key-names";
@@ -129,12 +130,16 @@ export function AgentSelect({
 
   return (
     <box flexDirection="column" gap={1}>
-      <text>Pick an agent (1-9 quick-select):</text>
+      <text>{`Pick an agent (1-${LIMIT.AGENT_SELECT_MAX_SHORTCUT} quick-select):`}</text>
       <box flexDirection="column" gap={1}>
         {rows.map((row, rowIdx) => (
-          <box key={row.map((a) => a.id).join("|") || `row-${rowIdx}`} flexDirection="row" gap={2}>
+          <box
+            key={row.map((a) => a.id).join("|") || `row-${rowIdx}`}
+            flexDirection="row"
+            gap={UI.SIDEBAR_PADDING}
+          >
             {row.map((agent, colIdx) => {
-              const idx = rowIdx * 3 + colIdx;
+              const idx = rowIdx * cols + colIdx;
               const selected = idx === index;
               const { icon, color } = statusIcon(agent.status);
               return (

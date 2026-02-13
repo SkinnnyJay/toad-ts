@@ -6,6 +6,13 @@ import { keyboardRuntime, terminalRuntime } from "./utils/opentui-test-runtime";
 
 const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
 const ORIGINAL_WORK_SUBDIR = process.env.TOADSTOOL_WORK_SUBDIR;
+const ORIGINAL_REACT_ACT_ENVIRONMENT = globalThis.IS_REACT_ACT_ENVIRONMENT;
+const ORIGINAL_CONSOLE_ERROR = console.error;
+const REACT_TEST_RENDERER_DEPRECATION = "react-test-renderer is deprecated";
+
+declare global {
+  var IS_REACT_ACT_ENVIRONMENT: boolean | undefined;
+}
 
 const clearWorkSubdir = (): void => {
   process.env.TOADSTOOL_WORK_SUBDIR = "";
@@ -21,6 +28,14 @@ const unrefStdio = (): void => {
   if (typeof process.stderr.unref === "function") {
     process.stderr.unref();
   }
+};
+
+const filteredConsoleError = (...args: Parameters<typeof console.error>): void => {
+  const firstArg = args[0];
+  if (typeof firstArg === "string" && firstArg.includes(REACT_TEST_RENDERER_DEPRECATION)) {
+    return;
+  }
+  ORIGINAL_CONSOLE_ERROR(...args);
 };
 
 vi.mock("@opentui/core", () => {
@@ -42,6 +57,8 @@ vi.mock("@opentui/core", () => {
 
 beforeEach(() => {
   clearWorkSubdir();
+  console.error = filteredConsoleError;
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true;
   EnvManager.resetInstance();
 });
 
@@ -78,6 +95,8 @@ afterEach(() => {
   } else {
     process.env.TOADSTOOL_WORK_SUBDIR = ORIGINAL_WORK_SUBDIR;
   }
+  console.error = ORIGINAL_CONSOLE_ERROR;
+  globalThis.IS_REACT_ACT_ENVIRONMENT = ORIGINAL_REACT_ACT_ENVIRONMENT;
   EnvManager.resetInstance();
   if (typeof process.stdin.pause === "function") {
     process.stdin.pause();

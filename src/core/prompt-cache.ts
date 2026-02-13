@@ -1,9 +1,10 @@
+import { LIMIT } from "@/config/limits";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 
 const logger = createClassLogger("PromptCache");
 
-const DEFAULT_MAX_ENTRIES = 50;
-const DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const DEFAULT_MAX_ENTRIES = LIMIT.PROMPT_CACHE_MAX_ENTRIES;
+const DEFAULT_TTL_MS = LIMIT.PROMPT_CACHE_TTL_MS;
 
 interface CacheEntry {
   key: string;
@@ -35,7 +36,7 @@ export class PromptCache {
     let hash = 0;
     for (let i = 0; i < context.length; i++) {
       const char = context.charCodeAt(i);
-      hash = ((hash << 5) - hash + char) | 0;
+      hash = ((hash << LIMIT.PROMPT_CACHE_HASH_SHIFT_BITS) - hash + char) | 0;
     }
     return `prompt-${hash.toString(36)}`;
   }

@@ -15,7 +15,7 @@ import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { HarnessRegistry } from "@/harness/harnessRegistry";
 import { useAppStore } from "@/store/app-store";
-import type { SessionId } from "@/types/domain";
+import type { Session, SessionId } from "@/types/domain";
 import { AgentIdSchema } from "@/types/domain";
 import { withTimeout } from "@/utils/async/withTimeout";
 import { EnvManager } from "@/utils/env/env.utils";
@@ -64,6 +64,20 @@ export interface UseHarnessConnectionResult {
   sessionId: SessionId | undefined;
 }
 
+export const isCursorHarness = (harnessId: string): boolean => {
+  return harnessId === HARNESS_DEFAULT.CURSOR_CLI_ID;
+};
+
+export const selectLatestSessionForHarness = (
+  sessions: Session[],
+  harnessId: string
+): Session | undefined => {
+  const matches = sessions
+    .filter((session) => session.agentId === harnessId)
+    .sort((a, b) => b.updatedAt - a.updatedAt);
+  return matches[0];
+};
+
 /**
  * Hook to manage harness connection lifecycle.
  * Handles connecting to the selected agent, creating sessions, and error handling.
@@ -84,6 +98,9 @@ export function useHarnessConnection({
 
   const setConnectionStatus = useAppStore((state) => state.setConnectionStatus);
   const setCurrentSession = useAppStore((state) => state.setCurrentSession);
+  const sessions = useAppStore((state): Session[] =>
+    Object.values(state.sessions).filter((session): session is Session => Boolean(session))
+  );
 
   useEffect(() => {
     if (!selectedAgent) {
@@ -166,6 +183,20 @@ export function useHarnessConnection({
         onStatusMessageChange("Preparing tools…");
         onProgressChange((current) => Math.max(current, UI.PROGRESS.SESSION_READY));
 
+        if (isCursorHarness(effectiveConfig.id)) {
+          const resumeSession = selectLatestSessionForHarness(sessions, effectiveConfig.id);
+          if (resumeSession) {
+            setSessionId(resumeSession.id);
+            setCurrentSession(resumeSession.id);
+            onViewChange(VIEW.CHAT);
+            onProgressChange(UI.PROGRESS.COMPLETE);
+            onStatusMessageChange("Ready (resumed previous session)");
+            clearScreen();
+            onStageChange(RENDER_STAGE.READY);
+            return;
+          }
+        }
+
         const mcpConfig = await loadMcpConfig();
         const session = await withTimeout(
           sessionManager.createSession({
@@ -227,6 +258,7 @@ export function useHarnessConnection({
     onStatusMessageChange,
     onLoadErrorChange,
     onViewChange,
+    sessions,
   ]);
 
   return { client, sessionId };

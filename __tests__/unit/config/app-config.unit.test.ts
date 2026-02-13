@@ -163,4 +163,35 @@ describe("app-config", () => {
     expect(config.defaults?.agent).toBe("config-agent");
     expect(config.keybinds.leader).toBe("ctrl+y");
   });
+
+  it("defaults cursor compatibility flag to false", async () => {
+    const homeDir = await createTempDir("toadstool-config-home-");
+    const projectDir = await createTempDir("toadstool-config-project-");
+
+    const config = await loadAppConfig({ cwd: projectDir, homeDir, env: {} });
+    expect(config.compatibility.cursor).toBe(false);
+  });
+
+  it("supports TOADSTOOL_CURSOR_CLI_ENABLED env override", async () => {
+    const homeDir = await createTempDir("toadstool-config-home-");
+    const projectDir = await createTempDir("toadstool-config-project-");
+
+    const enabledConfig = await loadAppConfig({
+      cwd: projectDir,
+      homeDir,
+      env: {
+        [ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]: "true",
+      },
+    });
+    expect(enabledConfig.compatibility.cursor).toBe(true);
+
+    const disabledConfig = await loadAppConfig({
+      cwd: projectDir,
+      homeDir,
+      env: {
+        [ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]: "false",
+      },
+    });
+    expect(disabledConfig.compatibility.cursor).toBe(false);
+  });
 });

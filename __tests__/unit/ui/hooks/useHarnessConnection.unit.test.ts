@@ -1,7 +1,12 @@
 import { LIMIT } from "@/config/limits";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { RENDER_STAGE } from "@/constants/render-stage";
-import { formatHarnessError } from "@/ui/hooks/useHarnessConnection";
+import { AgentIdSchema, SessionIdSchema } from "@/types/domain";
+import {
+  formatHarnessError,
+  isCursorHarness,
+  selectLatestSessionForHarness,
+} from "@/ui/hooks/useHarnessConnection";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("useHarnessConnection", () => {
@@ -97,6 +102,56 @@ describe("useHarnessConnection", () => {
     it("has MAX_CONNECTION_RETRIES configured", () => {
       expect(typeof LIMIT.MAX_CONNECTION_RETRIES).toBe("number");
       expect(LIMIT.MAX_CONNECTION_RETRIES).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe("session resume helpers", () => {
+    it("detects cursor harness id", () => {
+      expect(isCursorHarness("cursor-cli")).toBe(true);
+      expect(isCursorHarness("claude-cli")).toBe(false);
+    });
+
+    it("selects most recently updated session for harness", () => {
+      const selected = selectLatestSessionForHarness(
+        [
+          {
+            id: SessionIdSchema.parse("s1"),
+            agentId: AgentIdSchema.parse("cursor-cli"),
+            messageIds: [],
+            createdAt: 1,
+            updatedAt: 5,
+            mode: "auto",
+          },
+          {
+            id: SessionIdSchema.parse("s2"),
+            agentId: AgentIdSchema.parse("cursor-cli"),
+            messageIds: [],
+            createdAt: 1,
+            updatedAt: 10,
+            mode: "auto",
+          },
+        ],
+        "cursor-cli"
+      );
+
+      expect(selected?.id).toBe("s2");
+    });
+
+    it("returns undefined when no matching harness session exists", () => {
+      const selected = selectLatestSessionForHarness(
+        [
+          {
+            id: SessionIdSchema.parse("s1"),
+            agentId: AgentIdSchema.parse("claude-cli"),
+            messageIds: [],
+            createdAt: 1,
+            updatedAt: 5,
+            mode: "auto",
+          },
+        ],
+        "cursor-cli"
+      );
+      expect(selected).toBeUndefined();
     });
   });
 

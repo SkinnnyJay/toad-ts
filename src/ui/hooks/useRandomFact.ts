@@ -1,7 +1,6 @@
+import { FACT_ROTATE_INTERVAL_MS } from "@/config/limits";
 import { loadFacts, pickRandomFact } from "@/utils/facts-cache";
 import { useEffect, useState } from "react";
-
-const ROTATE_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 
 export interface UseRandomFactResult {
   /** One random fact text, or null until loaded or if load failed. Stable for the component instance. */
@@ -41,7 +40,7 @@ export function useRandomFact(): UseRandomFactResult {
  */
 export function useRotatingFact(
   active: boolean,
-  intervalMs: number = ROTATE_INTERVAL_MS
+  intervalMs: number = FACT_ROTATE_INTERVAL_MS
 ): UseRotatingFactResult {
   const [fact, setFact] = useState<string | null>(null);
 

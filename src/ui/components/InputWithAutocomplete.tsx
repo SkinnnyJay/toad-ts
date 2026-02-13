@@ -52,7 +52,7 @@ export interface ShellCompletionProvider {
 
 const DEFAULT_COMMANDS: SlashCommand[] = COMMAND_DEFINITIONS;
 const MENTION_REGEX = /@([\w./-]*)$/;
-const MENTION_SUGGESTION_LIMIT = 8;
+const MENTION_SUGGESTION_LIMIT = LIMIT.MENTION_SUGGESTION_LIMIT;
 const PATH_SEPARATOR = "/" as const;
 
 const TEXTAREA_KEYBINDINGS: TextareaKeyBinding[] = [
@@ -510,8 +510,8 @@ export function InputWithAutocomplete({
         paddingRight={1}
         paddingTop={0}
         paddingBottom={0}
-        minHeight={multiline ? 2 : 1}
-        height={multiline ? 3 : 1}
+        minHeight={multiline ? LIMIT.INPUT_MULTILINE_MIN_HEIGHT : 1}
+        height={multiline ? LIMIT.INPUT_MULTILINE_HEIGHT : 1}
         minWidth={0}
         flexDirection={multiline ? "column" : "row"}
       >

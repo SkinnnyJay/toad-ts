@@ -11,8 +11,8 @@
  *   tsx scripts/check-magic-literals.ts [--strict]
  *
  * Exit codes:
- *   0 - No issues found (or non-strict mode with warnings)
- *   1 - Critical issues found (strict mode only)
+ *   0 - No issues found
+ *   1 - Issues found in strict mode
  */
 
 import { readFileSync } from "node:fs";
@@ -93,6 +93,123 @@ const STATUS_STRINGS = [
   "ready",
 ];
 
+interface QuoteStripState {
+  inSingleQuote: boolean;
+  inDoubleQuote: boolean;
+  inTemplateQuote: boolean;
+  inBlockComment: boolean;
+  isEscaped: boolean;
+}
+
+const INITIAL_QUOTE_STRIP_STATE: QuoteStripState = {
+  inSingleQuote: false,
+  inDoubleQuote: false,
+  inTemplateQuote: false,
+  inBlockComment: false,
+  isEscaped: false,
+};
+
+const stripQuotedContentAndLineComment = (
+  line: string,
+  previousState: QuoteStripState
+): { strippedLine: string; nextState: QuoteStripState } => {
+  let result = "";
+  let inSingleQuote = previousState.inSingleQuote;
+  let inDoubleQuote = previousState.inDoubleQuote;
+  let inTemplateQuote = previousState.inTemplateQuote;
+  let inBlockComment = previousState.inBlockComment;
+  let isEscaped = previousState.isEscaped;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const current = line[i];
+    const next = line[i + 1];
+
+    if (current === undefined) {
+      continue;
+    }
+
+    if (inBlockComment) {
+      if (current === "*" && next === "/") {
+        inBlockComment = false;
+        i += 1;
+      }
+      continue;
+    }
+
+    if (isEscaped) {
+      isEscaped = false;
+      continue;
+    }
+
+    if (current === "\\") {
+      isEscaped = true;
+      if (!inSingleQuote && !inDoubleQuote && !inTemplateQuote) {
+        result += current;
+      }
+      continue;
+    }
+
+    if (inSingleQuote) {
+      if (current === "'") {
+        inSingleQuote = false;
+      }
+      continue;
+    }
+
+    if (inDoubleQuote) {
+      if (current === '"') {
+        inDoubleQuote = false;
+      }
+      continue;
+    }
+
+    if (inTemplateQuote) {
+      if (current === "`") {
+        inTemplateQuote = false;
+      }
+      continue;
+    }
+
+    if (current === "/" && next === "*") {
+      inBlockComment = true;
+      i += 1;
+      continue;
+    }
+
+    if (current === "/" && next === "/") {
+      break;
+    }
+
+    if (current === "'") {
+      inSingleQuote = true;
+      continue;
+    }
+
+    if (current === '"') {
+      inDoubleQuote = true;
+      continue;
+    }
+
+    if (current === "`") {
+      inTemplateQuote = true;
+      continue;
+    }
+
+    result += current;
+  }
+
+  return {
+    strippedLine: result,
+    nextState: {
+      inSingleQuote,
+      inDoubleQuote,
+      inTemplateQuote,
+      inBlockComment,
+      isEscaped,
+    },
+  };
+};
+
 function scanFile(filePath: string): void {
   if (shouldIgnore(filePath)) return;
 
@@ -100,9 +217,14 @@ function scanFile(filePath: string): void {
     const content = readFileSync(filePath, "utf-8");
     const lines = content.split("\n");
 
+    let quoteStripState: QuoteStripState = INITIAL_QUOTE_STRIP_STATE;
+
     lines.forEach((line, index) => {
       const lineNum = index + 1;
       const trimmedLine = line.trim();
+      const strippedLineResult = stripQuotedContentAndLineComment(line, quoteStripState);
+      const lineWithoutQuotedContent = strippedLineResult.strippedLine;
+      quoteStripState = strippedLineResult.nextState;
 
       // Check for type literals: type X = "a" | "b" | "c"
       const typeLiteralMatch = trimmedLine.match(
@@ -141,22 +263,19 @@ function scanFile(filePath: string): void {
           `(===|!==|==|!=)\\s*["']${status}["']|["']${status}["']\\s*(===|!==|==|!=)`
         );
         if (statusPattern.test(line) && !line.includes("_STATUS.") && !line.includes("_STAGE.")) {
-          // Skip if it's in a comment or string
-          if (!line.includes("//") && !line.match(/["'].*${status}.*["']/)) {
-            issues.push({
-              file: filePath,
-              line: lineNum,
-              column: line.indexOf(status),
-              message: `Status string "${status}" in control flow - use constant from constants/`,
-              severity: "critical",
-              category: "STATUS_STRING",
-            });
-          }
+          issues.push({
+            file: filePath,
+            line: lineNum,
+            column: Math.max(0, line.indexOf(status)),
+            message: `Status string "${status}" in control flow - use constant from constants/`,
+            severity: "critical",
+            category: "STATUS_STRING",
+          });
         }
       }
 
       // Check for magic numbers (non-trivial)
-      const magicNumberMatch = line.match(/\b([2-9]|[1-9]\d{2,})\b/);
+      const magicNumberMatch = lineWithoutQuotedContent.match(/\b([2-9]|[1-9]\d{2,})\b/);
       if (magicNumberMatch) {
         const number = magicNumberMatch[1];
         // Skip obvious cases: array indices, common patterns, config files, percentages in CSS
@@ -256,16 +375,9 @@ if (process.argv.includes("--json")) {
 }
 
 // Exit codes
-const hasCriticalOrHigh = critical.length > 0 || high.length > 0;
-
-if (STRICT_MODE && hasCriticalOrHigh) {
-  console.log("\n❌ Strict mode: failing due to Critical/High severity issues");
-  process.exit(1);
-}
-
 if (STRICT_MODE && issues.length > 0) {
-  console.log("\n⚠️  Strict mode: warnings found (use --json for machine-readable output)");
-  process.exit(0);
+  console.log("\n❌ Strict mode: failing because issues were detected");
+  process.exit(1);
 }
 
 console.log("\n✅ Non-strict mode: warnings only (use --strict to fail on Critical/High)");

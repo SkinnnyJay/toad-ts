@@ -4,16 +4,12 @@ import { HTTP_METHOD } from "@/constants/http-methods";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { SERVER_EVENT } from "@/constants/server-events";
 import { SERVER_PATH } from "@/constants/server-paths";
-import { claudeCliHarnessAdapter } from "@/core/claude-cli-harness";
-import { codexCliHarnessAdapter } from "@/core/codex-cli-harness";
-import { geminiCliHarnessAdapter } from "@/core/gemini-cli-harness";
-import { mockHarnessAdapter } from "@/core/mock-harness";
 import { SessionManager } from "@/core/session-manager";
 import { SessionStream } from "@/core/session-stream";
 import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
-import { HarnessRegistry } from "@/harness/harnessRegistry";
+import { createHarnessRegistry, isCursorHarnessEnabled } from "@/harness/harnessRegistryFactory";
 import { matchRoute } from "@/server/api-routes";
 import { checkServerAuth } from "@/server/server-auth";
 import type { ServerRuntimeConfig } from "@/server/server-config";
@@ -77,12 +73,10 @@ export const startHeadlessServer = async (
   const harnessConfigResult = await loadHarnessConfig({ env }).catch(() =>
     createDefaultHarnessConfig(env)
   );
-  const harnessRegistry = new HarnessRegistry([
-    claudeCliHarnessAdapter,
-    geminiCliHarnessAdapter,
-    codexCliHarnessAdapter,
-    mockHarnessAdapter,
-  ]);
+  const harnessRegistry = createHarnessRegistry({
+    enableCursor: isCursorHarnessEnabled(env),
+    includeMock: true,
+  });
   const store = useAppStore;
   const storeState = store.getState();
   const sessionStream = new SessionStream(storeState);

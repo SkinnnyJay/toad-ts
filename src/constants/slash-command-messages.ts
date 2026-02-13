@@ -5,7 +5,7 @@ export const SLASH_COMMAND_MESSAGE = {
   NO_ACTIVE_SESSION: "No active session for slash command.",
   NO_ACTIVE_CLIENT: "No active agent connection for slash command.",
   HELP_SUMMARY:
-    "Commands: /help, /add-dir <path>, /agents, /clear, /compact, /config, /connect, /context, /copy, /cost, /debug, /details, /doctor, /editor, /export <filename>, /hooks, /import <filename>, /init, /login, /memory, /mode, /models <id>, /new <title>, /permissions, /plan <title>, /progress, /rename <title>, /review, /rewind, /security-review, /sessions, /settings, /share, /stats, /status, /themes, /thinking, /undo, /unshare, /redo, /vim",
+    "Commands: /help, /add-dir <path>, /agent, /agents, /clear, /compact, /config, /connect, /context, /copy, /cost, /debug, /details, /doctor, /editor, /export <filename>, /hooks, /import <filename>, /init, /login, /logout, /mcp, /memory, /mode, /model <id>, /models <id>, /new <title>, /permissions, /plan <title>, /progress, /rename <title>, /review, /rewind, /security-review, /sessions, /settings, /share, /stats, /status, /themes, /thinking, /undo, /unshare, /redo, /vim",
   INVALID_MODE: "Invalid mode. Use read-only, auto, or full-access.",
   NO_SESSION_TO_UPDATE: "No session to update mode.",
   SESSION_CLEARED: "Session messages cleared.",
@@ -50,6 +50,7 @@ export const SLASH_COMMAND_MESSAGE = {
   PERMISSIONS_SUMMARY: "Tool permissions follow the current session mode.",
   LOGIN_STARTING: "Starting provider authentication...",
   LOGIN_NOT_AVAILABLE: "Login flow is not yet configured.",
+  LOGOUT_NOT_AVAILABLE: "Logout flow is not available for this harness.",
   CONFIG_NOT_AVAILABLE: "Configuration panel is not available.",
   INIT_STARTING: "Generating TOADSTOOL.md for this project...",
   INIT_COMPLETE: "TOADSTOOL.md generated successfully.",

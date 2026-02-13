@@ -1,3 +1,4 @@
+import { INDENT_SPACES } from "@/constants/json-format";
 import { dump, load } from "js-yaml";
 
 import type { OptimizationRequest } from "../tokenOptimizer.types";
@@ -12,7 +13,7 @@ const YAML_DUMP_OPTIONS = {
   noRefs: true,
   noCompatMode: true,
   sortKeys: true,
-  indent: 2,
+  indent: INDENT_SPACES,
   lineWidth: 80,
 };
 

@@ -1,3 +1,4 @@
+import { LIMIT } from "@/config/limits";
 import {
   type AnalyticsMeta,
   type AnalyticsSnapshot,
@@ -54,8 +55,9 @@ const buildSavings = (before: TokenizerEstimate, after: TokenizerEstimate): Comp
   const tokensSaved = Math.max(0, before.tokenCount - after.tokenCount);
   const bytesSaved = Math.max(0, before.byteSize - after.byteSize);
   const percentReductionTokens =
-    before.tokenCount === 0 ? 0 : (tokensSaved / before.tokenCount) * 100;
-  const percentReductionBytes = before.byteSize === 0 ? 0 : (bytesSaved / before.byteSize) * 100;
+    before.tokenCount === 0 ? 0 : (tokensSaved / before.tokenCount) * LIMIT.PERCENT_SCALE;
+  const percentReductionBytes =
+    before.byteSize === 0 ? 0 : (bytesSaved / before.byteSize) * LIMIT.PERCENT_SCALE;
 
   return compressionSavingsSchema.parse({
     compressionRatio: Number.isFinite(ratio) ? ratio : 0,

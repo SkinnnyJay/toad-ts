@@ -1,3 +1,4 @@
+import { DAY_MS, STALE_SESSION_TTL_DAYS } from "@/config/limits";
 import type { Message, Session, SessionId } from "@/types/domain";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 
@@ -50,12 +51,14 @@ export const checkIntegrity = (
     // Check for stale sessions (no messages, very old)
     if (
       session.messageIds.length === 0 &&
-      Date.now() - session.updatedAt > 7 * 24 * 60 * 60 * 1000
+      Date.now() - session.updatedAt > STALE_SESSION_TTL_DAYS * DAY_MS
     ) {
       issues.push({
         type: "stale_session",
         sessionId: session.id,
-        description: `Session ${session.id} has no messages and hasn't been updated in 7+ days`,
+        description: `Session ${session.id} has no messages and hasn't been updated in ${
+          STALE_SESSION_TTL_DAYS
+        }+ days`,
       });
     }
   }

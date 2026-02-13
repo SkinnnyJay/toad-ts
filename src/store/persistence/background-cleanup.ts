@@ -1,10 +1,9 @@
+import { BACKGROUND_CLEANUP_INTERVAL_MS } from "@/config/limits";
 import type { Session, SessionId } from "@/types/domain";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { DEFAULT_RETENTION, type RetentionConfig, applyRetentionPolicy } from "./retention-policy";
 
 const logger = createClassLogger("BackgroundCleanup");
-
-const CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
 
 export interface CleanupResult {
   removedCount: number;
@@ -51,7 +50,7 @@ export const runCleanup = (
 export const startBackgroundCleanup = (
   provider: SessionProvider,
   config: RetentionConfig = DEFAULT_RETENTION,
-  intervalMs: number = CLEANUP_INTERVAL_MS
+  intervalMs: number = BACKGROUND_CLEANUP_INTERVAL_MS
 ): (() => void) => {
   // Run immediately on start
   runCleanup(provider, config);

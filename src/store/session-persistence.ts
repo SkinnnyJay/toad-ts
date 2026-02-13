@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { ENCODING } from "@/constants/encodings";
 import { ERROR_CODE } from "@/constants/error-codes";
+import { INDENT_SPACES } from "@/constants/json-format";
 import { SIDEBAR_TAB } from "@/constants/sidebar-tabs";
 import { THEME } from "@/constants/themes";
 
@@ -102,7 +103,11 @@ export const createDiskSessionPersistence = (
     async save(snapshot) {
       const normalized = normalizeSnapshot(snapshot);
       await mkdir(dirname(config.filePath), { recursive: true });
-      await writeFile(config.filePath, JSON.stringify(normalized, null, 2), ENCODING.UTF8);
+      await writeFile(
+        config.filePath,
+        JSON.stringify(normalized, null, INDENT_SPACES),
+        ENCODING.UTF8
+      );
     },
   };
 };

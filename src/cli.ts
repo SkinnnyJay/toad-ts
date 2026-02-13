@@ -6,6 +6,7 @@ import { createElement } from "react";
 import { SERVER_CONFIG } from "@/config/server";
 import { TERMINAL_TITLE } from "@/constants/app-branding";
 import { PERFORMANCE_MARK } from "@/constants/performance-marks";
+import { CLAUDE_SONNET_4_5 } from "@/constants/provider-models";
 import { HOST_FLAG, PORT_FLAG, SERVER_FLAG, SETUP_FLAG } from "@/constants/server-cli";
 import { createDefaultProviderRegistry } from "@/core/providers/provider-registry";
 import { startHeadlessServer } from "@/server/headless-server";
@@ -18,6 +19,8 @@ import { checkForUpdates } from "@/utils/update-check";
 EnvManager.bootstrap();
 
 performance.mark(PERFORMANCE_MARK.STARTUP_START);
+
+const AGENT_EXAMPLE_MODEL = CLAUDE_SONNET_4_5;
 
 const program = new Command();
 program
@@ -140,12 +143,12 @@ program
   .action((action: string) => {
     if (action === "create") {
       process.stdout.write("Agent creation wizard:\n");
-      process.stdout.write("1. Create a .md file in .toadstool/agents/\n");
-      process.stdout.write("2. Add YAML frontmatter with name, description, model, tools\n");
-      process.stdout.write("3. Add markdown body with agent instructions\n");
+      process.stdout.write("- Create a .md file in .toadstool/agents/\n");
+      process.stdout.write("- Add YAML frontmatter with name, description, model, tools\n");
+      process.stdout.write("- Add markdown body with agent instructions\n");
       process.stdout.write("\nExample:\n");
       process.stdout.write(
-        "---\nname: reviewer\ndescription: Code reviewer\nmodel: claude-sonnet-4\n---\n\nReview all code changes.\n"
+        `---\nname: reviewer\ndescription: Code reviewer\nmodel: ${AGENT_EXAMPLE_MODEL}\n---\n\nReview all code changes.\n`
       );
     } else {
       process.stderr.write(`Unknown agent action: ${action}\n`);

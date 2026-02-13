@@ -1,5 +1,6 @@
 import { readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { LIMIT } from "@/config/limits";
 import { ENCODING } from "@/constants/encodings";
 import { IMPORTANT_PROJECT_FILES, PROJECT_FILE } from "@/constants/project-files";
 import { createClassLogger } from "@/utils/logging/logger.utils";
@@ -42,8 +43,8 @@ export const generateToadstoolMd = async (cwd: string): Promise<string> => {
     lines.push("");
   }
 
-  // Scan directory structure (top 2 levels)
-  const structure = await scanDirectoryStructure(cwd, 2);
+  // Scan directory structure (top two levels)
+  const structure = await scanDirectoryStructure(cwd, LIMIT.INIT_GENERATOR_STRUCTURE_DEPTH);
   if (structure.length > 0) {
     lines.push("## Project Structure");
     lines.push("");

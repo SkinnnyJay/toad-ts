@@ -11,6 +11,8 @@ import { createAcpAgentPort } from "@/core/acp-agent-port";
 import type { ACPClientOptions, ACPConnectionLike } from "@/core/acp-client";
 import { ACPConnection, type ACPConnectionOptions } from "@/core/acp-connection";
 import type { AgentPort } from "@/core/agent-port";
+import { CliAgentBase } from "@/core/cli-agent/cli-agent.base";
+import { createCliHarnessAdapter } from "@/core/cli-agent/create-cli-harness-adapter";
 import type {
   HarnessAdapter,
   HarnessRuntime,
@@ -19,7 +21,6 @@ import type {
 import { type HarnessConfig, harnessConfigSchema } from "@/harness/harnessConfig";
 import { createPermissionHandler } from "@/tools/permissions";
 import { ToolHost } from "@/tools/tool-host";
-import type { ConnectionStatus } from "@/types/domain";
 import { retryWithBackoff } from "@/utils/async/retryWithBackoff";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
@@ -33,8 +34,11 @@ import type {
   PromptRequest,
   PromptResponse,
   SessionNotification,
+  SetSessionModeRequest,
+  SetSessionModeResponse,
+  SetSessionModelRequest,
+  SetSessionModelResponse,
 } from "@agentclientprotocol/sdk";
-import { EventEmitter } from "eventemitter3";
 
 export type ClaudeCliHarnessAdapterEvents = HarnessRuntimeEvents;
 
@@ -94,10 +98,7 @@ const resolveDefaults = (
   return { command, args, env };
 };
 
-export class ClaudeCliHarnessAdapter
-  extends EventEmitter<ClaudeCliHarnessAdapterEvents>
-  implements HarnessRuntime
-{
+export class ClaudeCliHarnessAdapter extends CliAgentBase implements HarnessRuntime {
   public readonly command: string;
   public readonly args: readonly string[];
   private readonly connection: ACPConnectionLike;
@@ -129,14 +130,10 @@ export class ClaudeCliHarnessAdapter
       clientOptions: options.clientOptions,
     });
 
-    this.client.on("state", (status) => this.emit("state", status));
+    this.client.on("state", (status) => this.setConnectionStatus(status));
     this.client.on("sessionUpdate", (update) => this.emit("sessionUpdate", update));
     this.client.on("permissionRequest", (request) => this.emit("permissionRequest", request));
     this.client.on("error", (error) => this.emit("error", error));
-  }
-
-  get connectionStatus(): ConnectionStatus {
-    return this.connection.connectionStatus;
   }
 
   async connect(): Promise<void> {
@@ -192,12 +189,40 @@ export class ClaudeCliHarnessAdapter
     return this.client.newSession(params);
   }
 
+  async setSessionMode(params: SetSessionModeRequest): Promise<SetSessionModeResponse> {
+    if (!this.client.setSessionMode) {
+      return {};
+    }
+    try {
+      return await this.client.setSessionMode(params);
+    } catch (error) {
+      if (isMethodNotFoundError(error)) {
+        return {};
+      }
+      throw error;
+    }
+  }
+
+  async setSessionModel(params: SetSessionModelRequest): Promise<SetSessionModelResponse> {
+    if (!this.client.setSessionModel) {
+      return {};
+    }
+    try {
+      return await this.client.setSessionModel(params);
+    } catch (error) {
+      if (isMethodNotFoundError(error)) {
+        return {};
+      }
+      throw error;
+    }
+  }
+
   async authenticate(params: AuthenticateRequest): Promise<AuthenticateResponse> {
     return this.client.authenticate(params);
   }
 
   async prompt(params: PromptRequest): Promise<PromptResponse> {
-    return this.client.prompt(params);
+    return this.withPromptGuard(async () => this.client.prompt(params));
   }
 
   async sessionUpdate(params: SessionNotification): Promise<void> {
@@ -205,7 +230,7 @@ export class ClaudeCliHarnessAdapter
   }
 }
 
-export const createCliHarnessRuntime = (config: HarnessConfig): HarnessRuntime => {
+export const createAcpCliHarnessRuntime = (config: HarnessConfig): HarnessRuntime => {
   const env = { ...EnvManager.getInstance().getSnapshot(), ...config.env };
   const toolHost = new ToolHost({ baseDir: config.cwd, env });
   const clientOptions: ACPClientOptions = {
@@ -223,14 +248,19 @@ export const createCliHarnessRuntime = (config: HarnessConfig): HarnessRuntime =
   });
 };
 
-export const claudeCliHarnessAdapter: HarnessAdapter = {
-  id: "claude-cli",
-  name: "Claude CLI",
+export const claudeCliHarnessAdapter: HarnessAdapter = createCliHarnessAdapter({
+  id: HARNESS_DEFAULT.CLAUDE_CLI_ID,
+  name: HARNESS_DEFAULT.CLAUDE_CLI_NAME,
   configSchema: harnessConfigSchema,
-  createHarness: (config) => {
-    return createCliHarnessRuntime(config);
-  },
-};
+  createRuntime: (config: HarnessConfig) => createAcpCliHarnessRuntime(config),
+});
 
 const isErrnoException = (error: unknown): error is NodeJS.ErrnoException =>
   typeof error === "object" && error !== null && "code" in error;
+
+const isMethodNotFoundError = (error: unknown): error is { code: number } =>
+  typeof error === "object" &&
+  error !== null &&
+  "code" in error &&
+  typeof (error as { code: unknown }).code === "number" &&
+  (error as { code: number }).code === ERROR_CODE.RPC_METHOD_NOT_FOUND;

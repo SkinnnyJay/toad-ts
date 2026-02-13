@@ -16,7 +16,15 @@ import { computeContextStats } from "../src/core/context-manager";
 import { MessageIdSchema, SessionIdSchema } from "../src/types/domain";
 import type { Message } from "../src/types/domain";
 
-const measure = (name: string, fn: () => void, iterations = 100): void => {
+const BENCHMARK = {
+  DEFAULT_ITERATIONS: 100,
+  MESSAGE_COUNT_SMALL: 10,
+  MESSAGE_COUNT_MEDIUM: 100,
+  MESSAGE_COUNT_LARGE: 500,
+  CHARS_PER_MESSAGE: 500,
+} as const;
+
+const measure = (name: string, fn: () => void, iterations = BENCHMARK.DEFAULT_ITERATIONS): void => {
   const times: number[] = [];
   for (let i = 0; i < iterations; i++) {
     const start = performance.now();
@@ -37,7 +45,12 @@ const createMessages = (count: number): Message[] => {
     id: MessageIdSchema.parse(`msg-${i}`),
     sessionId,
     role: (i % 2 === 0 ? MESSAGE_ROLE.USER : MESSAGE_ROLE.ASSISTANT) as Message["role"],
-    content: [{ type: CONTENT_BLOCK_TYPE.TEXT as const, text: "x".repeat(500) }],
+    content: [
+      {
+        type: CONTENT_BLOCK_TYPE.TEXT as const,
+        text: "x".repeat(BENCHMARK.CHARS_PER_MESSAGE),
+      },
+    ],
     createdAt: Date.now() + i,
     isStreaming: false,
   }));
@@ -46,9 +59,9 @@ const createMessages = (count: number): Message[] => {
 console.log("=== TOADSTOOL Performance Benchmarks ===\n");
 
 // Context stats computation
-const messages10 = createMessages(10);
-const messages100 = createMessages(100);
-const messages500 = createMessages(500);
+const messages10 = createMessages(BENCHMARK.MESSAGE_COUNT_SMALL);
+const messages100 = createMessages(BENCHMARK.MESSAGE_COUNT_MEDIUM);
+const messages500 = createMessages(BENCHMARK.MESSAGE_COUNT_LARGE);
 
 measure("Context stats (10 messages)", () => computeContextStats(messages10));
 measure("Context stats (100 messages)", () => computeContextStats(messages100));

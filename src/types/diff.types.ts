@@ -1,3 +1,4 @@
+import { LIMIT } from "@/config/limits";
 import { DIFF_LINE_TYPE, DIFF_VIEW_MODE } from "@/constants/diff-types";
 import { z } from "zod";
 
@@ -80,8 +81,8 @@ export const DiffRendererPropsSchema = z.object({
   viewMode: z
     .enum([DIFF_VIEW_MODE.UNIFIED, DIFF_VIEW_MODE.SIDE_BY_SIDE])
     .default(DIFF_VIEW_MODE.UNIFIED),
-  /** Number of context lines to show around changes (default: 3) */
-  contextLines: z.number().default(3),
+  /** Number of context lines to show around changes */
+  contextLines: z.number().default(LIMIT.DIFF_CONTEXT_LINES),
   /** Maximum lines before truncation */
   maxLines: z.number().optional(),
 });

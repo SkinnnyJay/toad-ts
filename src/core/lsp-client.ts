@@ -57,7 +57,7 @@ export const detectLanguageServers = async (): Promise<LSPServerConfig[]> => {
 
 /**
  * Placeholder for LSP operations exposed as agent tools.
- * Full implementation requires JSON-RPC 2.0 client with stdio transport.
+ * Full implementation requires a JSON-RPC version-two client with stdio transport.
  */
 export interface LSPToolOperations {
   goToDefinition(file: string, line: number, column: number): Promise<LSPSymbol | null>;

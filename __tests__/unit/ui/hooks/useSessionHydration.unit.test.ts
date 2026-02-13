@@ -1,8 +1,9 @@
+import { SESSION_HYDRATION_INITIAL_PROGRESS } from "@/config/limits";
 import { UI } from "@/config/ui";
 import { RENDER_STAGE } from "@/constants/render-stage";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import { AgentIdSchema } from "@/types/domain";
-import { buildAgentOptions } from "@/ui/hooks/useSessionHydration";
+import { buildAgentOptions, filterHarnessConfigs } from "@/ui/hooks/useSessionHydration";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("useSessionHydration", () => {
@@ -77,6 +78,42 @@ describe("useSessionHydration", () => {
     });
   });
 
+  describe("filterHarnessConfigs", () => {
+    it("filters harnesses by enabled ids", () => {
+      const harnesses: Record<string, HarnessConfig> = {
+        "claude-cli": {
+          id: "claude-cli",
+          name: "Claude CLI",
+          command: "claude",
+          args: [],
+        },
+        "cursor-cli": {
+          id: "cursor-cli",
+          name: "Cursor CLI",
+          command: "cursor-agent",
+          args: [],
+        },
+      };
+
+      const filtered = filterHarnessConfigs(harnesses, new Set(["claude-cli"]));
+      expect(Object.keys(filtered)).toEqual(["claude-cli"]);
+    });
+
+    it("returns original harnesses when filter removes everything", () => {
+      const harnesses: Record<string, HarnessConfig> = {
+        "cursor-cli": {
+          id: "cursor-cli",
+          name: "Cursor CLI",
+          command: "cursor-agent",
+          args: [],
+        },
+      };
+
+      const filtered = filterHarnessConfigs(harnesses, new Set(["claude-cli"]));
+      expect(Object.keys(filtered)).toEqual(["cursor-cli"]);
+    });
+  });
+
   describe("constants and defaults", () => {
     it("uses correct UI progress constants", () => {
       expect(UI.PROGRESS.INITIAL).toBe(10);
@@ -94,7 +131,7 @@ describe("useSessionHydration", () => {
 
   describe("progress calculation", () => {
     it("progress only increases (never decreases)", () => {
-      let progress = 5;
+      let progress = SESSION_HYDRATION_INITIAL_PROGRESS;
       const setProgress = (updater: number | ((current: number) => number)) => {
         if (typeof updater === "function") {
           progress = updater(progress);

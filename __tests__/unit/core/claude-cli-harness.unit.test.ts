@@ -1,7 +1,11 @@
 import { PassThrough, Readable, Writable } from "node:stream";
 import { CONNECTION_STATUS } from "@/constants/connection-status";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { ERROR_CODE } from "@/constants/error-codes";
+import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
+import { SESSION_MODE } from "@/constants/session-modes";
 import { SESSION_UPDATE_TYPE } from "@/constants/session-update-types";
+import { harnessConfigSchema } from "@/harness/harnessConfig";
 import { EnvManager } from "@/utils/env/env.utils";
 import {
   type Agent,
@@ -15,7 +19,10 @@ import { EventEmitter } from "eventemitter3";
 import { describe, expect, it, vi } from "vitest";
 import type { ACPConnectionLike } from "../../../src/core/acp-client";
 import type { ACPConnectionOptions } from "../../../src/core/acp-connection";
-import { ClaudeCliHarnessAdapter } from "../../../src/core/claude-cli-harness";
+import {
+  ClaudeCliHarnessAdapter,
+  claudeCliHarnessAdapter,
+} from "../../../src/core/claude-cli-harness";
 import type { ConnectionStatus } from "../../../src/types/domain";
 
 class FakeConnection extends EventEmitter implements ACPConnectionLike {
@@ -242,5 +249,153 @@ describe("ClaudeCliHarnessAdapter", () => {
     await expect(adapter.connect()).rejects.toThrow("missing binary");
     expect(connection.attemptCount).toBe(1);
     vi.useRealTimers();
+  });
+
+  it("rejects concurrent prompt calls while a prompt is in progress", async () => {
+    const { clientStream, agentStream, clientToAgent, agentToClient } = createStreamPair();
+    let releasePrompt: (() => void) | undefined;
+    const promptRelease = new Promise<void>((resolve) => {
+      releasePrompt = resolve;
+    });
+
+    const agentConnection = new AgentSideConnection((conn) => {
+      const agent: Agent = {
+        initialize: async () => ({ protocolVersion: PROTOCOL_VERSION }),
+        authenticate: async () => ({}),
+        cancel: async () => {},
+        newSession: async () => ({ sessionId: "session-guard" }),
+        prompt: async (params) => {
+          await conn.sessionUpdate({
+            sessionId: params.sessionId,
+            update: {
+              sessionUpdate: SESSION_UPDATE_TYPE.AGENT_MESSAGE_CHUNK,
+              content: { type: CONTENT_BLOCK_TYPE.TEXT, text: "waiting" },
+            },
+          });
+          await promptRelease;
+          return { stopReason: "end_turn" };
+        },
+      };
+      return agent;
+    }, agentStream);
+
+    const adapter = new ClaudeCliHarnessAdapter({ connection: new FakeConnection(clientStream) });
+
+    await adapter.connect();
+    const session = await adapter.newSession({ cwd: ".", mcpServers: [] });
+    const firstPrompt = adapter.prompt({
+      sessionId: session.sessionId,
+      prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "first" }],
+    });
+
+    await expect(
+      adapter.prompt({
+        sessionId: session.sessionId,
+        prompt: [{ type: CONTENT_BLOCK_TYPE.TEXT, text: "second" }],
+      })
+    ).rejects.toThrow("Prompt already in progress for this harness instance.");
+
+    releasePrompt?.();
+    await expect(firstPrompt).resolves.toEqual({ stopReason: "end_turn" });
+
+    expect(agentConnection).toBeDefined();
+    await adapter.disconnect();
+    clientToAgent.end();
+    agentToClient.end();
+  });
+
+  it("passes session mode/model updates through when agent supports them", async () => {
+    const { clientStream, agentStream, clientToAgent, agentToClient } = createStreamPair();
+    const setSessionModeSpy = vi.fn(async () => ({}));
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const agentConnection = new AgentSideConnection((_conn) => {
+      const agent: Agent = {
+        initialize: async () => ({ protocolVersion: PROTOCOL_VERSION }),
+        authenticate: async () => ({}),
+        cancel: async () => {},
+        newSession: async () => ({ sessionId: "session-mode-model" }),
+        prompt: async () => ({ stopReason: "end_turn" }),
+        setSessionMode: setSessionModeSpy,
+      };
+      return agent;
+    }, agentStream);
+
+    const adapter = new ClaudeCliHarnessAdapter({ connection: new FakeConnection(clientStream) });
+
+    try {
+      await adapter.connect();
+      await adapter.initialize();
+
+      await expect(
+        adapter.setSessionMode({ sessionId: "session-mode-model", modeId: SESSION_MODE.AUTO })
+      ).resolves.toEqual({});
+      await expect(
+        adapter.setSessionModel({ sessionId: "session-mode-model", modelId: "sonnet" })
+      ).resolves.toEqual({});
+
+      expect(setSessionModeSpy).toHaveBeenCalledWith({
+        sessionId: "session-mode-model",
+        modeId: SESSION_MODE.AUTO,
+      });
+
+      expect(agentConnection).toBeDefined();
+      await adapter.disconnect();
+      clientToAgent.end();
+      agentToClient.end();
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
+  });
+
+  it("exposes claude adapter metadata and runtime factory wiring", () => {
+    const config = harnessConfigSchema.parse({
+      id: HARNESS_DEFAULT.CLAUDE_CLI_ID,
+      name: HARNESS_DEFAULT.CLAUDE_CLI_NAME,
+      command: HARNESS_DEFAULT.CLAUDE_COMMAND,
+      args: HARNESS_DEFAULT.CLAUDE_ARGS,
+      env: {},
+    });
+
+    const runtime = claudeCliHarnessAdapter.createHarness(config);
+
+    expect(claudeCliHarnessAdapter.id).toBe(HARNESS_DEFAULT.CLAUDE_CLI_ID);
+    expect(claudeCliHarnessAdapter.name).toBe(HARNESS_DEFAULT.CLAUDE_CLI_NAME);
+    expect(runtime).toBeInstanceOf(ClaudeCliHarnessAdapter);
+    expect(runtime.connectionStatus).toBe(CONNECTION_STATUS.DISCONNECTED);
+  });
+
+  it("rethrows non-method-not-found errors from setSessionMode", async () => {
+    const adapter = new ClaudeCliHarnessAdapter({
+      connection: new FakeConnection(createClientStream()),
+    });
+    const patchedError = { code: ERROR_CODE.AUTH_REQUIRED, message: "Auth required" };
+    const patchedClient = Reflect.get(adapter, "client") as {
+      setSessionMode: (params: { sessionId: string; modeId: string }) => Promise<unknown>;
+    };
+    patchedClient.setSessionMode = vi.fn(async () => {
+      throw patchedError;
+    });
+
+    await expect(
+      adapter.setSessionMode({ sessionId: "session-mode-model", modeId: SESSION_MODE.AUTO })
+    ).rejects.toBe(patchedError);
+  });
+
+  it("rethrows non-method-not-found errors from setSessionModel", async () => {
+    const adapter = new ClaudeCliHarnessAdapter({
+      connection: new FakeConnection(createClientStream()),
+    });
+    const patchedError = { code: ERROR_CODE.AUTH_REQUIRED, message: "Auth required" };
+    const patchedClient = Reflect.get(adapter, "client") as {
+      setSessionModel: (params: { sessionId: string; modelId: string }) => Promise<unknown>;
+    };
+    patchedClient.setSessionModel = vi.fn(async () => {
+      throw patchedError;
+    });
+
+    await expect(
+      adapter.setSessionModel({ sessionId: "session-mode-model", modelId: "sonnet" })
+    ).rejects.toBe(patchedError);
   });
 });

@@ -1,7 +1,9 @@
+import { LIMIT } from "@/config/limits";
+
 export const ENCRYPTION = {
   ALGORITHM: "aes-256-gcm",
-  IV_BYTES: 12,
-  KEY_BYTES: 32,
+  IV_BYTES: LIMIT.ENCRYPTION_IV_BYTES,
+  KEY_BYTES: LIMIT.ENCRYPTION_KEY_BYTES,
 } as const;
 
 // Re-export for convenience

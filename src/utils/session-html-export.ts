@@ -1,4 +1,5 @@
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { ENCODING } from "@/constants/encodings";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import type { Message, Session } from "@/types/domain";
 
@@ -69,7 +70,7 @@ export const exportSessionToHtml = (session: Session, messages: Message[]): stri
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="${ENCODING.UTF8}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(title)} - TOADSTOOL Session</title>
   <style>

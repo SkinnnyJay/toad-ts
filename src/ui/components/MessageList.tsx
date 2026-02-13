@@ -22,13 +22,13 @@ interface MessageListProps {
 }
 
 const RESERVED_ROWS = {
-  statusFooter: 3,
-  inputArea: 7,
+  statusFooter: LIMIT.MESSAGE_LIST_RESERVED_STATUS_FOOTER_ROWS,
+  inputArea: LIMIT.MESSAGE_LIST_RESERVED_INPUT_AREA_ROWS,
   marginBetween: 1,
-  chatHeader: 4,
+  chatHeader: LIMIT.MESSAGE_LIST_RESERVED_CHAT_HEADER_ROWS,
 } as const;
 
-const MESSAGE_LIST_MIN_HEIGHT = 4;
+const MESSAGE_LIST_MIN_HEIGHT = LIMIT.MESSAGE_LIST_MIN_HEIGHT;
 
 function estimateWrappedLines(text: string, wrapWidth: number): number {
   const plain = stripAnsi(text ?? "");
@@ -49,7 +49,7 @@ function estimateBlockLines(block: ChatContentBlock, wrapWidth: number): number 
     case CONTENT_BLOCK_TYPE.CODE:
       return Math.min(estimateWrappedLines(block.text ?? "", wrapWidth), LIMIT.MAX_BLOCK_LINES) + 1;
     case CONTENT_BLOCK_TYPE.TOOL_CALL:
-      return 2;
+      return LIMIT.MESSAGE_LIST_TOOL_CALL_LINES;
     case CONTENT_BLOCK_TYPE.RESOURCE_LINK:
     case CONTENT_BLOCK_TYPE.RESOURCE:
       return 1;
@@ -69,7 +69,7 @@ function estimateTotalContentLines(messages: Message[]): number {
     if (message.isStreaming) {
       total += LIMIT.STREAMING_BAR_BUFFER_LINES;
     }
-    total += 2; // margin between messages
+    total += LIMIT.MESSAGE_LIST_MESSAGE_MARGIN_ROWS; // margin between messages
   }
   return total;
 }
@@ -107,7 +107,10 @@ export const MessageList = memo(
       height !== undefined ? Math.max(MESSAGE_LIST_MIN_HEIGHT, Math.floor(height)) : maxHeight;
 
     // ScrollArea height: effectiveHeight minus border (2 lines) and padding (2 lines)
-    const scrollAreaHeight = Math.max(3, effectiveHeight - 4);
+    const scrollAreaHeight = Math.max(
+      LIMIT.MESSAGE_LIST_MIN_SCROLLAREA_HEIGHT,
+      effectiveHeight - LIMIT.MESSAGE_LIST_SCROLLAREA_FRAME_ROWS
+    );
     const visibleItems = Math.max(
       1,
       Math.floor(scrollAreaHeight / LIMIT.MESSAGE_LIST_ESTIMATED_ROW_HEIGHT)
@@ -195,7 +198,11 @@ export const MessageList = memo(
           border={true}
           borderStyle="single"
           borderColor={COLOR.GRAY}
-        />
+          alignItems="center"
+          justifyContent="center"
+        >
+          <text fg={COLOR.GRAY}>No messages yet</text>
+        </box>
       );
     }
 

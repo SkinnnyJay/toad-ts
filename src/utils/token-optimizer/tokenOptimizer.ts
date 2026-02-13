@@ -1,3 +1,4 @@
+import { LIMIT } from "@/config/limits";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { buildAnalyticsSnapshot } from "./analytics";
 import { cleanPrompt } from "./cleaner";
@@ -88,11 +89,11 @@ export class TokenOptimizer {
     const afterSize = new TextEncoder().encode(formatted.optimizedText).length;
     const sizeReduction = beforeSize - afterSize;
     const sizeReductionPercent =
-      beforeSize > 0 ? ((sizeReduction / beforeSize) * 100).toFixed(2) : "0.00";
+      beforeSize > 0 ? ((sizeReduction / beforeSize) * LIMIT.PERCENT_SCALE).toFixed(2) : "0.00";
     const tokenReduction = beforeEstimate.tokenCount - afterEstimate.tokenCount;
     const tokenReductionPercent =
       beforeEstimate.tokenCount > 0
-        ? ((tokenReduction / beforeEstimate.tokenCount) * 100).toFixed(2)
+        ? ((tokenReduction / beforeEstimate.tokenCount) * LIMIT.PERCENT_SCALE).toFixed(2)
         : "0.00";
 
     logger.debug("Token optimization completed", {

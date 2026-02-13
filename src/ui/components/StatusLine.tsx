@@ -1,3 +1,4 @@
+import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { useAppStore } from "@/store/app-store";
@@ -13,7 +14,7 @@ export function StatusLine(): ReactNode {
   const mode = currentSession?.mode ?? SESSION_MODE.AUTO;
 
   return (
-    <box flexDirection="row" gap={2}>
+    <box flexDirection="row" gap={UI.SIDEBAR_PADDING}>
       <text fg={COLOR.YELLOW}>Status: {status}</text>
       <text attributes={TextAttributes.DIM}>
         {sessionId ? `Session ${sessionId}` : "No session"}

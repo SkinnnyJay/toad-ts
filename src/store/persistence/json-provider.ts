@@ -3,6 +3,7 @@ import { dirname } from "node:path";
 import { LIMIT } from "@/config/limits";
 import { ENCODING } from "@/constants/encodings";
 import { ERROR_CODE } from "@/constants/error-codes";
+import { INDENT_SPACES } from "@/constants/json-format";
 
 import { SessionSnapshotSchema } from "@/store/session-persistence";
 import type { SessionSnapshot } from "@/store/session-persistence";
@@ -53,7 +54,7 @@ export const createJsonPersistenceProvider = (
     async save(snapshot: SessionSnapshot): Promise<void> {
       const normalized = SessionSnapshotSchema.parse(snapshot);
       await mkdir(dirname(filePath), { recursive: true });
-      await writeFile(filePath, JSON.stringify(normalized, null, 2), ENCODING.UTF8);
+      await writeFile(filePath, JSON.stringify(normalized, null, INDENT_SPACES), ENCODING.UTF8);
     },
 
     async close(): Promise<void> {

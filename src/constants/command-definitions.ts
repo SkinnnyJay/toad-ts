@@ -17,6 +17,12 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     args: "<path>",
     category: "context",
   },
+  {
+    name: SLASH_COMMAND.AGENT,
+    description: "Manage active agent and cloud workflows",
+    args: "[status|about|login|logout|models|mcp ...|cloud <list|launch|followup|conversation|stop>]",
+    category: "provider",
+  },
   { name: SLASH_COMMAND.AGENTS, description: "Open agent discovery panel", category: "agents" },
   { name: SLASH_COMMAND.CLEAR, description: "Clear chat messages", category: "session" },
   {
@@ -66,6 +72,17 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
   },
   { name: SLASH_COMMAND.LOGIN, description: "Authenticate with a provider", category: "provider" },
   {
+    name: SLASH_COMMAND.LOGOUT,
+    description: "Sign out from active provider",
+    category: "provider",
+  },
+  {
+    name: SLASH_COMMAND.MCP,
+    description: "Manage MCP servers for the active harness",
+    args: "[list|list-tools <id>|enable <id>|disable <id>|login <id>]",
+    category: "provider",
+  },
+  {
     name: SLASH_COMMAND.MEMORY,
     description: "Edit memory files",
     args: "[agents|claude|both]",
@@ -76,6 +93,12 @@ export const COMMAND_DEFINITIONS: CommandDefinition[] = [
     description: "Change session mode",
     args: `<${SESSION_MODE.READ_ONLY}|${SESSION_MODE.AUTO}|${SESSION_MODE.FULL_ACCESS}>`,
     category: "session",
+  },
+  {
+    name: SLASH_COMMAND.MODEL,
+    description: "Set model (alias for /models <id>)",
+    args: "<modelId>",
+    category: "provider",
   },
   {
     name: SLASH_COMMAND.MODELS,

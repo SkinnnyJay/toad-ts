@@ -1,7 +1,9 @@
+import { LIMIT } from "@/config/limits";
+
 export const UPDATE_CHECK = {
   REGISTRY_BASE_URL: "https://registry.npmjs.org",
-  CHECK_INTERVAL_MS: 24 * 60 * 60 * 1000,
-  FETCH_TIMEOUT_MS: 4000,
+  CHECK_INTERVAL_MS: LIMIT.UPDATE_CHECK_INTERVAL_MS,
+  FETCH_TIMEOUT_MS: LIMIT.UPDATE_CHECK_FETCH_TIMEOUT_MS,
 } as const;
 
 export type UpdateCheck = typeof UPDATE_CHECK;

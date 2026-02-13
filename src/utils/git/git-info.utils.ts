@@ -1,6 +1,7 @@
 import { execSync } from "node:child_process";
 import path from "node:path";
 
+import { ENCODING } from "@/constants/encodings";
 import { FORMAT_MODE } from "@/constants/format-modes";
 
 /**
@@ -12,7 +13,7 @@ export function getGitBranch(cwd: string = process.cwd()): string {
   try {
     const branch = execSync("git rev-parse --abbrev-ref HEAD", {
       cwd,
-      encoding: "utf-8",
+      encoding: ENCODING.UTF8,
       stdio: ["ignore", "pipe", "ignore"],
     }).trim();
     return branch || "unknown";

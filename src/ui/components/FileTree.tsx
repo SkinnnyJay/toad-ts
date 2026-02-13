@@ -200,7 +200,8 @@ export function FileTree({
       // If selected item is below visible viewport, scroll down
       if (selectedIndex >= currentScrollOffset + visibleItems) {
         // Keep selected item in middle of viewport when possible
-        const idealOffset = selectedIndex - Math.floor(visibleItems / 2);
+        const idealOffset =
+          selectedIndex - Math.floor(visibleItems / LIMIT.FILE_TREE_SCROLL_CENTER_DIVISOR);
         return Math.max(0, Math.min(idealOffset, maxScrollOffset));
       }
       // Selected item is already visible, no change needed
@@ -219,7 +220,7 @@ export function FileTree({
   const scrollbarWidth = UI.SCROLLBAR_WIDTH;
   const availableWidth = Math.max(
     LIMIT.FILE_TREE_PADDING,
-    sidebarWidth - sidebarPadding * 2 - scrollbarWidth
+    sidebarWidth - (sidebarPadding + sidebarPadding) - scrollbarWidth
   );
 
   // Render visible items (wrapped in ScrollArea) - memoize to prevent recreation

@@ -76,7 +76,7 @@ export function BackgroundTasksModal({
           </text>
         ) : (
           tasks.map((task) => (
-            <box key={task.id} flexDirection="row" gap={2}>
+            <box key={task.id} flexDirection="row" gap={UI.SIDEBAR_PADDING}>
               <text fg={statusColor(task.status)} attributes={TextAttributes.BOLD}>
                 {task.status.toUpperCase()}
               </text>

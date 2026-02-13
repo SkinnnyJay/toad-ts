@@ -1,0 +1,12 @@
+import { LIMIT } from "@/config/limits";
+
+export const MODAL_ANIMATION = {
+  DURATION_MS: LIMIT.MODAL_ANIMATION_DURATION_MS,
+  FADE_STEPS: LIMIT.MODAL_ANIMATION_FADE_STEPS,
+  BASE_SCALE: 0.95,
+  SCALE_DELTA: 0.05,
+} as const;
+
+export type ModalAnimationConfig = typeof MODAL_ANIMATION;
+
+export const { DURATION_MS, FADE_STEPS, BASE_SCALE, SCALE_DELTA } = MODAL_ANIMATION;

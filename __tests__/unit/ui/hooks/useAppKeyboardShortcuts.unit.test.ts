@@ -1,6 +1,10 @@
 import { FOCUS_TARGET } from "@/constants/focus-target";
 import { VIEW } from "@/constants/views";
-import { FOCUS_NUMBER_MAP, isOptionBacktick } from "@/ui/hooks/useAppKeyboardShortcuts";
+import {
+  FOCUS_NUMBER_MAP,
+  isFocusShortcutKey,
+  isOptionBacktick,
+} from "@/ui/hooks/useAppKeyboardShortcuts";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("useAppKeyboardShortcuts", () => {
@@ -97,16 +101,21 @@ describe("useAppKeyboardShortcuts", () => {
       const { isOptionBacktick } = await import("@/ui/hooks/useAppKeyboardShortcuts");
       expect(typeof isOptionBacktick).toBe("function");
     });
+
+    it("exports isFocusShortcutKey function", async () => {
+      const { isFocusShortcutKey } = await import("@/ui/hooks/useAppKeyboardShortcuts");
+      expect(typeof isFocusShortcutKey).toBe("function");
+    });
   });
 
   describe("shortcut patterns", () => {
-    it("number shortcuts use regex pattern 1-5", () => {
-      const pattern = /^[1-5]$/;
-      expect(pattern.test("1")).toBe(true);
-      expect(pattern.test("5")).toBe(true);
-      expect(pattern.test("0")).toBe(false);
-      expect(pattern.test("6")).toBe(false);
-      expect(pattern.test("12")).toBe(false);
+    it("number shortcuts accept the mapped focus keys", () => {
+      expect(isFocusShortcutKey("1")).toBe(true);
+      expect(isFocusShortcutKey("5")).toBe(true);
+      expect(isFocusShortcutKey("6")).toBe(true);
+      expect(isFocusShortcutKey("0")).toBe(false);
+      expect(isFocusShortcutKey("7")).toBe(false);
+      expect(isFocusShortcutKey("12")).toBe(false);
     });
 
     it("file shortcut accepts both cases", () => {

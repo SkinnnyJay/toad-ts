@@ -1,6 +1,7 @@
 import { type AgentConfig, loadAgentConfigs } from "@/agents/agent-config";
 import { AgentManager } from "@/agents/agent-manager";
 import type { AgentInfo } from "@/agents/agent-manager";
+import { SESSION_HYDRATION_INITIAL_PROGRESS } from "@/config/limits";
 import { UI } from "@/config/ui";
 import { PERFORMANCE_MARK, PERFORMANCE_MEASURE } from "@/constants/performance-marks";
 import { RENDER_STAGE, type RenderStage } from "@/constants/render-stage";
@@ -36,6 +37,7 @@ export interface UseSessionHydrationOptions {
   persistenceManager: PersistenceManager;
   initialProgress?: number;
   initialStatusMessage?: string;
+  enabledHarnessIds?: Set<string>;
 }
 
 /**
@@ -49,14 +51,31 @@ export const buildAgentOptions = (
   return agentManager.buildAgentOptions();
 };
 
+export const filterHarnessConfigs = (
+  harnesses: Record<string, HarnessConfig>,
+  enabledHarnessIds?: Set<string>
+): Record<string, HarnessConfig> => {
+  if (!enabledHarnessIds || enabledHarnessIds.size === 0) {
+    return harnesses;
+  }
+
+  const filteredEntries = Object.entries(harnesses).filter(([id]) => enabledHarnessIds.has(id));
+  if (filteredEntries.length === 0) {
+    return harnesses;
+  }
+
+  return Object.fromEntries(filteredEntries);
+};
+
 /**
  * Hook to handle session hydration and harness configuration loading.
  * Manages the initial loading state of the application.
  */
 export function useSessionHydration({
   persistenceManager,
-  initialProgress = 5,
+  initialProgress = SESSION_HYDRATION_INITIAL_PROGRESS,
   initialStatusMessage = "Preparing…",
+  enabledHarnessIds,
 }: UseSessionHydrationOptions): UseSessionHydrationResult {
   const [isHydrated, setIsHydrated] = useState(false);
   const [hasHarnesses, setHasHarnesses] = useState(false);
@@ -126,16 +145,20 @@ export function useSessionHydration({
       try {
         const config = await loadHarnessConfig();
         if (!active) return;
-        setHarnessConfigs(config.harnesses);
+        const filteredHarnesses = filterHarnessConfigs(config.harnesses, enabledHarnessIds);
+        setHarnessConfigs(filteredHarnesses);
+        const defaultHarnessId = filteredHarnesses[config.harnessId]
+          ? config.harnessId
+          : (Object.keys(filteredHarnesses)[0] ?? config.harnessId);
         const customAgents = await loadAgentConfigs({
           projectRoot: process.cwd(),
-          defaultHarnessId: config.harnessId,
+          defaultHarnessId,
         });
-        const { options, infoMap } = buildAgentOptions(config.harnesses, customAgents);
+        const { options, infoMap } = buildAgentOptions(filteredHarnesses, customAgents);
         setAgentOptions(options);
         setAgentInfoMap(infoMap);
         setHasHarnesses(true);
-        const parsedDefault = AgentIdSchema.safeParse(config.harnessId);
+        const parsedDefault = AgentIdSchema.safeParse(defaultHarnessId);
         const defaultAgent = parsedDefault.success ? infoMap.get(parsedDefault.data) : undefined;
         setDefaultAgentId(defaultAgent?.id ?? null);
         await loadRulesState();
@@ -144,12 +167,16 @@ export function useSessionHydration({
         const fallback = createDefaultHarnessConfig();
         if (!active) return;
         setLoadError(null);
-        setHarnessConfigs(fallback.harnesses);
-        const { options, infoMap } = buildAgentOptions(fallback.harnesses, []);
+        const filteredHarnesses = filterHarnessConfigs(fallback.harnesses, enabledHarnessIds);
+        setHarnessConfigs(filteredHarnesses);
+        const defaultHarnessId = filteredHarnesses[fallback.harnessId]
+          ? fallback.harnessId
+          : (Object.keys(filteredHarnesses)[0] ?? fallback.harnessId);
+        const { options, infoMap } = buildAgentOptions(filteredHarnesses, []);
         setAgentOptions(options);
         setAgentInfoMap(infoMap);
         setHasHarnesses(true);
-        const parsedDefault = AgentIdSchema.safeParse(fallback.harnessId);
+        const parsedDefault = AgentIdSchema.safeParse(defaultHarnessId);
         const defaultAgent = parsedDefault.success ? infoMap.get(parsedDefault.data) : undefined;
         setDefaultAgentId(defaultAgent?.id ?? null);
         if (error instanceof Error && error.message !== "No harnesses configured.") {
@@ -163,7 +190,7 @@ export function useSessionHydration({
     return () => {
       active = false;
     };
-  }, []);
+  }, [enabledHarnessIds]);
 
   return {
     isHydrated,

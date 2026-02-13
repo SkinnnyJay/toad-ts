@@ -1,0 +1,3 @@
+playwright: not loaded (needs approval)
+github: not loaded (needs approval)
+context7: connected

@@ -1,7 +1,5 @@
+import { BASE_SCALE, DURATION_MS, FADE_STEPS, SCALE_DELTA } from "@/constants/modal-animation";
 import { useCallback, useEffect, useRef, useState } from "react";
-
-const ANIMATION_DURATION_MS = 150;
-const FADE_STEPS = 8;
 
 export interface ModalAnimationState {
   /** Whether the modal is currently visible (including during animation) */
@@ -26,7 +24,7 @@ export interface ModalAnimationState {
 export const useModalAnimation = (isOpen: boolean): ModalAnimationState => {
   const [visible, setVisible] = useState(false);
   const [opacity, setOpacity] = useState(0);
-  const [scale, setScale] = useState(0.95);
+  const [scale, setScale] = useState<number>(BASE_SCALE);
   const [animating, setAnimating] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onClosedRef = useRef<(() => void) | null>(null);
@@ -43,13 +41,13 @@ export const useModalAnimation = (isOpen: boolean): ModalAnimationState => {
     setVisible(true);
     setAnimating(true);
     let step = 0;
-    const stepDuration = ANIMATION_DURATION_MS / FADE_STEPS;
+    const stepDuration = DURATION_MS / FADE_STEPS;
     timerRef.current = setInterval(() => {
       step++;
       const progress = Math.min(step / FADE_STEPS, 1);
       const eased = 1 - (1 - progress) * (1 - progress); // ease-out quad
       setOpacity(eased);
-      setScale(0.95 + 0.05 * eased);
+      setScale(BASE_SCALE + SCALE_DELTA * eased);
       if (step >= FADE_STEPS) {
         clearTimer();
         setAnimating(false);
@@ -63,13 +61,13 @@ export const useModalAnimation = (isOpen: boolean): ModalAnimationState => {
       onClosedRef.current = onClosed ?? null;
       setAnimating(true);
       let step = FADE_STEPS;
-      const stepDuration = ANIMATION_DURATION_MS / FADE_STEPS;
+      const stepDuration = DURATION_MS / FADE_STEPS;
       timerRef.current = setInterval(() => {
         step--;
         const progress = Math.max(step / FADE_STEPS, 0);
         const eased = progress * progress; // ease-in quad
         setOpacity(eased);
-        setScale(0.95 + 0.05 * eased);
+        setScale(BASE_SCALE + SCALE_DELTA * eased);
         if (step <= 0) {
           clearTimer();
           setVisible(false);

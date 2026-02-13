@@ -10,14 +10,20 @@ import {
   type ThemeConfig,
   appConfigSchema,
 } from "@/config/app-config-schema";
+import {
+  DEFAULT_COMPACTION_PRESERVE_RECENT,
+  DEFAULT_COMPACTION_THRESHOLD_RATIO,
+} from "@/config/limits";
 import { BREADCRUMB_PLACEMENT, type BreadcrumbPlacement } from "@/constants/breadcrumb-placement";
 import { CONFIG_FILE, PROJECT_CONFIG_FILES } from "@/constants/config-files";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { ERROR_CODE } from "@/constants/error-codes";
 import { HOOK_EVENT_VALUES } from "@/constants/hook-events";
+import { INDENT_SPACES } from "@/constants/json-format";
 import { KEYBIND_ACTION } from "@/constants/keybind-actions";
 import { KEYBIND } from "@/constants/keybinds";
+import { parseBooleanEnvFlag } from "@/utils/env/boolean-flags";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { findUp } from "find-up";
@@ -116,8 +122,6 @@ export interface AppConfig {
   };
 }
 
-const DEFAULT_COMPACTION_THRESHOLD = 0.8;
-const DEFAULT_PRESERVE_RECENT = 5;
 const DEFAULT_BREADCRUMB_POLL_MS = 30_000;
 
 export const DEFAULT_APP_CONFIG: AppConfig = {
@@ -135,9 +139,9 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
   },
   compaction: {
     auto: true,
-    threshold: DEFAULT_COMPACTION_THRESHOLD,
+    threshold: DEFAULT_COMPACTION_THRESHOLD_RATIO,
     prune: true,
-    preserveRecent: DEFAULT_PRESERVE_RECENT,
+    preserveRecent: DEFAULT_COMPACTION_PRESERVE_RECENT,
   },
   permissions: {
     mode: "normal",
@@ -151,7 +155,7 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
   },
   compatibility: {
     claude: true,
-    cursor: true,
+    cursor: false,
     gemini: true,
     opencode: true,
     disabledTools: [],
@@ -419,6 +423,10 @@ export const loadAppConfig = async (options: LoadAppConfigOptions = {}): Promise
     (current, config) => mergeAppConfig(current, config),
     DEFAULT_APP_CONFIG
   );
+  const cursorFlagOverride = parseBooleanEnvFlag(env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]);
+  if (cursorFlagOverride !== undefined) {
+    merged.compatibility.cursor = cursorFlagOverride;
+  }
   logger.debug("Loaded config", {
     sources: configs.length,
     hasDefaults: Boolean(merged.defaults),
@@ -468,6 +476,6 @@ export const saveAppConfig = async (
   const filePath = resolveGlobalConfigPath(homeDir);
   await mkdir(path.dirname(filePath), { recursive: true });
   const payload = serializeConfig(config);
-  const contents = JSON.stringify(payload, null, 2);
+  const contents = JSON.stringify(payload, null, INDENT_SPACES);
   await writeFile(filePath, contents, ENCODING.UTF8);
 };

@@ -1,4 +1,5 @@
 import { LIMIT } from "@/config/limits";
+import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
 import type { ConnectionStatus, SessionId, SessionMode } from "@/types/domain";
@@ -16,6 +17,8 @@ export interface StatusFooterProps {
   sessionMode?: SessionMode;
   sessionId?: SessionId;
   agentName?: string;
+  modelName?: string;
+  cloudAgentCount?: number;
   workspacePath?: string;
   prStatus?: { url: string; reviewDecision: string };
 }
@@ -33,7 +36,7 @@ const globalShortcuts = [
 
 const truncateMiddle = (value: string, max: number): string => {
   if (value.length <= max) return value;
-  const half = Math.floor((max - 3) / 2);
+  const half = Math.floor((max - "...".length) / UI.SIDEBAR_PADDING);
   return `${value.slice(0, half)}...${value.slice(-half)}`;
 };
 
@@ -47,6 +50,10 @@ export function StatusFooter({
   sessionMode,
   sessionId,
   agentName,
+  modelName,
+  cloudAgentCount,
+  workspacePath,
+  prStatus,
 }: StatusFooterProps): ReactNode {
   const planText =
     planProgress && planProgress.total > 0
@@ -63,15 +70,29 @@ export function StatusFooter({
   const trimmedAgent = agentName
     ? truncateMiddle(agentName, LIMIT.STRING_TRUNCATE_LONG)
     : undefined;
+  const trimmedModel = modelName
+    ? truncateMiddle(modelName, LIMIT.STRING_TRUNCATE_LONG)
+    : undefined;
   const trimmedSession = sessionId
     ? truncateMiddle(sessionId, 2 * LIMIT.ID_TRUNCATE_LENGTH)
+    : undefined;
+  const trimmedWorkspace = workspacePath
+    ? truncateMiddle(workspacePath, LIMIT.STRING_TRUNCATE_LONG)
+    : undefined;
+  const trimmedPrUrl = prStatus?.url
+    ? truncateMiddle(prStatus.url, LIMIT.STRING_TRUNCATE_LONG)
     : undefined;
 
   const statusParts = [
     connectionStatus ? `Link: ${connectionStatus}` : undefined,
     trimmedAgent ? `Agent: ${trimmedAgent}` : undefined,
+    trimmedModel ? `Model: ${trimmedModel}` : undefined,
     sessionMode ? `Mode: ${sessionMode}` : undefined,
     trimmedSession ? `Session: ${trimmedSession}` : undefined,
+    cloudAgentCount !== undefined ? `Cloud: ${cloudAgentCount}` : undefined,
+    trimmedWorkspace ? `WS: ${trimmedWorkspace}` : undefined,
+    prStatus?.reviewDecision ? `PR: ${prStatus.reviewDecision}` : undefined,
+    trimmedPrUrl ? `PR URL: ${trimmedPrUrl}` : undefined,
   ].filter((value): value is string => Boolean(value));
 
   const footerTextAttrs = TextAttributes.DIM;
@@ -83,11 +104,11 @@ export function StatusFooter({
       paddingRight={1}
       paddingTop={0}
       paddingBottom={0}
-      gap={2}
+      gap={UI.SIDEBAR_PADDING}
       justifyContent="space-between"
       alignItems="center"
     >
-      <box flexDirection="row" gap={2}>
+      <box flexDirection="row" gap={UI.SIDEBAR_PADDING}>
         {globalShortcuts.map((sc) => (
           <text key={sc.key} attributes={footerTextAttrs}>
             <span fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
@@ -97,7 +118,7 @@ export function StatusFooter({
           </text>
         ))}
       </box>
-      <box flexDirection="row" gap={2}>
+      <box flexDirection="row" gap={UI.SIDEBAR_PADDING}>
         <text attributes={footerTextAttrs}>
           <span fg={COLOR.YELLOW} attributes={TextAttributes.BOLD}>
             Focus:

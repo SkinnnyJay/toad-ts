@@ -2,6 +2,7 @@ import { join } from "node:path";
 import { z } from "zod";
 
 import { FILE_PATH } from "@/constants/file-paths";
+import { INDENT_SPACES } from "@/constants/json-format";
 import type { FsHandler } from "@/core/fs-handler";
 import { type TodoItem, TodoItemSchema } from "@/types/domain";
 
@@ -39,7 +40,7 @@ export class TodoStore {
   async save(items: TodoItem[]): Promise<TodoItem[]> {
     const validated = TodoListSchema.parse(items);
     const path = resolveTodoPath(this.baseDir, this.sessionId);
-    await this.fs.write(path, JSON.stringify(validated, null, 2));
+    await this.fs.write(path, JSON.stringify(validated, null, INDENT_SPACES));
     return validated;
   }
 

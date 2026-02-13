@@ -15,6 +15,10 @@ interface HelpModalProps {
   commands?: CommandDefinition[];
 }
 
+const TABLE_COLUMN_SPACING = "  ";
+const TABLE_COLUMN_SPACING_WIDTH = TABLE_COLUMN_SPACING.length;
+const TABLE_TOTAL_GAP_WIDTH = TABLE_COLUMN_SPACING_WIDTH * UI.SIDEBAR_PADDING;
+
 const calculateColumnWidths = (
   commands: CommandDefinition[]
 ): { command: number; description: number; args: number } => {
@@ -32,9 +36,9 @@ const calculateColumnWidths = (
   }
 
   return {
-    command: maxCommand + 2,
-    description: maxDescription + 2,
-    args: maxArgs + 2,
+    command: maxCommand + TABLE_COLUMN_SPACING_WIDTH,
+    description: maxDescription + TABLE_COLUMN_SPACING_WIDTH,
+    args: maxArgs + TABLE_COLUMN_SPACING_WIDTH,
   };
 };
 
@@ -80,28 +84,28 @@ export function HelpModal({
         <box flexDirection="row">
           <text fg={SEMANTIC_COLOR.SECTION_HEADER} attributes={TextAttributes.BOLD}>
             {"Command".padEnd(widths.command)}
-            {"  "}
+            {TABLE_COLUMN_SPACING}
           </text>
           <text fg={SEMANTIC_COLOR.SECTION_HEADER} attributes={TextAttributes.BOLD}>
             {"Description".padEnd(widths.description)}
-            {"  "}
+            {TABLE_COLUMN_SPACING}
           </text>
           <text fg={SEMANTIC_COLOR.SECTION_HEADER} attributes={TextAttributes.BOLD}>
             {"Arguments".padEnd(widths.args)}
           </text>
         </box>
         <text fg={SEMANTIC_COLOR.HINT} attributes={TextAttributes.DIM}>
-          {"─".repeat(widths.command + widths.description + widths.args + 4)}
+          {"─".repeat(widths.command + widths.description + widths.args + TABLE_TOTAL_GAP_WIDTH)}
         </text>
         {commands.map((cmd) => (
           <box key={cmd.name} flexDirection="row">
             <text fg={SEMANTIC_COLOR.COMMAND}>
               {cmd.name.padEnd(widths.command)}
-              {"  "}
+              {TABLE_COLUMN_SPACING}
             </text>
             <text fg={SEMANTIC_COLOR.DESCRIPTION} attributes={TextAttributes.DIM}>
               {cmd.description.padEnd(widths.description)}
-              {"  "}
+              {TABLE_COLUMN_SPACING}
             </text>
             <text fg={SEMANTIC_COLOR.ARGS}>{(cmd.args ?? "").padEnd(widths.args)}</text>
             {cmd.category ? (

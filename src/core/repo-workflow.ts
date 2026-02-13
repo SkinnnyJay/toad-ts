@@ -1,4 +1,5 @@
 import path from "node:path";
+import { GIT_STATUS_CODE_MIN_LENGTH } from "@/config/limits";
 import { REPO_WORKFLOW_ACTION, type RepoWorkflowAction } from "@/constants/repo-workflow-actions";
 import { REPO_WORKFLOW_STATUS, type RepoWorkflowStatus } from "@/constants/repo-workflow-status";
 import { type PullRequestStatus, getPRStatus } from "@/core/pr-status";
@@ -95,7 +96,7 @@ async function getHasMergeConflicts(cwd: string): Promise<boolean> {
       cwd,
       encoding: "utf8",
     });
-    const lines = stdout.split("\n").filter((line) => line.length >= 2);
+    const lines = stdout.split("\n").filter((line) => line.length >= GIT_STATUS_CODE_MIN_LENGTH);
     return lines.some((line) => {
       const first = line[0];
       const second = line[1];
@@ -127,7 +128,7 @@ async function getPrChecksStatus(cwd: string): Promise<"pass" | "fail" | "pendin
   }
 }
 
-function deriveStatus(
+export function deriveRepoWorkflowStatus(
   pr: PullRequestStatus | null,
   isDirty: boolean,
   isAhead: boolean,
@@ -179,7 +180,7 @@ export async function getRepoWorkflowInfo(cwd?: string): Promise<RepoWorkflowInf
   const isAhead = ahead > 0;
   const isBehind = behind > 0;
 
-  const status = deriveStatus(pr, isDirty, isAhead, hasMergeConflicts, checksStatus);
+  const status = deriveRepoWorkflowStatus(pr, isDirty, isAhead, hasMergeConflicts, checksStatus);
   const action = REPO_WORKFLOW_ACTION[status];
 
   let owner = "unknown";

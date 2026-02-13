@@ -1,0 +1,96 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import {
+  parseCursorAboutOutput,
+  parseCursorLoginOutput,
+  parseCursorLogoutOutput,
+  parseCursorMcpListOutput,
+  parseCursorModelsOutput,
+  parseCursorStatusOutput,
+} from "@/core/cursor/cursor-command-parsers";
+import { describe, expect, it } from "vitest";
+
+describe("cursor-command-parsers", () => {
+  it("parses models output fixture", () => {
+    const output = readFileSync(
+      path.join(process.cwd(), "__tests__/fixtures/cursor/models-output.txt"),
+      "utf8"
+    );
+    const parsed = parseCursorModelsOutput(output);
+
+    expect(parsed.models.length).toBeGreaterThan(0);
+    expect(parsed.defaultModel).toBe("opus-4.6-thinking");
+    expect(parsed.currentModel).toBe("opus-4.6-thinking");
+  });
+
+  it("parses status output fixture with browser auth", () => {
+    const output = readFileSync(
+      path.join(process.cwd(), "__tests__/fixtures/cursor/status-output.txt"),
+      "utf8"
+    );
+    const parsed = parseCursorStatusOutput(output, "", undefined);
+
+    expect(parsed.authenticated).toBe(true);
+    expect(parsed.method).toBe("browser_login");
+    expect(parsed.email).toBe("netwearcdz@gmail.com");
+  });
+
+  it("marks auth valid when api key is configured", () => {
+    const parsed = parseCursorStatusOutput("No login output", "", "token-123");
+    expect(parsed.authenticated).toBe(true);
+    expect(parsed.method).toBe("api_key");
+  });
+
+  it("parses about output fixture into key fields", () => {
+    const output = readFileSync(
+      path.join(process.cwd(), "__tests__/fixtures/cursor/about-output.txt"),
+      "utf8"
+    );
+    const parsed = parseCursorAboutOutput(output);
+
+    expect(parsed.cliVersion).toBe("2026.01.28-fd13201");
+    expect(parsed.model).toBe("Claude 4.6 Opus (Thinking)");
+    expect(parsed.userEmail).toBe("netwearcdz@gmail.com");
+  });
+
+  it("parses mcp list output fixture into server statuses", () => {
+    const output = readFileSync(
+      path.join(process.cwd(), "__tests__/fixtures/cursor/mcp-list-output.txt"),
+      "utf8"
+    );
+    const parsed = parseCursorMcpListOutput(output);
+
+    expect(parsed).toHaveLength(3);
+    expect(parsed[0]).toMatchObject({
+      name: "playwright",
+      status: "not loaded",
+      reason: "needs approval",
+    });
+    expect(parsed[2]).toMatchObject({
+      name: "context7",
+      status: "connected",
+    });
+  });
+
+  it("parses login output with authenticated email", () => {
+    const parsed = parseCursorLoginOutput("Authenticated as dev@example.com", "");
+
+    expect(parsed.success).toBe(true);
+    expect(parsed.email).toBe("dev@example.com");
+  });
+
+  it("parses login output with browser hint", () => {
+    const parsed = parseCursorLoginOutput("Opening browser for login...", "");
+
+    expect(parsed.success).toBe(true);
+    expect(parsed.requiresBrowser).toBe(true);
+  });
+
+  it("parses logout output status", () => {
+    const success = parseCursorLogoutOutput("Logged out successfully", "");
+    const failure = parseCursorLogoutOutput("", "Not logged in");
+
+    expect(success.success).toBe(true);
+    expect(failure.success).toBe(false);
+  });
+});

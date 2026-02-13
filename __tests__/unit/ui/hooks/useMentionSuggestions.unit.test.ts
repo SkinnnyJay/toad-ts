@@ -1,3 +1,4 @@
+import { DEBOUNCE_MS, LIMIT, MENTION_QUERY_REGEX } from "@/constants/mention-suggestions";
 import { extractMentionQuery } from "@/ui/hooks/useMentionSuggestions";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -70,47 +71,42 @@ describe("useMentionSuggestions", () => {
   });
 
   describe("mention regex pattern", () => {
-    const MENTION_REGEX = /@([\w./-]*)$/;
-
     it("matches @ followed by word characters", () => {
-      expect("@test".match(MENTION_REGEX)?.[1]).toBe("test");
+      expect("@test".match(MENTION_QUERY_REGEX)?.[1]).toBe("test");
     });
 
     it("matches @ followed by path with slashes", () => {
-      expect("@src/file".match(MENTION_REGEX)?.[1]).toBe("src/file");
+      expect("@src/file".match(MENTION_QUERY_REGEX)?.[1]).toBe("src/file");
     });
 
     it("matches @ followed by filename with dots", () => {
-      expect("@file.ts".match(MENTION_REGEX)?.[1]).toBe("file.ts");
+      expect("@file.ts".match(MENTION_QUERY_REGEX)?.[1]).toBe("file.ts");
     });
 
     it("matches @ followed by hyphenated name", () => {
-      expect("@my-component".match(MENTION_REGEX)?.[1]).toBe("my-component");
+      expect("@my-component".match(MENTION_QUERY_REGEX)?.[1]).toBe("my-component");
     });
 
     it("matches @ at end of string only", () => {
-      expect("@first @second".match(MENTION_REGEX)?.[1]).toBe("second");
+      expect("@first @second".match(MENTION_QUERY_REGEX)?.[1]).toBe("second");
     });
 
     it("matches empty string after @", () => {
-      expect("@".match(MENTION_REGEX)?.[1]).toBe("");
+      expect("@".match(MENTION_QUERY_REGEX)?.[1]).toBe("");
     });
   });
 
   describe("debounce behavior", () => {
     it("debounce delay is reasonable", () => {
-      // Default debounce is 150ms
-      const MENTION_DEBOUNCE_MS = 150;
-      expect(MENTION_DEBOUNCE_MS).toBeGreaterThan(50);
-      expect(MENTION_DEBOUNCE_MS).toBeLessThan(500);
+      expect(DEBOUNCE_MS).toBeGreaterThan(50);
+      expect(DEBOUNCE_MS).toBeLessThan(500);
     });
   });
 
   describe("suggestion limit", () => {
     it("default suggestion limit is reasonable", () => {
-      const MENTION_SUGGESTION_LIMIT = 8;
-      expect(MENTION_SUGGESTION_LIMIT).toBeGreaterThan(0);
-      expect(MENTION_SUGGESTION_LIMIT).toBeLessThanOrEqual(20);
+      expect(LIMIT).toBeGreaterThan(0);
+      expect(LIMIT).toBeLessThanOrEqual(20);
     });
   });
 });

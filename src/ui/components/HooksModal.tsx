@@ -86,12 +86,16 @@ export function HooksModal({ isOpen, hooks, onClose }: HooksModalProps): ReactNo
                 <text attributes={TextAttributes.DIM}> (no hooks configured)</text>
               ) : (
                 groups.map((group, index) => (
-                  <box key={buildGroupKey(event, group)} flexDirection="column" marginLeft={2}>
+                  <box
+                    key={buildGroupKey(event, group)}
+                    flexDirection="column"
+                    marginLeft={UI.SIDEBAR_PADDING}
+                  >
                     <text>
                       {index + 1}. {group.matcher ? `matcher: ${group.matcher}` : "matcher: all"}
                     </text>
                     {group.hooks.map((hook) => (
-                      <text key={buildHookKey(hook)} marginLeft={2}>
+                      <text key={buildHookKey(hook)} marginLeft={UI.SIDEBAR_PADDING}>
                         - {renderHookLabel(hook)}
                       </text>
                     ))}
