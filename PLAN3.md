@@ -1156,6 +1156,16 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/server/api-route-file-search.unit.test.ts`
   - Covered:
     - successful query parsing for hostless request headers
+- Additional UTF-8 split-chunk decoding hardening:
+  - Updated:
+    - `src/server/request-body.ts`
+  - Hardening change:
+    - request-body buffering now uses `StringDecoder("utf8")` for buffer chunks to
+      preserve multi-byte character integrity across chunk boundaries.
+  - Extended:
+    - `__tests__/unit/server/request-body.unit.test.ts`
+  - Covered:
+    - successful JSON parse when a multi-byte UTF-8 character spans two buffer chunks
 
 ---
 

@@ -1,4 +1,5 @@
 import type { IncomingMessage } from "node:http";
+import { StringDecoder } from "node:string_decoder";
 import { SERVER_CONFIG } from "@/config/server";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 
@@ -28,8 +29,9 @@ export const readRequestBody = async (
     let hasEnded = false;
     let receivedBytes = 0;
     let data = "";
+    const utf8Decoder = new StringDecoder("utf8");
     const onData = (chunk: Buffer | string): void => {
-      const chunkText = typeof chunk === "string" ? chunk : chunk.toString();
+      const chunkText = typeof chunk === "string" ? chunk : utf8Decoder.write(chunk);
       const chunkBytes = typeof chunk === "string" ? Buffer.byteLength(chunk) : chunk.length;
       receivedBytes += chunkBytes;
       if (receivedBytes > maxBodyBytes) {
@@ -40,6 +42,7 @@ export const readRequestBody = async (
     };
     const onEnd = (): void => {
       hasEnded = true;
+      data += utf8Decoder.end();
       resolveOnce(data);
     };
     const onError = (error: unknown): void =>

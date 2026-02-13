@@ -1,5 +1,17 @@
 # Scratchpad Journal
 
+## 2026-02-13 (request-body UTF-8 split-chunk decoding hardening)
+- Updated `src/server/request-body.ts`:
+  - buffer chunk decoding now uses `StringDecoder("utf8")` to preserve multibyte
+    characters split across stream chunk boundaries
+- Extended `__tests__/unit/server/request-body.unit.test.ts`:
+  - added split-buffer UTF-8 emoji payload parse coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/request-body.unit.test.ts __tests__/unit/server/api-route-tui-handlers.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (search-files host-header fallback hardening)
 - Updated `src/server/api-routes.ts`:
   - file-search URL parsing now falls back to `localhost` when request host header is absent

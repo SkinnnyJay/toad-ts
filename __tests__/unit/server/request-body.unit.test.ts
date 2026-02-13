@@ -35,6 +35,15 @@ const emitBufferPayload = (req: IncomingMessage, payload: string): void => {
   });
 };
 
+const emitBufferChunks = (req: IncomingMessage, chunks: Buffer[]): void => {
+  process.nextTick(() => {
+    for (const chunk of chunks) {
+      req.emit("data", chunk);
+    }
+    req.emit("end");
+  });
+};
+
 const emitAborted = (req: IncomingMessage): void => {
   process.nextTick(() => {
     req.emit("aborted");
@@ -94,6 +103,17 @@ describe("request-body helpers", () => {
     emitBufferPayload(req, '{"value":"ok"}');
 
     await expect(pending).resolves.toBe('{"value":"ok"}');
+  });
+
+  it("reads utf-8 payloads split across buffer chunks", async () => {
+    const req = createRequest();
+    const pending = parseJsonRequestBody<{ value: string }>(req);
+    const payload = Buffer.from('{"value":"😀"}');
+    const emojiStart = payload.indexOf(Buffer.from("😀"));
+    const splitIndex = emojiStart + 2;
+    emitBufferChunks(req, [payload.subarray(0, splitIndex), payload.subarray(splitIndex)]);
+
+    await expect(pending).resolves.toEqual({ value: "😀" });
   });
 
   it("allows payload exactly at the configured byte limit", async () => {

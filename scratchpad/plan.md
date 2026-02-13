@@ -172,6 +172,9 @@
 - Added search-files host-header fallback hardening:
   - file-search URL parser now defaults to localhost when host header is absent
   - added unit coverage for hostless request parsing path
+- Added UTF-8 split-chunk decoding hardening:
+  - request-body reader now uses StringDecoder for buffer chunk boundaries
+  - added unit coverage for multi-byte UTF-8 split across buffer chunks
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
