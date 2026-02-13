@@ -2217,3 +2217,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock partial-availability semantics so disabled adapters fail cleanly
       without impacting operational configured harnesses.
+
+## Execution Log Addendum — 2026-02-13 (default cursor connect-failure coverage)
+
+- Additional default-harness resilience integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for runtime behavior when configured
+      `defaultHarness` is `cursor-cli`, cursor adapter is enabled, and cursor
+      command fails connection checks.
+    - verifies default session creation path returns canonical server error.
+    - verifies explicit follow-up `mock` session creation still succeeds in the
+      same server instance.
+  - Goal:
+    - lock resilience semantics for default-harness connect failures while
+      preserving overall server request continuity.
