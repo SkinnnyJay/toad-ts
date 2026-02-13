@@ -397,6 +397,15 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Replaced raw server response/error literals in:
     - `src/server/headless-server.ts`
     - `src/server/api-routes.ts`
+- Additional HTTP status and hook IPC hardening:
+  - Added `HTTP_STATUS_METHOD_NOT_ALLOWED` to `src/config/limits.ts`.
+  - Added `METHOD_NOT_ALLOWED` in `src/constants/http-status.ts`.
+  - Replaced derived `NOT_FOUND + 1` status usage in:
+    - `src/core/cursor/hook-ipc-server.ts`
+  - Replaced hook IPC raw method-error text with:
+    - `SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED`
+  - Updated focused test:
+    - `__tests__/unit/constants/http-status.unit.test.ts`
 
 ---
 

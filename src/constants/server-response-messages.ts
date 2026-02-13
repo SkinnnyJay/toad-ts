@@ -1,4 +1,5 @@
 export const SERVER_RESPONSE_MESSAGE = {
+  METHOD_NOT_ALLOWED: "Method not allowed",
   REQUEST_BODY_TOO_LARGE: "Request body too large.",
   INVALID_REQUEST: "Invalid request.",
   UNKNOWN_ENDPOINT: "Unknown endpoint.",

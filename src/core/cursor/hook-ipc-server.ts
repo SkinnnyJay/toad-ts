@@ -8,6 +8,7 @@ import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { PERMISSION } from "@/constants/permissions";
 import { PLATFORM } from "@/constants/platform";
+import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import {
   type CursorHookInput,
   CursorHookInputSchema,
@@ -28,7 +29,6 @@ const HOOK_IPC_TRANSPORT = {
 } as const;
 
 type HookIpcTransport = (typeof HOOK_IPC_TRANSPORT)[keyof typeof HOOK_IPC_TRANSPORT];
-const METHOD_NOT_ALLOWED_STATUS = HTTP_STATUS.NOT_FOUND + 1;
 
 const defaultSocketPath = (pid: number): string => {
   return path.join(tmpdir(), `toadstool-cursor-hooks-${pid}.sock`);
@@ -126,8 +126,8 @@ export class HookIpcServer {
 
     const server = http.createServer(async (req, res) => {
       if (req.method !== "POST") {
-        res.writeHead(METHOD_NOT_ALLOWED_STATUS, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Method not allowed" }));
+        res.writeHead(HTTP_STATUS.METHOD_NOT_ALLOWED, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED }));
         return;
       }
 
