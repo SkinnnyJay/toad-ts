@@ -1,5 +1,24 @@
 # Scratchpad Journal
 
+## 2026-02-13 (shared request-url parser hardening)
+- Added `src/server/request-url.ts`:
+  - centralized request URL parsing with localhost fallback
+  - malformed host/URL inputs now return `null` instead of throwing
+- Updated:
+  - `src/server/headless-server.ts`
+    - now uses shared parser and returns canonical invalid-request for malformed URL inputs
+  - `src/server/api-routes.ts`
+    - file-search now uses shared parser and canonical invalid-request fallback
+- Extended tests:
+  - `__tests__/unit/server/request-url.unit.test.ts`
+  - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+    - malformed host-header rejection case
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/request-url.unit.test.ts __tests__/unit/server/api-route-file-search.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (headless file-search integration coverage)
 - Extended `__tests__/integration/server/headless-server.integration.test.ts`:
   - added file-search integration assertions for:

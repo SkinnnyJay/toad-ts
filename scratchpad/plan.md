@@ -220,6 +220,9 @@
 - Added headless file-search integration hardening:
   - added end-to-end coverage for file-search duplicate/encoded/malformed query keys
   - locks server-level response semantics for these file-search edge cases
+- Added shared request-url parser hardening:
+  - extracted safe URL parsing helper with malformed-host/URL null fallback
+  - reused parser in headless server + file-search route handling
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

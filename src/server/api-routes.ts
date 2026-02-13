@@ -9,6 +9,7 @@ import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { normalizeHttpMethod } from "@/server/http-method-normalization";
 import { sendJsonResponse } from "@/server/http-response";
 import { parseJsonRequestBody } from "@/server/request-body";
+import { parseRequestUrl } from "@/server/request-url";
 import { useAppStore } from "@/store/app-store";
 import type { Session, SessionId } from "@/types/domain";
 export type RouteHandler = (
@@ -17,7 +18,6 @@ export type RouteHandler = (
   params: Record<string, string>
 ) => Promise<void>;
 
-const REQUEST_URL_DEFAULT_HOST = "localhost";
 const SEARCH_QUERY_PARAM_NAME = "q";
 const QUERY_PARAM_SEPARATOR = "&";
 const QUERY_PARAM_ASSIGNMENT = "=";
@@ -142,8 +142,14 @@ export const listAgents: RouteHandler = async (_req, res) => {
 // ── File Endpoints ─────────────────────────────────────────────────────────
 
 export const searchFiles: RouteHandler = async (req, res) => {
+  const url = parseRequestUrl(req);
+  if (!url) {
+    sendJson(res, HTTP_STATUS.BAD_REQUEST, {
+      error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+    });
+    return;
+  }
   try {
-    const url = new URL(req.url ?? "", `http://${req.headers.host ?? REQUEST_URL_DEFAULT_HOST}`);
     const rawQueries = getRawQueryParamValues(url.search, SEARCH_QUERY_PARAM_NAME);
     if (rawQueries.length === 0) {
       sendJson(res, HTTP_STATUS.BAD_REQUEST, {

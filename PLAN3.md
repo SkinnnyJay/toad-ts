@@ -1380,3 +1380,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - duplicate query parameter rejection
     - encoded key name acceptance
     - malformed key-encoding rejection
+- Additional shared request-url parser hardening:
+  - Added:
+    - `src/server/request-url.ts`
+  - Updated:
+    - `src/server/headless-server.ts`
+    - `src/server/api-routes.ts`
+  - Hardening change:
+    - request URL parsing now uses a shared safe parser with localhost fallback
+      and canonical invalid-request behavior for malformed host/URL inputs.
+  - Extended:
+    - `__tests__/unit/server/request-url.unit.test.ts`
+    - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - Covered:
+    - malformed host header rejection
+    - malformed absolute URL parse fallback
+    - missing-host fallback behavior

@@ -17,6 +17,7 @@ import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { createHarnessRegistry, isCursorHarnessEnabled } from "@/harness/harnessRegistryFactory";
 import { sendErrorResponse, sendJsonResponse } from "@/server/http-response";
 import { parseJsonRequestBody } from "@/server/request-body";
+import { parseRequestUrl } from "@/server/request-url";
 import { checkServerAuth } from "@/server/server-auth";
 import type { ServerRuntimeConfig } from "@/server/server-config";
 import { SERVER_ROUTE_CLASSIFICATION, classifyServerRoute } from "@/server/server-route-classifier";
@@ -68,12 +69,16 @@ export const startHeadlessServer = async (
         return;
       }
 
-      // Auth check (skip for health endpoint)
-      const authUrl = new URL(req.url, `http://${req.headers.host ?? "localhost"}`);
-      if (authUrl.pathname !== SERVER_PATH.HEALTH && !checkServerAuth(req, res)) {
+      const url = parseRequestUrl(req);
+      if (!url) {
+        sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
         return;
       }
-      const url = new URL(req.url, `http://${req.headers.host ?? "localhost"}`);
+
+      // Auth check (skip for health endpoint)
+      if (url.pathname !== SERVER_PATH.HEALTH && !checkServerAuth(req, res)) {
+        return;
+      }
 
       const routeClassification = classifyServerRoute(req.method, url.pathname);
 

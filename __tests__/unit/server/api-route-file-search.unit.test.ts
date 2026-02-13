@@ -111,6 +111,17 @@ describe("api-routes searchFiles handler", () => {
     });
   });
 
+  it("returns bad request when request host header is malformed", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=notes", "%"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
   it("returns bad request when query value has malformed encoding", async () => {
     const { response, getCaptured } = createResponseCapture();
 
