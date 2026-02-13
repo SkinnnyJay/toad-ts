@@ -1181,6 +1181,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/server/server-route-classifier.unit.test.ts`
   - Covered:
     - lowercase and padded method matching/classification paths
+- Additional file-search query-trim hardening:
+  - Updated:
+    - `src/server/api-routes.ts`
+  - Hardening change:
+    - file-search query parsing now trims whitespace, rejecting whitespace-only `q`
+      values as canonical missing-query bad requests.
+  - Extended:
+    - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - Covered:
+    - whitespace-only query rejection
+    - trimmed query success response
 
 ---
 

@@ -178,6 +178,9 @@
 - Added HTTP-method normalization hardening for route classifiers:
   - shared method normalizer now canonicalizes trim+case for route matching
   - added unit coverage for lowercase/padded method handling across classifiers
+- Added file-search query-trim hardening:
+  - file-search now rejects whitespace-only query values
+  - added unit coverage for whitespace-only and trimmed-query behavior
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

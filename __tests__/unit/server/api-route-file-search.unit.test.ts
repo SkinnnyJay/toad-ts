@@ -62,6 +62,28 @@ describe("api-routes searchFiles handler", () => {
     });
   });
 
+  it("returns bad request for whitespace-only query parameter", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=%20%20"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED },
+    });
+  });
+
+  it("trims surrounding whitespace from valid query parameter", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=%20readme%20"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "readme", results: [] },
+    });
+  });
+
   it("parses query successfully when request host header is absent", async () => {
     const { response, getCaptured } = createResponseCapture();
 

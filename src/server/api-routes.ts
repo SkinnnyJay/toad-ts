@@ -119,7 +119,7 @@ export const listAgents: RouteHandler = async (_req, res) => {
 
 export const searchFiles: RouteHandler = async (req, res) => {
   const url = new URL(req.url ?? "", `http://${req.headers.host ?? REQUEST_URL_DEFAULT_HOST}`);
-  const query = url.searchParams.get("q") ?? "";
+  const query = (url.searchParams.get("q") ?? "").trim();
   if (!query) {
     sendJson(res, HTTP_STATUS.BAD_REQUEST, {
       error: SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED,
