@@ -21,9 +21,9 @@ bun run start            # Execute the compiled CLI from dist/
 # Testing
 bun run test             # Run all tests with vitest
 bun run test:watch       # Run tests in watch mode
-bun run test:unit        # Run unit tests only (vitest.unit.config.ts)
-bun run test:integration # Run integration tests (vitest.integration.config.ts)
-bun run test:e2e         # Run end-to-end tests (vitest.e2e.config.ts)
+bun run test:unit        # Run unit tests only (__tests__/unit)
+bun run test:integration # Run integration tests (__tests__/integration)
+bun run test:e2e         # Run end-to-end tests (__tests__/e2e)
 bun run test:coverage    # Run tests with coverage report
 
 # Run a single test file
@@ -89,7 +89,7 @@ src/
 - **Vitest** with globals enabled
 - Test files: `__tests__/<unit|integration>/<domain>/<name>.<unit|integration>.test.ts`
 - Target >= 95% coverage per changed/added unit
-- Separate configs for unit, integration, and e2e
+- Test groups are split by path: `__tests__/unit`, `__tests__/integration`, `__tests__/e2e`
 
 ## Execution Verification Policy
 
