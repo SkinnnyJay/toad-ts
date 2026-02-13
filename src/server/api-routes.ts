@@ -35,21 +35,23 @@ const mapRequestBodyError = (error: unknown): string => {
   return SERVER_RESPONSE_MESSAGE.INVALID_REQUEST;
 };
 
-const getRawQueryParamValue = (search: string, paramName: string): string | null => {
+const getRawQueryParamValues = (search: string, paramName: string): string[] => {
   const query = search.startsWith("?") ? search.slice(1) : search;
   if (query.length === 0) {
-    return null;
+    return [];
   }
+  const values: string[] = [];
   for (const segment of query.split(QUERY_PARAM_SEPARATOR)) {
     if (segment === paramName) {
-      return "";
+      values.push("");
+      continue;
     }
     const [name, ...rest] = segment.split(QUERY_PARAM_ASSIGNMENT);
     if (name === paramName) {
-      return rest.join(QUERY_PARAM_ASSIGNMENT);
+      values.push(rest.join(QUERY_PARAM_ASSIGNMENT));
     }
   }
-  return null;
+  return values;
 };
 
 const decodeFormQueryParam = (rawValue: string): string =>
@@ -145,14 +147,21 @@ export const listAgents: RouteHandler = async (_req, res) => {
 export const searchFiles: RouteHandler = async (req, res) => {
   try {
     const url = new URL(req.url ?? "", `http://${req.headers.host ?? REQUEST_URL_DEFAULT_HOST}`);
-    const rawQuery = getRawQueryParamValue(url.search, SEARCH_QUERY_PARAM_NAME);
-    if (rawQuery === null) {
+    const rawQueries = getRawQueryParamValues(url.search, SEARCH_QUERY_PARAM_NAME);
+    if (rawQueries.length === 0) {
       sendJson(res, HTTP_STATUS.BAD_REQUEST, {
         error: SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED,
       });
       return;
     }
-    const query = decodeFormQueryParam(rawQuery).trim();
+    if (rawQueries.length > 1) {
+      sendJson(res, HTTP_STATUS.BAD_REQUEST, {
+        error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      });
+      return;
+    }
+    const rawQuery = rawQueries[0];
+    const query = decodeFormQueryParam(rawQuery ?? "").trim();
     if (!query) {
       sendJson(res, HTTP_STATUS.BAD_REQUEST, {
         error: SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED,

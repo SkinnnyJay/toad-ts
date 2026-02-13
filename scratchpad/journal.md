@@ -1,5 +1,17 @@
 # Scratchpad Journal
 
+## 2026-02-13 (file-search duplicate-query hardening)
+- Updated `src/server/api-routes.ts`:
+  - query extraction now collects all `q` values
+  - duplicate `q` parameters now return canonical `INVALID_REQUEST`
+- Extended `__tests__/unit/server/api-route-file-search.unit.test.ts`:
+  - added duplicate-query rejection coverage (`q=readme&q=notes`)
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/api-route-file-search.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (repo-workflow defensive normalization)
 - Updated `src/core/repo-workflow.ts`:
   - `deriveRepoWorkflowStatus` now trims and lowercases PR `state` and

@@ -211,6 +211,9 @@
 - Added repo-workflow normalization hardening:
   - derive status now trims state/review-decision fields before comparisons
   - added unit coverage for padded merged state and approved decision inputs
+- Added file-search duplicate-query hardening:
+  - search route now rejects duplicated `q` params as invalid requests
+  - added unit coverage for duplicated query-parameter behavior
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

@@ -121,4 +121,15 @@ describe("api-routes searchFiles handler", () => {
       body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
     });
   });
+
+  it("returns bad request when query parameter is duplicated", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=readme&q=notes"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
 });

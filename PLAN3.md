@@ -1351,3 +1351,13 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Covered:
     - padded merged-state normalization
     - padded approved-decision normalization
+- Additional file-search duplicate-query hardening:
+  - Updated:
+    - `src/server/api-routes.ts`
+  - Hardening change:
+    - file-search query extraction now rejects duplicated `q` parameters with
+      canonical invalid-request responses.
+  - Extended:
+    - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - Covered:
+    - duplicate query parameter rejection (`q=readme&q=notes`)
