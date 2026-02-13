@@ -1616,3 +1616,26 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Default-harness id validation hardening)
+
+### Summary
+- Updated `loadHarnessConfig(...)` to validate configured project/user
+  `defaultHarness` values using shared invalid-id validation.
+- Project/user defaults now reject:
+  - whitespace-only ids
+  - padded ids with surrounding whitespace
+- Expanded harness-config unit coverage for project/user default-id validation
+  failures.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/harness/harness-config.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅

@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added default-harness id validation hardening:
+  - project/user `defaultHarness` values now reject whitespace-only and padded
+    ids via shared invalid-id validation
+  - prevents silent fallback/coercion when defaults are malformed in config
+  - expanded harness-config unit coverage for project/user default-id
+    validation failures
 - Added explicit blank CLI harness-id guard hardening:
   - whitespace-only explicit CLI harness-id values now reject with invalid-id
     diagnostics instead of silently falling back to defaults

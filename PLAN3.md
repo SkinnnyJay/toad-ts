@@ -1943,3 +1943,23 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - keep explicit harness selection deterministic and fail-fast for malformed
       CLI input while maintaining fallback behavior for implicit/default paths.
+
+## Execution Log Addendum — 2026-02-13 (default-harness id validation hardening)
+
+- Additional harness default-selection hardening:
+  - Updated:
+    - `src/harness/harnessConfig.ts`
+    - `__tests__/unit/harness/harness-config.unit.test.ts`
+  - Hardening changes:
+    - project/user configured `defaultHarness` values are now validated with the
+      same invalid-id guard used for harness ids:
+      - whitespace-only defaults reject
+      - padded defaults reject
+    - prevents silent normalization/fallback on malformed configured defaults.
+    - expanded focused unit coverage for:
+      - whitespace-only project default rejection
+      - padded project default rejection
+      - whitespace-only user default rejection
+  - Goal:
+    - enforce deterministic default-harness semantics by failing fast on
+      malformed configured defaults instead of implicitly coercing values.

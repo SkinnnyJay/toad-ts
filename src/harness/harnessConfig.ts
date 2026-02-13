@@ -206,6 +206,13 @@ const validateHarnessId = (id: string): string => {
   return normalizedId;
 };
 
+const validateConfiguredDefaultHarnessId = (harnessId: string | undefined): string | undefined => {
+  if (harnessId === undefined) {
+    return undefined;
+  }
+  return validateHarnessId(harnessId);
+};
+
 const expandEnvString = (value: string, env: NodeJS.ProcessEnv): string => {
   return value.replace(ENV_PATTERN, (_, direct, braced) => {
     const key = direct ?? braced;
@@ -303,8 +310,8 @@ export const loadHarnessConfig = async (
 
   const selectedId = resolveHarnessId(
     options.harnessId,
-    userConfig?.defaultHarness,
-    projectConfig?.defaultHarness,
+    validateConfiguredDefaultHarnessId(userConfig?.defaultHarness),
+    validateConfiguredDefaultHarnessId(projectConfig?.defaultHarness),
     availableIds
   );
 

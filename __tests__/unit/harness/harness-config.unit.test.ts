@@ -341,7 +341,7 @@ describe("harnessConfig", () => {
     expect(result.harness.command).toBe("only-cli");
   });
 
-  it("ignores whitespace-only default harness values and auto-selects single harness", async () => {
+  it("throws when project default harness id is whitespace-only", async () => {
     projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
     userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
 
@@ -355,10 +355,28 @@ describe("harnessConfig", () => {
       },
     });
 
-    const result = await loadHarnessConfig({ projectRoot, homedir: userRoot });
+    await expect(loadHarnessConfig({ projectRoot, homedir: userRoot })).rejects.toThrow(
+      formatInvalidHarnessIdError("   ")
+    );
+  });
 
-    expect(result.harnessId).toBe("only");
-    expect(result.harness.command).toBe("only-cli");
+  it("throws when project default harness id is padded with whitespace", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: " alpha ",
+      harnesses: {
+        alpha: {
+          name: "Alpha",
+          command: "alpha-cli",
+        },
+      },
+    });
+
+    await expect(loadHarnessConfig({ projectRoot, homedir: userRoot })).rejects.toThrow(
+      formatInvalidHarnessIdError(" alpha ")
+    );
   });
 
   it("trims explicit CLI harness id before lookup", async () => {
@@ -455,6 +473,34 @@ describe("harnessConfig", () => {
         harnessId: "missing",
       })
     ).rejects.toThrow(formatHarnessNotFoundError("missing"));
+  });
+
+  it("throws when user default harness id is whitespace-only", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "alpha",
+      harnesses: {
+        alpha: {
+          name: "Alpha",
+          command: "alpha-cli",
+        },
+      },
+    });
+
+    await writeHarnessFile(userRoot, {
+      defaultHarness: "  ",
+      harnesses: {
+        alpha: {
+          command: "alpha-user",
+        },
+      },
+    });
+
+    await expect(loadHarnessConfig({ projectRoot, homedir: userRoot })).rejects.toThrow(
+      formatInvalidHarnessIdError("  ")
+    );
   });
 
   it("throws when harness id contains surrounding whitespace", async () => {
