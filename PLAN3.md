@@ -659,6 +659,11 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Runtime fix:
     - updated `src/server/headless-server.ts` to treat
       `REQUEST_BODY_TOO_LARGE` as `400 Bad Request` instead of falling through to `500`
+- Additional session-message endpoint behavior coverage:
+  - Extended integration coverage:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Covered:
+    - `/sessions/:id/messages` returns `200` with empty messages for unknown session IDs
 
 ---
 

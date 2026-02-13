@@ -1,5 +1,15 @@
 # Scratchpad Journal
 
+## 2026-02-13 (session-messages edge behavior coverage)
+- Extended `__tests__/integration/server/headless-server.integration.test.ts` with explicit
+  coverage for unknown-session messages fetch behavior.
+- Locked current behavior:
+  - `GET /sessions/<unknown>/messages` returns `200` and `{ messages: [] }`.
+- Validation:
+  - Targeted: `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (headless request-body/schema edge hardening)
 - Extended `__tests__/integration/server/headless-server.integration.test.ts` to cover:
   - strict schema rejection when `/sessions` payload includes unexpected keys

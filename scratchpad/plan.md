@@ -27,6 +27,8 @@
 - Added headless request validation hardening:
   - integration coverage for schema-rejection and oversized-body behavior
   - server runtime fix mapping oversized-body errors to `400` responses
+- Added unknown-session message retrieval coverage:
+  - integration assertion for `/sessions/:id/messages` empty-list behavior
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

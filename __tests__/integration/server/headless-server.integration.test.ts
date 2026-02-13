@@ -258,4 +258,18 @@ describe("headless server", () => {
       await server.close();
     }
   });
+
+  it("returns empty message list for unknown session ids", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const response = await fetch(`${baseUrl}/sessions/session-unknown/messages`);
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({ messages: [] });
+    } finally {
+      await server.close();
+    }
+  });
 });
