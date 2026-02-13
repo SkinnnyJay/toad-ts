@@ -49,6 +49,9 @@
   - added direct utility unit coverage
 - Added non-API auth-ordering validation:
   - integration coverage locking auth-before-method semantics for `/sessions`
+- Added method-guard refactor:
+  - extracted centralized core-route method validation helper in headless server
+  - preserved semantics validated by integration coverage
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

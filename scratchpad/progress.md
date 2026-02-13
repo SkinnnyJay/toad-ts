@@ -17,6 +17,7 @@
   - added method-not-allowed semantics for known non-API server routes
   - consolidated duplicated request parsing into shared server request-body utility
   - added non-API protected-route auth-ordering coverage for method semantics
+  - refactored core-route method guard logic to reduce branching duplication
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

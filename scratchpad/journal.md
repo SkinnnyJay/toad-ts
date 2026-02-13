@@ -1,5 +1,14 @@
 # Scratchpad Journal
 
+## 2026-02-13 (core route method-guard refactor)
+- Refactored `src/server/headless-server.ts` method validation logic by extracting
+  `isMethodAllowedForCoreRoute()` to centralize route-method checks and reduce branch duplication.
+- Behavior preserved with existing integration assertions (no semantic drift).
+- Validation:
+  - Targeted: `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (non-API auth-ordering coverage)
 - Extended `__tests__/integration/server/headless-server.integration.test.ts` with explicit
   auth-ordering checks for a non-API protected route:

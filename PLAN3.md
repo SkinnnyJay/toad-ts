@@ -739,6 +739,15 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - auth challenge precedence over method semantics for non-API protected route:
       - `GET /sessions` without auth => `401 Authorization required`
       - `GET /sessions` with valid auth => `405 Method not allowed`
+- Additional method-guard refactor hardening:
+  - Runtime update:
+    - `src/server/headless-server.ts`
+  - Refactor:
+    - extracted `isMethodAllowedForCoreRoute()` to centralize method validation logic
+      for known core routes and reduce duplicated branching.
+  - Validation:
+    - existing integration coverage remains green for all method-semantics paths
+      (API + non-API + auth-ordering).
 
 ---
 
