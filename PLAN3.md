@@ -557,6 +557,12 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - added `WWW-Authenticate: Bearer` response header on auth failures
     - added/used `HTTP_STATUS_UNAUTHORIZED` in limits + constants
     - added unit assertions verifying `WWW-Authenticate` header emission
+- Additional server response constants coverage:
+  - Added focused constants validation:
+    - `__tests__/unit/constants/server-response-messages.unit.test.ts`
+  - Covered:
+    - canonical API response message constants
+    - canonical auth response message constants
 - Additional headless-server auth integration coverage:
   - Extended `__tests__/integration/server/headless-server.integration.test.ts`
     with authenticated-request scenarios.
