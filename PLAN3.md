@@ -1114,6 +1114,16 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
   - Covered:
     - owner/repo extraction from `git+ssh://git@host/owner/repo.git`
+- Additional SSE close-unsubscribe idempotency hardening:
+  - Updated:
+    - `src/server/api-routes.ts`
+  - Hardening change:
+    - events stream close handler now uses one-time close subscription so duplicate
+      close emissions cannot double-invoke unsubscribe handlers.
+  - Extended:
+    - `__tests__/unit/server/api-route-events-stream.unit.test.ts`
+  - Covered:
+    - duplicate request-close event sequence only invokes unsubscribe once.
 
 ---
 

@@ -145,7 +145,7 @@ export const eventsStream: RouteHandler = async (_req, res) => {
     res.write(`data: ${data}\n\n`);
   });
 
-  _req.on("close", () => {
+  _req.once("close", () => {
     unsubscribe();
   });
 };

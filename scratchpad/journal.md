@@ -1,5 +1,16 @@
 # Scratchpad Journal
 
+## 2026-02-13 (SSE close-unsubscribe idempotency hardening)
+- Updated `src/server/api-routes.ts`:
+  - switched events-stream close listener from `on` to `once` for unsubscribe idempotency
+- Extended `__tests__/unit/server/api-route-events-stream.unit.test.ts`:
+  - added duplicate close-event assertion (`unsubscribe` called exactly once)
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/api-route-events-stream.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (git+ssh remote parsing hardening)
 - Updated `src/core/repo-workflow.ts`:
   - ssh-protocol matcher now accepts optional `git+ssh://` prefix

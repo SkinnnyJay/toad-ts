@@ -160,6 +160,9 @@
 - Added git+ssh remote parsing hardening:
   - repo parser now accepts `git+ssh://...` remote URLs
   - added workflow info unit coverage for git+ssh protocol remotes
+- Added SSE close-unsubscribe idempotency hardening:
+  - events stream close handler now uses one-time listener semantics
+  - added unit coverage for duplicate close-event safety
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

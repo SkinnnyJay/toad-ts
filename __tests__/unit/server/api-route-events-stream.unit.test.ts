@@ -101,6 +101,7 @@ describe("eventsStream handler", () => {
     });
 
     request.emit("close");
+    request.emit("close");
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 });
