@@ -1,5 +1,23 @@
 # Scratchpad Journal
 
+## 2026-02-13 (shared request parser consolidation)
+- Added `src/server/request-body.ts` with shared helpers:
+  - `readRequestBody()`
+  - `parseJsonRequestBody()`
+- Refactored both server entrypoints to reuse shared behavior:
+  - `src/server/headless-server.ts`
+  - `src/server/api-routes.ts`
+- Added focused unit coverage:
+  - `__tests__/unit/server/request-body.unit.test.ts`
+- Expanded TUI route unit coverage:
+  - `__tests__/unit/server/api-route-tui-handlers.unit.test.ts`
+  - invalid JSON + oversized payload direct invocation paths
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/request-body.unit.test.ts __tests__/unit/server/api-route-tui-handlers.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (non-API method semantics hardening)
 - Updated `src/server/headless-server.ts` to return canonical `405` responses for unsupported
   methods on known non-API routes (`/health`, `/sessions`, `/sessions/:id/prompt`,

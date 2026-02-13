@@ -716,6 +716,22 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/integration/server/headless-server.integration.test.ts`
   - Covered:
     - canonical method-not-allowed payload for unsupported non-API route methods
+- Additional shared request parser consolidation:
+  - Added:
+    - `src/server/request-body.ts`
+  - Consolidated shared request-body behaviors:
+    - body-size limit enforcement
+    - JSON parsing with optional empty-body fallback
+  - Refactored call sites:
+    - `src/server/headless-server.ts`
+    - `src/server/api-routes.ts`
+  - Extended unit coverage:
+    - `__tests__/unit/server/request-body.unit.test.ts`
+    - expanded `__tests__/unit/server/api-route-tui-handlers.unit.test.ts`
+  - Covered:
+    - parser success/failure paths
+    - invalid JSON direct-invocation behavior
+    - oversized payload handling via shared parser
 
 ---
 

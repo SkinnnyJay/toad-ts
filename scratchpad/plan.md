@@ -43,6 +43,10 @@
 - Added non-API method semantics hardening:
   - known non-API routes now emit canonical 405 responses for unsupported methods
   - integration coverage added for health/sessions method validation paths
+- Added parser deduplication hardening:
+  - extracted shared server request-body utility
+  - refactored headless + api route parsing to use shared implementation
+  - added direct utility unit coverage
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

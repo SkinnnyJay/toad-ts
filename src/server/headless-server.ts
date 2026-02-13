@@ -1,4 +1,4 @@
-import http, { type IncomingMessage, type ServerResponse } from "node:http";
+import http, { type ServerResponse } from "node:http";
 import { SERVER_CONFIG } from "@/config/server";
 import { HTTP_METHOD } from "@/constants/http-methods";
 import { HTTP_STATUS } from "@/constants/http-status";
@@ -16,6 +16,7 @@ import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { createHarnessRegistry, isCursorHarnessEnabled } from "@/harness/harnessRegistryFactory";
 import { API_ROUTES, matchRoute } from "@/server/api-routes";
+import { parseJsonRequestBody } from "@/server/request-body";
 import { checkServerAuth } from "@/server/server-auth";
 import type { ServerRuntimeConfig } from "@/server/server-config";
 import { createSessionRequestSchema, promptSessionRequestSchema } from "@/server/server-types";
@@ -36,20 +37,6 @@ export interface HeadlessServer {
 
 const logger = createClassLogger("HeadlessServer");
 
-const readBody = async (req: IncomingMessage): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    let data = "";
-    req.on("data", (chunk: Buffer | string) => {
-      data += chunk.toString();
-      if (data.length > SERVER_CONFIG.MAX_BODY_BYTES) {
-        reject(new Error(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE));
-      }
-    });
-    req.on("end", () => resolve(data));
-    req.on("error", (error) => reject(error));
-  });
-};
-
 const sendJson = (res: ServerResponse, status: number, payload: unknown): void => {
   const body = JSON.stringify(payload);
   res.writeHead(status, {
@@ -61,14 +48,6 @@ const sendJson = (res: ServerResponse, status: number, payload: unknown): void =
 
 const sendError = (res: ServerResponse, status: number, message: string): void => {
   sendJson(res, status, { error: message });
-};
-
-const parseJson = async (req: IncomingMessage): Promise<unknown> => {
-  const body = await readBody(req);
-  if (!body) {
-    return {};
-  }
-  return JSON.parse(body);
 };
 
 export const startHeadlessServer = async (
@@ -140,7 +119,7 @@ export const startHeadlessServer = async (
       }
 
       if (req.method === HTTP_METHOD.POST && url.pathname === SERVER_PATH.SESSIONS) {
-        const raw = await parseJson(req);
+        const raw = await parseJsonRequestBody<unknown>(req, { emptyBodyValue: {} });
         const payload = createSessionRequestSchema.parse(raw);
         const harnessId = payload.harnessId ?? harnessConfigResult.harnessId;
         const harnessConfig = harnessConfigResult.harnesses[harnessId];
@@ -195,7 +174,7 @@ export const startHeadlessServer = async (
           sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.SESSION_NOT_FOUND);
           return;
         }
-        const raw = await parseJson(req);
+        const raw = await parseJsonRequestBody<unknown>(req);
         const payload = promptSessionRequestSchema.parse(raw);
         const response = await runtime.prompt({
           sessionId: parsedSession.data,

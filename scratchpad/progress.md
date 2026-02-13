@@ -15,6 +15,7 @@
   - added auth-vs-method-ordering integration coverage for protected API routes
   - added direct handler-level parse/read error response hardening for TUI API routes
   - added method-not-allowed semantics for known non-API server routes
+  - consolidated duplicated request parsing into shared server request-body utility
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

@@ -1,12 +1,12 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadAppConfig } from "@/config/app-config";
-import { SERVER_CONFIG } from "@/config/server";
 import { HTTP_METHOD } from "@/constants/http-methods";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { SERVER_EVENT } from "@/constants/server-events";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
+import { parseJsonRequestBody } from "@/server/request-body";
 import { useAppStore } from "@/store/app-store";
 import type { Session, SessionId } from "@/types/domain";
 type RouteHandler = (
@@ -19,24 +19,6 @@ const sendJson = (res: ServerResponse, status: number, payload: unknown): void =
   const body = JSON.stringify(payload);
   res.writeHead(status, { "Content-Type": "application/json" });
   res.end(body);
-};
-
-const readBody = async (req: IncomingMessage): Promise<string> =>
-  new Promise((resolve, reject) => {
-    let data = "";
-    req.on("data", (chunk: Buffer | string) => {
-      data += chunk.toString();
-      if (data.length > SERVER_CONFIG.MAX_BODY_BYTES) {
-        reject(new Error(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE));
-      }
-    });
-    req.on("end", () => resolve(data));
-    req.on("error", reject);
-  });
-
-const parseJsonBody = async <TPayload>(req: IncomingMessage): Promise<TPayload> => {
-  const body = await readBody(req);
-  return JSON.parse(body) as TPayload;
 };
 
 // ── Session Endpoints ──────────────────────────────────────────────────────
@@ -166,7 +148,7 @@ export const eventsStream: RouteHandler = async (_req, res) => {
 
 export const appendPrompt: RouteHandler = async (req, res) => {
   try {
-    const payload = await parseJsonBody<{ text?: string }>(req);
+    const payload = await parseJsonRequestBody<{ text?: string }>(req);
     const { text } = payload;
     if (!text) {
       sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: SERVER_RESPONSE_MESSAGE.TEXT_REQUIRED });
@@ -186,7 +168,7 @@ export const submitPrompt: RouteHandler = async (_req, res) => {
 
 export const executeCommand: RouteHandler = async (req, res) => {
   try {
-    const payload = await parseJsonBody<{ command?: string }>(req);
+    const payload = await parseJsonRequestBody<{ command?: string }>(req);
     const { command } = payload;
     if (!command) {
       sendJson(res, HTTP_STATUS.BAD_REQUEST, {
