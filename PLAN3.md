@@ -418,6 +418,15 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `src/ui/hooks/useHarnessConnection.ts`
   - Added focused unit test:
     - `__tests__/unit/harness/harness-error-messages.unit.test.ts`
+- Additional harness-config error hardening:
+  - Extended `HARNESS_CONFIG_ERROR` with:
+    - `NO_DEFAULT_HARNESS_CONFIGURED`
+  - Replaced raw harness-config errors in `src/harness/harnessConfig.ts`:
+    - `No default harness configured.` → `HARNESS_CONFIG_ERROR.NO_DEFAULT_HARNESS_CONFIGURED`
+    - `Harness '<id>' not found.` → `formatHarnessNotFoundError(<id>)`
+  - Extended harness error helper and test coverage:
+    - `src/harness/harness-error-messages.ts` (`formatHarnessNotFoundError`)
+    - `__tests__/unit/harness/harness-error-messages.unit.test.ts`
 
 ---
 

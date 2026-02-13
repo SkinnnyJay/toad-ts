@@ -6,6 +6,7 @@ import { ERROR_CODE } from "@/constants/error-codes";
 import { FILE_PATH } from "@/constants/file-paths";
 import { PERMISSION } from "@/constants/permissions";
 import { TOOL_KIND } from "@/constants/tool-kinds";
+import { formatHarnessNotFoundError } from "@/harness/harness-error-messages";
 import { CLI_AGENT_MODE } from "@/types/cli-agent.types";
 import { EnvManager } from "@/utils/env/env.utils";
 import { z } from "zod";
@@ -14,6 +15,7 @@ const ENV_PATTERN = /\$(\w+)|\$\{([^}]+)\}/g;
 const DEFAULT_CONFIG_FILENAME = "harnesses.json";
 export const HARNESS_CONFIG_ERROR = {
   NO_HARNESSES_CONFIGURED: "No harnesses configured.",
+  NO_DEFAULT_HARNESS_CONFIGURED: "No default harness configured.",
 } as const;
 
 const permissionValueSchema = z.enum([PERMISSION.ALLOW, PERMISSION.DENY, PERMISSION.ASK]);
@@ -244,7 +246,7 @@ const resolveHarnessId = (
       return only;
     }
   }
-  throw new Error("No default harness configured.");
+  throw new Error(HARNESS_CONFIG_ERROR.NO_DEFAULT_HARNESS_CONFIGURED);
 };
 
 export const loadHarnessConfig = async (
@@ -289,7 +291,7 @@ export const loadHarnessConfig = async (
 
   const harness = resolvedHarnesses[selectedId];
   if (!harness) {
-    throw new Error(`Harness '${selectedId}' not found.`);
+    throw new Error(formatHarnessNotFoundError(selectedId));
   }
 
   return {
