@@ -1,6 +1,7 @@
 import path from "node:path";
 import { GIT_STATUS_CODE_MIN_LENGTH } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
+import { PR_REVIEW_STATUS } from "@/constants/pr-review-status";
 import { REPO_WORKFLOW_ACTION, type RepoWorkflowAction } from "@/constants/repo-workflow-actions";
 import { REPO_WORKFLOW_STATUS, type RepoWorkflowStatus } from "@/constants/repo-workflow-status";
 import { type PullRequestStatus, getPRStatus } from "@/core/pr-status";
@@ -37,6 +38,12 @@ export interface RepoWorkflowInfo {
 }
 
 const GIT_REMOTE_ORIGIN_URL = "remote.origin.url";
+const GH_PR_CHECKS_JSON_FIELDS = "name,status,conclusion";
+const PR_STATE = {
+  MERGED: "merged",
+  CLOSED: "closed",
+  OPEN: "open",
+} as const;
 const GH_CHECK = {
   FAILURE: "failure",
   CANCELLED: "cancelled",
@@ -129,7 +136,7 @@ async function getHasMergeConflicts(cwd: string): Promise<boolean> {
 
 async function getPrChecksStatus(cwd: string): Promise<"pass" | "fail" | "pending" | null> {
   try {
-    const { stdout } = await execa("gh", ["pr", "checks", "--json", "name,status,conclusion"], {
+    const { stdout } = await execa("gh", ["pr", "checks", "--json", GH_PR_CHECKS_JSON_FIELDS], {
       cwd,
       encoding: "utf8",
       timeout: TIMEOUT.GH_CLI_MS,
@@ -175,20 +182,22 @@ export function deriveRepoWorkflowStatus(
   }
 
   const state = pr.state.toLowerCase();
-  if (state === "merged") return REPO_WORKFLOW_STATUS.MERGED;
-  if (state === "closed") return REPO_WORKFLOW_STATUS.CLOSED;
+  if (state === PR_STATE.MERGED) return REPO_WORKFLOW_STATUS.MERGED;
+  if (state === PR_STATE.CLOSED) return REPO_WORKFLOW_STATUS.CLOSED;
 
   if (pr.isDraft === true) return REPO_WORKFLOW_STATUS.DRAFT;
 
-  if (state !== "open") return REPO_WORKFLOW_STATUS.OPEN;
+  if (state !== PR_STATE.OPEN) return REPO_WORKFLOW_STATUS.OPEN;
 
   if (hasMergeConflicts) return REPO_WORKFLOW_STATUS.MERGE_CONFLICTS;
   if (checksStatus === "fail") return REPO_WORKFLOW_STATUS.CI_FAILING;
 
   const decision = (pr.reviewDecision ?? "").toLowerCase();
-  if (decision === "approved") return REPO_WORKFLOW_STATUS.APPROVED;
-  if (decision === "changes_requested") return REPO_WORKFLOW_STATUS.CHANGES_REQUESTED;
-  if (decision === "review_required") return REPO_WORKFLOW_STATUS.REVIEW_REQUESTED;
+  if (decision === PR_REVIEW_STATUS.APPROVED) return REPO_WORKFLOW_STATUS.APPROVED;
+  if (decision === PR_REVIEW_STATUS.CHANGES_REQUESTED) {
+    return REPO_WORKFLOW_STATUS.CHANGES_REQUESTED;
+  }
+  if (decision === PR_REVIEW_STATUS.REVIEW_REQUIRED) return REPO_WORKFLOW_STATUS.REVIEW_REQUESTED;
 
   return REPO_WORKFLOW_STATUS.OPEN;
 }

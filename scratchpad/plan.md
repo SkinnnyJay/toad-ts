@@ -137,6 +137,9 @@
 - Added remote-url scheme-case parsing hardening:
   - repo remote parser now accepts uppercase HTTPS/SSH scheme variants
   - added workflow info unit coverage for uppercase HTTPS remotes
+- Added repo-workflow literal hygiene hardening:
+  - extracted GH checks JSON field list into named constant
+  - replaced raw PR-state/review-decision literals with domain constants
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

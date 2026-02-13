@@ -1,5 +1,15 @@
 # Scratchpad Journal
 
+## 2026-02-13 (repo-workflow literal hygiene)
+- Updated `src/core/repo-workflow.ts`:
+  - extracted `gh pr checks --json` field list string into named constant
+  - replaced raw PR state/review decision string literals with constants
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/repo-workflow-info.unit.test.ts __tests__/unit/core/repo-workflow.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (repo remote scheme-case parsing hardening)
 - Updated `src/core/repo-workflow.ts`:
   - made `https://` and `ssh://` remote parsing case-insensitive

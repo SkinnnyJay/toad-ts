@@ -1040,6 +1040,15 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
   - Covered:
     - uppercase `HTTPS://...` remote parsing to owner/repo values.
+- Additional repo-workflow literal hygiene hardening:
+  - Updated:
+    - `src/core/repo-workflow.ts`
+  - Hardening change:
+    - extracted the GH checks JSON-field argument to a named constant
+    - replaced raw PR state/review decision string comparisons with shared constants
+      to reduce literal drift risk.
+  - Validation:
+    - existing repo workflow unit coverage remained green.
 
 ---
 
