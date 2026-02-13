@@ -411,6 +411,13 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `src/core/fs-handler.ts`
     - `src/core/search/search-service.ts`
     - `src/core/terminal-handler.ts`
+- Additional harness error-message hardening:
+  - Added `src/harness/harness-error-messages.ts` for shared harness error formatting.
+  - Replaced duplicated harness error strings in:
+    - `src/agents/subagent-runner.ts`
+    - `src/ui/hooks/useHarnessConnection.ts`
+  - Added focused unit test:
+    - `__tests__/unit/harness/harness-error-messages.unit.test.ts`
 
 ---
 

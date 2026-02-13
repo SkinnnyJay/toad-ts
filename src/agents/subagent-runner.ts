@@ -3,6 +3,10 @@ import type { EnvSource, McpConfigInput } from "@/core/mcp-config";
 import { loadMcpConfig } from "@/core/mcp-config-loader";
 import { SessionManager } from "@/core/session-manager";
 import type { SessionStream } from "@/core/session-stream";
+import {
+  formatHarnessAdapterNotRegisteredError,
+  formatHarnessNotConfiguredError,
+} from "@/harness/harness-error-messages";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { HarnessRegistry } from "@/harness/harnessRegistry";
 import type { AppStore } from "@/store/app-store";
@@ -34,11 +38,11 @@ export class SubAgentRunner {
   async run(params: SubAgentRunParams): Promise<SessionId> {
     const harnessConfig = this.options.harnessConfigs[params.agent.harnessId];
     if (!harnessConfig) {
-      throw new Error(`Harness '${params.agent.harnessId}' not configured.`);
+      throw new Error(formatHarnessNotConfiguredError(params.agent.harnessId));
     }
     const adapter = this.options.harnessRegistry.get(harnessConfig.id);
     if (!adapter) {
-      throw new Error(`Harness adapter '${harnessConfig.id}' not registered.`);
+      throw new Error(formatHarnessAdapterNotRegisteredError(harnessConfig.id));
     }
 
     const effectiveConfig: HarnessConfig = {

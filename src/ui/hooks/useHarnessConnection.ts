@@ -11,6 +11,10 @@ import { VIEW } from "@/constants/views";
 import { loadMcpConfig } from "@/core/mcp-config-loader";
 import { SessionManager } from "@/core/session-manager";
 import type { SessionStream } from "@/core/session-stream";
+import {
+  formatHarnessAdapterNotRegisteredError,
+  formatHarnessNotConfiguredError,
+} from "@/harness/harness-error-messages";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import type { HarnessConfig } from "@/harness/harnessConfig";
 import type { HarnessRegistry } from "@/harness/harnessRegistry";
@@ -110,7 +114,7 @@ export function useHarnessConnection({
 
     const harnessConfig = harnessConfigs[selectedAgent.harnessId];
     if (!harnessConfig) {
-      onLoadErrorChange(`Harness '${selectedAgent.harnessId}' not configured.`);
+      onLoadErrorChange(formatHarnessNotConfiguredError(selectedAgent.harnessId));
       onStageChange(RENDER_STAGE.ERROR);
       onStatusMessageChange("Harness not configured");
       return;
@@ -123,7 +127,7 @@ export function useHarnessConnection({
 
     const adapter = harnessRegistry.get(effectiveConfig.id);
     if (!adapter) {
-      onLoadErrorChange(`Harness adapter '${effectiveConfig.id}' not registered.`);
+      onLoadErrorChange(formatHarnessAdapterNotRegisteredError(effectiveConfig.id));
       onStageChange(RENDER_STAGE.ERROR);
       onStatusMessageChange("Harness adapter missing");
       return;
