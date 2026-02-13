@@ -2,6 +2,7 @@ import type { AgentInfo } from "@/agents/agent-manager";
 import type { SubAgentRunner } from "@/agents/subagent-runner";
 import { TIMEOUT } from "@/config/timeouts";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
+import { INDENT_SPACES } from "@/constants/json-format";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import type { HookContext, HookDecision, PromptHookRunner } from "@/hooks/hook-manager";
 import type { AppStore } from "@/store/app-store";
@@ -83,7 +84,7 @@ const resolveAgent = (
 };
 
 const buildPrompt = (prompt: string, context: HookContext): string => {
-  const payload = JSON.stringify(context.payload, null, 2);
+  const payload = JSON.stringify(context.payload, null, INDENT_SPACES);
   return `${prompt}\n\nContext:\n${payload}\n\nRespond with allow or deny.`;
 };
 

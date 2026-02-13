@@ -1,3 +1,4 @@
+import { INDENT_SPACES } from "@/constants/json-format";
 import type { OptimizationRequest } from "../tokenOptimizer.types";
 import {
   type ToonOptimizationPayload,
@@ -21,7 +22,7 @@ const ensureToonModule = async (): Promise<ToonModule> => {
       } catch {
         // @toon-format/toon package not available - return stub
         return {
-          encode: (value: unknown) => JSON.stringify(value, null, 2),
+          encode: (value: unknown) => JSON.stringify(value, null, INDENT_SPACES),
         };
       }
     })();
@@ -92,7 +93,7 @@ export class ToonCompressionStrategy implements CompressionStrategy {
     const normalized = toon.encode(
       parsed as never,
       {
-        indent: 2,
+        indent: INDENT_SPACES,
         delimiter: ",",
         keyFolding: "safe",
       } as Record<string, unknown>

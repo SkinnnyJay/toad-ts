@@ -6,6 +6,7 @@ import { CREDENTIAL_STORE_KIND } from "@/constants/credential-stores";
 import { ENCODING } from "@/constants/encodings";
 import { ENCRYPTION } from "@/constants/encryption";
 import { FILE_PATH } from "@/constants/file-paths";
+import { INDENT_SPACES } from "@/constants/json-format";
 import { type CredentialScope, type CredentialStore, buildCredentialKey } from "./types";
 
 const CURRENT_VERSION = 1;
@@ -79,7 +80,9 @@ export class EncryptedDiskCredentialStore implements CredentialStore {
     const data = JSON.stringify(Object.fromEntries(this.cache.entries()));
     const payload = encryptPayload(data, this.encryptionKey);
     await fs.mkdir(path.dirname(this.filePath), { recursive: true });
-    await fs.writeFile(this.filePath, JSON.stringify(payload, null, 2), { mode: 0o600 });
+    await fs.writeFile(this.filePath, JSON.stringify(payload, null, INDENT_SPACES), {
+      mode: 0o600,
+    });
   }
 }
 

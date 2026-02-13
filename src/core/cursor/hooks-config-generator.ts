@@ -3,6 +3,7 @@ import path from "node:path";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
+import { INDENT_SPACES } from "@/constants/json-format";
 import type { HookIpcEndpoint } from "@/core/cursor/hook-ipc-server";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { z } from "zod";
@@ -180,7 +181,11 @@ export class HooksConfigGenerator {
 
     const shimCommand = getShimCommand(paths.shimPath);
     const mergedHooks = mergeHooks(existingHooks, shimCommand);
-    await writeFile(paths.hooksPath, JSON.stringify(mergedHooks, null, 2), ENCODING.UTF8);
+    await writeFile(
+      paths.hooksPath,
+      JSON.stringify(mergedHooks, null, INDENT_SPACES),
+      ENCODING.UTF8
+    );
 
     this.logger.info("Installed Cursor hook shim", {
       hooksPath: paths.hooksPath,
