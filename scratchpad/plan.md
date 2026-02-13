@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added harness-registry factory fallback unit coverage:
+  - harness registry factory unit tests now cover `includeMock: false`
+    adapter-list behavior
+  - added explicit unsupported cursor env-flag fallback assertions to lock
+    default-value behavior in `isCursorHarnessEnabled(...)`
+  - normalized adapter id assertions to shared harness constants
 - Added default cursor disabled partial-availability integration coverage:
   - headless integration now verifies default session creation fails with
     canonical adapter-not-registered response when `defaultHarness` is

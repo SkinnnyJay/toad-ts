@@ -2250,3 +2250,17 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock continuity semantics for default-harness adapter-disable failures
       under mixed harness availability.
+
+## Execution Log Addendum — 2026-02-13 (harness-registry factory fallback coverage)
+
+- Additional harness registry unit hardening:
+  - Updated:
+    - `__tests__/unit/harness/harness-registry-factory.unit.test.ts`
+  - Hardening changes:
+    - added coverage for `includeMock: false` adapter-list behavior.
+    - added coverage for unsupported cursor feature-flag values falling back to
+      caller-provided defaults in `isCursorHarnessEnabled(...)`.
+    - normalized existing adapter-id assertions to shared harness constants.
+  - Goal:
+    - lock deterministic harness-registry feature-flag fallback semantics and
+      adapter-list construction behavior.

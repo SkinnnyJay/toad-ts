@@ -2010,3 +2010,24 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Harness-registry factory fallback coverage)
+
+### Summary
+- Expanded harness-registry factory unit coverage:
+  - `includeMock: false` now explicitly verified to omit mock adapter.
+  - unsupported cursor env flag values now explicitly verified to use provided
+    fallback defaults in `isCursorHarnessEnabled(...)`.
+  - adapter-id assertions now use shared harness default constants.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/harness/harness-registry-factory.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
