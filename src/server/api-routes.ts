@@ -196,7 +196,9 @@ export const eventsStream: RouteHandler = async (_req, res) => {
   };
 
   _req.once("close", cleanup);
+  _req.once("error", cleanup);
   res.once("close", cleanup);
+  res.once("error", cleanup);
 };
 
 // ── TUI Control Endpoints ──────────────────────────────────────────────────

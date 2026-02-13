@@ -1,3 +1,4 @@
+import { TIMEOUT } from "@/config/timeouts";
 import { PR_REVIEW_STATUS } from "@/constants/pr-review-status";
 import { getPRStatus, prStatusColor } from "@/core/pr-status";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -49,6 +50,11 @@ describe("pr-status", () => {
       reviewDecision: PR_REVIEW_STATUS.APPROVED,
       isDraft: false,
     });
+    expect(execaMock).toHaveBeenCalledWith(
+      "gh",
+      ["pr", "view", "--json", "number,title,url,state,reviewDecision,isDraft"],
+      { cwd: "/workspace", timeout: TIMEOUT.GH_CLI_MS }
+    );
   });
 
   it("trims and normalizes padded gh pr view state fields", async () => {
@@ -109,6 +115,11 @@ describe("pr-status", () => {
     });
 
     await expect(getPRStatus()).resolves.toBeNull();
+    expect(execaMock).toHaveBeenCalledWith(
+      "gh",
+      ["pr", "view", "--json", "number,title,url,state,reviewDecision,isDraft"],
+      { cwd: process.cwd(), timeout: TIMEOUT.GH_CLI_MS }
+    );
   });
 
   it("returns null when gh command throws", async () => {

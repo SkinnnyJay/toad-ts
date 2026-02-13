@@ -190,6 +190,12 @@
 - Added strict file-search query decoding hardening:
   - query parameter decoding now validates malformed percent-encoding sequences
   - added unit coverage for malformed encoded query rejection path
+- Added PR status timeout/options coverage hardening:
+  - added unit assertions for GH CLI timeout + cwd wiring in PR status lookups
+  - expanded PR status unit coverage alongside normalization behavior
+- Added events-stream error-path cleanup hardening:
+  - SSE subscriptions now clean up on request/response error events
+  - added unit coverage for response-error and request-error cleanup paths
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

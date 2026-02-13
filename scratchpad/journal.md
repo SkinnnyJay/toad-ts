@@ -1,5 +1,24 @@
 # Scratchpad Journal
 
+## 2026-02-13 (PR status invocation-option coverage)
+- Extended `__tests__/unit/core/pr-status.unit.test.ts`:
+  - added assertions that `getPRStatus` calls `gh pr view` with expected
+    `timeout` and `cwd` options
+  - added default-cwd invocation assertion for no-arg `getPRStatus()`
+
+## 2026-02-13 (events-stream error-path cleanup hardening)
+- Updated `src/server/api-routes.ts`:
+  - SSE cleanup now also hooks request/response `error` events
+  - cleanup remains idempotent across close/error combinations
+- Extended `__tests__/unit/server/api-route-events-stream.unit.test.ts`:
+  - added response-error cleanup coverage
+  - added request-error cleanup coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/api-route-events-stream.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (strict file-search query decoding hardening)
 - Updated `src/server/api-routes.ts`:
   - file-search query parsing now decodes raw `q` values with strict decoding and

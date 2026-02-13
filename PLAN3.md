@@ -1224,6 +1224,23 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/server/api-route-file-search.unit.test.ts`
   - Covered:
     - malformed encoded query rejection path (`q=%E0%A4%A`)
+- Additional events-stream error-path cleanup hardening:
+  - Updated:
+    - `src/server/api-routes.ts`
+  - Hardening change:
+    - SSE subscription cleanup now also triggers on request/response error events,
+      with idempotent cleanup across mixed close/error event ordering.
+  - Extended:
+    - `__tests__/unit/server/api-route-events-stream.unit.test.ts`
+  - Covered:
+    - response-error cleanup path
+    - request-error cleanup path
+- Additional PR status options-coverage hardening:
+  - Extended:
+    - `__tests__/unit/core/pr-status.unit.test.ts`
+  - Covered:
+    - `gh pr view` invocation options include expected `cwd` and GH CLI timeout
+    - default `cwd` fallback path when explicit cwd argument is omitted
 
 ---
 

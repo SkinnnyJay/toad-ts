@@ -119,4 +119,34 @@ describe("eventsStream handler", () => {
 
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
+
+  it("unsubscribes when response emits error event", async () => {
+    const subscribeMock = await getSubscribeMock();
+    const unsubscribe = vi.fn();
+    subscribeMock.mockImplementation(() => unsubscribe);
+
+    const request = new EventEmitter() as IncomingMessage;
+    const { response } = createResponseCapture();
+
+    await eventsStream(request, response, {});
+    (response as unknown as EventEmitter).emit("error", new Error("stream failure"));
+    request.emit("close");
+
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it("unsubscribes when request emits error event", async () => {
+    const subscribeMock = await getSubscribeMock();
+    const unsubscribe = vi.fn();
+    subscribeMock.mockImplementation(() => unsubscribe);
+
+    const request = new EventEmitter() as IncomingMessage;
+    const { response } = createResponseCapture();
+
+    await eventsStream(request, response, {});
+    request.emit("error", new Error("request failure"));
+    (response as unknown as EventEmitter).emit("close");
+
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+  });
 });
