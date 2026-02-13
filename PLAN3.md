@@ -1069,6 +1069,16 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - stream `aborted` event rejection
     - stream `close` before `end` rejection
+- Additional scp-ssh custom-user parsing hardening:
+  - Updated:
+    - `src/core/repo-workflow.ts`
+  - Hardening change:
+    - scp-style ssh remote parser now accepts non-`git` user prefixes
+      (`user@host:owner/repo(.git)`).
+  - Extended:
+    - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
+  - Covered:
+    - owner/repo extraction from `alice@github.com:octocat/hello-world.git`
 
 ---
 

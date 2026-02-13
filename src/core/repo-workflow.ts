@@ -70,9 +70,9 @@ async function getRemoteOriginUrl(cwd: string): Promise<string | null> {
 
 function parseOwnerRepoFromUrl(url: string): { owner: string; repo: string } | null {
   const trimmed = url.trim();
-  const sshMatch = trimmed.match(/^git@[^:]+:([^/]+)\/([^/]+?)(?:\.git)?\/?$/);
-  if (sshMatch) {
-    return { owner: sshMatch[1] ?? "", repo: (sshMatch[2] ?? "").replace(/\.git$/, "") };
+  const scpSshMatch = trimmed.match(/^(?:[^@]+@)[^:]+:([^/]+)\/([^/]+?)(?:\.git)?\/?$/);
+  if (scpSshMatch) {
+    return { owner: scpSshMatch[1] ?? "", repo: (scpSshMatch[2] ?? "").replace(/\.git$/, "") };
   }
   const sshProtocolMatch = trimmed.match(
     /^ssh:\/\/(?:[^@]+@)?[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i

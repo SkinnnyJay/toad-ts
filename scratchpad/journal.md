@@ -1,5 +1,16 @@
 # Scratchpad Journal
 
+## 2026-02-13 (scp ssh custom-user parsing hardening)
+- Updated `src/core/repo-workflow.ts`:
+  - generalized scp-style ssh parser to accept any `user@host:owner/repo(.git)` form
+- Extended `__tests__/unit/core/repo-workflow-info.unit.test.ts`:
+  - added custom-user scp ssh parse coverage (`alice@github.com:owner/repo.git`)
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/repo-workflow-info.unit.test.ts __tests__/unit/core/repo-workflow.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (request stream abort/close hardening)
 - Updated `src/server/request-body.ts`:
   - added abort/close handling so read promise rejects on prematurely terminated streams

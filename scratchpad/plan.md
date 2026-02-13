@@ -146,6 +146,9 @@
 - Added request-stream abort/close hardening:
   - request-body helper now rejects aborted/prematurely closed streams
   - listener cleanup added to avoid stale handlers after settlement
+- Added scp-SSH custom-user parsing hardening:
+  - repo parser now accepts scp ssh remotes with non-`git` user prefixes
+  - added workflow info unit coverage for `alice@host:owner/repo.git`
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

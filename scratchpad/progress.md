@@ -47,6 +47,7 @@
   - improved repo-workflow literal hygiene for PR/check constants
   - hardened repo remote parser for `git://` protocol URLs
   - hardened request-body handling for aborted/prematurely closed streams
+  - hardened scp-ssh remote parsing for custom user prefixes
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
