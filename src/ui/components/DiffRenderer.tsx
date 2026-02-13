@@ -19,7 +19,7 @@ interface DiffRendererProps {
   language?: string;
   /** View mode: unified (default) or side-by-side */
   viewMode?: typeof DIFF_VIEW_MODE.UNIFIED | typeof DIFF_VIEW_MODE.SIDE_BY_SIDE;
-  /** Number of context lines to show around changes (default: 3) */
+  /** Number of context lines to show around changes (default: configured limit) */
   contextLines?: number;
 }
 

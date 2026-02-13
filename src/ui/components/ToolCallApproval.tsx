@@ -1,5 +1,6 @@
 import { LIMIT } from "@/config/limits";
 import { TIMEOUT } from "@/config/timeouts";
+import { UI } from "@/config/ui";
 import { APPROVAL_DECISION, type ApprovalDecision } from "@/constants/approval-decisions";
 import { COLOR } from "@/constants/colors";
 import { KEY_NAME } from "@/constants/key-names";
@@ -153,7 +154,7 @@ export function ToolCallApproval({
         <text fg={COLOR.CYAN}>Arguments: {formatArguments(request.arguments, symbols)}</text>
       </box>
 
-      <box marginTop={1} flexDirection="row" gap={2}>
+      <box marginTop={1} flexDirection="row" gap={UI.SIDEBAR_PADDING}>
         <text fg={COLOR.GREEN}>[Y]es/Enter to approve</text>
         <text fg={COLOR.RED}>[N]o/Esc to deny</text>
         {countdown > 0 && <text fg={COLOR.YELLOW}>(auto-approve in {countdown}s)</text>}

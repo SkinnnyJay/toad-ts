@@ -81,7 +81,7 @@ const StaticArt = memo(
           </box>
         )}
         {textArt && (
-          <box flexDirection="column" alignItems="center" marginBottom={2}>
+          <box flexDirection="column" alignItems="center" marginBottom={UI.SIDEBAR_PADDING}>
             <text>{textArt}</text>
           </box>
         )}

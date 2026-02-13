@@ -1,3 +1,4 @@
+import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { TOOL_CALL_VARIANT, type ToolCallVariant } from "@/constants/tool-call-variant";
 import { TextAttributes } from "@opentui/core";
@@ -39,7 +40,7 @@ export const ToolCallItem = memo(function ToolCallItem({
         )}
       </box>
       {tool.result !== undefined && tool.result !== null && (
-        <box paddingLeft={2} flexDirection="column" gap={0}>
+        <box paddingLeft={UI.SIDEBAR_PADDING} flexDirection="column" gap={0}>
           <text fg={COLOR.GRAY} attributes={TextAttributes.DIM}>
             →
           </text>
@@ -47,7 +48,7 @@ export const ToolCallItem = memo(function ToolCallItem({
         </box>
       )}
       {tool.error && (
-        <box paddingLeft={2}>
+        <box paddingLeft={UI.SIDEBAR_PADDING}>
           <text fg={COLOR.RED}>Error: {tool.error}</text>
         </box>
       )}

@@ -173,8 +173,11 @@ export function Sidebar({
   const terminalRows = terminal.rows ?? UI.TERMINAL_DEFAULT_ROWS;
   const terminalWidth = terminal.columns ?? UI.TERMINAL_DEFAULT_COLUMNS;
 
-  const availableHeight = height ?? terminalRows - 5;
-  const contentHeight = Math.max(8, availableHeight - 2);
+  const availableHeight = height ?? terminalRows - LIMIT.SIDEBAR_AVAILABLE_HEIGHT_OFFSET;
+  const contentHeight = Math.max(
+    LIMIT.SIDEBAR_MIN_CONTENT_HEIGHT,
+    availableHeight - UI.SIDEBAR_PADDING
+  );
 
   const storeCurrentSessionId = useAppStore((state) => state.currentSessionId);
   const activeSessionId = currentSessionId ?? storeCurrentSessionId;
@@ -341,22 +344,34 @@ export function Sidebar({
     typeof width === "number" ? width : Math.floor(terminalWidth * sidebarWidthPercent);
   const sidebarPadding = UI.SIDEBAR_PADDING;
   const scrollbarWidth = UI.SCROLLBAR_WIDTH;
-  const tabBarHeight = 2;
+  const tabBarHeight = LIMIT.SIDEBAR_TAB_BAR_HEIGHT;
   const tabContentPaddingTop = 1;
   const tabGap = 0;
-  const chevronBoxWidth = 2;
+  const chevronBoxWidth = LIMIT.SIDEBAR_CHEVRON_BOX_WIDTH;
   const sectionTitleHeight = 1;
-  const contentHeightBelowTabs = Math.max(6, contentHeight - tabBarHeight - tabContentPaddingTop);
-  const contentBodyHeight = Math.max(4, contentHeightBelowTabs - sectionTitleHeight);
-  const contentAreaWidth = Math.max(1, sidebarWidth - sidebarPadding * 2 - scrollbarWidth);
+  const contentHeightBelowTabs = Math.max(
+    LIMIT.SIDEBAR_TAB_CONTENT_MIN_HEIGHT,
+    contentHeight - tabBarHeight - tabContentPaddingTop
+  );
+  const contentBodyHeight = Math.max(
+    LIMIT.SIDEBAR_CONTENT_BODY_MIN_HEIGHT,
+    contentHeightBelowTabs - sectionTitleHeight
+  );
+  const contentAreaWidth = Math.max(
+    1,
+    sidebarWidth - (sidebarPadding + sidebarPadding) - scrollbarWidth
+  );
   const tabCount = SIDEBAR_TAB_VALUES.length;
-  const minTabWidth = 3;
+  const minTabWidth = LIMIT.SIDEBAR_MIN_TAB_WIDTH;
   const tabWidth = Math.max(
     minTabWidth,
     Math.floor((contentAreaWidth - chevronBoxWidth - tabCount * tabGap) / tabCount)
   );
   const tabRows: SidebarSection[][] = [[...SIDEBAR_TAB_VALUES]];
-  const maxSessionIdWidth = Math.max(LIMIT.FILE_TREE_PADDING, contentAreaWidth - 2);
+  const maxSessionIdWidth = Math.max(
+    LIMIT.FILE_TREE_PADDING,
+    contentAreaWidth - LIMIT.SIDEBAR_SESSION_ID_WIDTH_PADDING
+  );
 
   const contextAttachments = activeSessionId
     ? (contextAttachmentsBySession[activeSessionId] ?? [])

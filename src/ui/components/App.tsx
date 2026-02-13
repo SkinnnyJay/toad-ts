@@ -136,7 +136,7 @@ export function App(): ReactNode {
     setLoadError,
   } = useSessionHydration({
     persistenceManager,
-    initialProgress: 5,
+    initialProgress: LIMIT.SESSION_HYDRATION_INITIAL_PROGRESS,
     initialStatusMessage: "Preparing…",
     enabledHarnessIds,
   });
@@ -245,7 +245,7 @@ export function App(): ReactNode {
     return { completed, total: plan.tasks.length };
   }, [currentSessionId, getPlanBySession, sessionId]);
   useEffect(() => {
-    setProgress(5);
+    setProgress(LIMIT.SESSION_HYDRATION_INITIAL_PROGRESS);
     setStatusMessage("Loading TOADSTOOL…");
   }, [setProgress, setStatusMessage]);
   useEffect(() => {

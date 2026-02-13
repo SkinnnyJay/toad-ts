@@ -108,7 +108,7 @@ const LogBlock = memo(function LogBlock({
     expanded || !isLong ? lines : lines.slice(0, LIMIT.LONG_OUTPUT_LINE_THRESHOLD);
 
   return (
-    <box flexDirection="column" gap={0} paddingLeft={2}>
+    <box flexDirection="column" gap={0} paddingLeft={UI.SIDEBAR_PADDING}>
       <text fg={color} attributes={TextAttributes.BOLD}>
         {label}
       </text>

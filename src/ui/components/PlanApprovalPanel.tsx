@@ -1,3 +1,4 @@
+import { UI } from "@/config/ui";
 import { APPROVAL_DECISION, type ApprovalDecision } from "@/constants/approval-decisions";
 import { COLOR } from "@/constants/colors";
 import { KEY_NAME } from "@/constants/key-names";
@@ -218,14 +219,14 @@ export function PlanApprovalPanel({
           <text fg={COLOR.YELLOW} attributes={TextAttributes.BOLD}>
             Review and approve this plan?
           </text>
-          <box flexDirection="row" gap={2}>
+          <box flexDirection="row" gap={UI.SIDEBAR_PADDING}>
             <text fg={COLOR.GREEN}>[Y]es/Enter - Approve plan</text>
             <text fg={COLOR.RED}>[N]o/Esc - Deny plan</text>
           </box>
           {showTaskDetails && plan.tasks.length > 0 && (
             <box flexDirection="column" marginTop={1}>
               <text fg={COLOR.CYAN}>Task controls:</text>
-              <box paddingLeft={1} flexDirection="row" gap={2}>
+              <box paddingLeft={1} flexDirection="row" gap={UI.SIDEBAR_PADDING}>
                 <text fg={COLOR.GRAY}>↑↓ Navigate</text>
                 <text fg={COLOR.GREEN}>[A]pprove</text>
                 <text fg={COLOR.RED}>[D]eny</text>

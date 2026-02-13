@@ -203,7 +203,7 @@ export function SkillsCommandsModal({
                   <text
                     fg={SEMANTIC_COLOR.DESCRIPTION}
                     attributes={TextAttributes.DIM}
-                    marginLeft={2}
+                    marginLeft={UI.SIDEBAR_PADDING}
                   >
                     {item.description}
                   </text>
@@ -238,7 +238,7 @@ export function SkillsCommandsModal({
                       <text
                         fg={SEMANTIC_COLOR.DESCRIPTION}
                         attributes={TextAttributes.DIM}
-                        marginLeft={2}
+                        marginLeft={UI.SIDEBAR_PADDING}
                       >
                         {item.description}
                       </text>

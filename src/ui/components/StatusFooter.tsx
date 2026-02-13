@@ -1,4 +1,5 @@
 import { LIMIT } from "@/config/limits";
+import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
 import type { ConnectionStatus, SessionId, SessionMode } from "@/types/domain";
@@ -35,7 +36,7 @@ const globalShortcuts = [
 
 const truncateMiddle = (value: string, max: number): string => {
   if (value.length <= max) return value;
-  const half = Math.floor((max - 3) / 2);
+  const half = Math.floor((max - "...".length) / UI.SIDEBAR_PADDING);
   return `${value.slice(0, half)}...${value.slice(-half)}`;
 };
 
@@ -103,11 +104,11 @@ export function StatusFooter({
       paddingRight={1}
       paddingTop={0}
       paddingBottom={0}
-      gap={2}
+      gap={UI.SIDEBAR_PADDING}
       justifyContent="space-between"
       alignItems="center"
     >
-      <box flexDirection="row" gap={2}>
+      <box flexDirection="row" gap={UI.SIDEBAR_PADDING}>
         {globalShortcuts.map((sc) => (
           <text key={sc.key} attributes={footerTextAttrs}>
             <span fg={COLOR.CYAN} attributes={TextAttributes.BOLD}>
@@ -117,7 +118,7 @@ export function StatusFooter({
           </text>
         ))}
       </box>
-      <box flexDirection="row" gap={2}>
+      <box flexDirection="row" gap={UI.SIDEBAR_PADDING}>
         <text attributes={footerTextAttrs}>
           <span fg={COLOR.YELLOW} attributes={TextAttributes.BOLD}>
             Focus:
