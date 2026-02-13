@@ -99,4 +99,15 @@ describe("api-routes searchFiles handler", () => {
       body: { query: "notes", results: [] },
     });
   });
+
+  it("returns bad request when query value has malformed encoding", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=%E0%A4%A"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
 });

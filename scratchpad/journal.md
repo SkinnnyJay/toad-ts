@@ -1,5 +1,17 @@
 # Scratchpad Journal
 
+## 2026-02-13 (strict file-search query decoding hardening)
+- Updated `src/server/api-routes.ts`:
+  - file-search query parsing now decodes raw `q` values with strict decoding and
+    returns canonical `INVALID_REQUEST` for malformed encoded input
+- Extended `__tests__/unit/server/api-route-file-search.unit.test.ts`:
+  - added malformed encoded query rejection coverage (`q=%E0%A4%A`)
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/api-route-file-search.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (PR status normalization hardening)
 - Updated `src/core/pr-status.ts`:
   - added explicit state normalization with trim+lowercase and known-state fallback

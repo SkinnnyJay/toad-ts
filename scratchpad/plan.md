@@ -187,6 +187,9 @@
 - Added PR status normalization hardening:
   - PR state/review decision parsing now trims + validates against known values
   - added unit coverage for padded and unsupported review-decision values
+- Added strict file-search query decoding hardening:
+  - query parameter decoding now validates malformed percent-encoding sequences
+  - added unit coverage for malformed encoded query rejection path
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

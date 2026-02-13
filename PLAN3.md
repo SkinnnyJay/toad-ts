@@ -1214,6 +1214,16 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - padded state/review-decision normalization
     - unsupported review-decision fallback to unknown
+- Additional strict file-search query-decoding hardening:
+  - Updated:
+    - `src/server/api-routes.ts`
+  - Hardening change:
+    - file-search query extraction now decodes raw query param values with strict
+      decoding and maps malformed encoded input to canonical invalid-request responses.
+  - Extended:
+    - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - Covered:
+    - malformed encoded query rejection path (`q=%E0%A4%A`)
 
 ---
 

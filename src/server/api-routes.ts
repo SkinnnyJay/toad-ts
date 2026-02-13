@@ -18,6 +18,11 @@ export type RouteHandler = (
 ) => Promise<void>;
 
 const REQUEST_URL_DEFAULT_HOST = "localhost";
+const SEARCH_QUERY_PARAM_NAME = "q";
+const QUERY_PARAM_SEPARATOR = "&";
+const QUERY_PARAM_ASSIGNMENT = "=";
+const FORM_SPACE_PATTERN = /\+/g;
+const FORM_SPACE_REPLACEMENT = "%20";
 
 const sendJson = (res: ServerResponse, status: number, payload: unknown): void => {
   sendJsonResponse(res, status, payload);
@@ -29,6 +34,26 @@ const mapRequestBodyError = (error: unknown): string => {
   }
   return SERVER_RESPONSE_MESSAGE.INVALID_REQUEST;
 };
+
+const getRawQueryParamValue = (search: string, paramName: string): string | null => {
+  const query = search.startsWith("?") ? search.slice(1) : search;
+  if (query.length === 0) {
+    return null;
+  }
+  for (const segment of query.split(QUERY_PARAM_SEPARATOR)) {
+    if (segment === paramName) {
+      return "";
+    }
+    const [name, ...rest] = segment.split(QUERY_PARAM_ASSIGNMENT);
+    if (name === paramName) {
+      return rest.join(QUERY_PARAM_ASSIGNMENT);
+    }
+  }
+  return null;
+};
+
+const decodeFormQueryParam = (rawValue: string): string =>
+  decodeURIComponent(rawValue.replace(FORM_SPACE_PATTERN, FORM_SPACE_REPLACEMENT));
 
 // ── Session Endpoints ──────────────────────────────────────────────────────
 
@@ -118,16 +143,29 @@ export const listAgents: RouteHandler = async (_req, res) => {
 // ── File Endpoints ─────────────────────────────────────────────────────────
 
 export const searchFiles: RouteHandler = async (req, res) => {
-  const url = new URL(req.url ?? "", `http://${req.headers.host ?? REQUEST_URL_DEFAULT_HOST}`);
-  const query = (url.searchParams.get("q") ?? "").trim();
-  if (!query) {
+  try {
+    const url = new URL(req.url ?? "", `http://${req.headers.host ?? REQUEST_URL_DEFAULT_HOST}`);
+    const rawQuery = getRawQueryParamValue(url.search, SEARCH_QUERY_PARAM_NAME);
+    if (rawQuery === null) {
+      sendJson(res, HTTP_STATUS.BAD_REQUEST, {
+        error: SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED,
+      });
+      return;
+    }
+    const query = decodeFormQueryParam(rawQuery).trim();
+    if (!query) {
+      sendJson(res, HTTP_STATUS.BAD_REQUEST, {
+        error: SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED,
+      });
+      return;
+    }
+    // Placeholder - would integrate with SearchService
+    sendJson(res, HTTP_STATUS.OK, { query, results: [] });
+  } catch {
     sendJson(res, HTTP_STATUS.BAD_REQUEST, {
-      error: SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED,
+      error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
     });
-    return;
   }
-  // Placeholder - would integrate with SearchService
-  sendJson(res, HTTP_STATUS.OK, { query, results: [] });
 };
 
 // ── Events SSE Endpoint ────────────────────────────────────────────────────
