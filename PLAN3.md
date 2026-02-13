@@ -510,6 +510,14 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - plugin registry fetch success/failure behavior
     - plugin install command timeout usage and invalid-command guard
     - plugin registry timeout constant wiring (`AbortSignal.timeout`)
+- Additional repo workflow diagnostics coverage:
+  - Added focused unit coverage for `getRepoWorkflowInfo`:
+    - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
+  - Covered:
+    - aggregation of git/PR/check data into workflow status output
+    - owner/repository parsing from remote URL
+    - fallback behavior when git/gh metadata is unavailable
+    - `gh pr checks` timeout wiring through `TIMEOUT.GH_CLI_MS`
 
 ---
 
