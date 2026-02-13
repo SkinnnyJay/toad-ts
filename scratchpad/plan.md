@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added missing-default-harness fallback integration coverage:
+  - headless integration now verifies startup falls back to default harness
+    config when `defaultHarness` points to an unknown harness id
+  - validates successful session creation via fallback `mock` harness under
+    unmatched default-harness configuration
 - Added empty harness-config fallback integration coverage:
   - headless integration now verifies startup falls back to default harness
     config when configured harnesses map is empty

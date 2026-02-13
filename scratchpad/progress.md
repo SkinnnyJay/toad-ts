@@ -145,6 +145,8 @@
     across truthy, falsey, and unsupported string inputs
   - added headless integration coverage for startup fallback when harness config
     resolves to an empty harness map
+  - added headless integration coverage for startup fallback when configured
+    default harness id is missing from configured harnesses
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
