@@ -184,6 +184,9 @@
 - Added SSE response-close cleanup hardening:
   - events stream now unsubscribes on response close in addition to request close
   - added unit coverage for response-close cleanup path
+- Added PR status normalization hardening:
+  - PR state/review decision parsing now trims + validates against known values
+  - added unit coverage for padded and unsupported review-decision values
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

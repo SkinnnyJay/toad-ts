@@ -6,6 +6,12 @@ import {
 } from "@/constants/pr-review-status";
 import { execa } from "execa";
 
+const PR_STATE = {
+  OPEN: "open",
+  CLOSED: "closed",
+  MERGED: "merged",
+} as const;
+
 export interface PullRequestStatus {
   number: number;
   title: string;
@@ -14,6 +20,31 @@ export interface PullRequestStatus {
   reviewDecision: PrReviewStatus;
   isDraft?: boolean;
 }
+
+const normalizePrState = (state: string | undefined): PullRequestStatus["state"] => {
+  const normalized = state?.trim().toLowerCase();
+  if (normalized === PR_STATE.CLOSED) {
+    return PR_STATE.CLOSED;
+  }
+  if (normalized === PR_STATE.MERGED) {
+    return PR_STATE.MERGED;
+  }
+  return PR_STATE.OPEN;
+};
+
+const normalizeReviewDecision = (reviewDecision: string | undefined): PrReviewStatus => {
+  const normalized = reviewDecision?.trim().toLowerCase();
+  if (normalized === PR_REVIEW_STATUS.APPROVED) {
+    return PR_REVIEW_STATUS.APPROVED;
+  }
+  if (normalized === PR_REVIEW_STATUS.CHANGES_REQUESTED) {
+    return PR_REVIEW_STATUS.CHANGES_REQUESTED;
+  }
+  if (normalized === PR_REVIEW_STATUS.REVIEW_REQUIRED) {
+    return PR_REVIEW_STATUS.REVIEW_REQUIRED;
+  }
+  return PR_REVIEW_STATUS.UNKNOWN;
+};
 
 /**
  * Get the PR status for the current branch using the `gh` CLI.
@@ -42,9 +73,8 @@ export const getPRStatus = async (cwd?: string): Promise<PullRequestStatus | nul
       number: data.number,
       title: data.title ?? "",
       url: data.url,
-      state: (data.state?.toLowerCase() as PullRequestStatus["state"]) ?? "open",
-      reviewDecision:
-        (data.reviewDecision?.toLowerCase() as PrReviewStatus) ?? PR_REVIEW_STATUS.UNKNOWN,
+      state: normalizePrState(data.state),
+      reviewDecision: normalizeReviewDecision(data.reviewDecision),
       isDraft: data.isDraft === true,
     };
   } catch {

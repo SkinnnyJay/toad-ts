@@ -1,5 +1,18 @@
 # Scratchpad Journal
 
+## 2026-02-13 (PR status normalization hardening)
+- Updated `src/core/pr-status.ts`:
+  - added explicit state normalization with trim+lowercase and known-state fallback
+  - added explicit review-decision normalization with trim+lowercase and unknown fallback
+- Extended `__tests__/unit/core/pr-status.unit.test.ts`:
+  - added padded state/review normalization coverage
+  - added unsupported review-decision fallback coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/core/pr-status.unit.test.ts __tests__/unit/core/repo-workflow.unit.test.ts __tests__/unit/core/repo-workflow-info.unit.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (SSE response-close cleanup hardening)
 - Updated `src/server/api-routes.ts`:
   - events stream now also performs subscription cleanup on `res.close`

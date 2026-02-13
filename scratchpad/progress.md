@@ -60,6 +60,7 @@
   - hardened route classifiers for lowercase/padded HTTP method inputs
   - hardened file-search query handling for whitespace-only input
   - hardened SSE cleanup for response-close shutdown path
+  - hardened PR status normalization for padded/unsupported gh fields
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

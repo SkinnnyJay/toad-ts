@@ -1203,6 +1203,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - cleanup invocation on response-close event
     - single unsubscribe across duplicate close event combinations
+- Additional PR status normalization hardening:
+  - Updated:
+    - `src/core/pr-status.ts`
+  - Hardening change:
+    - PR state and review decision normalization now trim input strings and validate
+      against known values, falling back to canonical defaults for unsupported values.
+  - Extended:
+    - `__tests__/unit/core/pr-status.unit.test.ts`
+  - Covered:
+    - padded state/review-decision normalization
+    - unsupported review-decision fallback to unknown
 
 ---
 

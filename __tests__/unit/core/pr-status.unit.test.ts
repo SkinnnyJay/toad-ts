@@ -51,6 +51,53 @@ describe("pr-status", () => {
     });
   });
 
+  it("trims and normalizes padded gh pr view state fields", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: JSON.stringify({
+        number: 7,
+        title: "Padded status",
+        url: "https://example.com/pr/7",
+        state: " merged ",
+        reviewDecision: " review_required ",
+        isDraft: false,
+      }),
+      stderr: "",
+      exitCode: 0,
+    });
+
+    const status = await getPRStatus("/workspace");
+
+    expect(status).toEqual({
+      number: 7,
+      title: "Padded status",
+      url: "https://example.com/pr/7",
+      state: "merged",
+      reviewDecision: PR_REVIEW_STATUS.REVIEW_REQUIRED,
+      isDraft: false,
+    });
+  });
+
+  it("falls back to unknown review decision for unsupported values", async () => {
+    const execaMock = await getExecaMock();
+    execaMock.mockResolvedValue({
+      stdout: JSON.stringify({
+        number: 8,
+        title: "Unsupported review decision",
+        url: "https://example.com/pr/8",
+        state: "open",
+        reviewDecision: "escalated",
+        isDraft: false,
+      }),
+      stderr: "",
+      exitCode: 0,
+    });
+
+    const status = await getPRStatus("/workspace");
+
+    expect(status?.reviewDecision).toBe(PR_REVIEW_STATUS.UNKNOWN);
+  });
+
   it("returns null when PR number or URL is missing", async () => {
     const execaMock = await getExecaMock();
     execaMock.mockResolvedValue({
