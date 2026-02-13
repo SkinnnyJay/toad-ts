@@ -155,6 +155,8 @@
 - Added scp-remote no-user parsing hardening:
   - repo parser now accepts scp-style remotes without explicit user prefix
   - added workflow info unit coverage for `host:owner/repo.git` remotes
+- Added uppercase SSH protocol parsing coverage:
+  - added workflow info unit coverage for `SSH://...` protocol-case variant remotes
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

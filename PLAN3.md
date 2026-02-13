@@ -1099,6 +1099,12 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
   - Covered:
     - owner/repo extraction from `github.com:octocat/hello-world.git`
+- Additional uppercase SSH protocol parsing coverage:
+  - Extended:
+    - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
+  - Covered:
+    - owner/repo extraction from `SSH://git@host:port/owner/repo.git`
+      to lock protocol-case-insensitive parsing behavior.
 
 ---
 
