@@ -1,5 +1,19 @@
 # Scratchpad Journal
 
+## 2026-02-13 (missing request-url hardening)
+- Updated `src/server/request-url.ts`:
+  - parser now returns `null` when request url is missing
+- Extended:
+  - `__tests__/unit/server/request-url.unit.test.ts`
+    - added missing-request-url null fallback coverage
+  - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+    - added missing-url invalid-request coverage for file-search route
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/request-url.unit.test.ts __tests__/unit/server/api-route-file-search.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (shared request-url parser hardening)
 - Added `src/server/request-url.ts`:
   - centralized request URL parsing with localhost fallback

@@ -223,6 +223,9 @@
 - Added shared request-url parser hardening:
   - extracted safe URL parsing helper with malformed-host/URL null fallback
   - reused parser in headless server + file-search route handling
+- Added missing-request-url hardening:
+  - shared parser now returns null for missing request URLs
+  - file-search route now returns canonical invalid-request for missing url input
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

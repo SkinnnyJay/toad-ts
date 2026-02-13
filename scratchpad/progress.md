@@ -73,6 +73,7 @@
   - hardened file-search behavior for encoded/malformed query parameter names
   - expanded headless integration coverage for file-search query validation edges
   - centralized safe request URL parsing across server handlers
+  - hardened request-url parsing for missing URL inputs
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

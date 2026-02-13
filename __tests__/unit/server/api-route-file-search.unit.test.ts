@@ -122,6 +122,17 @@ describe("api-routes searchFiles handler", () => {
     });
   });
 
+  it("returns bad request when request url is missing", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest(undefined as unknown as string), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
   it("returns bad request when query value has malformed encoding", async () => {
     const { response, getCaptured } = createResponseCapture();
 

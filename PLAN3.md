@@ -1396,3 +1396,14 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - malformed host header rejection
     - malformed absolute URL parse fallback
     - missing-host fallback behavior
+- Additional missing request-url hardening:
+  - Updated:
+    - `src/server/request-url.ts`
+  - Hardening change:
+    - request-url parser now returns null for missing request URL input.
+  - Extended:
+    - `__tests__/unit/server/request-url.unit.test.ts`
+    - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - Covered:
+    - missing-url null fallback in parser
+    - file-search missing-url canonical invalid-request response
