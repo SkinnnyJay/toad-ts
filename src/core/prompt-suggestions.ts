@@ -3,6 +3,8 @@ import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import type { Message } from "@/types/domain";
 
+const SUGGESTION_PROMPT_COUNT_HINT = `1-${LIMIT.MAX_SUGGESTIONS}`;
+
 /**
  * Generate simple next-step suggestions based on conversation context.
  * For full AI-based suggestions, this would delegate to a small model.
@@ -74,5 +76,5 @@ export const buildSuggestionPrompt = (messages: Message[]): string => {
     })
     .join("\n");
 
-  return `Based on this conversation, suggest 1-3 short next-step prompts the user might want to send. Return only the suggestions, one per line, no numbering or bullets.\n\n${context}`;
+  return `Based on this conversation, suggest ${SUGGESTION_PROMPT_COUNT_HINT} short next-step prompts the user might want to send. Return only the suggestions, one per line, no numbering or bullets.\n\n${context}`;
 };

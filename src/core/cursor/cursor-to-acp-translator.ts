@@ -83,7 +83,9 @@ const getToolName = (toolCallName: string): string => {
     return toolCallName;
   }
   const withoutSuffix = toolCallName.slice(0, toolCallName.length - TOOL_CALL_KEY_SUFFIX.length);
-  return withoutSuffix.replace(TOOL_NAME_CASE_BOUNDARY, "$1_$2").toLowerCase();
+  return withoutSuffix
+    .replace(TOOL_NAME_CASE_BOUNDARY, (_match, left: string, right: string) => `${left}_${right}`)
+    .toLowerCase();
 };
 
 const getToolCallStatusFromCompletedPayload = (
