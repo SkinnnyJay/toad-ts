@@ -97,6 +97,7 @@ interface QuoteStripState {
   inSingleQuote: boolean;
   inDoubleQuote: boolean;
   inTemplateQuote: boolean;
+  inBlockComment: boolean;
   isEscaped: boolean;
 }
 
@@ -104,6 +105,7 @@ const INITIAL_QUOTE_STRIP_STATE: QuoteStripState = {
   inSingleQuote: false,
   inDoubleQuote: false,
   inTemplateQuote: false,
+  inBlockComment: false,
   isEscaped: false,
 };
 
@@ -115,6 +117,7 @@ const stripQuotedContentAndLineComment = (
   let inSingleQuote = previousState.inSingleQuote;
   let inDoubleQuote = previousState.inDoubleQuote;
   let inTemplateQuote = previousState.inTemplateQuote;
+  let inBlockComment = previousState.inBlockComment;
   let isEscaped = previousState.isEscaped;
 
   for (let i = 0; i < line.length; i += 1) {
@@ -122,6 +125,14 @@ const stripQuotedContentAndLineComment = (
     const next = line[i + 1];
 
     if (current === undefined) {
+      continue;
+    }
+
+    if (inBlockComment) {
+      if (current === "*" && next === "/") {
+        inBlockComment = false;
+        i += 1;
+      }
       continue;
     }
 
@@ -159,6 +170,12 @@ const stripQuotedContentAndLineComment = (
       continue;
     }
 
+    if (current === "/" && next === "*") {
+      inBlockComment = true;
+      i += 1;
+      continue;
+    }
+
     if (current === "/" && next === "/") {
       break;
     }
@@ -187,6 +204,7 @@ const stripQuotedContentAndLineComment = (
       inSingleQuote,
       inDoubleQuote,
       inTemplateQuote,
+      inBlockComment,
       isEscaped,
     },
   };
@@ -245,17 +263,14 @@ function scanFile(filePath: string): void {
           `(===|!==|==|!=)\\s*["']${status}["']|["']${status}["']\\s*(===|!==|==|!=)`
         );
         if (statusPattern.test(line) && !line.includes("_STATUS.") && !line.includes("_STAGE.")) {
-          // Skip if it's in a comment or string
-          if (!line.includes("//") && !line.match(/["'].*${status}.*["']/)) {
-            issues.push({
-              file: filePath,
-              line: lineNum,
-              column: line.indexOf(status),
-              message: `Status string "${status}" in control flow - use constant from constants/`,
-              severity: "critical",
-              category: "STATUS_STRING",
-            });
-          }
+          issues.push({
+            file: filePath,
+            line: lineNum,
+            column: Math.max(0, line.indexOf(status)),
+            message: `Status string "${status}" in control flow - use constant from constants/`,
+            severity: "critical",
+            category: "STATUS_STRING",
+          });
         }
       }
 

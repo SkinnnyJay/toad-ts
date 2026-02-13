@@ -47,4 +47,18 @@ describe("check-magic-literals strict mode", () => {
     expect(result.status).toBe(1);
     expect(result.stdout).toContain("Strict mode: failing because issues were detected");
   });
+
+  it("ignores magic numbers inside block comments", () => {
+    const cwd = createTempWorkspace();
+    writeFileSync(
+      join(cwd, "src", "commented.ts"),
+      "/*\n  suggested timeout is 4000\n*/\nexport const ok = 1;\n",
+      "utf8"
+    );
+
+    const result = runLiteralCheckStrict(cwd);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("No magic literals detected");
+  });
 });
