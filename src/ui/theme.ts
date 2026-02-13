@@ -63,7 +63,7 @@ export const diffColors: DiffColors = {
   border: COLOR.BORDER,
 
   // Hunk separator colors
-  /** Color for hunk header text (@@ -1,3 +1,4 @@) */
+  /** Color for hunk header text (e.g. @@ -A,B +C,D @@) */
   hunkHeader: COLOR.CYAN,
   /** Background for hunk header */
   hunkHeaderBg: COLOR.DIFF_HUNK_BG,
