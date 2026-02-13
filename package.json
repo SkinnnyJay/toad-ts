@@ -38,6 +38,7 @@
     "lint": "bunx biome check . && bunx eslint .",
     "lint:fix": "bunx biome check --write . && bunx eslint . --fix",
     "format": "bunx biome format --write .",
+    "format:check": "bunx biome check . --linter-enabled=false --organize-imports-enabled=false --assists-enabled=false",
     "typecheck": "bunx tsc --noEmit",
     "db:clear": "bun scripts/db/clear-db.ts",
     "db:migrate": "bun scripts/db/migrate-db.ts",
@@ -48,7 +49,7 @@
     "benchmark:core": "bun scripts/benchmark-perf.ts",
     "benchmark:startup": "bun scripts/verify-startup.ts",
     "benchmark:ui": "bunx vitest run __tests__/unit/ui/chat-performance.unit.test.ts",
-    "build:test:all": "bun run clean && bun run typecheck && bun run format && bun run lint && bun run check:literals:strict && bun run build && bun run test:unit && bun run test:integration && bun run test:e2e"
+    "build:test:all": "bun run clean && bun run typecheck && bun run format:check && bun run lint && bun run check:literals:strict && bun run build && bun run test:unit && bun run test:integration && bun run test:e2e"
   },
   "dependencies": {
     "@agentclientprotocol/sdk": "^0.12.0",

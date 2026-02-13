@@ -31,7 +31,7 @@ jobs:
         run: bunx prisma generate
 
       - name: Format check
-        run: bun run format
+        run: bun run format:check
 
       - name: Lint
         run: bun run lint

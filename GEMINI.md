@@ -34,6 +34,7 @@ bun run typecheck        # TypeScript type checking (tsc --noEmit)
 bun run lint             # Lint with Biome + ESLint
 bun run lint:fix         # Lint and auto-fix with Biome + ESLint
 bun run format           # Format with Biome
+bun run format:check     # Check formatting without writing changes
 bun run check:literals   # Check for magic literals
 bun run check:literals:strict # Fail on any magic literal finding
 
@@ -43,7 +44,7 @@ bun run db:migrate       # Run database migrations
 bun run db:reset         # Clear and re-migrate
 
 # Full quality gate
-bun run build:test:all   # clean + typecheck + format + lint + check:literals:strict + build + test:unit + test:integration + test:e2e
+bun run build:test:all   # clean + typecheck + format:check + lint + check:literals:strict + build + test:unit + test:integration + test:e2e
 ```
 
 ## Architecture
