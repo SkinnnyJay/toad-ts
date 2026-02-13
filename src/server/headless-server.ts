@@ -8,6 +8,10 @@ import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { SessionManager } from "@/core/session-manager";
 import { SessionStream } from "@/core/session-stream";
 import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
+import {
+  formatHarnessAdapterNotRegisteredError,
+  formatHarnessNotConfiguredError,
+} from "@/harness/harness-error-messages";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { createHarnessRegistry, isCursorHarnessEnabled } from "@/harness/harnessRegistryFactory";
@@ -108,12 +112,12 @@ export const startHeadlessServer = async (
         const harnessId = payload.harnessId ?? harnessConfigResult.harnessId;
         const harnessConfig = harnessConfigResult.harnesses[harnessId];
         if (!harnessConfig) {
-          sendError(res, HTTP_STATUS.NOT_FOUND, `Unknown harness: ${harnessId}`);
+          sendError(res, HTTP_STATUS.NOT_FOUND, formatHarnessNotConfiguredError(harnessId));
           return;
         }
         const adapter = harnessRegistry.get(harnessId);
         if (!adapter) {
-          sendError(res, HTTP_STATUS.NOT_FOUND, `No adapter registered for ${harnessId}`);
+          sendError(res, HTTP_STATUS.NOT_FOUND, formatHarnessAdapterNotRegisteredError(harnessId));
           return;
         }
         const runtime = adapter.createHarness(harnessConfig);

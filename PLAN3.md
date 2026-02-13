@@ -444,6 +444,12 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - (`"system"`, `"result"` → `CURSOR_EVENT_TYPE.*`)
   - Replaced raw mode literal:
     - (`"agent"` → `CLI_AGENT_MODE.AGENT`) in `cursor-cli-connection.ts`
+- Additional headless-server harness error deduplication:
+  - Reused shared harness error formatters in:
+    - `src/server/headless-server.ts`
+  - Replaced:
+    - `Unknown harness: <id>` → `formatHarnessNotConfiguredError(<id>)`
+    - `No adapter registered for <id>` → `formatHarnessAdapterNotRegisteredError(<id>)`
 
 ---
 
