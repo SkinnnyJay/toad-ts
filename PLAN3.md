@@ -385,7 +385,7 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Added focused test:
     - `__tests__/unit/constants/provider-stream.unit.test.ts`
 - Additional cross-tool/platform literal hardening:
-  - Added `SETTINGS_JSON` to `src/constants/config-files.ts`.
+  - Reused existing `SETTINGS_JSON` from `src/constants/file-paths.ts`.
   - Replaced raw `"settings.json"` usage in:
     - `src/core/cross-tool/hooks-loader.ts`
   - Replaced raw `".env.sample"` literal in:

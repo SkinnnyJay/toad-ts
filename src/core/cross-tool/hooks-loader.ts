@@ -1,8 +1,8 @@
 import { readFile, readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
-import { CONFIG_FILE } from "@/constants/config-files";
 import { DISCOVERY_SUBPATH } from "@/constants/discovery-subpaths";
 import { ENCODING } from "@/constants/encodings";
+import { FILE_PATH } from "@/constants/file-paths";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { TOOL_DIRS, type ToolSource } from "./discovery-paths";
 
@@ -55,7 +55,7 @@ export const loadHookScripts = async (cwd: string): Promise<LoadedHookScript[]> 
           const fileStat = await stat(filePath);
           if (!fileStat.isFile()) continue;
           // Skip settings config — that's hook config, not a hook script
-          if (entry === CONFIG_FILE.SETTINGS_JSON) continue;
+          if (entry === FILE_PATH.SETTINGS_JSON) continue;
           scripts.push({
             name: entry,
             filePath,
@@ -83,19 +83,19 @@ export const loadHookConfigs = async (cwd: string): Promise<LoadedHookConfig[]> 
   const configFiles = [
     {
       source: "TOADSTOOL" as ToolSource,
-      filePath: join(cwd, TOOL_DIRS.TOADSTOOL.project, CONFIG_FILE.SETTINGS_JSON),
+      filePath: join(cwd, TOOL_DIRS.TOADSTOOL.project, FILE_PATH.SETTINGS_JSON),
     },
     {
       source: "TOADSTOOL" as ToolSource,
-      filePath: join(TOOL_DIRS.TOADSTOOL.global, CONFIG_FILE.SETTINGS_JSON),
+      filePath: join(TOOL_DIRS.TOADSTOOL.global, FILE_PATH.SETTINGS_JSON),
     },
     {
       source: "CLAUDE" as ToolSource,
-      filePath: join(cwd, TOOL_DIRS.CLAUDE.project, CONFIG_FILE.SETTINGS_JSON),
+      filePath: join(cwd, TOOL_DIRS.CLAUDE.project, FILE_PATH.SETTINGS_JSON),
     },
     {
       source: "CLAUDE" as ToolSource,
-      filePath: join(TOOL_DIRS.CLAUDE.global, CONFIG_FILE.SETTINGS_JSON),
+      filePath: join(TOOL_DIRS.CLAUDE.global, FILE_PATH.SETTINGS_JSON),
     },
   ];
 
