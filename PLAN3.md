@@ -487,6 +487,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - missing PR payload fallback (`null`)
     - command failure fallback (`null`)
     - status-color mapping behavior
+- Additional core tooling test hardening:
+  - Added unit coverage for:
+    - `src/core/lsp-client.ts`
+    - `src/core/beads-integration.ts`
+  - New test files:
+    - `__tests__/unit/core/lsp-client.unit.test.ts`
+    - `__tests__/unit/core/beads-integration.unit.test.ts`
+  - Covered:
+    - timeout constant usage for command discovery/execution
+    - fallback behavior on command failures
+    - no-op stub behavior for unavailable LSP operations
 
 ---
 
