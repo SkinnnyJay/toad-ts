@@ -1,3 +1,4 @@
+import { RETRY_EXPONENTIAL_BASE } from "@/config/limits";
 import {
   CURSOR_CLOUD_AGENT_STATUS,
   type CursorCloudAgentStatus,
@@ -5,6 +6,7 @@ import {
 import { CURSOR_CLOUD_ENDPOINT } from "@/constants/cursor-cloud-endpoints";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { ENV_KEY } from "@/constants/env-keys";
+import { HTTP_STATUS } from "@/constants/http-status";
 import {
   type CursorCloudAgent,
   CursorCloudAgentSchema,
@@ -241,7 +243,7 @@ export class CursorCloudAgentClient {
         body: body === undefined ? undefined : JSON.stringify(body),
       });
 
-      if (response.status === 304 && cacheEntry) {
+      if (response.status === HTTP_STATUS.NOT_MODIFIED && cacheEntry) {
         return cacheEntry.payload;
       }
 
@@ -263,7 +265,7 @@ export class CursorCloudAgentClient {
         );
       }
 
-      const delayMs = this.baseRetryDelayMs * 2 ** attempt;
+      const delayMs = this.baseRetryDelayMs * RETRY_EXPONENTIAL_BASE ** attempt;
       this.logger.warn("Retrying Cursor Cloud API request", {
         endpoint,
         status: response.status,
