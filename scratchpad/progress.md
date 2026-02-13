@@ -117,6 +117,8 @@
     metadata for method-not-allowed and not-found outcomes
   - hardened server-route classification to propagate API not-found classifier
     metadata only for `/api/` paths while keeping `/api` root as core-unhandled
+  - hardened harness-config id resolution by trimming whitespace-only CLI/user/
+    project harness-id values before fallback and lookup
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

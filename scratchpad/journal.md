@@ -1548,3 +1548,26 @@
   - `npx vitest run` ✅
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Harness-id whitespace normalization hardening)
+
+### Summary
+- Updated harness-id resolution in `loadHarnessConfig(...)` to trim CLI/user/
+  project harness-id inputs before precedence resolution.
+- Whitespace-only defaults are now treated as absent, preserving fallback to
+  single-harness auto-selection when applicable.
+- Explicit CLI harness-id values are now trimmed before harness lookup.
+- Expanded harness config unit coverage for whitespace default handling and
+  trimmed explicit harness-id selection.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/harness/harness-config.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅

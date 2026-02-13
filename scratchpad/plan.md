@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added harness-id whitespace normalization hardening:
+  - harness id resolver now trims CLI/user/project harness-id inputs before
+    applying precedence
+  - whitespace-only defaults now correctly fall through to single-harness
+    auto-selection behavior
+  - explicit CLI harness-id selection now trims before harness lookup
+  - expanded harness config unit coverage for whitespace/default/id edge cases
 - Added API not-found boundary propagation hardening:
   - server route classifier now only runs API classification for `/api/` paths
   - API not-found outcomes now propagate classifier handler metadata directly

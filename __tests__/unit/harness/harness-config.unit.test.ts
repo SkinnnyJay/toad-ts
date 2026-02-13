@@ -338,6 +338,54 @@ describe("harnessConfig", () => {
     expect(result.harness.command).toBe("only-cli");
   });
 
+  it("ignores whitespace-only default harness values and auto-selects single harness", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "   ",
+      harnesses: {
+        only: {
+          name: "Only",
+          command: "only-cli",
+        },
+      },
+    });
+
+    const result = await loadHarnessConfig({ projectRoot, homedir: userRoot });
+
+    expect(result.harnessId).toBe("only");
+    expect(result.harness.command).toBe("only-cli");
+  });
+
+  it("trims explicit CLI harness id before lookup", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "alpha",
+      harnesses: {
+        alpha: {
+          name: "Alpha",
+          command: "alpha-cli",
+        },
+        beta: {
+          name: "Beta",
+          command: "beta-cli",
+        },
+      },
+    });
+
+    const result = await loadHarnessConfig({
+      projectRoot,
+      homedir: userRoot,
+      harnessId: " beta ",
+    });
+
+    expect(result.harnessId).toBe("beta");
+    expect(result.harness.command).toBe("beta-cli");
+  });
+
   it("throws when multiple harnesses exist and no default is configured", async () => {
     projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
     userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));

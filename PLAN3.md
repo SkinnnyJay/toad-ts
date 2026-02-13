@@ -1886,3 +1886,23 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - keep classifier-source metadata aligned with route classification
       boundaries while preserving existing response semantics.
+
+## Execution Log Addendum — 2026-02-13 (harness-id whitespace normalization)
+
+- Additional harness config fallback hardening:
+  - Updated:
+    - `src/harness/harnessConfig.ts`
+    - `__tests__/unit/harness/harness-config.unit.test.ts`
+  - Hardening changes:
+    - harness id resolution now trims CLI/user/project harness-id inputs before
+      applying precedence, preventing whitespace-only values from bypassing
+      fallback logic.
+    - whitespace-only default harness values are now treated as absent and can
+      correctly fall back to the single-harness auto-selection path.
+    - explicit CLI harness-id inputs are now trimmed before lookup.
+    - expanded harness config unit coverage for:
+      - whitespace default fallback to single harness auto-selection
+      - trimmed CLI harness-id lookup behavior
+  - Goal:
+    - strengthen harness/config fallback behavior around whitespace edge cases
+      without changing precedence semantics for valid ids.

@@ -230,14 +230,18 @@ const resolveHarnessId = (
   projectDefault: string | undefined,
   availableIds: string[]
 ): string => {
-  if (cliHarnessId) {
-    return cliHarnessId;
+  const normalizedCliHarnessId = cliHarnessId?.trim();
+  const normalizedUserDefault = userDefault?.trim();
+  const normalizedProjectDefault = projectDefault?.trim();
+
+  if (normalizedCliHarnessId) {
+    return normalizedCliHarnessId;
   }
-  if (userDefault) {
-    return userDefault;
+  if (normalizedUserDefault) {
+    return normalizedUserDefault;
   }
-  if (projectDefault) {
-    return projectDefault;
+  if (normalizedProjectDefault) {
+    return normalizedProjectDefault;
   }
   if (availableIds.length === 1) {
     const [only] = availableIds;
