@@ -358,6 +358,12 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     `REJECT_ONCE` and `REJECT_ALWAYS`.
   - Replaced raw reject-kind checks in `src/tools/permissions.ts`.
   - Replaced bridge option-kind literals in `src/core/cli-agent/cli-agent.bridge.ts`.
+- Additional UI row-kind literal hardening:
+  - Added `src/constants/command-palette-row-types.ts`.
+  - Added `src/constants/rewind-modal-option-kinds.ts`.
+  - Replaced raw row/option discriminator strings in:
+    - `src/ui/components/CommandPalette.tsx`
+    - `src/ui/components/RewindModal.tsx`
 
 ---
 

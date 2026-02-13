@@ -1,6 +1,7 @@
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { KEY_NAME } from "@/constants/key-names";
+import { REWIND_MODAL_OPTION_KIND } from "@/constants/rewind-modal-option-kinds";
 import { REWIND_MODE, type RewindMode } from "@/constants/rewind-modes";
 import type { CheckpointStatus } from "@/store/checkpoints/checkpoint-manager";
 import { useUiSymbols } from "@/ui/hooks/useUiSymbols";
@@ -44,8 +45,13 @@ const REWIND_OPTIONS: Array<{ mode: RewindMode; label: string; description: stri
 ];
 
 type ModalOption =
-  | { kind: "selection" }
-  | { kind: "rewind"; mode: RewindMode; label: string; description: string };
+  | { kind: typeof REWIND_MODAL_OPTION_KIND.SELECTION }
+  | {
+      kind: typeof REWIND_MODAL_OPTION_KIND.REWIND;
+      mode: RewindMode;
+      label: string;
+      description: string;
+    };
 
 export function RewindModal({
   isOpen,
@@ -61,13 +67,13 @@ export function RewindModal({
   }, [isOpen]);
   const options = useMemo((): ModalOption[] => {
     const rewind: ModalOption[] = REWIND_OPTIONS.map((o) => ({
-      kind: "rewind",
+      kind: REWIND_MODAL_OPTION_KIND.REWIND,
       mode: o.mode,
       label: o.label,
       description: o.description,
     }));
     if (onGoToSelectionOptions) {
-      return [{ kind: "selection" }, ...rewind];
+      return [{ kind: REWIND_MODAL_OPTION_KIND.SELECTION }, ...rewind];
     }
     return rewind;
   }, [onGoToSelectionOptions]);
@@ -99,11 +105,11 @@ export function RewindModal({
       key.stopPropagation();
       const selected = options[index];
       if (!selected) return;
-      if (selected.kind === "selection" && onGoToSelectionOptions) {
+      if (selected.kind === REWIND_MODAL_OPTION_KIND.SELECTION && onGoToSelectionOptions) {
         onGoToSelectionOptions();
         return;
       }
-      if (selected.kind === "rewind") {
+      if (selected.kind === REWIND_MODAL_OPTION_KIND.REWIND) {
         onSelect(selected.mode);
       }
       return;
@@ -150,12 +156,17 @@ export function RewindModal({
           {options.map((option, idx) => {
             const isSelected = idx === index;
             const label =
-              option.kind === "selection" ? REWIND_MODAL_SELECTION_OPTIONS_LABEL : option.label;
+              option.kind === REWIND_MODAL_OPTION_KIND.SELECTION
+                ? REWIND_MODAL_SELECTION_OPTIONS_LABEL
+                : option.label;
             const description =
-              option.kind === "selection"
+              option.kind === REWIND_MODAL_OPTION_KIND.SELECTION
                 ? REWIND_MODAL_SELECTION_OPTIONS_DESCRIPTION
                 : option.description;
-            const optionKey = option.kind === "selection" ? "selection" : option.mode;
+            const optionKey =
+              option.kind === REWIND_MODAL_OPTION_KIND.SELECTION
+                ? REWIND_MODAL_OPTION_KIND.SELECTION
+                : option.mode;
             return (
               <box key={optionKey} flexDirection="column" paddingLeft={1} paddingRight={1}>
                 <text fg={isSelected ? COLOR.GREEN : COLOR.WHITE}>
