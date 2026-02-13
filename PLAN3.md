@@ -376,6 +376,14 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Added focused tests:
     - `__tests__/unit/core/skill-permissions.unit.test.ts`
     - `__tests__/unit/constants/ui-symbols.unit.test.ts`
+- Additional provider stream literal hardening:
+  - Added `src/constants/provider-stream.ts` for SSE markers and provider stream event strings.
+  - Replaced raw provider-stream literals in:
+    - `src/core/providers/openai-provider.ts`
+    - `src/core/providers/openai-compatible-provider.ts`
+    - `src/core/providers/anthropic-provider.ts`
+  - Added focused test:
+    - `__tests__/unit/constants/provider-stream.unit.test.ts`
 
 ---
 

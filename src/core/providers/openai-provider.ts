@@ -1,3 +1,4 @@
+import { PROVIDER_STREAM } from "@/constants/provider-stream";
 import type {
   ProviderAdapter,
   ProviderMessage,
@@ -7,6 +8,7 @@ import type {
 } from "./provider-types";
 
 const OPENAI_API_BASE = "https://api.openai.com";
+const OPENAI_SSE_PREFIX_LENGTH = PROVIDER_STREAM.SSE_DATA_PREFIX.length;
 
 const OPENAI_MODELS: ProviderModelInfo[] = [
   {
@@ -121,9 +123,9 @@ export class OpenAIProvider implements ProviderAdapter {
         buffer = lines.pop() ?? "";
 
         for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const data = line.slice(6).trim();
-          if (data === "[DONE]") {
+          if (!line.startsWith(PROVIDER_STREAM.SSE_DATA_PREFIX)) continue;
+          const data = line.slice(OPENAI_SSE_PREFIX_LENGTH).trim();
+          if (data === PROVIDER_STREAM.DONE_SENTINEL) {
             yield { type: "done" };
             return;
           }
@@ -153,7 +155,7 @@ export class OpenAIProvider implements ProviderAdapter {
               }
             }
 
-            if (choice?.finish_reason === "stop") {
+            if (choice?.finish_reason === PROVIDER_STREAM.OPENAI_FINISH_REASON_STOP) {
               yield { type: "done" };
               return;
             }

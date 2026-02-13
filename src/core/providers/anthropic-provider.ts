@@ -1,5 +1,6 @@
 import { LIMIT } from "@/config/limits";
 import { HTTP_STATUS } from "@/constants/http-status";
+import { PROVIDER_STREAM } from "@/constants/provider-stream";
 import type {
   ProviderAdapter,
   ProviderMessage,
@@ -120,6 +121,7 @@ export class AnthropicProvider implements ProviderAdapter {
 
     const decoder = new TextDecoder();
     let buffer = "";
+    const ssePrefixLength = PROVIDER_STREAM.SSE_DATA_PREFIX.length;
 
     try {
       while (true) {
@@ -131,9 +133,9 @@ export class AnthropicProvider implements ProviderAdapter {
         buffer = lines.pop() ?? "";
 
         for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const data = line.slice(6).trim();
-          if (data === "[DONE]") {
+          if (!line.startsWith(PROVIDER_STREAM.SSE_DATA_PREFIX)) continue;
+          const data = line.slice(ssePrefixLength).trim();
+          if (data === PROVIDER_STREAM.DONE_SENTINEL) {
             yield { type: "done" };
             return;
           }
@@ -142,14 +144,14 @@ export class AnthropicProvider implements ProviderAdapter {
             const event = JSON.parse(data) as Record<string, unknown>;
             const eventType = event.type as string;
 
-            if (eventType === "content_block_delta") {
+            if (eventType === PROVIDER_STREAM.ANTHROPIC_EVENT_CONTENT_BLOCK_DELTA) {
               const delta = event.delta as Record<string, unknown> | undefined;
-              if (delta?.type === "text_delta") {
+              if (delta?.type === PROVIDER_STREAM.ANTHROPIC_DELTA_TEXT) {
                 yield { type: "text", text: delta.text as string };
-              } else if (delta?.type === "thinking_delta") {
+              } else if (delta?.type === PROVIDER_STREAM.ANTHROPIC_DELTA_THINKING) {
                 yield { type: "thinking", text: delta.thinking as string };
               }
-            } else if (eventType === "message_stop") {
+            } else if (eventType === PROVIDER_STREAM.ANTHROPIC_EVENT_MESSAGE_STOP) {
               yield { type: "done" };
               return;
             }
