@@ -36,6 +36,9 @@ jobs:
       - name: Lint
         run: bun run lint
 
+      - name: Literal policy
+        run: bun run check:literals:strict
+
       - name: Typecheck
         run: bun run typecheck
 
