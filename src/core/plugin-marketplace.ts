@@ -1,3 +1,4 @@
+import { TIMEOUT } from "@/config/timeouts";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 
 const logger = createClassLogger("PluginMarketplace");
@@ -24,7 +25,7 @@ export const fetchPluginRegistry = async (
 ): Promise<MarketplacePlugin[]> => {
   try {
     const response = await fetch(registryUrl, {
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(TIMEOUT.PLUGIN_REGISTRY_FETCH_MS),
       headers: { Accept: "application/json" },
     });
     if (!response.ok) {
@@ -65,7 +66,7 @@ export const installPlugin = async (
     const { execa } = await import("execa");
     const [cmd, ...args] = plugin.installCommand.split(" ");
     if (!cmd) return { ok: false, error: "Invalid install command" };
-    await execa(cmd, args, { cwd: cwd ?? process.cwd(), timeout: 60_000 });
+    await execa(cmd, args, { cwd: cwd ?? process.cwd(), timeout: TIMEOUT.PLUGIN_INSTALL_MS });
     logger.info("Plugin installed", { name: plugin.name, version: plugin.version });
     return { ok: true };
   } catch (error) {

@@ -498,6 +498,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - timeout constant usage for command discovery/execution
     - fallback behavior on command failures
     - no-op stub behavior for unavailable LSP operations
+- Additional formatter/marketplace test hardening:
+  - Added focused unit coverage for:
+    - `src/core/code-formatter.ts`
+    - `src/core/plugin-marketplace.ts`
+  - New test files:
+    - `__tests__/unit/core/code-formatter.unit.test.ts`
+    - `__tests__/unit/core/plugin-marketplace.unit.test.ts`
+  - Covered:
+    - formatter command dispatch and failure-path handling
+    - plugin registry fetch success/failure behavior
+    - plugin install command timeout usage and invalid-command guard
 
 ---
 
