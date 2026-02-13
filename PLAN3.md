@@ -552,6 +552,10 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - invalid credential rejection
     - Bearer-token success path
     - raw-token (non-Bearer) success path
+  - Improved protocol semantics:
+    - switched auth failures from 400 to 401 (`HTTP_STATUS.UNAUTHORIZED`)
+    - added `WWW-Authenticate: Bearer` response header on auth failures
+    - added/used `HTTP_STATUS_UNAUTHORIZED` in limits + constants
 - Additional headless-server auth integration coverage:
   - Extended `__tests__/integration/server/headless-server.integration.test.ts`
     with authenticated-request scenarios.

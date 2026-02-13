@@ -85,7 +85,7 @@ describe("headless server", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ harnessId: "mock" }),
       });
-      expect(noAuthResponse.status).toBe(400);
+      expect(noAuthResponse.status).toBe(401);
       await expect(noAuthResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
@@ -98,7 +98,7 @@ describe("headless server", () => {
         },
         body: JSON.stringify({ harnessId: "mock" }),
       });
-      expect(wrongAuthResponse.status).toBe(400);
+      expect(wrongAuthResponse.status).toBe(401);
       await expect(wrongAuthResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.INVALID_CREDENTIALS,
       });

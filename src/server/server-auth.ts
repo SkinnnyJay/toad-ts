@@ -17,7 +17,10 @@ export const checkServerAuth = (req: IncomingMessage, res: ServerResponse): bool
 
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    res.writeHead(HTTP_STATUS.BAD_REQUEST, { "Content-Type": "application/json" });
+    res.writeHead(HTTP_STATUS.UNAUTHORIZED, {
+      "Content-Type": "application/json",
+      "WWW-Authenticate": "Bearer",
+    });
     res.end(JSON.stringify({ error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED }));
     return false;
   }
@@ -25,7 +28,10 @@ export const checkServerAuth = (req: IncomingMessage, res: ServerResponse): bool
   // Support "Bearer <token>" format
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader;
   if (token !== password) {
-    res.writeHead(HTTP_STATUS.BAD_REQUEST, { "Content-Type": "application/json" });
+    res.writeHead(HTTP_STATUS.UNAUTHORIZED, {
+      "Content-Type": "application/json",
+      "WWW-Authenticate": "Bearer",
+    });
     res.end(JSON.stringify({ error: SERVER_RESPONSE_MESSAGE.INVALID_CREDENTIALS }));
     return false;
   }

@@ -68,7 +68,7 @@ describe("checkServerAuth", () => {
 
     expect(allowed).toBe(false);
     expect(getCaptured()).toEqual({
-      statusCode: HTTP_STATUS.BAD_REQUEST,
+      statusCode: HTTP_STATUS.UNAUTHORIZED,
       body: { error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED },
     });
   });
@@ -85,7 +85,7 @@ describe("checkServerAuth", () => {
 
     expect(allowed).toBe(false);
     expect(getCaptured()).toEqual({
-      statusCode: HTTP_STATUS.BAD_REQUEST,
+      statusCode: HTTP_STATUS.UNAUTHORIZED,
       body: { error: SERVER_RESPONSE_MESSAGE.INVALID_CREDENTIALS },
     });
   });
