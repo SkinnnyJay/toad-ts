@@ -1490,3 +1490,18 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Covered:
     - project/user env-map merge precedence before expansion
     - failure path when env expansion empties required command fields
+
+## Execution Log Addendum — 2026-02-13 (auth-header type hardening)
+
+- Additional server auth parsing hardening:
+  - Updated:
+    - `src/server/server-auth.ts`
+  - Hardening changes:
+    - authorization header parsing now normalizes to a single non-empty string
+    - non-string/array/empty authorization header values are treated as missing
+      credentials and return canonical unauthorized-required responses
+  - Extended:
+    - `__tests__/unit/server/server-auth.unit.test.ts`
+  - Covered:
+    - array-shaped authorization header rejection path
+    - whitespace-only authorization header rejection path

@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added auth-header type hardening in server auth middleware:
+  - normalized authorization values now require a single non-empty string
+  - array/empty header values now map to canonical authorization-required failures
+  - added focused unit coverage for header-shape edge cases
 - Added harness env-expansion validation hardening:
   - expanded harness configs are now re-validated after env substitution
   - added focused coverage for env-map merge precedence and missing-command expansion failure

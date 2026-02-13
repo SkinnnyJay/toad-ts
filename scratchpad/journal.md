@@ -1,5 +1,23 @@
 # Scratchpad Journal
 
+## 2026-02-13 (auth-header type hardening)
+- Updated `src/server/server-auth.ts`:
+  - added authorization header normalization guard requiring non-empty string values
+  - array/empty authorization headers now return canonical authorization-required
+    unauthorized responses
+- Extended `__tests__/unit/server/server-auth.unit.test.ts`:
+  - added array-header rejection coverage
+  - added whitespace-only header rejection coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/server-auth.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (harness env-expansion validation hardening)
 - Updated `src/harness/harnessConfig.ts`:
   - env-expanded harness config payloads are now re-parsed via `harnessConfigSchema`

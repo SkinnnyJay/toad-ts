@@ -11,6 +11,16 @@ const AUTH_HEADER = {
 
 const BEARER_TOKEN_PREFIX_PATTERN = /^Bearer\s+/i;
 
+const normalizeAuthorizationHeader = (
+  authorization: string | string[] | undefined
+): string | null => {
+  if (typeof authorization !== "string") {
+    return null;
+  }
+  const normalizedAuthorization = authorization.trim();
+  return normalizedAuthorization.length > 0 ? normalizedAuthorization : null;
+};
+
 const rejectUnauthorized = (res: ServerResponse, message: string): boolean => {
   sendErrorResponse(res, HTTP_STATUS.UNAUTHORIZED, message, { headers: AUTH_HEADER });
   return false;
@@ -27,13 +37,13 @@ export const checkServerAuth = (req: IncomingMessage, res: ServerResponse): bool
 
   if (!password) return true; // No password configured, allow all
 
-  const authHeader = req.headers.authorization;
+  const authHeader = normalizeAuthorizationHeader(req.headers.authorization);
   if (!authHeader) {
     return rejectUnauthorized(res, SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED);
   }
 
   // Support "Bearer <token>" format
-  const token = authHeader.trim().replace(BEARER_TOKEN_PREFIX_PATTERN, "").trim();
+  const token = authHeader.replace(BEARER_TOKEN_PREFIX_PATTERN, "").trim();
   if (token !== password) {
     return rejectUnauthorized(res, SERVER_RESPONSE_MESSAGE.INVALID_CREDENTIALS);
   }

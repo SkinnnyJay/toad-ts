@@ -170,4 +170,46 @@ describe("checkServerAuth", () => {
     expect(allowed).toBe(true);
     expect(getCaptured().statusCode).toBeNull();
   });
+
+  it("rejects authorization header arrays as invalid header format", () => {
+    process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD] = "secret";
+    EnvManager.resetInstance();
+    const { response, getCaptured } = createResponseCapture();
+
+    const allowed = checkServerAuth(
+      { headers: { authorization: ["Bearer secret"] } } as unknown as IncomingMessage,
+      response as unknown as ServerResponse
+    );
+
+    expect(allowed).toBe(false);
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.UNAUTHORIZED,
+      headers: {
+        "Content-Type": "application/json",
+        "WWW-Authenticate": "Bearer",
+      },
+      body: { error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED },
+    });
+  });
+
+  it("rejects whitespace-only authorization header values", () => {
+    process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD] = "secret";
+    EnvManager.resetInstance();
+    const { response, getCaptured } = createResponseCapture();
+
+    const allowed = checkServerAuth(
+      { headers: { authorization: "   " } } as IncomingMessage,
+      response as unknown as ServerResponse
+    );
+
+    expect(allowed).toBe(false);
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.UNAUTHORIZED,
+      headers: {
+        "Content-Type": "application/json",
+        "WWW-Authenticate": "Bearer",
+      },
+      body: { error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED },
+    });
+  });
 });
