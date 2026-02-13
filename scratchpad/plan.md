@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added default harness env-override hardening:
+  - command overrides now trim whitespace and fall back to defaults when blank
+  - explicit empty-string args overrides now resolve to empty argument arrays
+  - added focused unit coverage in `default-harness-config.unit.test.ts`
 - Added server infrastructure test coverage:
   - `server-config` runtime resolution behavior
   - `server-types` request/event schema contracts

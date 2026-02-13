@@ -6,31 +6,50 @@ import { parseBooleanEnvFlag } from "@/utils/env/boolean-flags";
 import { EnvManager } from "@/utils/env/env.utils";
 
 const parseArgs = (rawValue: string): string[] => {
+  if (rawValue.trim().length === 0) {
+    return [];
+  }
   return rawValue
     .split(/\s+/)
     .map((value) => value.trim())
     .filter((value) => value.length > 0);
 };
 
+const resolveCommand = (value: string | undefined, defaultCommand: string): string => {
+  const normalizedValue = value?.trim();
+  return normalizedValue && normalizedValue.length > 0 ? normalizedValue : defaultCommand;
+};
+
+const resolveArgs = (value: string | undefined, defaultArgs: readonly string[]): string[] =>
+  value === undefined ? [...defaultArgs] : parseArgs(value);
+
 export const createDefaultHarnessConfig = (
   env: NodeJS.ProcessEnv = EnvManager.getInstance().getSnapshot()
 ): HarnessConfigResult => {
-  const command = env[ENV_KEY.TOADSTOOL_CLAUDE_COMMAND] ?? HARNESS_DEFAULT.CLAUDE_COMMAND;
-  const argsRaw = env[ENV_KEY.TOADSTOOL_CLAUDE_ARGS];
-  const args = argsRaw ? parseArgs(argsRaw) : [...HARNESS_DEFAULT.CLAUDE_ARGS];
+  const command = resolveCommand(
+    env[ENV_KEY.TOADSTOOL_CLAUDE_COMMAND],
+    HARNESS_DEFAULT.CLAUDE_COMMAND
+  );
+  const args = resolveArgs(env[ENV_KEY.TOADSTOOL_CLAUDE_ARGS], HARNESS_DEFAULT.CLAUDE_ARGS);
 
-  const geminiCommand = env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] ?? HARNESS_DEFAULT.GEMINI_COMMAND;
-  const geminiArgsRaw = env[ENV_KEY.TOADSTOOL_GEMINI_ARGS];
-  const geminiArgs = geminiArgsRaw ? parseArgs(geminiArgsRaw) : [...HARNESS_DEFAULT.GEMINI_ARGS];
+  const geminiCommand = resolveCommand(
+    env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND],
+    HARNESS_DEFAULT.GEMINI_COMMAND
+  );
+  const geminiArgs = resolveArgs(env[ENV_KEY.TOADSTOOL_GEMINI_ARGS], HARNESS_DEFAULT.GEMINI_ARGS);
 
-  const codexCommand = env[ENV_KEY.TOADSTOOL_CODEX_COMMAND] ?? HARNESS_DEFAULT.CODEX_COMMAND;
-  const codexArgsRaw = env[ENV_KEY.TOADSTOOL_CODEX_ARGS];
-  const codexArgs = codexArgsRaw ? parseArgs(codexArgsRaw) : [...HARNESS_DEFAULT.CODEX_ARGS];
+  const codexCommand = resolveCommand(
+    env[ENV_KEY.TOADSTOOL_CODEX_COMMAND],
+    HARNESS_DEFAULT.CODEX_COMMAND
+  );
+  const codexArgs = resolveArgs(env[ENV_KEY.TOADSTOOL_CODEX_ARGS], HARNESS_DEFAULT.CODEX_ARGS);
 
   const cursorEnabled = parseBooleanEnvFlag(env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]) ?? false;
-  const cursorCommand = env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] ?? HARNESS_DEFAULT.CURSOR_COMMAND;
-  const cursorArgsRaw = env[ENV_KEY.TOADSTOOL_CURSOR_ARGS];
-  const cursorArgs = cursorArgsRaw ? parseArgs(cursorArgsRaw) : [...HARNESS_DEFAULT.CURSOR_ARGS];
+  const cursorCommand = resolveCommand(
+    env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND],
+    HARNESS_DEFAULT.CURSOR_COMMAND
+  );
+  const cursorArgs = resolveArgs(env[ENV_KEY.TOADSTOOL_CURSOR_ARGS], HARNESS_DEFAULT.CURSOR_ARGS);
 
   const claudeHarness: HarnessConfig = harnessConfigSchema.parse({
     id: HARNESS_DEFAULT.CLAUDE_CLI_ID,

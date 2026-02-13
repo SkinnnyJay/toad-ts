@@ -79,6 +79,7 @@
   - hardened request-url parsing by rejecting protocol-relative targets
   - expanded headless integration coverage for non-origin-form request targets
   - hardened repo workflow checks parsing for non-string gh fields
+  - hardened default harness env-override behavior for blank command and explicit empty args inputs
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

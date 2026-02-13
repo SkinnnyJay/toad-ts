@@ -59,4 +59,42 @@ describe("createDefaultHarnessConfig", () => {
       "--browser",
     ]);
   });
+
+  it("treats explicit empty argument overrides as empty arrays", () => {
+    const result = createDefaultHarnessConfig({
+      [ENV_KEY.TOADSTOOL_CLAUDE_ARGS]: "",
+      [ENV_KEY.TOADSTOOL_GEMINI_ARGS]: "",
+      [ENV_KEY.TOADSTOOL_CODEX_ARGS]: "",
+      [ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]: "true",
+      [ENV_KEY.TOADSTOOL_CURSOR_ARGS]: "",
+    });
+
+    expect(result.harnesses[HARNESS_DEFAULT.CLAUDE_CLI_ID]?.args).toEqual([]);
+    expect(result.harnesses[HARNESS_DEFAULT.GEMINI_CLI_ID]?.args).toEqual([]);
+    expect(result.harnesses[HARNESS_DEFAULT.CODEX_CLI_ID]?.args).toEqual([]);
+    expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]?.args).toEqual([]);
+  });
+
+  it("falls back to default commands when command overrides are blank", () => {
+    const result = createDefaultHarnessConfig({
+      [ENV_KEY.TOADSTOOL_CLAUDE_COMMAND]: "   ",
+      [ENV_KEY.TOADSTOOL_GEMINI_COMMAND]: "   ",
+      [ENV_KEY.TOADSTOOL_CODEX_COMMAND]: "   ",
+      [ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]: "true",
+      [ENV_KEY.TOADSTOOL_CURSOR_COMMAND]: "   ",
+    });
+
+    expect(result.harnesses[HARNESS_DEFAULT.CLAUDE_CLI_ID]?.command).toBe(
+      HARNESS_DEFAULT.CLAUDE_COMMAND
+    );
+    expect(result.harnesses[HARNESS_DEFAULT.GEMINI_CLI_ID]?.command).toBe(
+      HARNESS_DEFAULT.GEMINI_COMMAND
+    );
+    expect(result.harnesses[HARNESS_DEFAULT.CODEX_CLI_ID]?.command).toBe(
+      HARNESS_DEFAULT.CODEX_COMMAND
+    );
+    expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]?.command).toBe(
+      HARNESS_DEFAULT.CURSOR_COMMAND
+    );
+  });
 });

@@ -1,5 +1,22 @@
 # Scratchpad Journal
 
+## 2026-02-13 (default harness env-override hardening)
+- Updated `src/harness/defaultHarnessConfig.ts`:
+  - command env overrides now trim and fall back to defaults when blank
+  - explicit empty-string args overrides now produce empty args arrays
+- Extended `__tests__/unit/harness/default-harness-config.unit.test.ts`:
+  - added explicit empty-args override coverage
+  - added blank-command fallback coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/harness/default-harness-config.unit.test.ts __tests__/unit/server/api-route-fallback-env.unit.test.ts __tests__/unit/harness/harness-adapter.unit.test.ts` ✅
+  - Full gates (equivalent due missing bun/bunx in environment):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (repo-workflow check-field type hardening)
 - Updated `src/core/repo-workflow.ts`:
   - `normalizeCheckField` now safely handles unknown/non-string values from

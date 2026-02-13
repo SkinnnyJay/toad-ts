@@ -1459,3 +1459,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - `__tests__/unit/core/repo-workflow-info.unit.test.ts`
   - Covered:
     - malformed non-string check payload classification path
+
+## Execution Log Addendum — 2026-02-13 (default harness env-override hardening)
+
+- Additional default-harness override hardening:
+  - Updated:
+    - `src/harness/defaultHarnessConfig.ts`
+  - Hardening changes:
+    - command overrides are now trimmed and blank command values fall back to
+      default harness commands instead of producing invalid empty command config
+    - argument overrides now treat explicitly provided empty-string env values as
+      intentional empty argument lists (instead of silently restoring defaults)
+  - Extended:
+    - `__tests__/unit/harness/default-harness-config.unit.test.ts`
+  - Covered:
+    - explicit empty args override behavior across claude/gemini/codex/cursor
+    - blank command override fallback behavior across claude/gemini/codex/cursor
