@@ -551,6 +551,14 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - missing auth header rejection
     - invalid credential rejection
     - Bearer-token success path
+- Additional headless-server auth integration coverage:
+  - Extended `__tests__/integration/server/headless-server.integration.test.ts`
+    with authenticated-request scenarios.
+  - Covered:
+    - `/health` remains accessible when server password is configured.
+    - protected endpoints reject missing authorization.
+    - protected endpoints reject invalid bearer credentials.
+    - protected endpoints accept valid bearer credentials and complete session creation.
 
 ---
 

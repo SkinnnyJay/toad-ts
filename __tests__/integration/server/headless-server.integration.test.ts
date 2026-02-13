@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 import { WebSocket } from "ws";
 import { z } from "zod";
 
+import { ENV_KEY } from "@/constants/env-keys";
 import { SERVER_EVENT } from "@/constants/server-events";
+import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { startHeadlessServer } from "@/server/headless-server";
 import { createSessionResponseSchema, serverEventSchema } from "@/server/server-types";
+import { EnvManager } from "@/utils/env/env.utils";
 
 const waitForMessage = (socket: WebSocket): Promise<string> => {
   return new Promise((resolve) => {
@@ -63,6 +66,58 @@ describe("headless server", () => {
         socket.close();
       });
       await server.close();
+    }
+  });
+
+  it("enforces auth for non-health endpoints when password is configured", async () => {
+    process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD] = "secret";
+    EnvManager.resetInstance();
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const health = await fetch(`${baseUrl}/health`);
+      expect(health.status).toBe(200);
+
+      const noAuthResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: "mock" }),
+      });
+      expect(noAuthResponse.status).toBe(400);
+      await expect(noAuthResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const wrongAuthResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer wrong",
+        },
+        body: JSON.stringify({ harnessId: "mock" }),
+      });
+      expect(wrongAuthResponse.status).toBe(400);
+      await expect(wrongAuthResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.INVALID_CREDENTIALS,
+      });
+
+      const authorizedResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer secret",
+        },
+        body: JSON.stringify({ harnessId: "mock" }),
+      });
+      expect(authorizedResponse.status).toBe(200);
+      const payload = createSessionResponseSchema.parse(await authorizedResponse.json());
+      expect(payload.sessionId).toBeTruthy();
+    } finally {
+      await server.close();
+      delete process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD];
+      EnvManager.resetInstance();
     }
   });
 });
