@@ -2,6 +2,7 @@ import { LIMIT } from "@/config/limits";
 import { UI } from "@/config/ui";
 import { COLOR } from "@/constants/colors";
 import { FOCUS_TARGET, type FocusTarget } from "@/constants/focus-target";
+import { SLASH_COMMAND } from "@/constants/slash-commands";
 import type { ConnectionStatus, SessionId, SessionMode } from "@/types/domain";
 import { ContextProgress } from "@/ui/components/ContextProgress";
 import { TextAttributes } from "@opentui/core";
@@ -31,7 +32,7 @@ const globalShortcuts = [
   { key: "^X←/→", label: "Child Sessions" },
   { key: "Esc", label: "Back to Chat" },
   { key: "Cmd+F", label: "Focus Files" },
-  { key: "/help", label: "Panel Help" },
+  { key: SLASH_COMMAND.HELP, label: "Panel Help" },
 ];
 
 const truncateMiddle = (value: string, max: number): string => {

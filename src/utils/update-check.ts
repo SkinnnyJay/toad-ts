@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { SEMVER_COMPONENT_COUNT } from "@/config/limits";
+import { BOOLEAN_STRINGS } from "@/constants/boolean-strings";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { ERROR_CODE } from "@/constants/error-codes";
@@ -102,7 +103,7 @@ const fetchLatestVersion = async (packageName: string): Promise<string | null> =
 
 export const checkForUpdates = async (): Promise<void> => {
   const env = EnvManager.getInstance().getSnapshot();
-  if (env[ENV_KEY.TOADSTOOL_DISABLE_UPDATE_CHECK]?.toLowerCase() === "true") {
+  if (env[ENV_KEY.TOADSTOOL_DISABLE_UPDATE_CHECK]?.toLowerCase() === BOOLEAN_STRINGS.TRUE) {
     return;
   }
 

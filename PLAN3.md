@@ -364,6 +364,18 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Replaced raw row/option discriminator strings in:
     - `src/ui/components/CommandPalette.tsx`
     - `src/ui/components/RewindModal.tsx`
+- Additional wildcard/boolean/footer literal hardening:
+  - Added `WILDCARD` to `src/constants/permission-patterns.ts`.
+  - Replaced raw `"*"` checks in:
+    - `src/core/permission-modes.ts`
+    - `src/core/cross-tool/skill-permissions.ts`
+  - Replaced `.toLowerCase() === "true"` checks with `BOOLEAN_STRINGS.TRUE` in:
+    - `src/utils/update-check.ts`
+    - `src/constants/ui-symbols.ts`
+  - Replaced footer raw `"/help"` shortcut key with `SLASH_COMMAND.HELP`.
+  - Added focused tests:
+    - `__tests__/unit/core/skill-permissions.unit.test.ts`
+    - `__tests__/unit/constants/ui-symbols.unit.test.ts`
 
 ---
 

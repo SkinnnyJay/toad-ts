@@ -1,4 +1,5 @@
 export const PERMISSION_PATTERN = {
+  WILDCARD: "*",
   READ: "read_*",
   LIST: "list_*",
   SEARCH: "search_*",
@@ -15,5 +16,5 @@ export const PERMISSION_PATTERN = {
 export type PermissionPattern = (typeof PERMISSION_PATTERN)[keyof typeof PERMISSION_PATTERN];
 
 // Re-export for convenience
-export const { READ, LIST, SEARCH, WRITE, EDIT, DELETE, EXEC, FETCH, TODO, TASK, ASK } =
+export const { WILDCARD, READ, LIST, SEARCH, WRITE, EDIT, DELETE, EXEC, FETCH, TODO, TASK, ASK } =
   PERMISSION_PATTERN;
