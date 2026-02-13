@@ -9,6 +9,11 @@ describe("classifyServerRoute", () => {
     expect(result).toEqual({ kind: SERVER_ROUTE_CLASSIFICATION.HEALTH_OK });
   });
 
+  it("classifies lowercase method core routes", () => {
+    const result = classifyServerRoute("get", SERVER_PATH.HEALTH);
+    expect(result).toEqual({ kind: SERVER_ROUTE_CLASSIFICATION.HEALTH_OK });
+  });
+
   it("classifies unsupported core methods as method_not_allowed", () => {
     const result = classifyServerRoute(HTTP_METHOD.GET, SERVER_PATH.SESSIONS);
     expect(result).toEqual({ kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED });

@@ -175,6 +175,9 @@
 - Added UTF-8 split-chunk decoding hardening:
   - request-body reader now uses StringDecoder for buffer chunk boundaries
   - added unit coverage for multi-byte UTF-8 split across buffer chunks
+- Added HTTP-method normalization hardening for route classifiers:
+  - shared method normalizer now canonicalizes trim+case for route matching
+  - added unit coverage for lowercase/padded method handling across classifiers
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

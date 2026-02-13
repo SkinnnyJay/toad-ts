@@ -1,5 +1,25 @@
 # Scratchpad Journal
 
+## 2026-02-13 (route method normalization hardening)
+- Added shared helper:
+  - `src/server/http-method-normalization.ts`
+- Updated:
+  - `src/server/api-routes.ts`
+  - `src/server/core-route-classifier.ts`
+- Changes:
+  - route matching/classification now normalizes method input via trim+uppercase
+    before comparing with supported HTTP methods
+- Extended tests:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - added lowercase/padded method acceptance coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (request-body UTF-8 split-chunk decoding hardening)
 - Updated `src/server/request-body.ts`:
   - buffer chunk decoding now uses `StringDecoder("utf8")` to preserve multibyte

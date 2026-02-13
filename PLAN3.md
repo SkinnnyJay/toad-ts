@@ -1166,6 +1166,21 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - `__tests__/unit/server/request-body.unit.test.ts`
   - Covered:
     - successful JSON parse when a multi-byte UTF-8 character spans two buffer chunks
+- Additional HTTP-method normalization hardening for route classifiers:
+  - Added:
+    - `src/server/http-method-normalization.ts`
+  - Updated:
+    - `src/server/api-routes.ts`
+    - `src/server/core-route-classifier.ts`
+  - Hardening change:
+    - API/core route matching now normalizes method input (trim + uppercase) before
+      method comparisons, preventing case/whitespace variance mismatches.
+  - Extended:
+    - `__tests__/unit/server/api-routes.unit.test.ts`
+    - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+    - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - Covered:
+    - lowercase and padded method matching/classification paths
 
 ---
 

@@ -57,6 +57,13 @@ describe("API Routes", () => {
       expect(result).not.toBeNull();
     });
 
+    it("should match routes for lowercase and padded methods", () => {
+      const lower = matchRoute("get", "/api/config");
+      const padded = matchRoute(" post ", "/api/tui/submit-prompt");
+      expect(lower).not.toBeNull();
+      expect(padded).not.toBeNull();
+    });
+
     it("should return null for unknown routes", () => {
       expect(matchRoute("GET", "/api/unknown")).toBeNull();
       expect(matchRoute("PUT", "/api/sessions")).toBeNull();
@@ -66,6 +73,11 @@ describe("API Routes", () => {
   describe("classifyApiRoute", () => {
     it("classifies known path with matching method as match", () => {
       const result = classifyApiRoute("GET", "/api/config");
+      expect(result.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+    });
+
+    it("classifies lowercase methods with matching routes as match", () => {
+      const result = classifyApiRoute("get", "/api/config");
       expect(result.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
     });
 

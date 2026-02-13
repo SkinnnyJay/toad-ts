@@ -1,5 +1,6 @@
 import { HTTP_METHOD } from "@/constants/http-methods";
 import { SERVER_PATH } from "@/constants/server-paths";
+import { normalizeHttpMethod } from "@/server/http-method-normalization";
 import { parseSessionRoutePath } from "@/server/session-route-path";
 
 export const CORE_ROUTE_DECISION = {
@@ -20,14 +21,15 @@ type CoreRouteDecision =
     };
 
 export const classifyCoreRoute = (method: string, pathname: string): CoreRouteDecision => {
+  const normalizedMethod = normalizeHttpMethod(method);
   if (pathname === SERVER_PATH.HEALTH) {
-    if (method === HTTP_METHOD.GET) {
+    if (normalizedMethod === HTTP_METHOD.GET) {
       return { kind: CORE_ROUTE_DECISION.HEALTH_OK };
     }
     return { kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED };
   }
   if (pathname === SERVER_PATH.SESSIONS) {
-    if (method === HTTP_METHOD.POST) {
+    if (normalizedMethod === HTTP_METHOD.POST) {
       return { kind: CORE_ROUTE_DECISION.UNHANDLED };
     }
     return { kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED };
@@ -44,10 +46,10 @@ export const classifyCoreRoute = (method: string, pathname: string): CoreRouteDe
   if (!sessionId || !action) {
     return { kind: CORE_ROUTE_DECISION.UNHANDLED };
   }
-  if (action === SERVER_PATH.SEGMENT_PROMPT && method !== HTTP_METHOD.POST) {
+  if (action === SERVER_PATH.SEGMENT_PROMPT && normalizedMethod !== HTTP_METHOD.POST) {
     return { kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED };
   }
-  if (action === SERVER_PATH.SEGMENT_MESSAGES && method !== HTTP_METHOD.GET) {
+  if (action === SERVER_PATH.SEGMENT_MESSAGES && normalizedMethod !== HTTP_METHOD.GET) {
     return { kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED };
   }
 

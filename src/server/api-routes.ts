@@ -6,6 +6,7 @@ import { SERVER_EVENT } from "@/constants/server-events";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
+import { normalizeHttpMethod } from "@/server/http-method-normalization";
 import { sendJsonResponse } from "@/server/http-response";
 import { parseJsonRequestBody } from "@/server/request-body";
 import { useAppStore } from "@/store/app-store";
@@ -270,8 +271,9 @@ export const API_ROUTES: Route[] = [
 ];
 
 export const matchRoute = (method: string, pathname: string): RouteMatchResult | null => {
+  const normalizedMethod = normalizeHttpMethod(method);
   for (const route of API_ROUTES) {
-    if (route.method !== method) continue;
+    if (route.method !== normalizedMethod) continue;
     const match = pathname.match(route.pattern);
     if (!match) continue;
     const params: Record<string, string> = {};
@@ -291,7 +293,7 @@ export interface RouteMatchResult {
 }
 
 export const classifyApiRoute = (method: string, pathname: string): ApiRouteClassification => {
-  const matched = matchRoute(method, pathname);
+  const matched = matchRoute(normalizeHttpMethod(method), pathname);
   if (matched) {
     return {
       kind: API_ROUTE_CLASSIFICATION.MATCH,
