@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 interface CapturedResponse {
   statusCode: number | null;
+  headers: Record<string, unknown> | null;
   body: unknown;
 }
 
@@ -16,10 +17,12 @@ const createResponseCapture = (): {
   getCaptured: () => CapturedResponse;
 } => {
   let statusCode: number | null = null;
+  let headers: Record<string, unknown> | null = null;
   let body: unknown = null;
   const response = {
-    writeHead: vi.fn((nextStatusCode: number) => {
+    writeHead: vi.fn((nextStatusCode: number, nextHeaders?: Record<string, unknown>) => {
       statusCode = nextStatusCode;
+      headers = nextHeaders ?? null;
       return response;
     }),
     end: vi.fn((payload?: string) => {
@@ -29,7 +32,7 @@ const createResponseCapture = (): {
   } as unknown as ServerResponse;
   return {
     response,
-    getCaptured: () => ({ statusCode, body }),
+    getCaptured: () => ({ statusCode, headers, body }),
   };
 };
 
@@ -69,6 +72,10 @@ describe("checkServerAuth", () => {
     expect(allowed).toBe(false);
     expect(getCaptured()).toEqual({
       statusCode: HTTP_STATUS.UNAUTHORIZED,
+      headers: {
+        "Content-Type": "application/json",
+        "WWW-Authenticate": "Bearer",
+      },
       body: { error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED },
     });
   });
@@ -86,6 +93,10 @@ describe("checkServerAuth", () => {
     expect(allowed).toBe(false);
     expect(getCaptured()).toEqual({
       statusCode: HTTP_STATUS.UNAUTHORIZED,
+      headers: {
+        "Content-Type": "application/json",
+        "WWW-Authenticate": "Bearer",
+      },
       body: { error: SERVER_RESPONSE_MESSAGE.INVALID_CREDENTIALS },
     });
   });
