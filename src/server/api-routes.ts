@@ -34,6 +34,11 @@ const readBody = async (req: IncomingMessage): Promise<string> =>
     req.on("error", reject);
   });
 
+const parseJsonBody = async <TPayload>(req: IncomingMessage): Promise<TPayload> => {
+  const body = await readBody(req);
+  return JSON.parse(body) as TPayload;
+};
+
 // ── Session Endpoints ──────────────────────────────────────────────────────
 
 export const listSessions: RouteHandler = async (_req, res) => {
@@ -160,13 +165,19 @@ export const eventsStream: RouteHandler = async (_req, res) => {
 // ── TUI Control Endpoints ──────────────────────────────────────────────────
 
 export const appendPrompt: RouteHandler = async (req, res) => {
-  const body = await readBody(req);
-  const { text } = JSON.parse(body) as { text?: string };
-  if (!text) {
-    sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: SERVER_RESPONSE_MESSAGE.TEXT_REQUIRED });
-    return;
+  try {
+    const payload = await parseJsonBody<{ text?: string }>(req);
+    const { text } = payload;
+    if (!text) {
+      sendJson(res, HTTP_STATUS.BAD_REQUEST, { error: SERVER_RESPONSE_MESSAGE.TEXT_REQUIRED });
+      return;
+    }
+    sendJson(res, HTTP_STATUS.OK, { queued: true, text });
+  } catch (error) {
+    sendJson(res, HTTP_STATUS.BAD_REQUEST, {
+      error: error instanceof Error ? error.message : SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+    });
   }
-  sendJson(res, HTTP_STATUS.OK, { queued: true, text });
 };
 
 export const submitPrompt: RouteHandler = async (_req, res) => {
@@ -174,15 +185,21 @@ export const submitPrompt: RouteHandler = async (_req, res) => {
 };
 
 export const executeCommand: RouteHandler = async (req, res) => {
-  const body = await readBody(req);
-  const { command } = JSON.parse(body) as { command?: string };
-  if (!command) {
+  try {
+    const payload = await parseJsonBody<{ command?: string }>(req);
+    const { command } = payload;
+    if (!command) {
+      sendJson(res, HTTP_STATUS.BAD_REQUEST, {
+        error: SERVER_RESPONSE_MESSAGE.COMMAND_REQUIRED,
+      });
+      return;
+    }
+    sendJson(res, HTTP_STATUS.OK, { executed: true, command });
+  } catch (error) {
     sendJson(res, HTTP_STATUS.BAD_REQUEST, {
-      error: SERVER_RESPONSE_MESSAGE.COMMAND_REQUIRED,
+      error: error instanceof Error ? error.message : SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
     });
-    return;
   }
-  sendJson(res, HTTP_STATUS.OK, { executed: true, command });
 };
 
 // ── Route Table ────────────────────────────────────────────────────────────

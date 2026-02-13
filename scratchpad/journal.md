@@ -1,5 +1,17 @@
 # Scratchpad Journal
 
+## 2026-02-13 (direct API handler error-path hardening)
+- Updated `src/server/api-routes.ts` TUI handlers (`appendPrompt`, `executeCommand`) to catch
+  parse/read failures and return explicit `400` error responses.
+- Added direct invocation coverage in `__tests__/unit/server/api-route-tui-handlers.unit.test.ts`:
+  - invalid JSON payload handling
+  - oversized payload handling with canonical body-too-large response
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/unit/server/api-route-tui-handlers.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (auth/method-ordering integration hardening)
 - Extended `__tests__/integration/server/headless-server.integration.test.ts` to lock auth
   precedence semantics for protected `/api/*` endpoints:

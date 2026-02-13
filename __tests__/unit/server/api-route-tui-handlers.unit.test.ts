@@ -1,5 +1,6 @@
 import { EventEmitter } from "node:events";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { SERVER_CONFIG } from "@/config/server";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { appendPrompt, executeCommand } from "@/server/api-routes";
@@ -40,11 +41,18 @@ const invokeJsonHandler = async (
   handler: typeof appendPrompt | typeof executeCommand,
   payload: unknown
 ): Promise<CapturedResponse> => {
+  return invokeRawHandler(handler, JSON.stringify(payload));
+};
+
+const invokeRawHandler = async (
+  handler: typeof appendPrompt | typeof executeCommand,
+  payload: string
+): Promise<CapturedResponse> => {
   const req = createRequest();
   const { response, getCaptured } = createResponseCapture();
   const execution = handler(req, response, {});
   process.nextTick(() => {
-    req.emit("data", JSON.stringify(payload));
+    req.emit("data", payload);
     req.emit("end");
   });
   await execution;
@@ -85,6 +93,28 @@ describe("api-routes TUI handlers", () => {
     expect(captured).toEqual({
       statusCode: HTTP_STATUS.OK,
       body: { executed: true, command: "ls -la" },
+    });
+  });
+
+  it("appendPrompt returns bad request for invalid JSON payload", async () => {
+    const captured = await invokeRawHandler(appendPrompt, "{invalid");
+
+    expect(captured.statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
+    const body = captured.body as { error?: string };
+    expect(typeof body.error).toBe("string");
+    expect((body.error ?? "").length).toBeGreaterThan(0);
+  });
+
+  it("executeCommand returns body-too-large error for oversized payload", async () => {
+    const oversizedPayload = JSON.stringify({
+      command: "x".repeat(SERVER_CONFIG.MAX_BODY_BYTES + 1),
+    });
+
+    const captured = await invokeRawHandler(executeCommand, oversizedPayload);
+
+    expect(captured).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE },
     });
   });
 });

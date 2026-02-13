@@ -37,6 +37,9 @@
   - integration coverage for invalid JSON and oversized payload behavior
 - Added auth/method-ordering hardening:
   - integration coverage confirming auth challenge precedence on protected API routes
+- Added direct handler error-path hardening:
+  - TUI route handlers now return explicit 400s for parse/read failures
+  - unit coverage added for invalid JSON and oversized payload direct invocation
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

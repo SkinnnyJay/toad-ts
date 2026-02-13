@@ -692,6 +692,17 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
   - Covered:
     - auth challenge precedence over method validation for protected `/api/*` routes
       (`401` on unauthenticated request, `405` on authenticated unsupported method)
+- Additional direct API route handler hardening:
+  - Runtime update:
+    - `src/server/api-routes.ts`
+  - Behavior update:
+    - `appendPrompt` and `executeCommand` now handle JSON parse/read errors locally and return
+      canonical `400` responses instead of relying on outer server exception handling.
+  - Extended unit coverage:
+    - `__tests__/unit/server/api-route-tui-handlers.unit.test.ts`
+  - Covered:
+    - invalid JSON payload handling in direct handler invocation
+    - oversized payload handling with canonical `REQUEST_BODY_TOO_LARGE` response
 
 ---
 

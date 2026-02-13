@@ -13,6 +13,7 @@
   - added 405 method semantics for known API routes with unsupported methods
   - added API route body-size limits + invalid JSON/oversized payload integration coverage
   - added auth-vs-method-ordering integration coverage for protected API routes
+  - added direct handler-level parse/read error response hardening for TUI API routes
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
