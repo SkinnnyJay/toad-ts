@@ -1,8 +1,10 @@
+import { LIMIT } from "@/config/limits";
+
 export const ERROR_CODE = {
   ENOENT: "ENOENT",
   EACCES: "EACCES",
-  AUTH_REQUIRED: -32000,
-  RPC_METHOD_NOT_FOUND: -32601,
+  AUTH_REQUIRED: LIMIT.RPC_AUTH_REQUIRED_CODE,
+  RPC_METHOD_NOT_FOUND: LIMIT.RPC_METHOD_NOT_FOUND_CODE,
 } as const;
 
 export type ErrorCode = (typeof ERROR_CODE)[keyof typeof ERROR_CODE];
