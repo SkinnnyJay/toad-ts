@@ -116,6 +116,18 @@ describe("headless server", () => {
       expect(authorizedResponse.status).toBe(200);
       const payload = createSessionResponseSchema.parse(await authorizedResponse.json());
       expect(payload.sessionId).toBeTruthy();
+
+      const rawTokenResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "secret",
+        },
+        body: JSON.stringify({ harnessId: "mock" }),
+      });
+      expect(rawTokenResponse.status).toBe(200);
+      const rawTokenPayload = createSessionResponseSchema.parse(await rawTokenResponse.json());
+      expect(rawTokenPayload.sessionId).toBeTruthy();
     } finally {
       await server.close();
       delete process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD];

@@ -1,5 +1,16 @@
 # Scratchpad Journal
 
+## 2026-02-13 (route/auth integration parity hardening)
+- Extended route matcher unit tests in `__tests__/unit/server/api-routes.unit.test.ts` to cover:
+  - `POST /api/tui/submit-prompt`
+- Extended headless auth integration in
+  `__tests__/integration/server/headless-server.integration.test.ts` to cover:
+  - raw-token authorization (`Authorization: secret`) in addition to bearer-token path.
+- Validation:
+  - Targeted: `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates: lint ✅, typecheck ✅, test ✅, build ✅
+  - Strict literal check: `check:literals:strict` ✅
+
 ## 2026-02-13 (headless edge-route integration hardening)
 - Extended `__tests__/integration/server/headless-server.integration.test.ts` with route edge-case
   coverage for:

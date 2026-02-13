@@ -21,6 +21,9 @@
 - Added headless-server integration edge coverage:
   - unknown endpoints and unsupported subroutes
   - missing session prompt behavior
+- Added route/auth parity coverage:
+  - route matcher coverage for `/api/tui/submit-prompt`
+  - integration coverage for raw-token server authorization flow
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

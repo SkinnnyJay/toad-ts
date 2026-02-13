@@ -641,6 +641,15 @@ Tasks below are unchecked items carried over from PLAN2.md Implementation Plan.
     - unknown top-level endpoint returns `404 Not found`
     - unsupported session subroutes return `404 Unknown endpoint`
     - prompt calls for missing runtime sessions return `404 Session not found`
+- Additional route/auth integration parity hardening:
+  - Extended route matcher unit coverage:
+    - `__tests__/unit/server/api-routes.unit.test.ts`
+  - Covered:
+    - `/api/tui/submit-prompt` route matching behavior
+  - Extended headless auth integration coverage:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Covered:
+    - raw authorization token flow (`Authorization: <token>`) alongside Bearer support
 
 ---
 

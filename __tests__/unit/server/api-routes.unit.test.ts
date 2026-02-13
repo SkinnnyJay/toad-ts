@@ -47,6 +47,11 @@ describe("API Routes", () => {
       expect(result).not.toBeNull();
     });
 
+    it("should match POST /api/tui/submit-prompt", () => {
+      const result = matchRoute("POST", "/api/tui/submit-prompt");
+      expect(result).not.toBeNull();
+    });
+
     it("should match POST /api/tui/execute-command", () => {
       const result = matchRoute("POST", "/api/tui/execute-command");
       expect(result).not.toBeNull();
