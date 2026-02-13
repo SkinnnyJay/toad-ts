@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added malformed harness-config JSON fallback integration coverage:
+  - headless integration now verifies startup falls back to default harness
+    config when `harnesses.json` exists but contains malformed JSON
+  - validates successful session creation via fallback `mock` harness under
+    malformed JSON config conditions
 - Added missing-default-harness fallback integration coverage:
   - headless integration now verifies startup falls back to default harness
     config when `defaultHarness` points to an unknown harness id

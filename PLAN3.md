@@ -2155,3 +2155,18 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock deterministic env-boolean parsing semantics used by harness feature
       flags and avoid regressions in permissive string handling.
+
+## Execution Log Addendum — 2026-02-13 (malformed harness-config JSON fallback coverage)
+
+- Additional startup fallback integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for startup fallback when harness config file
+      exists but contains malformed JSON (parse failure during load).
+    - test provisions isolated malformed `harnesses.json` content and verifies
+      session creation still succeeds via fallback default config using
+      `mock` harness.
+  - Goal:
+    - lock resilience semantics for malformed harness-config JSON at headless
+      startup boundary.
