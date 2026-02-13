@@ -107,6 +107,8 @@
     for hook IPC schema failures and headless zod validation failures
   - hardened file-search query validation telemetry parity for non-JSON API
     validation paths using shared standardized validation logging
+  - hardened headless session validation telemetry with explicit handler
+    identifiers for session create/prompt schema failures
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

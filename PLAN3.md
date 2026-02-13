@@ -1784,3 +1784,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - complete validation telemetry parity across API handlers, including
       non-JSON query-validation endpoints.
+
+## Execution Log Addendum — 2026-02-13 (session validation handler identifiers)
+
+- Additional headless session diagnostics hardening:
+  - Updated:
+    - `src/server/headless-server.ts`
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added handler identifiers in shared validation telemetry for headless
+      session validation paths:
+      - `session_create`
+      - `session_prompt`
+    - session schema-validation failures are now handled with route-local
+      validation helper invocation, preserving response semantics while
+      improving diagnostics granularity.
+    - added integration coverage for invalid prompt payload schema path.
+  - Goal:
+    - provide finer-grained handler context in validation telemetry for session
+      routes.

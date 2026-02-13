@@ -361,6 +361,33 @@ describe("headless server", () => {
     }
   });
 
+  it("returns bad request when prompt payload fails schema validation", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const sessionResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: "mock" }),
+      });
+      const sessionPayload = createSessionResponseSchema.parse(await sessionResponse.json());
+
+      const response = await fetch(`${baseUrl}/sessions/${sessionPayload.sessionId}/prompt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      expect(response.status).toBe(400);
+      const payload = (await response.json()) as { error?: string };
+      expect(typeof payload.error).toBe("string");
+      expect((payload.error ?? "").length).toBeGreaterThan(0);
+    } finally {
+      await server.close();
+    }
+  });
+
   it("returns bad request when session payload fails schema validation", async () => {
     const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
     const { host, port } = server.address();

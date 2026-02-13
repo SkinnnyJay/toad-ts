@@ -46,6 +46,10 @@ export interface HeadlessServer {
 }
 
 const logger = createClassLogger("HeadlessServer");
+const HEADLESS_ROUTE_HANDLER = {
+  SESSION_CREATE: "session_create",
+  SESSION_PROMPT: "session_prompt",
+} as const;
 
 const sendJson = (res: ServerResponse, status: number, payload: unknown): void =>
   sendJsonResponse(res, status, payload, { includeContentLength: true });
@@ -56,7 +60,7 @@ const sendError = (res: ServerResponse, status: number, message: string): void =
 const handleRequestParsingFailure = (
   res: ServerResponse,
   error: unknown,
-  context: { method: string; pathname: string }
+  context: { method: string; pathname: string; handler?: string }
 ): boolean => {
   const parsedRequestError = classifyRequestParsingError(error);
   if (!parsedRequestError) {
@@ -69,10 +73,36 @@ const handleRequestParsingFailure = (
       source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
       method: context.method,
       pathname: context.pathname,
+      ...(context.handler ? { handler: context.handler } : {}),
     },
     normalizedError
   );
   sendError(res, HTTP_STATUS.BAD_REQUEST, parsedRequestError);
+  return true;
+};
+
+const handleRequestValidationFailure = (
+  res: ServerResponse,
+  error: unknown,
+  context: { method: string; pathname: string; handler?: string }
+): boolean => {
+  if (!(error instanceof ZodError)) {
+    return false;
+  }
+  logRequestValidationFailure(
+    logger,
+    {
+      source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
+      method: context.method,
+      pathname: context.pathname,
+      ...(context.handler ? { handler: context.handler } : {}),
+    },
+    {
+      error: error.message,
+      mappedMessage: error.message,
+    }
+  );
+  sendError(res, HTTP_STATUS.BAD_REQUEST, error.message);
   return true;
 };
 
@@ -137,7 +167,21 @@ export const startHeadlessServer = async (
           }
           throw error;
         }
-        const payload = createSessionRequestSchema.parse(raw);
+        let payload: ReturnType<typeof createSessionRequestSchema.parse>;
+        try {
+          payload = createSessionRequestSchema.parse(raw);
+        } catch (error) {
+          if (
+            handleRequestValidationFailure(res, error, {
+              method: req.method,
+              pathname: url.pathname,
+              handler: HEADLESS_ROUTE_HANDLER.SESSION_CREATE,
+            })
+          ) {
+            return;
+          }
+          throw error;
+        }
         const harnessId = payload.harnessId ?? harnessConfigResult.harnessId;
         const harnessConfig = harnessConfigResult.harnesses[harnessId];
         if (!harnessConfig) {
@@ -204,7 +248,21 @@ export const startHeadlessServer = async (
           }
           throw error;
         }
-        const payload = promptSessionRequestSchema.parse(raw);
+        let payload: ReturnType<typeof promptSessionRequestSchema.parse>;
+        try {
+          payload = promptSessionRequestSchema.parse(raw);
+        } catch (error) {
+          if (
+            handleRequestValidationFailure(res, error, {
+              method: req.method,
+              pathname: url.pathname,
+              handler: HEADLESS_ROUTE_HANDLER.SESSION_PROMPT,
+            })
+          ) {
+            return;
+          }
+          throw error;
+        }
         const response = await runtime.prompt({
           sessionId: parsedSession.data,
           prompt: [{ type: "text", text: payload.prompt }],
@@ -233,20 +291,12 @@ export const startHeadlessServer = async (
 
       sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.NOT_FOUND);
     } catch (error) {
-      if (error instanceof ZodError) {
-        logRequestValidationFailure(
-          logger,
-          {
-            source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
-            method: req.method ?? "",
-            pathname: req.url ?? "",
-          },
-          {
-            error: error.message,
-            mappedMessage: error.message,
-          }
-        );
-        sendError(res, HTTP_STATUS.BAD_REQUEST, error.message);
+      if (
+        handleRequestValidationFailure(res, error, {
+          method: req.method ?? "",
+          pathname: req.url ?? "",
+        })
+      ) {
         return;
       }
       logger.error("Server request failed", {

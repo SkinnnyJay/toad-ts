@@ -1,5 +1,23 @@
 # Scratchpad Journal
 
+## 2026-02-13 (session validation handler identifiers)
+- Updated `src/server/headless-server.ts`:
+  - introduced headless session route handler identifiers in validation
+    telemetry (`session_create`, `session_prompt`)
+  - localized Zod validation handling for session create/prompt schema parsing
+    through shared validation helper while preserving response semantics
+- Extended `__tests__/integration/server/headless-server.integration.test.ts`:
+  - added invalid session prompt payload schema coverage
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/request-error-normalization.unit.test.ts __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts` ✅
+  - Full gates (equivalent commands, bun/bunx unavailable in this shell):
+    - `npx biome check . && npx eslint .` ✅
+    - `npx tsc --noEmit` ✅
+    - `npx vitest run` ✅
+    - `npx tsup` ✅
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-13 (file-search validation telemetry parity)
 - Updated `src/server/api-routes.ts`:
   - file-search validation failures now emit shared standardized validation

@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added headless session validation handler identifiers:
+  - session create/prompt schema validation failures now include explicit
+    handler ids in shared validation telemetry (`session_create`, `session_prompt`)
+  - added integration coverage for invalid prompt payload schema path
 - Added file-search validation telemetry parity:
   - search-files query/url validation failures now emit shared standardized
     validation telemetry
