@@ -3936,9 +3936,16 @@
   - configured WAL autocheckpoint threshold during schema initialization
   - added focused maintenance policy coverage in
     `__tests__/unit/store/sqlite-storage.unit.test.ts`
+- Completed P1 backlog item B31 recursive search depth/cancellation hardening:
+  - added explicit max-depth bounds + AbortSignal cancellation support in
+    `src/core/search/search-service.ts`
+  - introduced bounded rg cancellation handling and deterministic cancellation
+    errors
+  - added focused depth/cancellation coverage in
+    `__tests__/unit/core/search-service.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B31 by adding cancellation/depth bounds to
-    recursive file-search traversal paths
+  - evaluate severity backlog item B32 by introducing transcript virtualization
+    strategy for large chat histories
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

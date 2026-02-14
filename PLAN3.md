@@ -7149,6 +7149,24 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - stabilize long-lived SQLite runtime performance via explicit maintenance
       lifecycle policy without regressing snapshot write reliability.
 
+## Execution Log Addendum — 2026-02-14 (B31 recursive search depth/cancellation hardening)
+
+- Additional P1 backlog hardening for recursive search traversal safety:
+  - Updated:
+    - `src/config/limits.ts`
+    - `src/core/search/search-service.ts`
+    - `__tests__/unit/core/search-service.unit.test.ts`
+  - Hardening changes:
+    - introduced explicit recursive search depth bounds across glob index and
+      text search code paths.
+    - added AbortSignal cancellation checks for index/build/text search flows.
+    - wired rg subprocess cancellation handling with SIGTERM + deterministic
+      cancellation error semantics.
+    - added focused coverage for depth limiting and cancellation behavior.
+  - Goal:
+    - bound recursive traversal resource usage and enable deterministic
+      cancellation paths for long-running search operations.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7186,7 +7204,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B28 | P1 | reduce repeated large env snapshot merges in hot command paths.
 - [x] - B29 | P1 | add regression tests for signal attach/detach idempotency across reconnect cycles.
 - [x] - B30 | P1 | add SQLite maintenance policy (vacuum/pragma optimize/checkpoint) to stabilize long-lived performance.
-- [ ] - B31 | P1 | add cancellation tokens and depth limits to recursive file/search operations.
+- [x] - B31 | P1 | add cancellation tokens and depth limits to recursive file/search operations.
 - [ ] - B32 | P1 | introduce transcript virtualization strategy for very large chat histories.
 - [ ] - B33 | P1 | avoid full markdown reparsing on each chunk; adopt incremental parse/update path.
 - [ ] - B34 | P1 | stream session export writes instead of building large in-memory payloads.

@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B31 recursive search depth/cancellation hardening)
+
+### Summary
+- Completed P1 backlog item B31 in `PLAN3.md` by adding bounded recursive
+  search traversal and cancellation support.
+- Updated:
+  - `src/config/limits.ts`
+  - `src/core/search/search-service.ts`
+  - `__tests__/unit/core/search-service.unit.test.ts`
+- Added:
+  - explicit max-depth bounds for glob index and rg text-search paths,
+  - AbortSignal cancellation checks and rg subprocess cancel handling with
+    deterministic cancellation errors.
+- Added focused unit coverage for bounded depth and cancellation behavior.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/core/search-service.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B30 SQLite maintenance policy hardening)
 
 ### Summary
