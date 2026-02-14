@@ -3230,3 +3230,28 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock reconnect-order continuity when post-close valid-prompt ramp timing
       varies asymmetrically by order path.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order post-close recovery-confirm asymmetry coverage)
+
+- Additional merged env-map reconnect-order post-close recovery-confirm asymmetry hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order post-close valid-prompt ramp coverage with
+      asymmetric post-close recovery-confirm jitter by reconnect order path.
+    - `SSE-first` cycles now use lower post-close recovery-confirm jitter while
+      `websocket-first` cycles use higher post-close recovery-confirm jitter.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable while post-close recovery-confirm asymmetry is layered
+      with post-close valid-prompt ramp asymmetry, post-close invalid-burst
+      ramp asymmetry, post-close segment-rearm asymmetry, post-close segment-
+      open gating asymmetry, post-close cycle transition asymmetry, post-close
+      recovery scheduling asymmetry, post-close prompt scheduling asymmetry,
+      post-close create scheduling asymmetry, close-interleave asymmetry,
+      close-delay asymmetry, cycle-cooldown asymmetry, post-recovery delay
+      asymmetry, burst-spacing asymmetry, recovery-jitter asymmetry, create-
+      jitter asymmetry, stream-open jitter asymmetry, segment-count asymmetry,
+      and cadence variation.
+  - Goal:
+    - lock reconnect-order continuity when post-close recovery-confirm timing
+      varies asymmetrically by order path.
