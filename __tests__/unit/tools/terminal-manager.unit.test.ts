@@ -104,3 +104,34 @@ describe("TerminalManager path escape detection", () => {
     ).toThrow("Cwd escapes base directory");
   });
 });
+
+describe("TerminalManager output byte trimming", () => {
+  it("trims output in O(n)-safe byte slices", async () => {
+    const manager = new TerminalManager({ allowEscape: true });
+    const sessionId = manager.createSession({
+      command: process.execPath,
+      args: ["-e", "process.stdout.write('abcdef')"],
+      outputByteLimit: 3,
+    });
+    const output = await manager.waitForExit(sessionId);
+
+    expect(output.output).toBe("def");
+    expect(output.truncated).toBe(true);
+    manager.release(sessionId);
+  });
+
+  it("preserves UTF-8 boundaries while trimming bytes", async () => {
+    const manager = new TerminalManager({ allowEscape: true });
+    const sessionId = manager.createSession({
+      command: process.execPath,
+      args: ["-e", "process.stdout.write('😀abc')"],
+      outputByteLimit: 5,
+    });
+    const output = await manager.waitForExit(sessionId);
+
+    expect(output.output).toBe("abc");
+    expect(output.output).not.toContain("�");
+    expect(output.truncated).toBe(true);
+    manager.release(sessionId);
+  });
+});

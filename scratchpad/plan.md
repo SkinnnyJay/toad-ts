@@ -3902,9 +3902,15 @@
     overridden
   - added focused regression coverage in
     `__tests__/unit/tools/shell-session.unit.test.ts`
+- Completed P1 backlog item B25 terminal byte-trim complexity hardening:
+  - replaced iterative O(n^2)-style byte trimming loop in
+    `src/tools/terminal-manager.ts` with linear buffer slicing
+  - preserved UTF-8 boundary safety for multibyte truncation paths
+  - added focused regression coverage in
+    `__tests__/unit/tools/terminal-manager.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B25 by optimizing byte-limit trimming to
-    avoid O(n^2) output handling behavior
+  - evaluate severity backlog item B26 by optimizing sentinel completion
+    scanning in shell sessions to avoid repeated full-buffer scans
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

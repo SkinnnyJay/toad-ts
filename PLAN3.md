@@ -7042,6 +7042,21 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - ensure shell command execution context is deterministic and isolated per
       command invocation.
 
+## Execution Log Addendum — 2026-02-14 (B25 byte-trim O(n) hardening)
+
+- Additional P1 backlog hardening for terminal output byte trimming:
+  - Updated:
+    - `src/tools/terminal-manager.ts`
+    - `__tests__/unit/tools/terminal-manager.unit.test.ts`
+  - Hardening changes:
+    - replaced iterative single-character byte trimming loop with a linear-time
+      UTF-8 buffer slicing strategy.
+    - preserved UTF-8 character boundary safety while trimming to byte limits.
+    - added focused regression coverage for ascii and multibyte trimming cases.
+  - Goal:
+    - eliminate O(n^2)-style trimming behavior for large terminal output while
+      preserving deterministic truncation semantics.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7073,7 +7088,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B22 | P1 | add explicit Linux desktop capability detection (X11/Wayland/headless) for clipboard and UI-dependent flows.
 - [x] - B23 | P1 | fix Windows command quoting/escaping for paths containing spaces, `&`, `^`, and unicode characters.
 - [x] - B24 | P1 | remove implicit shell cwd coupling by isolating command execution context per request.
-- [ ] - B25 | P1 | optimize terminal output byte trimming to avoid O(n^2) behavior for large outputs.
+- [x] - B25 | P1 | optimize terminal output byte trimming to avoid O(n^2) behavior for large outputs.
 - [ ] - B26 | P1 | optimize sentinel completion scanning in shell sessions to avoid repeated full-buffer scans.
 - [ ] - B27 | P1 | formalize Hook IPC auth/nonce handshake for HTTP transport mode.
 - [ ] - B28 | P1 | reduce repeated large env snapshot merges in hot command paths.

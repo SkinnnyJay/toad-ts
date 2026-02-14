@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B25 terminal byte-trim O(n) hardening)
+
+### Summary
+- Completed P1 backlog item B25 in `PLAN3.md` by replacing terminal output
+  trimming’s iterative byte-length loop with a linear UTF-8 buffer strategy.
+- Updated `src/tools/terminal-manager.ts`:
+  - switched to byte-buffer slicing at last-`limit` bytes,
+  - resynchronized to UTF-8 codepoint boundaries before decode,
+  - preserved prior truncation signaling semantics.
+- Updated `__tests__/unit/tools/terminal-manager.unit.test.ts` with focused
+  regression coverage for:
+  - ascii trimming behavior,
+  - multibyte UTF-8 trimming without replacement artifacts.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/tools/terminal-manager.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B24 shell cwd per-request isolation hardening)
 
 ### Summary

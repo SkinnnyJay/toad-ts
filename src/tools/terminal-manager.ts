@@ -57,13 +57,24 @@ const trimOutputByBytes = (
   limit: number
 ): { output: string; truncated: boolean } => {
   if (limit <= 0) return { output: value, truncated: false };
-  let output = value;
-  let truncated = false;
-  while (Buffer.byteLength(output, "utf8") > limit && output.length > 0) {
-    output = output.slice(1);
-    truncated = true;
+  const encoded = Buffer.from(value, "utf8");
+  if (encoded.byteLength <= limit) {
+    return { output: value, truncated: false };
   }
-  return { output, truncated };
+
+  let startOffset = encoded.byteLength - limit;
+  while (startOffset < encoded.byteLength && (encoded[startOffset] ?? 0) >> 6 === 0b10) {
+    startOffset += 1;
+  }
+
+  if (startOffset >= encoded.byteLength) {
+    return { output: "", truncated: true };
+  }
+
+  return {
+    output: encoded.subarray(startOffset).toString("utf8"),
+    truncated: true,
+  };
 };
 
 class TerminalSession {
