@@ -177,6 +177,8 @@
     registered responses under cursor-disabled default harness configuration
   - added headless integration coverage for repeated explicit cursor connect-
     failure requests with post-failure mock continuity checks
+  - added headless integration coverage for repeated explicit unknown-harness
+    requests with post-failure mock continuity checks
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

@@ -506,6 +506,11 @@
 - Added repo-workflow check-field type hardening:
   - check-field normalizer now safely handles non-string GH check payload fields
   - added unit coverage for malformed check-status payload shapes
+- Added repeated unknown-harness continuity hardening:
+  - headless integration now validates repeated explicit unknown harness requests
+    return canonical harness-not-configured responses
+  - verifies explicit mock session creation succeeds after repeated unknown-harness
+    failures in the same server runtime
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

@@ -580,6 +580,45 @@ describe("headless server", () => {
     }
   });
 
+  it("keeps server responsive after repeated unknown harness requests", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const firstResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: "missing-harness" }),
+      });
+      expect(firstResponse.status).toBe(404);
+      await expect(firstResponse.json()).resolves.toEqual({
+        error: formatHarnessNotConfiguredError("missing-harness"),
+      });
+
+      const secondResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: "missing-harness" }),
+      });
+      expect(secondResponse.status).toBe(404);
+      await expect(secondResponse.json()).resolves.toEqual({
+        error: formatHarnessNotConfiguredError("missing-harness"),
+      });
+
+      const mockResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.MOCK_ID }),
+      });
+      expect(mockResponse.status).toBe(200);
+      const payload = createSessionResponseSchema.parse(await mockResponse.json());
+      expect(payload.sessionId).toBeTruthy();
+    } finally {
+      await server.close();
+    }
+  });
+
   it("returns cursor harness not configured when cursor default config is disabled", async () => {
     const originalCursorEnabled = process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED];
     process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED] = "false";

@@ -2388,3 +2388,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock continuity semantics under repeated explicit cursor connect-failure
       request cycles.
+
+## Execution Log Addendum — 2026-02-13 (repeated unknown-harness continuity coverage)
+
+- Additional unknown-harness continuity integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for repeated explicit
+      `harnessId: "missing-harness"` session requests against the same server
+      instance.
+    - verifies two consecutive unknown-harness requests return canonical
+      harness-not-configured responses.
+    - verifies explicit `mock` session creation still succeeds after repeated
+      unknown-harness failures in the same runtime.
+  - Goal:
+    - lock continuity semantics under repeated unknown-harness request cycles.
