@@ -2447,3 +2447,25 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Merged env-map prompt continuity coverage)
+
+### Summary
+- Added headless integration coverage for repeated session creation followed by
+  prompt submissions when merged env-map overrides expand to empty values.
+- Test validates:
+  - repeated default session creation remains successful under merged env-map
+    empty-expansion configuration.
+  - prompt submissions on those sessions return canonical successful responses.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅

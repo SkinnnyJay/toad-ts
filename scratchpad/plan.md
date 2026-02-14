@@ -562,6 +562,11 @@
     values expand to empty strings
   - verifies merged config remains valid without fallback and repeated default
     requests return successful distinct session ids
+- Added merged env-map prompt continuity hardening:
+  - headless integration now validates repeated session creation plus prompt
+    submission flows under merged env-map empty-expansion overrides
+  - verifies downstream prompt handling remains successful while merged config
+    stays valid and avoids fallback
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

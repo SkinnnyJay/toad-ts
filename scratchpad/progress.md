@@ -199,6 +199,8 @@
     override failures with fallback mock continuity
   - added headless integration coverage for repeated merged env-map overrides
     with empty expansions while keeping valid command/cwd behavior
+  - added headless integration coverage for merged env-map empty-expansion
+    scenarios that include repeated prompt submissions after session creation
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

@@ -2555,3 +2555,18 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock continuity semantics for merged env-map overrides with empty
       expansions while preserving valid command/cwd behavior.
+
+## Execution Log Addendum — 2026-02-13 (merged env-map prompt continuity coverage)
+
+- Additional merged env-map prompt continuity integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for repeated session creation followed by
+      prompt submissions when merged env-map overrides expand to empty values.
+    - verifies repeated session creation remains successful without fallback.
+    - verifies prompt submissions continue to return canonical success payloads
+      under the same merged env-map conditions.
+  - Goal:
+    - lock downstream runtime continuity (session create + prompt) for merged
+      env-map empty-expansion scenarios.
