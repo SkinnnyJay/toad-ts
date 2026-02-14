@@ -2767,3 +2767,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock reconnect continuity under alternating invalid-prompt burst-size
       patterns during merged env-map validation cycles.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map variable SSE cadence reconnect coverage)
+
+- Additional merged env-map variable SSE cadence reconnect hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for reconnect cycles that vary SSE reconnect
+      cadence per cycle while alternating default and explicit harness
+      selection across repeated session creation.
+    - verifies websocket `SESSION_CREATED` continuity for each per-cycle create
+      burst while SSE `STATE_UPDATE` streams reconnect repeatedly.
+    - verifies invalid-prompt burst rejection and valid-prompt recovery remain
+      stable for all created sessions across cadence permutations.
+  - Goal:
+    - lock long-run stream stability when SSE reconnect cadence varies per
+      cycle under merged env-map validation flows.

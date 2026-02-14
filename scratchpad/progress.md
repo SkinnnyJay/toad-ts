@@ -225,6 +225,8 @@
     continuity assertions
   - added merged env-map alternating burst-size reconnect coverage with
     websocket+SSE continuity assertions across variable invalid-prompt bursts
+  - added merged env-map variable SSE cadence reconnect coverage with
+    websocket+SSE continuity assertions across per-cycle reconnect cadence
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

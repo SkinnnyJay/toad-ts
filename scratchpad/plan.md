@@ -631,6 +631,12 @@
     per cycle
   - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity plus
     prompt validation recovery stability across all burst-size permutations
+- Added merged env-map variable SSE cadence reconnect hardening:
+  - headless integration now validates reconnect cycles where SSE stream
+    teardown/reconnect cadence varies per cycle while session create requests
+    continue alternating default/explicit harness paths
+  - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity plus
+    invalid-prompt burst recovery stability across all cadence permutations
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

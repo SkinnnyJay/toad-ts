@@ -1747,6 +1747,34 @@
 - Targeted:
   - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
 
+## 2026-02-14 (Merged env-map variable SSE cadence reconnect coverage)
+
+### Summary
+- Added headless integration coverage for merged env-map reconnect runs where
+  SSE stream reconnect cadence varies per cycle while session-create requests
+  continue alternating default and explicit `harnessId: "mock"` paths.
+- Test validates:
+  - websocket `SESSION_CREATED` events remain continuous for each per-cycle
+    create burst.
+  - per-create SSE `/api/events` reconnections continue receiving
+    `STATE_UPDATE` events across cadence permutations.
+  - invalid prompt bursts are consistently rejected and valid prompt recovery
+    succeeds for all sessions created during the cadence run.
+  - all created session ids remain unique across the extended sequence.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps burst-size reconnect cycles stable with variable sse reconnect cadence"` ✅
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (Merged env-map alternating burst-size reconnect coverage)
 
 ### Summary
