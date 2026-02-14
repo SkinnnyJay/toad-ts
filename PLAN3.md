@@ -5375,6 +5375,30 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - lock reconnect-order continuity when post-close prompt-burst recovery-
       ribbonet timing varies asymmetrically by order path.
 
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order post-close prompt-burst recovery-tassel asymmetry coverage)
+
+- Additional merged env-map reconnect-order post-close prompt-burst recovery-tassel asymmetry hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order post-close prompt-burst recovery-ribbonet
+      coverage with asymmetric post-close prompt-burst recovery-tassel jitter
+      by reconnect order path.
+    - `SSE-first` cycles now use lower post-close prompt-burst recovery-tassel
+      jitter while `websocket-first` cycles use higher post-close prompt-burst
+      recovery-tassel jitter.
+    - applies post-close prompt-burst recovery-tassel jitter for intra-cycle
+      session handoff after post-close prompt-burst recovery-ribbonet jitter.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable while post-close prompt-burst recovery-tassel asymmetry is
+      layered with post-close prompt-burst recovery-ribbonet asymmetry, post-
+      close prompt-burst recovery-pencel asymmetry, post-close prompt-burst
+      recovery-ribband asymmetry, and post-close prompt-burst recovery-gonfanon
+      asymmetry under reconnect-order inversion.
+  - Goal:
+    - lock reconnect-order continuity when post-close prompt-burst recovery-
+      tassel timing varies asymmetrically by order path.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
