@@ -266,6 +266,9 @@
   - added merged env-map reconnect-order close-interleave asymmetry coverage
     with websocket+SSE continuity assertions under order-path-specific
     websocket/SSE close-handler interleave delays
+  - added merged env-map reconnect-order post-close create scheduling
+    asymmetry coverage with websocket+SSE continuity assertions under
+    order-path-specific post-close create jitter amplitudes
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

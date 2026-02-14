@@ -3049,3 +3049,23 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock reconnect-order continuity when websocket/SSE close-handler
       interleave timing varies asymmetrically by order path.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order post-close create scheduling asymmetry coverage)
+
+- Additional merged env-map reconnect-order post-close create scheduling asymmetry hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order close-interleave coverage with asymmetric
+      post-close create scheduling jitter by reconnect order path.
+    - `SSE-first` cycles now apply lower post-close create jitter while
+      `websocket-first` cycles apply higher post-close create jitter.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable while post-close create scheduling asymmetry is layered
+      with close-interleave asymmetry, close-delay asymmetry, cycle-cooldown
+      asymmetry, post-recovery delay asymmetry, burst-spacing asymmetry,
+      recovery-jitter asymmetry, create-jitter asymmetry, stream-open jitter
+      asymmetry, segment-count asymmetry, and cadence variation.
+  - Goal:
+    - lock reconnect-order continuity when post-close create scheduling timing
+      varies asymmetrically by order path.
