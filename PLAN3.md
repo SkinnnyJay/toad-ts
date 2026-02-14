@@ -2717,3 +2717,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock alternating reconnect continuity under repeated invalid-prompt
       bursts in merged env-map validation cycles.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map mixed-close reconnect coverage)
+
+- Additional merged env-map mixed-close reconnect hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for alternating reconnect cycles with mixed
+      websocket close timing (some cycles close before prompt recovery, others
+      after prompt recovery).
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable regardless of close timing order.
+    - verifies invalid prompt rejection + valid prompt recovery remains stable
+      across all mixed-close cycles with unique session ids.
+  - Goal:
+    - lock mixed websocket-close timing continuity under merged env-map
+      alternating reconnect validation cycles.

@@ -615,6 +615,11 @@
     cycle includes repeated invalid prompt payload bursts before recovery
   - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
     persist alongside repeated bad-request validation and valid-prompt recovery
+- Added merged env-map mixed-close reconnect hardening:
+  - headless integration now validates alternating reconnect cycles with mixed
+    websocket close timing (before vs after prompt recovery)
+  - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+    remains stable across mixed close-order cycles
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
