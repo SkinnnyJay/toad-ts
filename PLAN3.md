@@ -7216,6 +7216,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - reduce peak memory spikes for large session exports by streaming write
       output incrementally to disk.
 
+## Execution Log Addendum — 2026-02-14 (B35 telemetry write batching/throttling hardening)
+
+- Additional P1 backlog hardening for telemetry IO pressure:
+  - Updated:
+    - `src/config/limits.ts`
+    - `src/utils/token-optimizer/telemetryStorage.ts`
+    - `__tests__/unit/utils/telemetry-storage.unit.test.ts`
+  - Hardening changes:
+    - added explicit telemetry flush interval + batch size limits.
+    - implemented queued telemetry snapshot buffering with timed flush batching.
+    - forced flush on fetch paths and preserved purge correctness.
+    - added focused regression coverage for timer-window write batching.
+  - Goal:
+    - reduce frequent per-snapshot fs writes and IO contention while preserving
+      telemetry data integrity semantics.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7257,7 +7273,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B32 | P1 | introduce transcript virtualization strategy for very large chat histories.
 - [x] - B33 | P1 | avoid full markdown reparsing on each chunk; adopt incremental parse/update path.
 - [x] - B34 | P1 | stream session export writes instead of building large in-memory payloads.
-- [ ] - B35 | P1 | batch and throttle token optimizer telemetry writes to reduce IO pressure.
+- [x] - B35 | P1 | batch and throttle token optimizer telemetry writes to reduce IO pressure.
 - [ ] - B36 | P1 | cache update-check results with TTL to prevent repeated remote calls in one runtime.
 - [ ] - B37 | P1 | de-correlate provider retries to avoid synchronized thundering-herd behavior.
 - [ ] - B38 | P1 | bound error log payload size for provider streaming failures.

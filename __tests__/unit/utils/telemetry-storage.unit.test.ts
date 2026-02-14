@@ -1,9 +1,65 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { LIMIT } from "@/config/limits";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createAnalyticsTelemetryStorage } from "../../../src/utils/token-optimizer/analyticsTelemetryStorage";
 import { createJsonTelemetryStorage } from "../../../src/utils/token-optimizer/telemetryStorage";
 import type { AnalyticsSnapshot } from "../../../src/utils/token-optimizer/tokenOptimizer.types";
+
+const buildSnapshot = (requestId: string): AnalyticsSnapshot => ({
+  metricsBefore: {
+    rawPromptText: "test",
+    rawPromptCharCount: 4,
+    rawPromptTokenCount: 1,
+    rawPromptByteSize: 4,
+  },
+  metricsAfter: {
+    optimizedPromptText: "test",
+    optimizedPromptCharCount: 4,
+    optimizedPromptTokenCount: 1,
+    optimizedPromptByteSize: 4,
+  },
+  savings: {
+    compressionRatio: 1,
+    tokensSaved: 0,
+    bytesSaved: 0,
+    percentReductionTokens: 0,
+    percentReductionBytes: 0,
+    estimatedCostSavingsUsd: 0,
+  },
+  context: {
+    contextMessagesSelectedCount: 0,
+    contextMessagesRemovedCount: 0,
+    contextTokensSelected: 0,
+    contextTokensRemoved: 0,
+    contextPrunedPercentage: 0,
+    memorySummaryTokens: 0,
+    memorySummarySavingsTokens: 0,
+    retrievalChunksSelected: 0,
+    retrievalHitRate: 0,
+  },
+  output: {
+    completionTokens: 0,
+    tokensPerSecond: 0,
+    latencyMs: 0,
+    promptToOutputRatio: 0,
+  },
+  cost: {
+    providerName: "test",
+    modelName: "test",
+    providerTokenPricePrompt: 0,
+    providerTokenPriceCompletion: 0,
+    promptCostUsd: 0,
+    completionCostUsd: 0,
+    totalCostUsd: 0,
+    contextWindowUtilization: 0,
+  },
+  meta: {
+    timestampUtc: new Date().toISOString(),
+    optimizerVersion: "1.0.0",
+    requestId,
+  },
+});
 
 describe("TelemetryStorage", () => {
   const tempDir = join(process.cwd(), ".test-temp");
@@ -24,62 +80,10 @@ describe("TelemetryStorage", () => {
   describe("createJsonTelemetryStorage", () => {
     it("should persist snapshot to file", async () => {
       const storage = createJsonTelemetryStorage({ filePath: testFilePath });
-      const snapshot: AnalyticsSnapshot = {
-        metricsBefore: {
-          rawPromptText: "test",
-          rawPromptCharCount: 4,
-          rawPromptTokenCount: 1,
-          rawPromptByteSize: 4,
-        },
-        metricsAfter: {
-          optimizedPromptText: "test",
-          optimizedPromptCharCount: 4,
-          optimizedPromptTokenCount: 1,
-          optimizedPromptByteSize: 4,
-        },
-        savings: {
-          compressionRatio: 1,
-          tokensSaved: 0,
-          bytesSaved: 0,
-          percentReductionTokens: 0,
-          percentReductionBytes: 0,
-          estimatedCostSavingsUsd: 0,
-        },
-        context: {
-          contextMessagesSelectedCount: 0,
-          contextMessagesRemovedCount: 0,
-          contextTokensSelected: 0,
-          contextTokensRemoved: 0,
-          contextPrunedPercentage: 0,
-          memorySummaryTokens: 0,
-          memorySummarySavingsTokens: 0,
-          retrievalChunksSelected: 0,
-          retrievalHitRate: 0,
-        },
-        output: {
-          completionTokens: 0,
-          tokensPerSecond: 0,
-          latencyMs: 0,
-          promptToOutputRatio: 0,
-        },
-        cost: {
-          providerName: "test",
-          modelName: "test",
-          providerTokenPricePrompt: 0,
-          providerTokenPriceCompletion: 0,
-          promptCostUsd: 0,
-          completionCostUsd: 0,
-          totalCostUsd: 0,
-          contextWindowUtilization: 0,
-        },
-        meta: {
-          timestampUtc: new Date().toISOString(),
-          optimizerVersion: "1.0.0",
-          requestId: "test-1",
-        },
-      };
+      const snapshot = buildSnapshot("test-1");
 
       await storage.persistSnapshot(snapshot);
+      await storage.fetchRecent();
 
       const content = await readFile(testFilePath, "utf-8");
       const parsed = JSON.parse(content);
@@ -90,65 +94,8 @@ describe("TelemetryStorage", () => {
 
     it("should fetch recent snapshots", async () => {
       const storage = createJsonTelemetryStorage({ filePath: testFilePath });
-      const snapshot1: AnalyticsSnapshot = {
-        metricsBefore: {
-          rawPromptText: "test1",
-          rawPromptCharCount: 5,
-          rawPromptTokenCount: 1,
-          rawPromptByteSize: 5,
-        },
-        metricsAfter: {
-          optimizedPromptText: "test1",
-          optimizedPromptCharCount: 5,
-          optimizedPromptTokenCount: 1,
-          optimizedPromptByteSize: 5,
-        },
-        savings: {
-          compressionRatio: 1,
-          tokensSaved: 0,
-          bytesSaved: 0,
-          percentReductionTokens: 0,
-          percentReductionBytes: 0,
-          estimatedCostSavingsUsd: 0,
-        },
-        context: {
-          contextMessagesSelectedCount: 0,
-          contextMessagesRemovedCount: 0,
-          contextTokensSelected: 0,
-          contextTokensRemoved: 0,
-          contextPrunedPercentage: 0,
-          memorySummaryTokens: 0,
-          memorySummarySavingsTokens: 0,
-          retrievalChunksSelected: 0,
-          retrievalHitRate: 0,
-        },
-        output: {
-          completionTokens: 0,
-          tokensPerSecond: 0,
-          latencyMs: 0,
-          promptToOutputRatio: 0,
-        },
-        cost: {
-          providerName: "test",
-          modelName: "test",
-          providerTokenPricePrompt: 0,
-          providerTokenPriceCompletion: 0,
-          promptCostUsd: 0,
-          completionCostUsd: 0,
-          totalCostUsd: 0,
-          contextWindowUtilization: 0,
-        },
-        meta: {
-          timestampUtc: new Date().toISOString(),
-          optimizerVersion: "1.0.0",
-          requestId: "test-1",
-        },
-      };
-
-      const snapshot2: AnalyticsSnapshot = {
-        ...snapshot1,
-        meta: { ...snapshot1.meta, requestId: "test-2" },
-      };
+      const snapshot1 = buildSnapshot("test-1");
+      const snapshot2 = buildSnapshot("test-2");
 
       await storage.persistSnapshot(snapshot1);
       await storage.persistSnapshot(snapshot2);
@@ -160,66 +107,30 @@ describe("TelemetryStorage", () => {
 
     it("should purge all snapshots", async () => {
       const storage = createJsonTelemetryStorage({ filePath: testFilePath });
-      const snapshot: AnalyticsSnapshot = {
-        metricsBefore: {
-          rawPromptText: "test",
-          rawPromptCharCount: 4,
-          rawPromptTokenCount: 1,
-          rawPromptByteSize: 4,
-        },
-        metricsAfter: {
-          optimizedPromptText: "test",
-          optimizedPromptCharCount: 4,
-          optimizedPromptTokenCount: 1,
-          optimizedPromptByteSize: 4,
-        },
-        savings: {
-          compressionRatio: 1,
-          tokensSaved: 0,
-          bytesSaved: 0,
-          percentReductionTokens: 0,
-          percentReductionBytes: 0,
-          estimatedCostSavingsUsd: 0,
-        },
-        context: {
-          contextMessagesSelectedCount: 0,
-          contextMessagesRemovedCount: 0,
-          contextTokensSelected: 0,
-          contextTokensRemoved: 0,
-          contextPrunedPercentage: 0,
-          memorySummaryTokens: 0,
-          memorySummarySavingsTokens: 0,
-          retrievalChunksSelected: 0,
-          retrievalHitRate: 0,
-        },
-        output: {
-          completionTokens: 0,
-          tokensPerSecond: 0,
-          latencyMs: 0,
-          promptToOutputRatio: 0,
-        },
-        cost: {
-          providerName: "test",
-          modelName: "test",
-          providerTokenPricePrompt: 0,
-          providerTokenPriceCompletion: 0,
-          promptCostUsd: 0,
-          completionCostUsd: 0,
-          totalCostUsd: 0,
-          contextWindowUtilization: 0,
-        },
-        meta: {
-          timestampUtc: new Date().toISOString(),
-          optimizerVersion: "1.0.0",
-          requestId: "test-1",
-        },
-      };
+      const snapshot = buildSnapshot("test-1");
 
       await storage.persistSnapshot(snapshot);
       await storage.purge();
 
       const recent = await storage.fetchRecent();
       expect(recent.length).toBe(0);
+    });
+
+    it("should batch writes within flush window", async () => {
+      vi.useFakeTimers();
+      const storage = createJsonTelemetryStorage({ filePath: testFilePath });
+
+      await storage.persistSnapshot(buildSnapshot("test-1"));
+      await storage.persistSnapshot(buildSnapshot("test-2"));
+      await expect(readFile(testFilePath, "utf-8")).rejects.toThrow();
+
+      await vi.advanceTimersByTimeAsync(LIMIT.TELEMETRY_WRITE_FLUSH_INTERVAL_MS);
+      await storage.fetchRecent();
+      const content = await readFile(testFilePath, "utf-8");
+      const parsed = JSON.parse(content);
+
+      expect(parsed).toHaveLength(2);
+      vi.useRealTimers();
     });
   });
 

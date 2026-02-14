@@ -3960,9 +3960,16 @@
   - updated ZIP write path to stream zip output to disk
   - expanded export coverage in
     `__tests__/unit/utils/session-export.unit.test.ts` across JSON/Markdown/ZIP
+- Completed P1 backlog item B35 telemetry write batching/throttling:
+  - added telemetry flush interval + batch-size limits in
+    `src/config/limits.ts`
+  - implemented queued snapshot buffering and timed flush batching in
+    `src/utils/token-optimizer/telemetryStorage.ts`
+  - added timer-window batching coverage in
+    `__tests__/unit/utils/telemetry-storage.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B35 by batching/throttling token optimizer
-    telemetry write pressure
+  - evaluate severity backlog item B36 by caching update-check results with
+    runtime TTL
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers
