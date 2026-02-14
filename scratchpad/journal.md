@@ -1,5 +1,41 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B07 canonical base-path containment hardening)
+
+### Summary
+- Completed P0 backlog item B07 in `PLAN3.md` by replacing prefix-based base
+  containment checks with canonical relative-path containment semantics.
+- Added shared utility `src/utils/pathContainment.utils.ts` and integrated it
+  into:
+  - `src/core/terminal-handler.ts`
+  - `src/tools/terminal-manager.ts`
+  - `src/tools/shell-session.ts`
+  - `src/core/fs-handler.ts`
+- Added win32 case-insensitive normalization behavior in containment checks to
+  match case-insensitive filesystem expectations.
+- Added focused unit coverage for sibling-prefix rejection and containment
+  correctness in:
+  - `__tests__/unit/core/terminal-handler.unit.test.ts`
+  - `__tests__/unit/tools/terminal-manager.unit.test.ts`
+  - `__tests__/unit/tools/shell-session.unit.test.ts`
+  - `__tests__/unit/core/fs-handler.unit.test.ts`
+  - `__tests__/unit/utils/path-containment.utils.unit.test.ts`
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/core/terminal-handler.unit.test.ts __tests__/unit/tools/terminal-manager.unit.test.ts __tests__/unit/tools/shell-session.unit.test.ts __tests__/unit/core/fs-handler.unit.test.ts __tests__/unit/utils/path-containment.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B06 path-escape detection hardening for Windows/mixed separators)
 
 ### Summary

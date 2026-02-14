@@ -6,6 +6,7 @@ import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
+import { isPathWithinBase } from "@/utils/pathContainment.utils";
 import { isPathEscape } from "@/utils/pathEscape.utils";
 
 export interface ExecOptions {
@@ -38,7 +39,7 @@ const resolveCwd = (candidate: string, base: string, allowEscape: boolean): stri
     ? normalize(candidate)
     : resolve(normalizedBase, candidate);
   if (allowEscape) return resolved;
-  if (!resolved.startsWith(normalizedBase)) {
+  if (!isPathWithinBase(resolved, normalizedBase)) {
     throw new Error(`Cwd escapes base directory: ${candidate}`);
   }
   return resolved;

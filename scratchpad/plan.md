@@ -3749,9 +3749,18 @@
     `__tests__/unit/core/terminal-handler.unit.test.ts` and
     `__tests__/unit/tools/terminal-manager.unit.test.ts` for Windows-style and
     mixed-separator rejection semantics
+- Completed P0 backlog item B07 canonical path containment hardening:
+  - added shared `isPathWithinBase` utility in
+    `src/utils/pathContainment.utils.ts` using canonical relative-path
+    containment checks with win32 case-insensitive normalization
+  - replaced naive `startsWith` containment checks in terminal/shell/fs path
+    resolution flows (`TerminalHandler`, `TerminalManager`, `ShellSession`,
+    `FsHandler`)
+  - added focused unit coverage for sibling-prefix rejection and win32
+    case-insensitive containment behavior across terminal/shell/fs paths
 - New next candidate:
-  - evaluate severity backlog item B07 by replacing naive cwd containment checks
-    with canonical path comparison safe for case-insensitive filesystems
+  - evaluate severity backlog item B08 by preventing process signal-handler
+    accumulation across repeated runner lifecycles
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

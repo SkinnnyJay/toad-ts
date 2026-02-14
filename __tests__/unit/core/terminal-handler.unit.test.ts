@@ -53,4 +53,13 @@ describe("TerminalHandler", () => {
     });
     expect(result.stdout).toBe("ok");
   });
+
+  it("rejects sibling absolute cwd that only shares prefix with base", async () => {
+    const handler = new TerminalHandler({ defaultCwd: "/tmp/base" });
+    await expect(
+      handler.exec(process.execPath, ["-e", "process.stdout.write('ok')"], {
+        cwd: "/tmp/base-sibling",
+      })
+    ).rejects.toThrow("Cwd escapes base directory");
+  });
 });

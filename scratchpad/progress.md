@@ -840,6 +840,9 @@
   - completed P0 backlog item B06 by hardening path-escape detection with
     shared separator-normalized traversal checks that now reject Windows-style
     (`..\\`) and mixed-separator payloads across terminal execution paths
+  - completed P0 backlog item B07 by replacing prefix-based base containment
+    checks with canonical relative-path comparison and win32 case-insensitive
+    normalization across terminal/shell/fs path resolution flows
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

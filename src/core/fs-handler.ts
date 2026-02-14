@@ -4,6 +4,7 @@ import { TRUTHY_STRINGS } from "@/constants/boolean-strings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { ERROR_CODE } from "@/constants/error-codes";
 import { EnvManager } from "@/utils/env/env.utils";
+import { isPathWithinBase } from "@/utils/pathContainment.utils";
 
 export interface ReadFileOptions {
   encoding?: BufferEncoding;
@@ -108,7 +109,7 @@ export class FsHandler {
     if (this.allowEscape) {
       return candidate;
     }
-    if (!candidate.startsWith(normalizedBase)) {
+    if (!isPathWithinBase(candidate, normalizedBase)) {
       throw new Error(`Path escapes base directory: ${filePath}`);
     }
     return candidate;

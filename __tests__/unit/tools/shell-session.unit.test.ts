@@ -135,4 +135,21 @@ describe("ShellSessionManager", () => {
     await expect(queuedCommand).rejects.toThrow(DISPOSE_ERROR_MESSAGE);
     expect(controller.killSignals).toEqual([SIGNAL.SIGTERM, SIGNAL.SIGKILL]);
   });
+
+  it("rejects sibling absolute cwd that only shares prefix with base", async () => {
+    const controller = createSpawnController({ autoRespond: true });
+    const manager = new ShellSessionManager({
+      spawnFn: controller.spawnFn,
+      env: {},
+      baseDir: "/tmp/base",
+      allowEscape: false,
+    });
+
+    await expect(
+      manager.execute("echo blocked", {
+        cwd: "/tmp/base-sibling",
+      })
+    ).rejects.toThrow("Cwd escapes base directory");
+    manager.dispose();
+  });
 });

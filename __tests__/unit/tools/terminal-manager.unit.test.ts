@@ -92,4 +92,15 @@ describe("TerminalManager path escape detection", () => {
       })
     ).toThrow("path escape");
   });
+
+  it("rejects sibling absolute cwd that only shares prefix with base", () => {
+    const manager = new TerminalManager({ baseDir: "/tmp/base", allowEscape: false });
+    expect(() =>
+      manager.createSession({
+        command: process.execPath,
+        args: ["-e", "process.stdout.write('ok')"],
+        cwd: "/tmp/base-sibling",
+      })
+    ).toThrow("Cwd escapes base directory");
+  });
 });

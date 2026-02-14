@@ -6,6 +6,7 @@ import { TRUTHY_STRINGS } from "@/constants/boolean-strings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
+import { isPathWithinBase } from "@/utils/pathContainment.utils";
 import { isPathEscape } from "@/utils/pathEscape.utils";
 import { nanoid } from "nanoid";
 
@@ -44,7 +45,7 @@ const resolveCwd = (candidate: string, base: string, allowEscape: boolean): stri
   const normalizedBase = resolve(base);
   const resolved = resolve(normalizedBase, candidate);
   if (allowEscape) return resolved;
-  if (!resolved.startsWith(normalizedBase)) {
+  if (!isPathWithinBase(resolved, normalizedBase)) {
     throw new Error(`Cwd escapes base directory: ${candidate}`);
   }
   return resolved;

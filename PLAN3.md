@@ -6673,6 +6673,33 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - prevent traversal bypasses caused by Windows separator and mixed-separator
       payloads in command/session path validation flows.
 
+## Execution Log Addendum — 2026-02-14 (B07 canonical base-path containment hardening)
+
+- Additional P0 backlog hardening for base-path containment correctness:
+  - Updated:
+    - `src/utils/pathContainment.utils.ts`
+    - `src/core/terminal-handler.ts`
+    - `src/tools/terminal-manager.ts`
+    - `src/tools/shell-session.ts`
+    - `src/core/fs-handler.ts`
+    - `__tests__/unit/core/terminal-handler.unit.test.ts`
+    - `__tests__/unit/tools/terminal-manager.unit.test.ts`
+    - `__tests__/unit/tools/shell-session.unit.test.ts`
+    - `__tests__/unit/core/fs-handler.unit.test.ts`
+    - `__tests__/unit/utils/path-containment.utils.unit.test.ts`
+  - Hardening changes:
+    - replaced naive prefix-based containment checks with canonical path
+      relative-comparison semantics via shared `isPathWithinBase`.
+    - added case-insensitive comparison handling for Win32 paths to align with
+      case-insensitive filesystem semantics.
+    - eliminated shared-prefix false positives (e.g. `/tmp/base-sibling`
+      incorrectly passing checks for `/tmp/base`).
+    - expanded unit coverage for sibling-prefix rejection and win32
+      case-insensitive containment behavior across terminal/shell/fs flows.
+  - Goal:
+    - guarantee robust base-directory containment checks independent of prefix
+      collisions and case-insensitive path variants.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6683,7 +6710,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B04 | P0 | harden Hook IPC transport selection for Windows socket/path edge cases and force deterministic fallback behavior.
 - [x] - B05 | P0 | close Linux clipboard reliability gap by handling Wayland (`wl-copy`) and headless display failure modes.
 - [x] - B06 | P0 | fix path-escape detection for Windows separators (`..\\`) and mixed separator payloads.
-- [ ] - B07 | P0 | replace `startsWith` cwd containment check with canonical path comparison safe for case-insensitive filesystems.
+- [x] - B07 | P0 | replace `startsWith` cwd containment check with canonical path comparison safe for case-insensitive filesystems.
 - [ ] - B08 | P0 | prevent process signal handler accumulation across repeated runner lifecycles to avoid listener leaks.
 - [ ] - B09 | P0 | guarantee timeout kill path reaps grandchildren on Windows and POSIX under high churn.
 - [ ] - B10 | P0 | secure HTTP Hook IPC mode with explicit local-only binding and request-origin validation.
