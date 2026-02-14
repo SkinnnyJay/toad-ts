@@ -5256,6 +5256,8 @@ describe("headless server", () => {
       const postCloseRecoveryConfirmJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
       const postCloseRecoverySettleJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
       const postCloseRecoverySettleJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
+      const postCloseCycleHandoffJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
+      const postCloseCycleHandoffJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5327,6 +5329,9 @@ describe("headless server", () => {
         );
         expect(postCloseRecoverySettleJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postCloseRecoverySettleJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postCloseCycleHandoffJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postCloseCycleHandoffJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -5619,6 +5624,17 @@ describe("headless server", () => {
               (postCloseRecoverySettleJitterByCycle + cycleSessionIndex + cycleIndex + 1) % 4
             );
           });
+          if (cycleSessionIndex < cycleSessionIds.length - 1) {
+            await new Promise<void>((resolve) => {
+              const postCloseCycleHandoffJitterByCycle = openSseFirstByCycle[cycleIndex]
+                ? postCloseCycleHandoffJitterSseFirstByCycleMs[cycleIndex]
+                : postCloseCycleHandoffJitterWebsocketFirstByCycleMs[cycleIndex];
+              setTimeout(
+                () => resolve(),
+                (postCloseCycleHandoffJitterByCycle + cycleSessionIndex + cycleIndex + 2) % 4
+              );
+            });
+          }
         }
 
         await new Promise<void>((resolve) => {

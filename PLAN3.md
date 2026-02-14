@@ -3280,3 +3280,29 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock reconnect-order continuity when post-close recovery-settle timing
       varies asymmetrically by order path.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order post-close cycle-handoff asymmetry coverage)
+
+- Additional merged env-map reconnect-order post-close cycle-handoff asymmetry hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order post-close recovery-settle coverage with
+      asymmetric post-close cycle-handoff jitter by reconnect order path.
+    - `SSE-first` cycles now use lower post-close cycle-handoff jitter while
+      `websocket-first` cycles use higher post-close cycle-handoff jitter.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable while post-close cycle-handoff asymmetry is layered with
+      post-close recovery-settle asymmetry, post-close recovery-confirm
+      asymmetry, post-close valid-prompt ramp asymmetry, post-close invalid-
+      burst ramp asymmetry, post-close segment-rearm asymmetry, post-close
+      segment-open gating asymmetry, post-close cycle transition asymmetry,
+      post-close recovery scheduling asymmetry, post-close prompt scheduling
+      asymmetry, post-close create scheduling asymmetry, close-interleave
+      asymmetry, close-delay asymmetry, cycle-cooldown asymmetry, post-
+      recovery delay asymmetry, burst-spacing asymmetry, recovery-jitter
+      asymmetry, create-jitter asymmetry, stream-open jitter asymmetry,
+      segment-count asymmetry, and cadence variation.
+  - Goal:
+    - lock reconnect-order continuity when post-close cycle-handoff timing
+      varies asymmetrically by order path.
