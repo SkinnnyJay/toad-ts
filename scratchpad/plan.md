@@ -556,6 +556,12 @@
     merged project/user override keeps `mock` id but command is blank
   - verifies fallback-to-default behavior remains stable across repeated
     requests with distinct valid session ids
+- Added repeated merged env-map continuity hardening:
+  - headless integration now validates repeated default-route sessions when
+    merged project/user overrides keep valid harness id + command/cwd but env
+    values expand to empty strings
+  - verifies merged config remains valid without fallback and repeated default
+    requests return successful distinct session ids
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

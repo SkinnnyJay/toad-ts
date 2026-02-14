@@ -197,6 +197,8 @@
     failures (empty resolved cwd) with fallback mock continuity
   - added headless integration coverage for repeated merged blank-command
     override failures with fallback mock continuity
+  - added headless integration coverage for repeated merged env-map overrides
+    with empty expansions while keeping valid command/cwd behavior
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

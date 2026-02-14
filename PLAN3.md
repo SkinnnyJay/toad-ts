@@ -2538,3 +2538,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock continuity semantics for merged blank-command override breakage while
       preserving harness-id resolution behavior.
+
+## Execution Log Addendum — 2026-02-13 (repeated merged env-map continuity coverage)
+
+- Additional merged env-map continuity integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for repeated default-route requests when
+      project/user merge preserves `mock` harness id and command/cwd, but env
+      values expand to empty strings.
+    - verifies merged config remains valid for empty expanded env-map entries
+      and does not trigger fallback.
+    - verifies repeated default session creation remains successful with
+      distinct valid session ids in the same runtime.
+  - Goal:
+    - lock continuity semantics for merged env-map overrides with empty
+      expansions while preserving valid command/cwd behavior.

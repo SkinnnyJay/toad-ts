@@ -2423,3 +2423,27 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Repeated merged env-map continuity coverage)
+
+### Summary
+- Added headless integration coverage for repeated default-route requests when:
+  - project config defines valid `mock` harness id/command/cwd
+  - user config preserves `mock` id and command/cwd but overrides env map
+    values that expand to empty strings
+  - merged harness config remains valid (no fallback path)
+- Test validates:
+  - repeated default session creation remains successful.
+  - returned session ids are valid and distinct across repeats.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
