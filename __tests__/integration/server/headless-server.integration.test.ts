@@ -5618,6 +5618,10 @@ describe("headless server", () => {
       const postClosePromptBurstRecoveryEscutcheonJitterWebsocketFirstByCycleMs = [
         3, 0, 3, 0,
       ] as const;
+      const postClosePromptBurstRecoveryMantlingJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
+      const postClosePromptBurstRecoveryMantlingJitterWebsocketFirstByCycleMs = [
+        2, 0, 2, 0,
+      ] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -6009,6 +6013,9 @@ describe("headless server", () => {
         );
         expect(postClosePromptBurstRecoveryEscutcheonJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postClosePromptBurstRecoveryEscutcheonJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postClosePromptBurstRecoveryMantlingJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postClosePromptBurstRecoveryMantlingJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         expect(postClosePromptBurstRecoveryRustreJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postClosePromptBurstRecoveryRustreJitterWebsocketFirstByCycleMs[cycleIndex]
@@ -7918,6 +7925,21 @@ describe("headless server", () => {
                   cycleSessionIndex +
                   cycleIndex +
                   3) %
+                  4
+              );
+            });
+            await new Promise<void>((resolve) => {
+              const postClosePromptBurstRecoveryMantlingJitterByCycle = openSseFirstByCycle[
+                cycleIndex
+              ]
+                ? postClosePromptBurstRecoveryMantlingJitterSseFirstByCycleMs[cycleIndex]
+                : postClosePromptBurstRecoveryMantlingJitterWebsocketFirstByCycleMs[cycleIndex];
+              setTimeout(
+                () => resolve(),
+                (postClosePromptBurstRecoveryMantlingJitterByCycle +
+                  cycleSessionIndex +
+                  cycleIndex +
+                  2) %
                   4
               );
             });
