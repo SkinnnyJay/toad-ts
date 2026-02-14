@@ -2504,3 +2504,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock continuity semantics for merged env-expansion override breakage
       while preserving harness-id resolution behavior.
+
+## Execution Log Addendum — 2026-02-13 (repeated merged cwd-override continuity coverage)
+
+- Additional merged cwd-override continuity integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for repeated explicit `harnessId: "mock"`
+      requests when user override preserves harness id but `cwd` env-expands to
+      an empty value, forcing merged-config revalidation failure.
+    - verifies fallback to default harness config under this merged cwd override
+      failure path.
+    - verifies repeated explicit mock requests remain successful with distinct
+      valid session ids in the same runtime.
+  - Goal:
+    - lock continuity semantics for merged cwd-override breakage while
+      preserving harness-id resolution behavior.

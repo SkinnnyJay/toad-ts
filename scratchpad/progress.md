@@ -193,6 +193,8 @@
     override failures (invalid cursor command) with post-failure mock continuity
   - added headless integration coverage for repeated merged env-expansion
     override failures (empty resolved command) with fallback mock continuity
+  - added headless integration coverage for repeated merged cwd-override
+    failures (empty resolved cwd) with fallback mock continuity
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
