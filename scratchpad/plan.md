@@ -717,6 +717,16 @@
     segment-count asymmetry + stream-open jitter asymmetry + create-jitter
     asymmetry + recovery-jitter asymmetry + burst-spacing asymmetry by order
     path
+- Added merged env-map reconnect-order post-recovery delay asymmetry hardening:
+  - reconnect-order burst-spacing coverage now applies asymmetric valid-prompt
+    post-recovery delay amplitudes per order path
+  - `SSE-first` cycles use lower post-recovery delays, while
+    `websocket-first` cycles use higher post-recovery delays
+  - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
+    rejection, and valid-prompt recovery remain stable under combined cadence +
+    segment-count asymmetry + stream-open jitter asymmetry + create-jitter
+    asymmetry + recovery-jitter asymmetry + burst-spacing asymmetry + post-
+    recovery delay asymmetry by order path
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

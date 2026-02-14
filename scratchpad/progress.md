@@ -254,6 +254,9 @@
   - added merged env-map reconnect-order burst-spacing asymmetry coverage with
     websocket+SSE continuity assertions under order-path-specific invalid-
     prompt burst spacing amplitudes
+  - added merged env-map reconnect-order post-recovery delay asymmetry
+    coverage with websocket+SSE continuity assertions under order-path-
+    specific valid-prompt post-recovery delays
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
