@@ -5270,6 +5270,10 @@ describe("headless server", () => {
       const postClosePromptBurstHandoffJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const postClosePromptBurstRecoverySettleJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
       const postClosePromptBurstRecoverySettleJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
+      const postClosePromptBurstRecoveryConfirmJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
+      const postClosePromptBurstRecoveryConfirmJitterWebsocketFirstByCycleMs = [
+        2, 0, 2, 0,
+      ] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5362,6 +5366,9 @@ describe("headless server", () => {
         );
         expect(postClosePromptBurstRecoverySettleJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postClosePromptBurstRecoverySettleJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postClosePromptBurstRecoveryConfirmJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postClosePromptBurstRecoveryConfirmJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -5671,6 +5678,16 @@ describe("headless server", () => {
             }),
           });
           expect(validPromptResponse.status).toBe(200);
+          await new Promise<void>((resolve) => {
+            const postClosePromptBurstRecoveryConfirmJitterByCycle = openSseFirstByCycle[cycleIndex]
+              ? postClosePromptBurstRecoveryConfirmJitterSseFirstByCycleMs[cycleIndex]
+              : postClosePromptBurstRecoveryConfirmJitterWebsocketFirstByCycleMs[cycleIndex];
+            setTimeout(
+              () => resolve(),
+              (postClosePromptBurstRecoveryConfirmJitterByCycle + cycleSessionIndex + cycleIndex) %
+                4
+            );
+          });
           await new Promise<void>((resolve) => {
             const postCloseRecoveryConfirmJitterByCycle = openSseFirstByCycle[cycleIndex]
               ? postCloseRecoveryConfirmJitterSseFirstByCycleMs[cycleIndex]
