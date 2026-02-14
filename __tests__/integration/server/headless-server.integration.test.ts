@@ -5550,6 +5550,8 @@ describe("headless server", () => {
       const postClosePromptBurstRecoveryGurgesJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const postClosePromptBurstRecoveryBarryJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
       const postClosePromptBurstRecoveryBarryJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
+      const postClosePromptBurstRecoveryBendJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
+      const postClosePromptBurstRecoveryBendJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5944,6 +5946,9 @@ describe("headless server", () => {
         );
         expect(postClosePromptBurstRecoveryBarryJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postClosePromptBurstRecoveryBarryJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postClosePromptBurstRecoveryBendJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postClosePromptBurstRecoveryBendJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -7435,9 +7440,7 @@ describe("headless server", () => {
               );
             });
             await new Promise<void>((resolve) => {
-              const postClosePromptBurstRecoveryBarryJitterByCycle = openSseFirstByCycle[
-                cycleIndex
-              ]
+              const postClosePromptBurstRecoveryBarryJitterByCycle = openSseFirstByCycle[cycleIndex]
                 ? postClosePromptBurstRecoveryBarryJitterSseFirstByCycleMs[cycleIndex]
                 : postClosePromptBurstRecoveryBarryJitterWebsocketFirstByCycleMs[cycleIndex];
               setTimeout(
@@ -7446,6 +7449,19 @@ describe("headless server", () => {
                   cycleSessionIndex +
                   cycleIndex +
                   3) %
+                  4
+              );
+            });
+            await new Promise<void>((resolve) => {
+              const postClosePromptBurstRecoveryBendJitterByCycle = openSseFirstByCycle[cycleIndex]
+                ? postClosePromptBurstRecoveryBendJitterSseFirstByCycleMs[cycleIndex]
+                : postClosePromptBurstRecoveryBendJitterWebsocketFirstByCycleMs[cycleIndex];
+              setTimeout(
+                () => resolve(),
+                (postClosePromptBurstRecoveryBendJitterByCycle +
+                  cycleSessionIndex +
+                  cycleIndex +
+                  2) %
                   4
               );
             });
