@@ -2570,3 +2570,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock downstream runtime continuity (session create + prompt) for merged
       env-map empty-expansion scenarios.
+
+## Execution Log Addendum — 2026-02-13 (merged env-map mixed-request continuity coverage)
+
+- Additional merged env-map mixed-request integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for mixed default/explicit session-create
+      request sequences in the same runtime when merged env-map overrides
+      expand to empty strings.
+    - verifies all mixed-path session creations remain successful with distinct
+      valid session ids.
+    - verifies prompt submission after the mixed sequence remains successful.
+  - Goal:
+    - lock mixed explicit/default request continuity for merged env-map
+      empty-expansion scenarios.

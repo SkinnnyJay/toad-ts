@@ -2469,3 +2469,25 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Merged env-map mixed-request continuity coverage)
+
+### Summary
+- Added headless integration coverage for mixed default and explicit session
+  creation requests under merged env-map empty-expansion configuration.
+- Test validates:
+  - repeated mixed-path session creation remains successful.
+  - created session ids are valid and distinct.
+  - follow-up prompt submission remains successful after the mixed sequence.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅

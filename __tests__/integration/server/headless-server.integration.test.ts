@@ -2497,6 +2497,144 @@ describe("headless server", () => {
     }
   });
 
+  it("keeps mixed explicit/default requests responsive after merged env-map expansions", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-headless-project-env-mixed-"));
+    const homeRoot = await mkdtemp(path.join(tmpdir(), "toadstool-headless-home-env-mixed-"));
+    const projectHarnessDirectory = path.join(projectRoot, FILE_PATH.TOADSTOOL_DIR);
+    const homeHarnessDirectory = path.join(homeRoot, FILE_PATH.TOADSTOOL_DIR);
+    const projectHarnessFilePath = path.join(projectHarnessDirectory, FILE_PATH.HARNESSES_JSON);
+    const homeHarnessFilePath = path.join(homeHarnessDirectory, FILE_PATH.HARNESSES_JSON);
+    const originalHome = process.env.HOME;
+    const originalCwd = process.cwd();
+    const originalCursorCommand = process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND];
+    const originalGeminiCommand = process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND];
+
+    await mkdir(projectHarnessDirectory, { recursive: true });
+    await mkdir(homeHarnessDirectory, { recursive: true });
+
+    await writeFile(
+      projectHarnessFilePath,
+      JSON.stringify(
+        {
+          defaultHarness: HARNESS_DEFAULT.MOCK_ID,
+          harnesses: {
+            [HARNESS_DEFAULT.MOCK_ID]: {
+              name: "Mock",
+              command: HARNESS_DEFAULT.MOCK_ID,
+              env: {
+                PROJECT_TOKEN: "project-value",
+              },
+            },
+          },
+        },
+        null,
+        2
+      )
+    );
+    await writeFile(
+      homeHarnessFilePath,
+      JSON.stringify(
+        {
+          harnesses: {
+            [HARNESS_DEFAULT.MOCK_ID]: {
+              env: {
+                PROJECT_TOKEN: "${TOADSTOOL_CURSOR_COMMAND}",
+                USER_TOKEN: "${TOADSTOOL_GEMINI_COMMAND}",
+              },
+            },
+          },
+        },
+        null,
+        2
+      )
+    );
+
+    process.env.HOME = homeRoot;
+    process.chdir(projectRoot);
+    process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = undefined;
+    process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] = undefined;
+    EnvManager.resetInstance();
+
+    let server: Awaited<ReturnType<typeof startHeadlessServer>> | null = null;
+    try {
+      server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+      const { host, port } = server.address();
+      const baseUrl = `http://${host}:${port}`;
+
+      const defaultFirstResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      expect(defaultFirstResponse.status).toBe(200);
+      const defaultFirstSession = createSessionResponseSchema.parse(
+        await defaultFirstResponse.json()
+      );
+      expect(defaultFirstSession.sessionId).toBeTruthy();
+
+      const explicitResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.MOCK_ID }),
+      });
+      expect(explicitResponse.status).toBe(200);
+      const explicitSession = createSessionResponseSchema.parse(await explicitResponse.json());
+      expect(explicitSession.sessionId).toBeTruthy();
+      expect(explicitSession.sessionId).not.toBe(defaultFirstSession.sessionId);
+
+      const defaultSecondResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      expect(defaultSecondResponse.status).toBe(200);
+      const defaultSecondSession = createSessionResponseSchema.parse(
+        await defaultSecondResponse.json()
+      );
+      expect(defaultSecondSession.sessionId).toBeTruthy();
+      expect(defaultSecondSession.sessionId).not.toBe(defaultFirstSession.sessionId);
+      expect(defaultSecondSession.sessionId).not.toBe(explicitSession.sessionId);
+
+      const promptResponse = await fetch(
+        `${baseUrl}/sessions/${defaultSecondSession.sessionId}/prompt`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: "Mixed path prompt." }),
+        }
+      );
+      expect(promptResponse.status).toBe(200);
+      const promptPayload = z
+        .object({ stopReason: z.string().optional() })
+        .strict()
+        .parse(await promptResponse.json());
+      expect(promptPayload.stopReason).toBeDefined();
+    } finally {
+      if (server) {
+        await server.close();
+      }
+      process.chdir(originalCwd);
+      if (originalHome === undefined) {
+        process.env.HOME = undefined;
+      } else {
+        process.env.HOME = originalHome;
+      }
+      if (originalCursorCommand === undefined) {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = undefined;
+      } else {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = originalCursorCommand;
+      }
+      if (originalGeminiCommand === undefined) {
+        process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] = undefined;
+      } else {
+        process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] = originalGeminiCommand;
+      }
+      EnvManager.resetInstance();
+      await rm(projectRoot, { recursive: true, force: true });
+      await rm(homeRoot, { recursive: true, force: true });
+    }
+  });
+
   it("keeps server responsive after repeated fallback explicit mock requests", async () => {
     const temporaryRoot = await mkdtemp(
       path.join(tmpdir(), "toadstool-headless-fallback-default-")
