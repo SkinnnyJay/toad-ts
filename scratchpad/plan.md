@@ -3885,9 +3885,19 @@
   - added focused coverage in
     `__tests__/unit/utils/linux-desktop-capability.utils.unit.test.ts` and
     `__tests__/unit/ui/slash-command-runner.unit.test.ts`
+- Completed P1 backlog item B23 Windows command quoting hardening:
+  - added shared Windows command quoting utility in
+    `src/utils/windows-command.utils.ts`
+  - updated interactive/background shell command builders to use
+    Windows-safe quoted `/S /C` execution args
+  - hardened shell-session Windows cwd quoting and external editor
+    Windows argument quoting
+  - added focused coverage in
+    `__tests__/unit/utils/windows-command.utils.unit.test.ts` and
+    `__tests__/unit/tools/shell-session.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B23 by fixing Windows command quoting and
-    escaping for spaces/shell metacharacters/unicode paths
+  - evaluate severity backlog item B24 by isolating shell cwd execution context
+    per request to remove hidden state coupling
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

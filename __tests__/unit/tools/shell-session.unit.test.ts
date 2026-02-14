@@ -14,6 +14,7 @@ interface SpawnController {
     options: { cwd?: string; env?: NodeJS.ProcessEnv; shell?: boolean }
   ) => ChildProcessWithoutNullStreams;
   killSignals: NodeJS.Signals[];
+  stdinPayloads: string[];
 }
 
 interface SpawnControllerOptions {
@@ -25,6 +26,7 @@ const DISPOSE_ERROR_MESSAGE = "Shell session disposed.";
 
 const createSpawnController = (options: SpawnControllerOptions): SpawnController => {
   const killSignals: NodeJS.Signals[] = [];
+  const stdinPayloads: string[] = [];
 
   const spawnFn = (
     _command: string,
@@ -39,6 +41,7 @@ const createSpawnController = (options: SpawnControllerOptions): SpawnController
 
     stdin.on("data", (chunk: Buffer | string) => {
       const payload = chunk.toString();
+      stdinPayloads.push(payload);
       if (!options.autoRespond) {
         return;
       }
@@ -79,7 +82,7 @@ const createSpawnController = (options: SpawnControllerOptions): SpawnController
     return child;
   };
 
-  return { spawnFn, killSignals };
+  return { spawnFn, killSignals, stdinPayloads };
 };
 
 describe("ShellSessionManager", () => {
@@ -150,6 +153,24 @@ describe("ShellSessionManager", () => {
         cwd: "/tmp/base-sibling",
       })
     ).rejects.toThrow("Cwd escapes base directory");
+    manager.dispose();
+  });
+
+  it("quotes windows cwd changes with shell metacharacters and unicode", async () => {
+    const controller = createSpawnController({ autoRespond: true });
+    const manager = new ShellSessionManager({
+      spawnFn: controller.spawnFn,
+      env: {},
+      baseDir: "/tmp",
+      allowEscape: false,
+    });
+
+    await manager.execute("echo quoted", {
+      cwd: "/tmp/path with spaces/and&caret^/ユニコード",
+    });
+
+    const joinedPayload = controller.stdinPayloads.join("");
+    expect(joinedPayload).toContain('cd /d "/tmp/path with spaces/and&caret^/ユニコード"');
     manager.dispose();
   });
 });

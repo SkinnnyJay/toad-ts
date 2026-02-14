@@ -6999,6 +6999,31 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - make clipboard and UI-dependent flows explicitly capability-aware on
       Linux desktop variants.
 
+## Execution Log Addendum — 2026-02-14 (B23 Windows command quoting hardening)
+
+- Additional P1 backlog hardening for Windows shell command robustness:
+  - Updated:
+    - `src/utils/windows-command.utils.ts` (new)
+    - `src/tools/interactive-shell.ts`
+    - `src/tools/background-task-manager.ts`
+    - `src/tools/shell-session.ts`
+    - `src/utils/editor/externalEditor.ts`
+    - `__tests__/unit/utils/windows-command.utils.unit.test.ts` (new)
+    - `__tests__/unit/tools/shell-session.unit.test.ts`
+  - Hardening changes:
+    - added shared Windows command quoting/`cmd.exe` exec-arg builder utility.
+    - routed Windows interactive/background task shell invocations through
+      quoted `/S /C` argument generation.
+    - hardened shell-session Windows cwd change quoting for paths containing
+      spaces, shell metacharacters (`&`, `^`), and unicode.
+    - updated external editor shell arg quoting to use Windows-safe command
+      quoting on win32.
+    - added focused unit coverage for Windows quoting primitives and shell
+      session metachar/unicode cwd payload behavior.
+  - Goal:
+    - ensure Windows shell execution paths correctly preserve quoted commands
+      and path arguments containing spaces/metacharacters/unicode.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7028,7 +7053,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 
 - [x] - B21 | P1 | prevent detached `afplay` process accumulation during rapid completion events on macOS.
 - [x] - B22 | P1 | add explicit Linux desktop capability detection (X11/Wayland/headless) for clipboard and UI-dependent flows.
-- [ ] - B23 | P1 | fix Windows command quoting/escaping for paths containing spaces, `&`, `^`, and unicode characters.
+- [x] - B23 | P1 | fix Windows command quoting/escaping for paths containing spaces, `&`, `^`, and unicode characters.
 - [ ] - B24 | P1 | remove implicit shell cwd coupling by isolating command execution context per request.
 - [ ] - B25 | P1 | optimize terminal output byte trimming to avoid O(n^2) behavior for large outputs.
 - [ ] - B26 | P1 | optimize sentinel completion scanning in shell sessions to avoid repeated full-buffer scans.

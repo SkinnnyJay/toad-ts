@@ -5,6 +5,7 @@ import { PLATFORM } from "@/constants/platform";
 import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
 import { acquireProcessSlot, bindProcessSlotToChild } from "@/utils/process-concurrency.utils";
+import { buildWindowsCmdExecArgs } from "@/utils/windows-command.utils";
 import type { CliRenderer } from "@opentui/core";
 
 export interface InteractiveShellOptions {
@@ -21,7 +22,7 @@ export interface InteractiveShellResult {
 
 const resolveShellCommand = (command: string): { command: string; args: string[] } => {
   if (process.platform === PLATFORM.WIN32) {
-    return { command: "cmd.exe", args: ["/D", "/Q", "/C", command] };
+    return { command: "cmd.exe", args: buildWindowsCmdExecArgs(command) };
   }
 
   const envShell = EnvManager.getInstance().getSnapshot()[ENV_KEY.SHELL];

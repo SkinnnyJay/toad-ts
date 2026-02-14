@@ -9,6 +9,7 @@ import { PLATFORM } from "@/constants/platform";
 import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
 import { isPathWithinBase } from "@/utils/pathContainment.utils";
+import { quoteWindowsCommandValue } from "@/utils/windows-command.utils";
 import { nanoid } from "nanoid";
 
 export interface ShellCommandOptions {
@@ -212,7 +213,11 @@ class ShellSession {
     let cdPrefix = "";
     try {
       const targetCwd = resolveCwd(command.cwd ?? this.currentCwd, this.baseDir, this.allowEscape);
-      cdPrefix = targetCwd !== this.currentCwd ? `cd "${targetCwd.replace(/"/g, '\\"')}"\n` : "";
+      if (targetCwd !== this.currentCwd) {
+        cdPrefix = this.isWindows
+          ? `cd /d ${quoteWindowsCommandValue(targetCwd)}\n`
+          : `cd "${targetCwd.replace(/"/g, '\\"')}"\n`;
+      }
       this.currentCwd = targetCwd;
     } catch (error) {
       command.reject(error instanceof Error ? error : new Error(String(error)));

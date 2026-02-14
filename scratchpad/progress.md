@@ -881,6 +881,8 @@
     accumulation via single-active-child guarding
   - completed P1 backlog item B22 by introducing explicit Linux desktop
     capability detection for clipboard and UI-dependent slash-command flows
+  - completed P1 backlog item B23 by hardening Windows command quoting and
+    escaping for spaces/metacharacters/unicode path execution
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

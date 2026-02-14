@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B23 Windows command quoting hardening)
+
+### Summary
+- Completed P1 backlog item B23 in `PLAN3.md` by hardening Windows command
+  quoting/escaping paths.
+- Added `src/utils/windows-command.utils.ts`:
+  - Windows value quoting helper,
+  - `cmd.exe` exec arg builder with `/S /C` quoted command payloads.
+- Updated Windows command pathways:
+  - `src/tools/interactive-shell.ts`
+  - `src/tools/background-task-manager.ts`
+  - `src/tools/shell-session.ts`
+  - `src/utils/editor/externalEditor.ts`
+- Added focused unit coverage in:
+  - `__tests__/unit/utils/windows-command.utils.unit.test.ts`
+  - `__tests__/unit/tools/shell-session.unit.test.ts`
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/tools/shell-session.unit.test.ts __tests__/unit/utils/windows-command.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B22 Linux desktop capability detection hardening)
 
 ### Summary

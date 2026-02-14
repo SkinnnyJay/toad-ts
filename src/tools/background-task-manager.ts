@@ -4,6 +4,7 @@ import { ENV_KEY } from "@/constants/env-keys";
 import { PLATFORM } from "@/constants/platform";
 import { type BackgroundTask, type BackgroundTaskId, BackgroundTaskIdSchema } from "@/types/domain";
 import { EnvManager } from "@/utils/env/env.utils";
+import { buildWindowsCmdExecArgs } from "@/utils/windows-command.utils";
 import { nanoid } from "nanoid";
 
 import { useBackgroundTaskStore } from "@/store/background-task-store";
@@ -33,12 +34,11 @@ const SHELL_COMMAND = {
 
 const SHELL_ARGS = {
   POSIX: ["-lc"],
-  WINDOWS: ["/D", "/Q", "/C"],
 } as const;
 
 const resolveShellCommand = (command: string): ShellCommandSpec => {
   if (process.platform === PLATFORM.WIN32) {
-    return { command: SHELL_COMMAND.WINDOWS, args: [...SHELL_ARGS.WINDOWS, command] };
+    return { command: SHELL_COMMAND.WINDOWS, args: buildWindowsCmdExecArgs(command) };
   }
   const envShell = EnvManager.getInstance().getSnapshot()[ENV_KEY.SHELL];
   const shellCommand = envShell ?? SHELL_COMMAND.POSIX;
