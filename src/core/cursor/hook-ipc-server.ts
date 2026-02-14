@@ -32,6 +32,24 @@ const HOOK_IPC_DEFAULT = {
   PATHNAME: "/",
 } as const;
 
+const HOOK_IPC_LOCAL_HOST = {
+  LOOPBACK_IPV4: "127.0.0.1",
+  LOCALHOST: "localhost",
+  LOOPBACK_IPV6: "::1",
+  MAPPED_LOOPBACK_IPV4: "::ffff:127.0.0.1",
+} as const;
+
+const HOOK_IPC_LOCAL_HTTP_HOSTS = new Set<string>([
+  HOOK_IPC_LOCAL_HOST.LOOPBACK_IPV4,
+  HOOK_IPC_LOCAL_HOST.LOCALHOST,
+]);
+
+const HOOK_IPC_LOCAL_REMOTE_ADDRESSES = new Set<string>([
+  HOOK_IPC_LOCAL_HOST.LOOPBACK_IPV4,
+  HOOK_IPC_LOCAL_HOST.LOOPBACK_IPV6,
+  HOOK_IPC_LOCAL_HOST.MAPPED_LOOPBACK_IPV4,
+]);
+
 const HOOK_IPC_TRANSPORT = {
   UNIX_SOCKET: "unix_socket",
   HTTP: "http",
@@ -39,6 +57,7 @@ const HOOK_IPC_TRANSPORT = {
 
 const HOOK_IPC_HANDLER = {
   METHOD_GUARD: "method_guard",
+  ORIGIN_GUARD: "origin_guard",
 } as const;
 
 type HookIpcTransport = (typeof HOOK_IPC_TRANSPORT)[keyof typeof HOOK_IPC_TRANSPORT];
@@ -108,7 +127,7 @@ export class HookIpcServer {
 
     this.transport = transport;
     this.socketPath = options.socketPath ?? defaultSocketPath(process.pid);
-    this.host = options.host ?? HOOK_IPC_DEFAULT.HOST;
+    this.host = this.resolveHttpHost(options.host ?? HOOK_IPC_DEFAULT.HOST);
     this.port = options.port ?? 0;
     this.requestTimeoutMs = options.requestTimeoutMs ?? CURSOR_LIMIT.HOOK_REQUEST_TIMEOUT_MS;
   }
@@ -130,6 +149,24 @@ export class HookIpcServer {
     }
 
     const server = http.createServer(async (req, res) => {
+      if (this.endpoint?.transport === HOOK_IPC_TRANSPORT.HTTP && !this.isLocalHttpRequest(req)) {
+        logRequestValidationFailure(
+          this.logger,
+          {
+            source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+            handler: HOOK_IPC_HANDLER.ORIGIN_GUARD,
+            method: req.method ?? "",
+            pathname: req.url ?? HOOK_IPC_DEFAULT.PATHNAME,
+          },
+          {
+            error: SERVER_RESPONSE_MESSAGE.ORIGIN_NOT_ALLOWED,
+            mappedMessage: SERVER_RESPONSE_MESSAGE.ORIGIN_NOT_ALLOWED,
+          }
+        );
+        sendErrorResponse(res, HTTP_STATUS.FORBIDDEN, SERVER_RESPONSE_MESSAGE.ORIGIN_NOT_ALLOWED);
+        return;
+      }
+
       if (req.method !== HTTP_METHOD.POST) {
         logRequestValidationFailure(
           this.logger,
@@ -242,6 +279,38 @@ export class HookIpcServer {
 
     if (endpoint?.transport === HOOK_IPC_TRANSPORT.UNIX_SOCKET) {
       await unlink(this.socketPath).catch(() => undefined);
+    }
+  }
+
+  private resolveHttpHost(host: string): string {
+    const normalizedHost = host.trim().toLowerCase();
+    if (HOOK_IPC_LOCAL_HTTP_HOSTS.has(normalizedHost)) {
+      return normalizedHost;
+    }
+    this.logger.warn("Hook IPC HTTP host must be local; falling back to loopback", {
+      requestedHost: host,
+      fallbackHost: HOOK_IPC_DEFAULT.HOST,
+    });
+    return HOOK_IPC_DEFAULT.HOST;
+  }
+
+  private isLocalHttpRequest(request: http.IncomingMessage): boolean {
+    const remoteAddress = request.socket.remoteAddress ?? "";
+    if (!HOOK_IPC_LOCAL_REMOTE_ADDRESSES.has(remoteAddress)) {
+      return false;
+    }
+    return this.isLocalHostHeader(request.headers.host);
+  }
+
+  private isLocalHostHeader(hostHeader: string | undefined): boolean {
+    if (!hostHeader) {
+      return false;
+    }
+    try {
+      const parsedHost = new URL(`http://${hostHeader}`).hostname.toLowerCase();
+      return HOOK_IPC_LOCAL_HTTP_HOSTS.has(parsedHost);
+    } catch (_error) {
+      return false;
     }
   }
 

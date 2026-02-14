@@ -15,6 +15,7 @@ export const SERVER_RESPONSE_MESSAGE = {
   FAILED_TO_LOAD_HARNESSES: "Failed to load harnesses",
   AUTHORIZATION_REQUIRED: "Authorization required",
   INVALID_CREDENTIALS: "Invalid credentials",
+  ORIGIN_NOT_ALLOWED: "Origin not allowed",
 } as const;
 
 export type ServerResponseMessage =

@@ -3774,9 +3774,17 @@
   - expanded
     `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts`
     with timeout escalation assertions (`SIGTERM` -> `SIGKILL`)
+- Completed P0 backlog item B10 Hook IPC HTTP local-origin lock down:
+  - hardened `src/core/cursor/hook-ipc-server.ts` to enforce local-only HTTP
+    host binding and reject disallowed host headers / non-local remote origins
+  - added explicit forbidden origin response semantics and constants updates in
+    `src/config/limits.ts`, `src/constants/http-status.ts`, and
+    `src/constants/server-response-messages.ts`
+  - expanded hook IPC and http-status unit coverage for local-host fallback and
+    origin-guard behavior
 - New next candidate:
-  - evaluate severity backlog item B10 by locking down Hook IPC HTTP mode with
-    strict local-only binding and request-origin validation
+  - evaluate severity backlog item B11 by enforcing strict request-body memory
+    bounds under compressed/slow-client input patterns
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

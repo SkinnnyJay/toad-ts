@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B10 Hook IPC HTTP local-origin lock down hardening)
+
+### Summary
+- Completed P0 backlog item B10 in `PLAN3.md` by hardening
+  `src/core/cursor/hook-ipc-server.ts`.
+- Enforced local-only Hook IPC HTTP host binding with fallback from non-local
+  host configuration values to loopback.
+- Added HTTP origin guard that validates remote address + host header localness
+  before processing Hook IPC requests in HTTP mode.
+- Added explicit forbidden response semantics/constants:
+  - `HTTP_STATUS.FORBIDDEN`
+  - `SERVER_RESPONSE_MESSAGE.ORIGIN_NOT_ALLOWED`
+- Expanded unit coverage in:
+  - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+  - `__tests__/unit/constants/http-status.unit.test.ts`
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts __tests__/unit/constants/http-status.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B09 timeout kill escalation hardening for cli-agent runners)
 
 ### Summary

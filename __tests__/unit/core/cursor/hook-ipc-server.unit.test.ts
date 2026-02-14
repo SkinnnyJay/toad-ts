@@ -57,7 +57,8 @@ const postJson = async (endpoint: HookIpcEndpoint, payload: Record<string, unkno
 const requestHttpEndpoint = async (
   endpoint: HookIpcEndpoint,
   method: string,
-  body?: string
+  body?: string,
+  headers?: Record<string, string>
 ): Promise<{ status: number; payload: Record<string, unknown> }> => {
   if (endpoint.transport !== "http" || !endpoint.url) {
     throw new Error("HTTP endpoint required");
@@ -65,13 +66,66 @@ const requestHttpEndpoint = async (
 
   const response = await fetch(endpoint.url, {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...headers,
+    },
     body,
   });
   return {
     status: response.status,
     payload: (await response.json()) as Record<string, unknown>,
   };
+};
+
+const requestHttpEndpointWithNodeHeaders = async (
+  endpoint: HookIpcEndpoint,
+  method: string,
+  body?: string,
+  headers?: Record<string, string>
+): Promise<{ status: number; payload: Record<string, unknown> }> => {
+  if (endpoint.transport !== "http" || !endpoint.url) {
+    throw new Error("HTTP endpoint required");
+  }
+
+  const target = new URL(endpoint.url);
+  return await new Promise<{ status: number; payload: Record<string, unknown> }>(
+    (resolve, reject) => {
+      const request = http.request(
+        {
+          method,
+          hostname: target.hostname,
+          port: target.port,
+          path: target.pathname,
+          headers: {
+            "Content-Type": "application/json",
+            ...headers,
+          },
+        },
+        (response) => {
+          const chunks: string[] = [];
+          response.on("data", (chunk: Buffer | string) => {
+            chunks.push(chunk.toString());
+          });
+          response.on("end", () => {
+            try {
+              resolve({
+                status: response.statusCode ?? 0,
+                payload: JSON.parse(chunks.join("")) as Record<string, unknown>,
+              });
+            } catch (error) {
+              reject(error);
+            }
+          });
+        }
+      );
+      request.on("error", (error) => reject(error));
+      if (body) {
+        request.write(body);
+      }
+      request.end();
+    }
+  );
 };
 
 const createValidHookPayload = (): Record<string, string> => ({
@@ -88,6 +142,7 @@ const HOOK_REQUEST_STREAM_ERROR = {
 
 const HOOK_IPC_HANDLER = {
   METHOD_GUARD: "method_guard",
+  ORIGIN_GUARD: "origin_guard",
 } as const;
 
 const getHookIpcWarnSpy = (hookServer: HookIpcServer) => {
@@ -206,6 +261,18 @@ describe("HookIpcServer", () => {
     expect(response.decision).toBe(PERMISSION.ALLOW);
   });
 
+  it("falls back to loopback host when non-local http host is configured", async () => {
+    server = new HookIpcServer({
+      transport: "http",
+      host: "0.0.0.0",
+      port: 0,
+    });
+    const endpoint = await server.start();
+
+    expect(endpoint.transport).toBe("http");
+    expect(endpoint.url).toContain("127.0.0.1");
+  });
+
   it("falls back to http transport when unix socket startup fails", async () => {
     server = new HookIpcServer({
       transport: "unix_socket",
@@ -267,6 +334,35 @@ describe("HookIpcServer", () => {
       pathname: "/",
       error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       mappedMessage: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+    });
+    warnSpy.mockRestore();
+  });
+
+  it("rejects non-local host header requests in http mode", async () => {
+    server = new HookIpcServer({ transport: "http" });
+    const warnSpy = getHookIpcWarnSpy(server);
+    const endpoint = await server.start();
+
+    const response = await requestHttpEndpointWithNodeHeaders(
+      endpoint,
+      "POST",
+      JSON.stringify(createValidHookPayload()),
+      {
+        Host: "malicious.example",
+      }
+    );
+
+    expect(response).toEqual({
+      status: HTTP_STATUS.FORBIDDEN,
+      payload: { error: SERVER_RESPONSE_MESSAGE.ORIGIN_NOT_ALLOWED },
+    });
+    expect(warnSpy).toHaveBeenCalledWith("Request validation failed", {
+      source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+      handler: HOOK_IPC_HANDLER.ORIGIN_GUARD,
+      method: "POST",
+      pathname: "/",
+      error: SERVER_RESPONSE_MESSAGE.ORIGIN_NOT_ALLOWED,
+      mappedMessage: SERVER_RESPONSE_MESSAGE.ORIGIN_NOT_ALLOWED,
     });
     warnSpy.mockRestore();
   });

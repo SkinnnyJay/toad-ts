@@ -6734,6 +6734,28 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - improve guarantees that timeout kill paths aggressively reap stuck child
       process trees under high churn on POSIX and Windows kill-tree backends.
 
+## Execution Log Addendum — 2026-02-14 (B10 Hook IPC HTTP local-origin lock down hardening)
+
+- Additional P0 backlog hardening for Hook IPC HTTP transport security:
+  - Updated:
+    - `src/core/cursor/hook-ipc-server.ts`
+    - `src/config/limits.ts`
+    - `src/constants/http-status.ts`
+    - `src/constants/server-response-messages.ts`
+    - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+    - `__tests__/unit/constants/http-status.unit.test.ts`
+  - Hardening changes:
+    - enforced local-only HTTP host binding for Hook IPC (`127.0.0.1` /
+      `localhost`) with explicit fallback when non-local hosts are configured.
+    - added request-origin guard in HTTP mode validating both remote address and
+      host header localness before handling payloads.
+    - added forbidden response semantics for disallowed origin traffic and
+      expanded constants (`HTTP_STATUS.FORBIDDEN`, `ORIGIN_NOT_ALLOWED`).
+    - expanded Hook IPC unit coverage for host fallback and origin rejection.
+  - Goal:
+    - lock down Hook IPC HTTP mode to local-only traffic and reject
+      non-local-origin requests deterministically.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6747,7 +6769,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B07 | P0 | replace `startsWith` cwd containment check with canonical path comparison safe for case-insensitive filesystems.
 - [x] - B08 | P0 | prevent process signal handler accumulation across repeated runner lifecycles to avoid listener leaks.
 - [x] - B09 | P0 | guarantee timeout kill path reaps grandchildren on Windows and POSIX under high churn.
-- [ ] - B10 | P0 | secure HTTP Hook IPC mode with explicit local-only binding and request-origin validation.
+- [x] - B10 | P0 | secure HTTP Hook IPC mode with explicit local-only binding and request-origin validation.
 - [ ] - B11 | P0 | enforce strict request-body memory bounds for all JSON endpoints under compressed/slowloris inputs.
 - [ ] - B12 | P0 | cap session stream in-memory message accumulation for very long-running sessions.
 - [ ] - B13 | P0 | add bounded retry/backoff strategy with jitter for diff worker and external process bridges to prevent retry storms.

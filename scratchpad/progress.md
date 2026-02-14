@@ -849,6 +849,9 @@
   - completed P0 backlog item B09 by hardening timeout kill-path behavior in
     cli-agent runners with SIGTERM→SIGKILL escalation and explicit stuck-process
     warning semantics
+  - completed P0 backlog item B10 by locking Hook IPC HTTP transport to local
+    host bindings and local-origin request validation with explicit forbidden
+    responses for non-local traffic
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first
