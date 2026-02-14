@@ -551,6 +551,11 @@
     empty runtime value
   - verifies fallback-to-default behavior remains stable across repeated
     requests with distinct valid session ids
+- Added repeated merged blank-command override continuity hardening:
+  - headless integration now validates repeated explicit mock sessions when
+    merged project/user override keeps `mock` id but command is blank
+  - verifies fallback-to-default behavior remains stable across repeated
+    requests with distinct valid session ids
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
