@@ -3681,10 +3681,19 @@
   - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
     rejection, and valid-prompt recovery remain stable under the expanded
     stacked reconnect-order asymmetry matrix
+- Added merged env-map reconnect-order post-close prompt-burst recovery-vamplate asymmetry hardening:
+  - reconnect-order post-close prompt-burst recovery-cartouche coverage now
+    applies asymmetric post-close prompt-burst recovery-vamplate jitter per
+    order path
+  - `SSE-first` cycles use lower post-close prompt-burst recovery-vamplate
+    jitter, while `websocket-first` cycles use higher post-close prompt-burst
+    recovery-vamplate jitter
+  - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
+    rejection, and valid-prompt recovery remain stable under the expanded
+    stacked reconnect-order asymmetry matrix
 - New next candidate:
-  - evaluate whether reconnect-order post-close prompt-burst recovery-cartouche
-    asymmetry should include asymmetric post-close prompt-burst recovery-vamplate
-    jitter by order path
+  - evaluate severity backlog item B01 by enforcing deterministic shell-session
+    teardown for Windows `cmd.exe /K` lifecycle cleanup
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers
