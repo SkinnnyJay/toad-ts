@@ -1,5 +1,33 @@
 # Scratchpad Journal
 
+## 2026-02-14 (reconnect-order post-close prompt-burst recovery-lock asymmetry)
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Changes:
+  - expanded reconnect-order post-close prompt-burst recovery-guard coverage
+    with asymmetric post-close prompt-burst recovery-lock jitter amplitudes
+    per order path
+  - added order-path lock asymmetry assertions for each cycle:
+    - `postClosePromptBurstRecoveryLockJitterSseFirstByCycleMs`
+    - `postClosePromptBurstRecoveryLockJitterWebsocketFirstByCycleMs`
+  - applied lock jitter for intra-cycle handoff after post-close prompt-burst
+    recovery-guard jitter to further harden reconnect inversion
+- Validation:
+  - Targeted:
+    - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps reconnect-order inversion stable across dual cadence stream cycles"` ✅
+    - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - Full gates (equivalent commands; bun/bunx unavailable in this shell):
+    - `bun run lint` ❌ (`bun: command not found`)
+    - `npx biome check . && npx eslint .` ✅
+    - `bun run typecheck` ❌ (`bun: command not found`)
+    - `npx tsc --noEmit` ✅
+    - `bun run test` ❌ (`bun: command not found`)
+    - `npx vitest run` ✅
+    - `bun run build` ❌ (`bun: command not found`)
+    - `npx tsup` ✅
+    - `bun run check:literals:strict` ❌ (`bun: command not found`)
+    - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (reconnect-order post-close prompt-burst recovery-guard asymmetry)
 - Updated:
   - `__tests__/integration/server/headless-server.integration.test.ts`
