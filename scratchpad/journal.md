@@ -1,5 +1,33 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B21 macOS completion-sound process retention hardening)
+
+### Summary
+- Completed P1 backlog item B21 in `PLAN3.md` by preventing completion-sound
+  subprocess accumulation on macOS.
+- Updated `src/utils/sound/completion-sound.utils.ts` with:
+  - single-active-child guard for `afplay`,
+  - close/error lifecycle reset handling,
+  - non-detached spawn mode to avoid detached process accumulation.
+- Added `resetCompletionSoundStateForTests` helper for deterministic tests.
+- Added focused unit coverage in
+  `__tests__/unit/utils/completion-sound.utils.unit.test.ts`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/completion-sound.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B20 crash-safe temp artifact cleanup hardening)
 
 ### Summary

@@ -6957,6 +6957,24 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - guarantee best-effort cleanup of UNIX socket files and temp artifacts on
       abrupt termination.
 
+## Execution Log Addendum — 2026-02-14 (B21 macOS completion-sound process retention hardening)
+
+- Additional P1 backlog hardening for macOS sound subprocess churn:
+  - Updated:
+    - `src/utils/sound/completion-sound.utils.ts`
+    - `__tests__/unit/utils/completion-sound.utils.unit.test.ts` (new)
+  - Hardening changes:
+    - replaced detached fire-and-forget sound spawning with single-active-child
+      guard semantics.
+    - prevented parallel `afplay` spawns while an existing completion sound
+      process remains active.
+    - added deterministic state reset helper for tests.
+    - added focused unit coverage for non-mac no-op and parallel spawn
+      suppression/recovery behavior.
+  - Goal:
+    - prevent detached `afplay` process accumulation during rapid completion
+      events on macOS.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6984,7 +7002,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 
 ### P1 - High impact performance, reliability, and platform parity
 
-- [ ] - B21 | P1 | prevent detached `afplay` process accumulation during rapid completion events on macOS.
+- [x] - B21 | P1 | prevent detached `afplay` process accumulation during rapid completion events on macOS.
 - [ ] - B22 | P1 | add explicit Linux desktop capability detection (X11/Wayland/headless) for clipboard and UI-dependent flows.
 - [ ] - B23 | P1 | fix Windows command quoting/escaping for paths containing spaces, `&`, `^`, and unicode characters.
 - [ ] - B24 | P1 | remove implicit shell cwd coupling by isolating command execution context per request.

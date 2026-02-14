@@ -3869,9 +3869,14 @@
     `src/utils/editor/externalEditor.ts`
   - added focused cleanup coverage in
     `__tests__/unit/utils/temp-artifact-cleanup.utils.unit.test.ts`
+- Completed P1 backlog item B21 macOS completion-sound process retention hardening:
+  - updated `src/utils/sound/completion-sound.utils.ts` to enforce single-active
+    `afplay` process behavior
+  - added focused unit coverage in
+    `__tests__/unit/utils/completion-sound.utils.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B21 by preventing detached `afplay`
-    accumulation during rapid completion events on macOS
+  - evaluate severity backlog item B22 by adding explicit Linux desktop
+    capability detection for clipboard/UI-dependent flows
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers
