@@ -5132,6 +5132,274 @@ describe("headless server", () => {
     }
   });
 
+  it("keeps reconnect-order inversion stable across dual cadence stream cycles", async () => {
+    const projectRoot = await mkdtemp(
+      path.join(tmpdir(), "toadstool-headless-project-env-stream-order-inversion-")
+    );
+    const homeRoot = await mkdtemp(
+      path.join(tmpdir(), "toadstool-headless-home-env-stream-order-inversion-")
+    );
+    const projectHarnessDirectory = path.join(projectRoot, FILE_PATH.TOADSTOOL_DIR);
+    const homeHarnessDirectory = path.join(homeRoot, FILE_PATH.TOADSTOOL_DIR);
+    const projectHarnessFilePath = path.join(projectHarnessDirectory, FILE_PATH.HARNESSES_JSON);
+    const homeHarnessFilePath = path.join(homeHarnessDirectory, FILE_PATH.HARNESSES_JSON);
+    const originalHome = process.env.HOME;
+    const originalCwd = process.cwd();
+    const originalCursorCommand = process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND];
+    const originalGeminiCommand = process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND];
+
+    await mkdir(projectHarnessDirectory, { recursive: true });
+    await mkdir(homeHarnessDirectory, { recursive: true });
+
+    await writeFile(
+      projectHarnessFilePath,
+      JSON.stringify(
+        {
+          defaultHarness: HARNESS_DEFAULT.MOCK_ID,
+          harnesses: {
+            [HARNESS_DEFAULT.MOCK_ID]: {
+              name: "Mock",
+              command: HARNESS_DEFAULT.MOCK_ID,
+              env: {
+                PROJECT_TOKEN: "project-value",
+              },
+            },
+          },
+        },
+        null,
+        2
+      )
+    );
+    await writeFile(
+      homeHarnessFilePath,
+      JSON.stringify(
+        {
+          harnesses: {
+            [HARNESS_DEFAULT.MOCK_ID]: {
+              env: {
+                PROJECT_TOKEN: "${TOADSTOOL_CURSOR_COMMAND}",
+                USER_TOKEN: "${TOADSTOOL_GEMINI_COMMAND}",
+              },
+            },
+          },
+        },
+        null,
+        2
+      )
+    );
+
+    process.env.HOME = homeRoot;
+    process.chdir(projectRoot);
+    process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = undefined;
+    process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] = undefined;
+    EnvManager.resetInstance();
+
+    const distributeCreatesAcrossReconnects = (
+      createCount: number,
+      reconnectCount: number
+    ): number[] => {
+      const baseCount = Math.floor(createCount / reconnectCount);
+      const remainder = createCount % reconnectCount;
+      const segmentSizes: number[] = [];
+      for (let index = 0; index < reconnectCount; index += 1) {
+        segmentSizes.push(baseCount + (index < remainder ? 1 : 0));
+      }
+      return segmentSizes;
+    };
+
+    let server: Awaited<ReturnType<typeof startHeadlessServer>> | null = null;
+    let activeSocket: WebSocket | null = null;
+    try {
+      server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+      const { host, port } = server.address();
+      const baseUrl = `http://${host}:${port}`;
+
+      const createCountByCycle = [2, 2] as const;
+      const websocketReconnectCadenceByCycle = [1, 2] as const;
+      const sseReconnectCadenceByCycle = [2, 1] as const;
+      const openSseFirstByCycle = [true, false] as const;
+      const invalidPromptBurstByCycle = [1, 2] as const;
+      const createdSessionIds: string[] = [];
+      let createRequestIndex = 0;
+
+      for (let cycleIndex = 0; cycleIndex < createCountByCycle.length; cycleIndex += 1) {
+        const cycleCreateCount = createCountByCycle[cycleIndex];
+        const websocketSegmentSizes = distributeCreatesAcrossReconnects(
+          cycleCreateCount,
+          websocketReconnectCadenceByCycle[cycleIndex]
+        );
+        const sseSegmentSizes = distributeCreatesAcrossReconnects(
+          cycleCreateCount,
+          sseReconnectCadenceByCycle[cycleIndex]
+        );
+        const cycleSessionIds: string[] = [];
+        let websocketSegmentIndex = 0;
+        let sseSegmentIndex = 0;
+        let websocketSegmentRemaining = 0;
+        let sseSegmentRemaining = 0;
+        let websocketSegmentSessionIds: string[] = [];
+        let websocketSegmentPromise: Promise<string[]> | null = null;
+        let sseSegmentExpectedCount = 0;
+        let stateUpdatePromise: Promise<Array<Record<string, unknown>>> | null = null;
+
+        const openNextWebsocketSegment = async (): Promise<void> => {
+          const expectedCount = websocketSegmentSizes[websocketSegmentIndex];
+          websocketSegmentIndex += 1;
+          activeSocket = new WebSocket(`ws://${host}:${port}`);
+          await waitForOpen(activeSocket);
+          websocketSegmentRemaining = expectedCount;
+          websocketSegmentSessionIds = [];
+          websocketSegmentPromise = collectSessionCreatedEvents(activeSocket, expectedCount);
+        };
+
+        const openNextSseSegment = (): void => {
+          sseSegmentExpectedCount = sseSegmentSizes[sseSegmentIndex];
+          sseSegmentIndex += 1;
+          sseSegmentRemaining = sseSegmentExpectedCount;
+          stateUpdatePromise = (async (): Promise<Array<Record<string, unknown>>> => {
+            const stateUpdateResponse = await fetch(`${baseUrl}/api/events`);
+            expect(stateUpdateResponse.status).toBe(200);
+            const contentType = stateUpdateResponse.headers.get("content-type") ?? "";
+            expect(contentType).toContain("text/event-stream");
+            return collectStateUpdateEvents(stateUpdateResponse, sseSegmentExpectedCount);
+          })();
+        };
+
+        for (let cycleCreateIndex = 0; cycleCreateIndex < cycleCreateCount; cycleCreateIndex += 1) {
+          if (websocketSegmentRemaining === 0 && sseSegmentRemaining === 0) {
+            if (openSseFirstByCycle[cycleIndex]) {
+              openNextSseSegment();
+              await openNextWebsocketSegment();
+            } else {
+              await openNextWebsocketSegment();
+              openNextSseSegment();
+            }
+          } else if (websocketSegmentRemaining === 0) {
+            await openNextWebsocketSegment();
+          } else if (sseSegmentRemaining === 0) {
+            openNextSseSegment();
+          }
+
+          await new Promise<void>((resolve) => {
+            setTimeout(() => resolve(), (cycleIndex + cycleCreateIndex + createRequestIndex) % 3);
+          });
+
+          const createSessionRequestBody =
+            createRequestIndex % 2 === 0 ? {} : { harnessId: HARNESS_DEFAULT.MOCK_ID };
+          const createResponse = await fetch(`${baseUrl}/sessions`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(createSessionRequestBody),
+          });
+          expect(createResponse.status).toBe(200);
+          const createdSession = createSessionResponseSchema.parse(await createResponse.json());
+          createdSessionIds.push(createdSession.sessionId);
+          cycleSessionIds.push(createdSession.sessionId);
+          websocketSegmentSessionIds.push(createdSession.sessionId);
+          websocketSegmentRemaining -= 1;
+          sseSegmentRemaining -= 1;
+          createRequestIndex += 1;
+
+          if (websocketSegmentRemaining === 0) {
+            await expect(websocketSegmentPromise).resolves.toEqual(websocketSegmentSessionIds);
+            await new Promise<void>((resolve) => {
+              if (activeSocket?.readyState === WebSocket.CLOSED) {
+                resolve();
+                return;
+              }
+              activeSocket?.once("close", () => resolve());
+              activeSocket?.close();
+            });
+            activeSocket = null;
+            websocketSegmentPromise = null;
+          }
+
+          if (sseSegmentRemaining === 0) {
+            const stateUpdates = z
+              .array(
+                z
+                  .object({
+                    connectionStatus: z.string().optional(),
+                    currentSessionId: z.string().optional(),
+                  })
+                  .passthrough()
+              )
+              .parse(await stateUpdatePromise);
+            expect(stateUpdates).toHaveLength(sseSegmentExpectedCount);
+            stateUpdatePromise = null;
+          }
+        }
+
+        expect(websocketSegmentIndex).toBe(websocketSegmentSizes.length);
+        expect(sseSegmentIndex).toBe(sseSegmentSizes.length);
+
+        for (const sessionId of cycleSessionIds) {
+          for (
+            let invalidAttemptIndex = 0;
+            invalidAttemptIndex < invalidPromptBurstByCycle[cycleIndex];
+            invalidAttemptIndex += 1
+          ) {
+            const invalidPromptResponse = await fetch(`${baseUrl}/sessions/${sessionId}/prompt`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({}),
+            });
+            expect(invalidPromptResponse.status).toBe(400);
+          }
+
+          const validPromptResponse = await fetch(`${baseUrl}/sessions/${sessionId}/prompt`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              prompt: `Reconnect-order inversion prompt cycle ${cycleIndex + 1}.`,
+            }),
+          });
+          expect(validPromptResponse.status).toBe(200);
+        }
+      }
+
+      const expectedTotalCreates = createCountByCycle.reduce(
+        (totalCreates, cycleCreateCount) => totalCreates + cycleCreateCount,
+        0
+      );
+      expect(createdSessionIds).toHaveLength(expectedTotalCreates);
+      expect(new Set(createdSessionIds).size).toBe(expectedTotalCreates);
+    } finally {
+      if (activeSocket) {
+        await new Promise<void>((resolve) => {
+          if (activeSocket?.readyState === WebSocket.CLOSED) {
+            resolve();
+            return;
+          }
+          activeSocket?.once("close", () => resolve());
+          activeSocket?.close();
+        });
+      }
+      if (server) {
+        await server.close();
+      }
+      process.chdir(originalCwd);
+      if (originalHome === undefined) {
+        process.env.HOME = undefined;
+      } else {
+        process.env.HOME = originalHome;
+      }
+      if (originalCursorCommand === undefined) {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = undefined;
+      } else {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = originalCursorCommand;
+      }
+      if (originalGeminiCommand === undefined) {
+        process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] = undefined;
+      } else {
+        process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] = originalGeminiCommand;
+      }
+      EnvManager.resetInstance();
+      await rm(projectRoot, { recursive: true, force: true });
+      await rm(homeRoot, { recursive: true, force: true });
+    }
+  });
+
   it("keeps server responsive after repeated fallback explicit mock requests", async () => {
     const temporaryRoot = await mkdtemp(
       path.join(tmpdir(), "toadstool-headless-fallback-default-")

@@ -643,6 +643,12 @@
     session create requests continue
   - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity plus
     invalid-prompt burst recovery stability across combined cadence permutations
+- Added merged env-map reconnect-order inversion hardening:
+  - headless integration now validates alternating reconnect-order inversion per
+    cycle (SSE-first vs websocket-first) while dual websocket/SSE cadence
+    variation remains active
+  - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity plus
+    invalid-prompt burst recovery stability under both reconnect orders
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

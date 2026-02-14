@@ -1747,6 +1747,33 @@
 - Targeted:
   - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
 
+## 2026-02-14 (Merged env-map reconnect-order inversion coverage)
+
+### Summary
+- Added headless integration coverage for dual-cadence reconnect flows that
+  alternate reconnect-order inversion by cycle:
+  - SSE-first (`SSE -> websocket`) in selected cycles.
+  - websocket-first (`websocket -> SSE`) in alternating cycles.
+- Test validates:
+  - websocket `SESSION_CREATED` segment continuity remains stable.
+  - SSE `STATE_UPDATE` segment continuity remains stable.
+  - invalid-prompt bursts are rejected and valid-prompt recovery succeeds
+    across all sessions created under both reconnect orders.
+  - created session ids remain unique across the full order-inversion run.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps reconnect-order inversion stable across dual cadence stream cycles"` ✅
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (Merged env-map variable SSE cadence reconnect coverage)
 
 ### Summary

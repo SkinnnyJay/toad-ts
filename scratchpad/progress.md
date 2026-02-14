@@ -229,6 +229,8 @@
     websocket+SSE continuity assertions across per-cycle reconnect cadence
   - added merged env-map dual cadence reconnect coverage with websocket+SSE
     continuity assertions across per-cycle websocket and SSE cadence variation
+  - added merged env-map reconnect-order inversion coverage with websocket+SSE
+    continuity assertions across alternating SSE-first/websocket-first cycles
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
