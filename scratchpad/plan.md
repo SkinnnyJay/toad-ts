@@ -3854,9 +3854,15 @@
   - added process concurrency limit constant in `src/config/limits.ts`
   - added focused unit coverage in
     `__tests__/unit/utils/process-concurrency.utils.unit.test.ts`
+- Completed P0 backlog item B19 clipboard pipe bounds/stall hardening:
+  - added payload-size cap and child stall timeout/termination guard in
+    `src/utils/clipboard/clipboard.utils.ts`
+  - added clipboard pipe limits in `src/config/limits.ts`
+  - expanded clipboard unit coverage for oversized payload and stalled child
+    behavior in `__tests__/unit/utils/clipboard.utils.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B19 by protecting clipboard command pipes
-    from large payload spikes and stalled child processes
+  - evaluate severity backlog item B20 by guaranteeing crash-safe cleanup of
+    UNIX socket files and temporary artifacts on abrupt termination
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

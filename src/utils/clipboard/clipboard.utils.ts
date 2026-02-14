@@ -1,7 +1,9 @@
 import { spawn } from "node:child_process";
+import { LIMIT } from "@/config/limits";
 
 import { ENV_KEY } from "@/constants/env-keys";
 import { PLATFORM } from "@/constants/platform";
+import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
 
 const CLIPBOARD_COMMAND = {
@@ -53,14 +55,36 @@ const tryClipboardCommand = async (
   text: string
 ): Promise<boolean> =>
   new Promise((resolve) => {
+    if (Buffer.byteLength(text, "utf8") > LIMIT.CLIPBOARD_PIPE_MAX_BYTES) {
+      resolve(false);
+      return;
+    }
+
     const child = spawn(command, args, { stdio: ["pipe", "ignore", "ignore"] });
-    child.on("error", () => resolve(false));
-    child.on("close", (code) => resolve(code === 0));
+    let settled = false;
+
+    const resolveOnce = (result: boolean): void => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(stallTimeout);
+      resolve(result);
+    };
+
+    const stallTimeout = setTimeout(() => {
+      child.kill(SIGNAL.SIGTERM);
+      resolveOnce(false);
+    }, LIMIT.CLIPBOARD_PIPE_TIMEOUT_MS);
+    stallTimeout.unref();
+
+    child.on("error", () => resolveOnce(false));
+    child.on("close", (code) => resolveOnce(code === 0));
     if (child.stdin) {
       child.stdin.write(text);
       child.stdin.end();
     } else {
-      resolve(false);
+      resolveOnce(false);
     }
   });
 

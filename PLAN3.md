@@ -6924,6 +6924,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - prevent runaway concurrent spawn storms across shell/provider pathways.
 
+## Execution Log Addendum — 2026-02-14 (B19 clipboard pipe bounds and stall guard hardening)
+
+- Additional P0 backlog hardening for clipboard command pipe safety:
+  - Updated:
+    - `src/utils/clipboard/clipboard.utils.ts`
+    - `src/config/limits.ts`
+    - `__tests__/unit/utils/clipboard.utils.unit.test.ts`
+  - Hardening changes:
+    - added maximum clipboard payload byte cap before spawning pipe children.
+    - added clipboard child stall timeout with deterministic SIGTERM kill path.
+    - added explicit clipboard pipe bounds constants.
+    - expanded unit coverage for oversized payload rejection and stalled child
+      termination behavior.
+  - Goal:
+    - prevent clipboard command pipe memory spikes and stalled child hangs.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6946,7 +6962,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B16 | P0 | cap provider stream parser buffers to prevent unbounded growth with malformed/infinite streams.
 - [x] - B17 | P0 | add lifecycle cleanup for completed background tasks to prevent long-session memory creep.
 - [x] - B18 | P0 | enforce global process concurrency limits for spawned shell/provider tasks.
-- [ ] - B19 | P0 | protect clipboard command pipes from large-payload memory spikes and stalled child processes.
+- [x] - B19 | P0 | protect clipboard command pipes from large-payload memory spikes and stalled child processes.
 - [ ] - B20 | P0 | guarantee crash-safe cleanup of UNIX socket files and temporary artifacts on abrupt termination.
 
 ### P1 - High impact performance, reliability, and platform parity

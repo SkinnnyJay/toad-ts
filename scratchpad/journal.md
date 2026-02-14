@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B19 clipboard pipe bounds/stall hardening)
+
+### Summary
+- Completed P0 backlog item B19 in `PLAN3.md` by hardening clipboard command
+  pipe size/time bounds.
+- Updated `src/utils/clipboard/clipboard.utils.ts` with:
+  - pre-spawn max clipboard payload byte cap,
+  - stall timeout for clipboard child completion,
+  - deterministic SIGTERM kill on stall timeout,
+  - guarded single-resolution behavior for error/close/timeout races.
+- Added clipboard limits in `src/config/limits.ts`:
+  - `CLIPBOARD_PIPE_MAX_BYTES`
+  - `CLIPBOARD_PIPE_TIMEOUT_MS`
+- Expanded `__tests__/unit/utils/clipboard.utils.unit.test.ts` with:
+  - oversized payload rejection without spawning,
+  - stalled child timeout + kill-path verification.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/clipboard.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B18 spawned-process concurrency guard hardening)
 
 ### Summary
