@@ -2603,3 +2603,18 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock mixed request-order + validation continuity under merged env-map
       empty-expansion scenarios.
+
+## Execution Log Addendum — 2026-02-13 (merged env-map repeated invalid-cycle continuity coverage)
+
+- Additional merged env-map invalid-cycle integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for repeated invalid prompt validation cycles
+      across multiple sessions under merged env-map empty-expansion config.
+    - verifies invalid prompt payload rejection remains stable across sessions.
+    - verifies valid prompt recovery and trailing session creation continue to
+      succeed in the same runtime after repeated validation failures.
+  - Goal:
+    - lock long-run validation-cycle continuity under merged env-map
+      empty-expansion scenarios.

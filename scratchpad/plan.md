@@ -578,6 +578,11 @@
     empty-expansion configuration
   - verifies subsequent valid prompt and trailing session creation remain
     successful after validation failure in the same runtime
+- Added merged env-map repeated invalid-cycle continuity hardening:
+  - headless integration now validates repeated invalid prompt payload cycles
+    across multiple sessions under merged env-map empty-expansion configuration
+  - verifies validation rejection stability plus valid prompt recovery and
+    trailing session creation continuity in the same runtime
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
