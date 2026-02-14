@@ -533,6 +533,12 @@
     and server falls back to default harness config
   - verifies repeated fallback requests return successful responses and distinct
     session ids in the same runtime
+- Added repeated merged-runtime override continuity hardening:
+  - headless integration now validates repeated default session failures when
+    project/user merged config preserves `cursor-cli` id but user override sets
+    cursor command to an invalid runtime value
+  - verifies canonical repeated server-error responses and follow-up explicit
+    mock session continuity in the same runtime
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

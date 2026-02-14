@@ -2470,3 +2470,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock continuity semantics for project/user harness merge override
       edge-cases that invalidate selected default harness resolution.
+
+## Execution Log Addendum — 2026-02-13 (repeated merged-runtime override continuity coverage)
+
+- Additional merged-runtime override continuity integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for repeated default `/sessions` requests when
+      project/user merged harness config preserves `cursor-cli` id but user
+      overrides cursor command to an invalid runtime value.
+    - verifies repeated default requests return canonical server-error
+      responses under merged override connect failures.
+    - verifies explicit `mock` session creation remains operational in the same
+      runtime after repeated merged override failures.
+  - Goal:
+    - lock continuity semantics for merged config runtime-override failures
+      while preserving harness-id resolution behavior.

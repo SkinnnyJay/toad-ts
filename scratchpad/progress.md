@@ -189,6 +189,8 @@
   - added headless integration coverage for repeated fallback-trigger explicit
     mock session creation when project/user merged config selects a missing user
     default harness id
+  - added headless integration coverage for repeated merged config runtime
+    override failures (invalid cursor command) with post-failure mock continuity
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
