@@ -3739,9 +3739,19 @@
   - added focused clipboard unit coverage in
     `__tests__/unit/utils/clipboard.utils.unit.test.ts` for Wayland preference,
     X11 fallback, and headless no-spawn behavior
+- Completed P0 backlog item B06 path-escape detection hardening:
+  - added shared traversal detection utility in
+    `src/utils/pathEscape.utils.ts`
+  - updated `TerminalHandler` and `TerminalManager` path-escape validation to
+    normalize separators and detect Windows/mixed traversal payloads
+    (e.g. `..\\`, `..\\nested/../evil`)
+  - expanded unit coverage in
+    `__tests__/unit/core/terminal-handler.unit.test.ts` and
+    `__tests__/unit/tools/terminal-manager.unit.test.ts` for Windows-style and
+    mixed-separator rejection semantics
 - New next candidate:
-  - evaluate severity backlog item B06 by hardening path-escape detection for
-    Windows separators (`..\\`) and mixed-separator payloads
+  - evaluate severity backlog item B07 by replacing naive cwd containment checks
+    with canonical path comparison safe for case-insensitive filesystems
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

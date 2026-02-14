@@ -34,6 +34,18 @@ describe("TerminalHandler", () => {
     await expect(handler.exec("../evil", [])).rejects.toThrow("path escape");
   });
 
+  it("rejects windows-style path escape when not allowed", async () => {
+    const handler = new TerminalHandler({ defaultCwd: "/tmp" });
+    await expect(handler.exec("..\\evil", [])).rejects.toThrow("path escape");
+  });
+
+  it("rejects mixed-separator path escape arguments when not allowed", async () => {
+    const handler = new TerminalHandler({ defaultCwd: "/tmp" });
+    await expect(handler.exec(process.execPath, ["..\\nested/../evil"])).rejects.toThrow(
+      "path escape"
+    );
+  });
+
   it("allows escape when opted in", async () => {
     const handler = new TerminalHandler({ defaultCwd: "/tmp", allowEscape: true });
     const result = await handler.exec(process.execPath, ["-e", "process.stdout.write('ok')"], {

@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B06 path-escape detection hardening for Windows/mixed separators)
+
+### Summary
+- Completed P0 backlog item B06 in `PLAN3.md` by hardening path-traversal
+  detection shared across terminal execution code paths.
+- Added shared utility `src/utils/pathEscape.utils.ts` for separator-normalized
+  parent traversal detection.
+- Updated `src/core/terminal-handler.ts` and
+  `src/tools/terminal-manager.ts` to use the shared utility, closing bypasses
+  with Windows-style (`..\\`) and mixed-separator traversal payloads.
+- Expanded unit coverage in:
+  - `__tests__/unit/core/terminal-handler.unit.test.ts`
+  - `__tests__/unit/tools/terminal-manager.unit.test.ts`
+  to assert Windows-style and mixed-separator rejection behavior.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/core/terminal-handler.unit.test.ts __tests__/unit/tools/terminal-manager.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B05 Linux clipboard Wayland/headless reliability hardening)
 
 ### Summary

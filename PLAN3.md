@@ -6653,6 +6653,26 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - close Linux clipboard reliability gaps across Wayland and headless modes
       while preserving deterministic fallback behavior.
 
+## Execution Log Addendum — 2026-02-14 (B06 path-escape detection hardening for Windows/mixed separators)
+
+- Additional P0 backlog hardening for path traversal rejection:
+  - Updated:
+    - `src/utils/pathEscape.utils.ts`
+    - `src/core/terminal-handler.ts`
+    - `src/tools/terminal-manager.ts`
+    - `__tests__/unit/core/terminal-handler.unit.test.ts`
+    - `__tests__/unit/tools/terminal-manager.unit.test.ts`
+  - Hardening changes:
+    - introduced shared path-escape detection utility with separator
+      normalization to consistently identify `..` traversal segments.
+    - upgraded terminal command/argument validation to detect Windows separator
+      escape forms (`..\\`) and mixed separator payloads (`..\\nested/../evil`).
+    - expanded terminal handler and terminal manager unit coverage for
+      Windows-style and mixed-separator escape rejection paths.
+  - Goal:
+    - prevent traversal bypasses caused by Windows separator and mixed-separator
+      payloads in command/session path validation flows.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6662,7 +6682,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B03 | P0 | add retention/eviction for `TerminalManager.sessions` to prevent unbounded memory growth from unreleased sessions.
 - [x] - B04 | P0 | harden Hook IPC transport selection for Windows socket/path edge cases and force deterministic fallback behavior.
 - [x] - B05 | P0 | close Linux clipboard reliability gap by handling Wayland (`wl-copy`) and headless display failure modes.
-- [ ] - B06 | P0 | fix path-escape detection for Windows separators (`..\\`) and mixed separator payloads.
+- [x] - B06 | P0 | fix path-escape detection for Windows separators (`..\\`) and mixed separator payloads.
 - [ ] - B07 | P0 | replace `startsWith` cwd containment check with canonical path comparison safe for case-insensitive filesystems.
 - [ ] - B08 | P0 | prevent process signal handler accumulation across repeated runner lifecycles to avoid listener leaks.
 - [ ] - B09 | P0 | guarantee timeout kill path reaps grandchildren on Windows and POSIX under high churn.

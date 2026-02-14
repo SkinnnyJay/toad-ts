@@ -72,3 +72,24 @@ describe("TerminalManager session retention", () => {
     manager.release(replacementSession);
   });
 });
+
+describe("TerminalManager path escape detection", () => {
+  it("rejects windows-style command path escapes when escape is disallowed", () => {
+    const manager = new TerminalManager({ allowEscape: false });
+    expect(() =>
+      manager.createSession({
+        command: "..\\evil",
+      })
+    ).toThrow("path escape");
+  });
+
+  it("rejects mixed-separator argument path escapes when escape is disallowed", () => {
+    const manager = new TerminalManager({ allowEscape: false });
+    expect(() =>
+      manager.createSession({
+        command: process.execPath,
+        args: ["..\\nested/../evil"],
+      })
+    ).toThrow("path escape");
+  });
+});
