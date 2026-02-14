@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added repeated explicit cursor connect-failure integration coverage:
+  - headless integration now verifies consecutive explicit `harnessId:
+    "cursor-cli"` session requests return canonical server-error responses when
+    cursor command connect checks fail
+  - validates explicit `mock` session creation still succeeds after repeated
+    explicit cursor connect-failure requests
 - Added repeated default cursor-disabled integration coverage:
   - headless integration now verifies repeated default `/sessions` requests
     return canonical adapter-not-registered responses when `defaultHarness` is

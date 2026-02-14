@@ -2371,3 +2371,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock continuity semantics under repeated default-route adapter-disabled
       response cycles.
+
+## Execution Log Addendum — 2026-02-13 (repeated explicit cursor connect-failure coverage)
+
+- Additional explicit-harness resilience integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for repeated explicit `harnessId: "cursor-cli"`
+      session requests when cursor adapter is enabled but cursor command fails
+      connection checks.
+    - verifies consecutive explicit cursor requests return canonical
+      server-error responses.
+    - verifies explicit `mock` session creation still succeeds after repeated
+      explicit cursor connect-failure paths in the same runtime.
+  - Goal:
+    - lock continuity semantics under repeated explicit cursor connect-failure
+      request cycles.

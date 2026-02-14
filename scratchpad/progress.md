@@ -175,6 +175,8 @@
     responses when cursor default harness remains configured but adapter is disabled
   - added headless integration coverage for repeated default-route adapter-not-
     registered responses under cursor-disabled default harness configuration
+  - added headless integration coverage for repeated explicit cursor connect-
+    failure requests with post-failure mock continuity checks
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
