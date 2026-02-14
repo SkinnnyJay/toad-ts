@@ -856,6 +856,9 @@
     with strict preflight header checks, bounded read duration, and
     deterministic compressed/slow-client rejection semantics across server
     endpoints
+  - completed P0 backlog item B12 by adding bounded per-session in-memory
+    message retention in app-store append flows with deterministic oldest-first
+    eviction and cross-session retention isolation
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

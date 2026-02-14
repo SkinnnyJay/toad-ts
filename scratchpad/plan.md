@@ -3796,9 +3796,16 @@
     - `__tests__/integration/server/headless-server.integration.test.ts`
     for compressed-body rejection, malformed header handling, timeout behavior,
     and endpoint-level invalid-request mapping consistency
+- Completed P0 backlog item B12 in-memory session message cap hardening:
+  - added `LIMIT.SESSION_MESSAGES_MAX_IN_MEMORY` and enforced per-session
+    retention bounds in `src/store/app-store.ts` append path
+  - evicts oldest messages for capped sessions from `state.messages` while
+    preserving message retention for other sessions
+  - expanded `__tests__/unit/store/app-store.unit.test.ts` with deterministic
+    eviction-order and cross-session isolation assertions
 - New next candidate:
-  - evaluate severity backlog item B12 by capping in-memory session stream
-    message accumulation for long-running sessions
+  - evaluate severity backlog item B13 by adding bounded retry/backoff strategy
+    with jitter for diff worker and external process bridges
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

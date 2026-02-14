@@ -6782,6 +6782,26 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - enforce deterministic memory-safe request body handling across JSON
       endpoints under compressed and slow-client input conditions.
 
+## Execution Log Addendum — 2026-02-14 (B12 in-memory session message cap hardening)
+
+- Additional P0 backlog hardening for long-running session memory stability:
+  - Updated:
+    - `src/store/app-store.ts`
+    - `src/config/limits.ts`
+    - `__tests__/unit/store/app-store.unit.test.ts`
+  - Hardening changes:
+    - introduced bounded per-session in-memory message retention
+      (`SESSION_MESSAGES_MAX_IN_MEMORY`) in app-store append flows.
+    - evicts oldest session-local messages from global message map when
+      per-session retention cap is exceeded.
+    - preserves message isolation so capping one session does not evict
+      messages from other active sessions.
+    - expanded app-store unit coverage for deterministic eviction order and
+      cross-session retention safety.
+  - Goal:
+    - prevent unbounded in-memory session message accumulation under very
+      long-running streaming/chat workloads.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6797,7 +6817,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B09 | P0 | guarantee timeout kill path reaps grandchildren on Windows and POSIX under high churn.
 - [x] - B10 | P0 | secure HTTP Hook IPC mode with explicit local-only binding and request-origin validation.
 - [x] - B11 | P0 | enforce strict request-body memory bounds for all JSON endpoints under compressed/slowloris inputs.
-- [ ] - B12 | P0 | cap session stream in-memory message accumulation for very long-running sessions.
+- [x] - B12 | P0 | cap session stream in-memory message accumulation for very long-running sessions.
 - [ ] - B13 | P0 | add bounded retry/backoff strategy with jitter for diff worker and external process bridges to prevent retry storms.
 - [ ] - B14 | P0 | add transaction/statement timeouts and cancellation paths for long-running SQLite operations.
 - [ ] - B15 | P0 | ensure update-check and remote metadata calls never block startup critical path.

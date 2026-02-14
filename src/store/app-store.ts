@@ -121,19 +121,33 @@ export const useAppStore = create<AppStore>()((set: StoreApi<AppStore>["setState
     set((state) => {
       const parsed = MessageSchema.parse(message);
       const session = state.sessions[parsed.sessionId];
-      const updatedSession: Session | undefined = session
-        ? {
-            ...session,
-            messageIds: [...session.messageIds, parsed.id],
-            updatedAt: Date.now(),
-          }
-        : undefined;
+      const nextMessages: AppState["messages"] = { ...state.messages, [parsed.id]: parsed };
+      if (!session) {
+        return {
+          messages: nextMessages,
+          sessions: state.sessions,
+        } as Partial<AppState>;
+      }
+
+      const nextMessageIds = [...session.messageIds, parsed.id];
+      const boundedMessageIds = nextMessageIds.slice(-LIMIT.SESSION_MESSAGES_MAX_IN_MEMORY);
+      const droppedMessageCount = nextMessageIds.length - boundedMessageIds.length;
+      if (droppedMessageCount > 0) {
+        const droppedMessageIds = nextMessageIds.slice(0, droppedMessageCount);
+        for (const messageId of droppedMessageIds) {
+          delete nextMessages[messageId];
+        }
+      }
+
+      const updatedSession: Session = {
+        ...session,
+        messageIds: boundedMessageIds,
+        updatedAt: Date.now(),
+      };
 
       return {
-        messages: { ...state.messages, [parsed.id]: parsed },
-        sessions: updatedSession
-          ? { ...state.sessions, [parsed.sessionId]: updatedSession }
-          : state.sessions,
+        messages: nextMessages,
+        sessions: { ...state.sessions, [parsed.sessionId]: updatedSession },
       } as Partial<AppState>;
     }),
   updateMessage: ({ messageId, patch }) =>

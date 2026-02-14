@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B12 in-memory session message cap hardening)
+
+### Summary
+- Completed P0 backlog item B12 in `PLAN3.md` by hardening app-store message
+  retention semantics for long-running sessions.
+- Added `SESSION_MESSAGES_MAX_IN_MEMORY` in `src/config/limits.ts`.
+- Updated `src/store/app-store.ts` append path to:
+  - cap per-session `messageIds` length,
+  - evict oldest over-cap messages from global `messages` map for that session,
+  - preserve other sessions’ messages.
+- Expanded `__tests__/unit/store/app-store.unit.test.ts` with:
+  - deterministic oldest-first eviction assertions,
+  - cross-session isolation checks.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/store/app-store.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B11 strict request-body memory bounds hardening)
 
 ### Summary

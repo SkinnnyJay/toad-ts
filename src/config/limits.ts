@@ -48,6 +48,7 @@ export const LIMIT = {
   MESSAGE_LIST_MIN_SCROLLAREA_HEIGHT: 3,
   MESSAGE_LIST_TOOL_CALL_LINES: 2,
   MESSAGE_LIST_MESSAGE_MARGIN_ROWS: 2,
+  SESSION_MESSAGES_MAX_IN_MEMORY: 1000,
   /** Column width used to estimate wrapped line count for left message bar height. */
   MESSAGE_BAR_WRAP_WIDTH: 80,
   /** Extra lines added to left bar height while streaming so bar reaches bottom of streamed text. */
@@ -214,6 +215,7 @@ export const {
   MESSAGE_LIST_MIN_SCROLLAREA_HEIGHT,
   MESSAGE_LIST_TOOL_CALL_LINES,
   MESSAGE_LIST_MESSAGE_MARGIN_ROWS,
+  SESSION_MESSAGES_MAX_IN_MEMORY,
   MESSAGE_BAR_WRAP_WIDTH,
   STREAMING_BAR_BUFFER_LINES,
   CONTEXT_TOKEN_BUDGET,
