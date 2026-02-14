@@ -1002,6 +1002,15 @@
   - evaluate whether reconnect-order post-close segment-rearm handoff asymmetry
     should include asymmetric post-close prompt-burst handoff jitter by order
     path
+- Added severity-ordered simplification backlog in PLAN3:
+  - appended 50 incomplete tasks using strict checkbox plan format
+    (`- [ ] - ...`) with no emoji markers
+  - tasks categorized by severity (P0/P1/P2) and focused on:
+    - cross-platform reliability (Windows/Linux/macOS)
+    - performance and memory-pressure hardening
+    - process lifecycle leak prevention
+    - NutJS capability/readiness and fallback safety
+    - simplification-first architecture cleanup
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

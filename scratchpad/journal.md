@@ -2280,6 +2280,33 @@
 ### Git
 - Branch: `cursor/plan3-tasks-completion-62e5`
 
+## 2026-02-14 (Plan backlog expansion and checklist format normalization)
+
+### Summary
+- Updated `PLAN3.md` to add a severity-ordered backlog of 50 incomplete tasks
+  focused on:
+  - critical bugs and reliability gaps
+  - performance and memory-leak risks
+  - cross-platform behavior (Windows/Linux/macOS)
+  - NutJS capability, safety, and CI-readiness
+  - simplification-first cleanup opportunities
+- Ensured new plan entries use strict checklist formatting with no emoji:
+  - `- [ ] - ...` for incomplete tasks
+  - existing completed entries remain `- [x] - ...` where applicable
+
+### Validation
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+### Git
+- Branch: `cursor/plan3-tasks-completion-62e5`
+
 ## 2026-02-14 (Merged env-map reconnect-order post-close create scheduling asymmetry coverage)
 
 ### Summary

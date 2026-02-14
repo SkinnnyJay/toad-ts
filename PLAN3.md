@@ -3425,3 +3425,64 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock reconnect-order continuity when post-close segment-rearm handoff
       timing varies asymmetrically by order path.
+
+## Incomplete Critical Backlog (Severity Ordered)
+
+### P0 - Critical stability, safety, and cross-platform correctness
+
+- [ ] - B01 | P0 | shell-session keeps `cmd.exe /K` alive; enforce hard session teardown to prevent command shell leaks on Windows.
+- [ ] - B02 | P0 | verify detached child process cleanup across POSIX and Windows in `cli-agent-process-runner` to prevent orphan subprocess trees.
+- [ ] - B03 | P0 | add retention/eviction for `TerminalManager.sessions` to prevent unbounded memory growth from unreleased sessions.
+- [ ] - B04 | P0 | harden Hook IPC transport selection for Windows socket/path edge cases and force deterministic fallback behavior.
+- [ ] - B05 | P0 | close Linux clipboard reliability gap by handling Wayland (`wl-copy`) and headless display failure modes.
+- [ ] - B06 | P0 | fix path-escape detection for Windows separators (`..\\`) and mixed separator payloads.
+- [ ] - B07 | P0 | replace `startsWith` cwd containment check with canonical path comparison safe for case-insensitive filesystems.
+- [ ] - B08 | P0 | prevent process signal handler accumulation across repeated runner lifecycles to avoid listener leaks.
+- [ ] - B09 | P0 | guarantee timeout kill path reaps grandchildren on Windows and POSIX under high churn.
+- [ ] - B10 | P0 | secure HTTP Hook IPC mode with explicit local-only binding and request-origin validation.
+- [ ] - B11 | P0 | enforce strict request-body memory bounds for all JSON endpoints under compressed/slowloris inputs.
+- [ ] - B12 | P0 | cap session stream in-memory message accumulation for very long-running sessions.
+- [ ] - B13 | P0 | add bounded retry/backoff strategy with jitter for diff worker and external process bridges to prevent retry storms.
+- [ ] - B14 | P0 | add transaction/statement timeouts and cancellation paths for long-running SQLite operations.
+- [ ] - B15 | P0 | ensure update-check and remote metadata calls never block startup critical path.
+- [ ] - B16 | P0 | cap provider stream parser buffers to prevent unbounded growth with malformed/infinite streams.
+- [ ] - B17 | P0 | add lifecycle cleanup for completed background tasks to prevent long-session memory creep.
+- [ ] - B18 | P0 | enforce global process concurrency limits for spawned shell/provider tasks.
+- [ ] - B19 | P0 | protect clipboard command pipes from large-payload memory spikes and stalled child processes.
+- [ ] - B20 | P0 | guarantee crash-safe cleanup of UNIX socket files and temporary artifacts on abrupt termination.
+
+### P1 - High impact performance, reliability, and platform parity
+
+- [ ] - B21 | P1 | prevent detached `afplay` process accumulation during rapid completion events on macOS.
+- [ ] - B22 | P1 | add explicit Linux desktop capability detection (X11/Wayland/headless) for clipboard and UI-dependent flows.
+- [ ] - B23 | P1 | fix Windows command quoting/escaping for paths containing spaces, `&`, `^`, and unicode characters.
+- [ ] - B24 | P1 | remove implicit shell cwd coupling by isolating command execution context per request.
+- [ ] - B25 | P1 | optimize terminal output byte trimming to avoid O(n^2) behavior for large outputs.
+- [ ] - B26 | P1 | optimize sentinel completion scanning in shell sessions to avoid repeated full-buffer scans.
+- [ ] - B27 | P1 | formalize Hook IPC auth/nonce handshake for HTTP transport mode.
+- [ ] - B28 | P1 | reduce repeated large env snapshot merges in hot command paths.
+- [ ] - B29 | P1 | add regression tests for signal attach/detach idempotency across reconnect cycles.
+- [ ] - B30 | P1 | add SQLite maintenance policy (vacuum/pragma optimize/checkpoint) to stabilize long-lived performance.
+- [ ] - B31 | P1 | add cancellation tokens and depth limits to recursive file/search operations.
+- [ ] - B32 | P1 | introduce transcript virtualization strategy for very large chat histories.
+- [ ] - B33 | P1 | avoid full markdown reparsing on each chunk; adopt incremental parse/update path.
+- [ ] - B34 | P1 | stream session export writes instead of building large in-memory payloads.
+- [ ] - B35 | P1 | batch and throttle token optimizer telemetry writes to reduce IO pressure.
+- [ ] - B36 | P1 | cache update-check results with TTL to prevent repeated remote calls in one runtime.
+- [ ] - B37 | P1 | de-correlate provider retries to avoid synchronized thundering-herd behavior.
+- [ ] - B38 | P1 | bound error log payload size for provider streaming failures.
+- [ ] - B39 | P1 | throttle command-palette/filter recompute path under rapid keypress input.
+- [ ] - B40 | P1 | add hard caps for nested hook/prompt subprocess chains.
+
+### P2 - Simplification-first hardening, NutJS readiness, and maintainability
+
+- [ ] - B41 | P2 | consolidate platform-specific command resolution into one shared platform adapter.
+- [ ] - B42 | P2 | deduplicate shell invocation logic between shell-session, interactive-shell, and background-task-manager.
+- [ ] - B43 | P2 | simplify clipboard fallback chain into explicit capability-ranked strategy.
+- [ ] - B44 | P2 | simplify reconnect jitter test scaffolding by generating jitter matrices from typed config.
+- [ ] - B45 | P2 | replace repeated `new Promise(setTimeout...)` blocks with shared typed delay helpers.
+- [ ] - B46 | P2 | add NutJS capability detector with explicit unsupported-platform no-op behavior.
+- [ ] - B47 | P2 | add NutJS permission diagnostics (macOS Accessibility, Linux display backend, Windows integrity level).
+- [ ] - B48 | P2 | gate NutJS execution behind feature flag and security allowlist.
+- [ ] - B49 | P2 | add cross-platform NutJS smoke checks (Windows/Linux/macOS) in CI matrix.
+- [ ] - B50 | P2 | document and simplify fallback precedence for platform + NutJS + clipboard + sound paths.
