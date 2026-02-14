@@ -3967,9 +3967,15 @@
     `src/utils/token-optimizer/telemetryStorage.ts`
   - added timer-window batching coverage in
     `__tests__/unit/utils/telemetry-storage.unit.test.ts`
+- Completed P1 backlog item B36 update-check runtime TTL caching:
+  - added runtime update-check TTL limit in `src/config/limits.ts`
+  - implemented runtime in-memory update-check result caching in
+    `src/utils/update-check.ts`
+  - added focused dedupe coverage in
+    `__tests__/unit/utils/update-check.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B36 by caching update-check results with
-    runtime TTL
+  - evaluate severity backlog item B37 by de-correlating provider retry bursts
+    to avoid synchronized thundering-herd behavior
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

@@ -7232,6 +7232,23 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - reduce frequent per-snapshot fs writes and IO contention while preserving
       telemetry data integrity semantics.
 
+## Execution Log Addendum — 2026-02-14 (B36 update-check runtime TTL caching hardening)
+
+- Additional P1 backlog hardening for repeated update-check overhead:
+  - Updated:
+    - `src/config/limits.ts`
+    - `src/utils/update-check.ts`
+    - `__tests__/unit/utils/update-check.unit.test.ts`
+  - Hardening changes:
+    - added runtime update-check TTL cache window in addition to disk cache.
+    - memoized update-check outcomes (including failed fetch attempts) within
+      runtime TTL to avoid repeated filesystem/network calls.
+    - extended scheduler test reset path to clear runtime cache state.
+    - added focused regression coverage for repeated runtime check deduping.
+  - Goal:
+    - avoid repeated update-check filesystem/network work during a single
+      process runtime while preserving scheduled check behavior.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7274,7 +7291,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B33 | P1 | avoid full markdown reparsing on each chunk; adopt incremental parse/update path.
 - [x] - B34 | P1 | stream session export writes instead of building large in-memory payloads.
 - [x] - B35 | P1 | batch and throttle token optimizer telemetry writes to reduce IO pressure.
-- [ ] - B36 | P1 | cache update-check results with TTL to prevent repeated remote calls in one runtime.
+- [x] - B36 | P1 | cache update-check results with TTL to prevent repeated remote calls in one runtime.
 - [ ] - B37 | P1 | de-correlate provider retries to avoid synchronized thundering-herd behavior.
 - [ ] - B38 | P1 | bound error log payload size for provider streaming failures.
 - [ ] - B39 | P1 | throttle command-palette/filter recompute path under rapid keypress input.

@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B36 update-check runtime TTL caching hardening)
+
+### Summary
+- Completed P1 backlog item B36 in `PLAN3.md` by adding per-runtime TTL caching
+  for update-check outcomes.
+- Updated:
+  - `src/config/limits.ts`
+  - `src/utils/update-check.ts`
+  - `__tests__/unit/utils/update-check.unit.test.ts`
+- Changes:
+  - introduced runtime update-check TTL cache state that memoizes recent check
+    outcomes (including failed fetch attempts).
+  - ensured test reset utility clears runtime cache state.
+  - added focused unit coverage validating repeated check dedupe behavior.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/update-check.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B35 telemetry write batching/throttling hardening)
 
 ### Summary
