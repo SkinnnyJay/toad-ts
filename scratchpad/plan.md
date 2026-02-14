@@ -3701,9 +3701,21 @@
   - added focused unit coverage in
     `__tests__/unit/tools/shell-session.unit.test.ts` for active+queued
     dispose rejection semantics and Windows forced-teardown signals
+- Completed P0 backlog item B02 detached process-tree cleanup hardening:
+  - added `killTreeFn` injection support in
+    `src/core/cli-agent/cli-agent-process-runner.ts` to make process-tree
+    cleanup behavior explicit and testable
+  - hardened Windows process-tree teardown with bounded-timeout
+    `taskkill /PID <pid> /T /F` and direct child-kill fallback
+  - preserved POSIX detached process-group kill semantics while enforcing
+    deterministic fallback behavior when process-tree kill paths fail
+  - expanded
+    `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts`
+    with detached spawn semantics coverage and cross-platform fallback kill
+    assertions for streaming disconnect cleanup
 - New next candidate:
-  - evaluate severity backlog item B02 by validating detached child-process
-    tree cleanup across POSIX/Windows in cli-agent process runners
+  - evaluate severity backlog item B03 by adding retention/eviction bounds for
+    `TerminalManager` sessions to prevent unbounded memory growth
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

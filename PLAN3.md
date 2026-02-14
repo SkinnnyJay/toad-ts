@@ -6574,12 +6574,32 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - prevent command-shell leakage for Windows `cmd.exe /K` sessions and
       enforce deterministic teardown behavior across shell runtime lifecycles.
 
+## Execution Log Addendum — 2026-02-14 (B02 detached process-tree cleanup hardening for cli-agent runners)
+
+- Additional P0 backlog hardening for cross-platform detached-process cleanup:
+  - Updated:
+    - `src/core/cli-agent/cli-agent-process-runner.ts`
+    - `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts`
+  - Hardening changes:
+    - added injectable process-tree kill strategy (`killTreeFn`) to verify and
+      enforce detached-process cleanup behavior across platforms.
+    - hardened Windows process-tree teardown via `taskkill /PID <pid> /T /F`
+      with bounded timeout and failure fallback to direct child kill.
+    - preserved POSIX process-group termination semantics while standardizing
+      fallback behavior when group-kill paths fail.
+    - expanded unit coverage for detached spawn semantics (`detached=true` on
+      POSIX, `false` on Windows) and cross-platform fallback kill behavior when
+      process-tree termination fails.
+  - Goal:
+    - prevent orphan subprocess trees by verifying cleanup guarantees for
+      detached cli-agent child processes on POSIX and Windows.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
 
 - [x] - B01 | P0 | shell-session keeps `cmd.exe /K` alive; enforce hard session teardown to prevent command shell leaks on Windows.
-- [ ] - B02 | P0 | verify detached child process cleanup across POSIX and Windows in `cli-agent-process-runner` to prevent orphan subprocess trees.
+- [x] - B02 | P0 | verify detached child process cleanup across POSIX and Windows in `cli-agent-process-runner` to prevent orphan subprocess trees.
 - [ ] - B03 | P0 | add retention/eviction for `TerminalManager.sessions` to prevent unbounded memory growth from unreleased sessions.
 - [ ] - B04 | P0 | harden Hook IPC transport selection for Windows socket/path edge cases and force deterministic fallback behavior.
 - [ ] - B05 | P0 | close Linux clipboard reliability gap by handling Wayland (`wl-copy`) and headless display failure modes.

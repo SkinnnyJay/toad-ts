@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B02 detached process-tree cleanup hardening for cli-agent runners)
+
+### Summary
+- Completed P0 backlog item B02 in `PLAN3.md` by hardening
+  `src/core/cli-agent/cli-agent-process-runner.ts`.
+- Added explicit injectable process-tree kill strategy (`killTreeFn`) to make
+  detached-process cleanup behavior deterministic and testable across
+  POSIX/Windows.
+- Hardened Windows process-tree teardown using bounded-timeout
+  `taskkill /PID <pid> /T /F` with direct child-kill fallback.
+- Expanded
+  `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts` with:
+  - detached spawn semantics assertions (POSIX detached vs Windows non-detached),
+  - fallback kill behavior assertions for both Windows and POSIX when process-tree
+    kill paths fail during streaming disconnect cleanup.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B01 deterministic shell-session teardown for Windows cmd lifecycle)
 
 ### Summary

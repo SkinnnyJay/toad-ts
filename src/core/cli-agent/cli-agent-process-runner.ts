@@ -35,6 +35,7 @@ export interface CliAgentProcessRunnerOptions {
   cwd?: string;
   env?: NodeJS.ProcessEnv;
   spawnFn?: CliAgentSpawnFunction;
+  killTreeFn?: CliAgentKillTreeFunction;
   defaultCommandTimeoutMs: number;
   forceKillTimeoutMs: number;
   loggerName: string;
@@ -46,6 +47,8 @@ type CliAgentSpawnFunction = (
   options: SpawnOptionsWithoutStdio
 ) => ChildProcessWithoutNullStreams;
 
+type CliAgentKillTreeFunction = (pid: number, signal: NodeJS.Signals) => Promise<void>;
+
 export class CliAgentProcessRunner {
   private readonly logger: ReturnType<typeof createClassLogger>;
   private readonly command: string;
@@ -53,6 +56,7 @@ export class CliAgentProcessRunner {
   private readonly cwd?: string;
   private env: NodeJS.ProcessEnv;
   private readonly spawnFn: CliAgentSpawnFunction;
+  private readonly killTreeFn: CliAgentKillTreeFunction;
   private readonly defaultCommandTimeoutMs: number;
   private readonly forceKillTimeoutMs: number;
 
@@ -65,6 +69,7 @@ export class CliAgentProcessRunner {
     this.cwd = options.cwd;
     this.env = options.env ?? {};
     this.spawnFn = options.spawnFn ?? spawn;
+    this.killTreeFn = options.killTreeFn ?? ((pid, signal) => this.killProcessTree(pid, signal));
     this.defaultCommandTimeoutMs = options.defaultCommandTimeoutMs;
     this.forceKillTimeoutMs = options.forceKillTimeoutMs;
     this.logger = createClassLogger(options.loggerName);
@@ -219,11 +224,7 @@ export class CliAgentProcessRunner {
     }
 
     try {
-      if (process.platform !== PLATFORM.WIN32) {
-        process.kill(-pid, signal);
-      } else {
-        child.kill(signal);
-      }
+      await this.killTreeFn(pid, signal);
     } catch (_error) {
       child.kill(signal);
     }
@@ -249,6 +250,54 @@ export class CliAgentProcessRunner {
     });
 
     this.cleanupChild(child);
+  }
+
+  private async killProcessTree(pid: number, signal: NodeJS.Signals): Promise<void> {
+    if (process.platform !== PLATFORM.WIN32) {
+      process.kill(-pid, signal);
+      return;
+    }
+
+    await this.killWindowsProcessTree(pid);
+  }
+
+  private async killWindowsProcessTree(pid: number): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+      const killer = spawn("taskkill", ["/PID", String(pid), "/T", "/F"], {
+        stdio: "ignore",
+      });
+
+      let settled = false;
+      const timeout = setTimeout(() => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        reject(new Error("taskkill timed out"));
+      }, this.forceKillTimeoutMs);
+
+      killer.once("error", (error) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(timeout);
+        reject(error);
+      });
+
+      killer.once("close", (exitCode) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(timeout);
+        if (exitCode === 0) {
+          resolve();
+          return;
+        }
+        reject(new Error(`taskkill exited with code ${exitCode ?? -1}`));
+      });
+    });
   }
 
   private cleanupChild(child: ChildProcessWithoutNullStreams): void {

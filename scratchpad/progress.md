@@ -824,6 +824,10 @@
     Windows dispose now forces `SIGTERM` + `SIGKILL`, active/queued commands
     are rejected on dispose, and chat runtime cleanup now disposes shell
     sessions on runtime replacement/unmount
+  - completed P0 backlog item B02 by hardening `cli-agent-process-runner`
+    detached process-tree cleanup across POSIX/Windows via explicit kill-tree
+    strategy injection, Windows `taskkill` tree termination with timeout+fallback,
+    and expanded disconnect/cleanup unit coverage
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first
