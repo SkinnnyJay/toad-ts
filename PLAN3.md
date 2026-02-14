@@ -3426,6 +3426,30 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - lock reconnect-order continuity when post-close segment-rearm handoff
       timing varies asymmetrically by order path.
 
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order post-close prompt-burst handoff asymmetry coverage)
+
+- Additional merged env-map reconnect-order post-close prompt-burst handoff asymmetry hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order post-close segment-rearm handoff coverage with
+      asymmetric post-close prompt-burst handoff jitter by reconnect order
+      path.
+    - `SSE-first` cycles now use lower post-close prompt-burst handoff jitter
+      while `websocket-first` cycles use higher post-close prompt-burst
+      handoff jitter.
+    - applies post-close prompt-burst handoff jitter after the first session in
+      each cycle and before existing post-close prompt scheduling jitter.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable while post-close prompt-burst handoff asymmetry is layered
+      with post-close segment-rearm handoff asymmetry, post-close segment-open
+      handoff asymmetry, post-close cycle-transition handoff asymmetry, post-
+      close cycle-cooldown handoff asymmetry, and post-close cycle-handoff
+      asymmetry under reconnect-order inversion.
+  - Goal:
+    - lock reconnect-order continuity when post-close prompt-burst handoff
+      timing varies asymmetrically by order path.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness

@@ -1746,6 +1746,34 @@
 ### Validation
 - Targeted:
   - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+
+## 2026-02-14 (Merged env-map reconnect-order post-close prompt-burst handoff asymmetry coverage)
+
+### Summary
+- Added reconnect-order post-close prompt-burst handoff asymmetry to
+  `keeps reconnect-order inversion stable across dual cadence stream cycles`.
+- Test now applies order-path-specific prompt-burst handoff jitter after the
+  first session handoff in each cycle, before existing post-close prompt
+  scheduling jitter.
+- Added explicit asymmetry assertions for
+  `postClosePromptBurstHandoffJitter*ByCycleMs` arrays to lock
+  `SSE-first` vs `websocket-first` divergence.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps reconnect-order inversion stable across dual cadence stream cycles"` ✅
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `npx tsc --noEmit` ✅
+  - `bun run test` ❌ (`bun: command not found`)
+  - `npx vitest run` ✅
+  - `bun run build` ❌ (`bun: command not found`)
+  - `npx tsup` ✅
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
 - Full gates (equivalent commands; bun/bunx unavailable in this shell):
   - `npx biome check . && npx eslint .` ✅
   - `npx tsc --noEmit` ✅

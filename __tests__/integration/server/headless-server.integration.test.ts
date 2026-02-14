@@ -5266,6 +5266,8 @@ describe("headless server", () => {
       const postCloseSegmentOpenHandoffJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const postCloseSegmentRearmHandoffJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
       const postCloseSegmentRearmHandoffJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
+      const postClosePromptBurstHandoffJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
+      const postClosePromptBurstHandoffJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5352,6 +5354,9 @@ describe("headless server", () => {
         );
         expect(postCloseSegmentRearmHandoffJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postCloseSegmentRearmHandoffJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postClosePromptBurstHandoffJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postClosePromptBurstHandoffJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -5568,6 +5573,17 @@ describe("headless server", () => {
         expect(sseSegmentIndex).toBe(sseSegmentSizes.length);
 
         for (const [cycleSessionIndex, sessionId] of cycleSessionIds.entries()) {
+          if (cycleSessionIndex > 0) {
+            await new Promise<void>((resolve) => {
+              const postClosePromptBurstHandoffJitterByCycle = openSseFirstByCycle[cycleIndex]
+                ? postClosePromptBurstHandoffJitterSseFirstByCycleMs[cycleIndex]
+                : postClosePromptBurstHandoffJitterWebsocketFirstByCycleMs[cycleIndex];
+              setTimeout(
+                () => resolve(),
+                (postClosePromptBurstHandoffJitterByCycle + cycleSessionIndex + cycleIndex) % 4
+              );
+            });
+          }
           await new Promise<void>((resolve) => {
             const postClosePromptJitterByCycle = openSseFirstByCycle[cycleIndex]
               ? postClosePromptJitterSseFirstByCycleMs[cycleIndex]
