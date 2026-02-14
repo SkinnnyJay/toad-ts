@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B17 background-task lifecycle retention hardening)
+
+### Summary
+- Completed P0 backlog item B17 in `PLAN3.md` by adding lifecycle retention for
+  completed background tasks.
+- Updated `src/store/background-task-store.ts` with:
+  - completed-task prune pipeline on add/update/remove paths,
+  - status-aware terminal-task classification reuse,
+  - max-entry + TTL retention enforcement while preserving running tasks.
+- Added retention constants in `src/config/limits.ts`:
+  - `BACKGROUND_TASK_COMPLETED_MAX_ENTRIES`
+  - `BACKGROUND_TASK_COMPLETED_RETENTION_MS`
+- Added focused unit coverage in
+  `__tests__/unit/store/background-task-store.unit.test.ts` for:
+  - completed history capping,
+  - stale completed-task eviction while preserving running/fresh tasks.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/store/background-task-store.unit.test.ts __tests__/unit/store/background-cleanup.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B16 provider parser-buffer cap hardening)
 
 ### Summary

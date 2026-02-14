@@ -3839,9 +3839,16 @@
   - added parser buffer size constant in `src/config/limits.ts`
   - added focused unit coverage in
     `__tests__/unit/core/stream-parser-buffer.unit.test.ts`
+- Completed P0 backlog item B17 background-task lifecycle retention hardening:
+  - added completed-task retention pruning in
+    `src/store/background-task-store.ts`
+  - enforced completed-task max-entry and TTL retention limits via
+    `src/config/limits.ts`
+  - added focused unit coverage in
+    `__tests__/unit/store/background-task-store.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B17 by adding lifecycle cleanup/retention
-    policy for completed background tasks
+  - evaluate severity backlog item B18 by enforcing global process concurrency
+    limits for spawned shell/provider/background tasks
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

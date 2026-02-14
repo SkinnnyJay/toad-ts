@@ -6882,6 +6882,24 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - prevent unbounded memory growth in provider stream parsers under malformed
       or infinite chunk streams.
 
+## Execution Log Addendum — 2026-02-14 (B17 background-task lifecycle retention hardening)
+
+- Additional P0 backlog hardening for background-task lifecycle memory bounds:
+  - Updated:
+    - `src/store/background-task-store.ts`
+    - `src/config/limits.ts`
+    - `__tests__/unit/store/background-task-store.unit.test.ts`
+  - Hardening changes:
+    - added completed-task retention pruning in background task store.
+    - enforced completed-task max-entry cap and age-based retention window while
+      preserving active/running tasks.
+    - centralized retention constants for background tasks in limits config.
+    - added focused unit coverage for completed history capping and stale
+      completed-task eviction behavior.
+  - Goal:
+    - prevent unbounded accumulation of completed/failed/cancelled background
+      tasks during long runtimes.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6902,7 +6920,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B14 | P0 | add transaction/statement timeouts and cancellation paths for long-running SQLite operations.
 - [x] - B15 | P0 | ensure update-check and remote metadata calls never block startup critical path.
 - [x] - B16 | P0 | cap provider stream parser buffers to prevent unbounded growth with malformed/infinite streams.
-- [ ] - B17 | P0 | add lifecycle cleanup for completed background tasks to prevent long-session memory creep.
+- [x] - B17 | P0 | add lifecycle cleanup for completed background tasks to prevent long-session memory creep.
 - [ ] - B18 | P0 | enforce global process concurrency limits for spawned shell/provider tasks.
 - [ ] - B19 | P0 | protect clipboard command pipes from large-payload memory spikes and stalled child processes.
 - [ ] - B20 | P0 | guarantee crash-safe cleanup of UNIX socket files and temporary artifacts on abrupt termination.
