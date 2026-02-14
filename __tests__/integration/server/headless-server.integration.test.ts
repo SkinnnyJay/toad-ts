@@ -5214,9 +5214,9 @@ describe("headless server", () => {
       const { host, port } = server.address();
       const baseUrl = `http://${host}:${port}`;
 
-      const createCountByCycle = [1, 3, 1, 3] as const;
+      const createCountByCycle = [2, 3, 2, 3] as const;
       const websocketReconnectCadenceByCycle = [1, 3, 1, 3] as const;
-      const sseReconnectCadenceByCycle = [1, 3, 1, 3] as const;
+      const sseReconnectCadenceByCycle = [2, 1, 2, 1] as const;
       const openSseFirstByCycle = [true, false, true, false] as const;
       const openOrderJitterByCycleMs = [0, 2, 1, 2] as const;
       const createJitterByCycleMs = [1, 0, 2, 0] as const;
@@ -5234,6 +5234,7 @@ describe("headless server", () => {
           cycleCreateCount,
           sseReconnectCadenceByCycle[cycleIndex]
         );
+        expect(websocketSegmentSizes.length).not.toBe(sseSegmentSizes.length);
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
         let sseSegmentIndex = 0;

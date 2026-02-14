@@ -673,6 +673,14 @@
   - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
     rejection, and valid-prompt recovery remain stable under combined cadence +
     jitter expansion by order path
+- Added merged env-map reconnect-order segment asymmetry hardening:
+  - reconnect-order inversion cadence coverage now applies asymmetric websocket
+    vs SSE reconnect segment counts per order path in the same runtime
+  - `SSE-first` cycles run fewer websocket segments and more SSE segments,
+    while `websocket-first` cycles invert that segment split
+  - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
+    rejection, and valid-prompt recovery remain stable under combined cadence +
+    jitter + segment-count asymmetry by order path
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
