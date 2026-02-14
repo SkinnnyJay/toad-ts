@@ -5238,6 +5238,8 @@ describe("headless server", () => {
       const closeInterleaveDelayWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const postCloseCreateJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
       const postCloseCreateJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
+      const postClosePromptJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
+      const postClosePromptJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5282,6 +5284,9 @@ describe("headless server", () => {
         );
         expect(postCloseCreateJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postCloseCreateJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postClosePromptJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postClosePromptJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -5446,7 +5451,16 @@ describe("headless server", () => {
         expect(websocketSegmentIndex).toBe(websocketSegmentSizes.length);
         expect(sseSegmentIndex).toBe(sseSegmentSizes.length);
 
-        for (const sessionId of cycleSessionIds) {
+        for (const [cycleSessionIndex, sessionId] of cycleSessionIds.entries()) {
+          await new Promise<void>((resolve) => {
+            const postClosePromptJitterByCycle = openSseFirstByCycle[cycleIndex]
+              ? postClosePromptJitterSseFirstByCycleMs[cycleIndex]
+              : postClosePromptJitterWebsocketFirstByCycleMs[cycleIndex];
+            setTimeout(
+              () => resolve(),
+              (postClosePromptJitterByCycle + cycleSessionIndex + cycleIndex) % 4
+            );
+          });
           const invalidBurstSpacingByCycle = openSseFirstByCycle[cycleIndex]
             ? invalidBurstSpacingSseFirstByCycleMs[cycleIndex]
             : invalidBurstSpacingWebsocketFirstByCycleMs[cycleIndex];
