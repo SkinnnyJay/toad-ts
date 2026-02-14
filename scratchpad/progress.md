@@ -191,6 +191,8 @@
     default harness id
   - added headless integration coverage for repeated merged config runtime
     override failures (invalid cursor command) with post-failure mock continuity
+  - added headless integration coverage for repeated merged env-expansion
+    override failures (empty resolved command) with fallback mock continuity
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

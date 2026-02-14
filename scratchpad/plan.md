@@ -539,6 +539,12 @@
     cursor command to an invalid runtime value
   - verifies canonical repeated server-error responses and follow-up explicit
     mock session continuity in the same runtime
+- Added repeated merged env-expansion override continuity hardening:
+  - headless integration now validates repeated explicit mock sessions when
+    merged project/user override keeps `mock` id but command env-expands to an
+    empty runtime value
+  - verifies fallback-to-default behavior remains stable across repeated
+    requests with distinct valid session ids
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
