@@ -4943,6 +4943,30 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - lock reconnect-order continuity when post-close prompt-burst recovery-
       oriflamme timing varies asymmetrically by order path.
 
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order post-close prompt-burst recovery-vexillum asymmetry coverage)
+
+- Additional merged env-map reconnect-order post-close prompt-burst recovery-vexillum asymmetry hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order post-close prompt-burst recovery-oriflamme coverage
+      with asymmetric post-close prompt-burst recovery-vexillum jitter by reconnect
+      order path.
+    - `SSE-first` cycles now use lower post-close prompt-burst recovery-vexillum
+      jitter while `websocket-first` cycles use higher post-close prompt-burst
+      recovery-vexillum jitter.
+    - applies post-close prompt-burst recovery-vexillum jitter for intra-cycle
+      session handoff after post-close prompt-burst recovery-oriflamme jitter.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable while post-close prompt-burst recovery-vexillum asymmetry is
+      layered with post-close prompt-burst recovery-oriflamme asymmetry, post-close
+      prompt-burst recovery-gonfalon asymmetry, post-close prompt-burst recovery-
+      ensign asymmetry, and post-close prompt-burst recovery-pennon asymmetry
+      under reconnect-order inversion.
+  - Goal:
+    - lock reconnect-order continuity when post-close prompt-burst recovery-
+      vexillum timing varies asymmetrically by order path.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
