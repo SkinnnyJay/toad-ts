@@ -1786,15 +1786,8 @@
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
 
 ### Git
+- Commit: `50b6b3f`
 - Branch: `cursor/plan3-tasks-completion-62e5`
-- Full gates (equivalent commands; bun/bunx unavailable in this shell):
-  - `npx biome check . && npx eslint .` ✅
-  - `npx tsc --noEmit` ✅
-  - `npx vitest run` ✅
-  - `npm run build` ❌ (`bunx: not found`)
-  - `npm run check:literals:strict` ❌ (`bun: not found`)
-  - `npx tsup` ✅
-  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
 
 ## 2026-02-14 (Merged env-map reconnect-order post-close create scheduling asymmetry coverage)
 
