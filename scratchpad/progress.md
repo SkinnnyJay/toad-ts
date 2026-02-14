@@ -221,6 +221,8 @@
     prompt bursts with websocket+SSE continuity assertions
   - added merged env-map mixed websocket close-timing reconnect coverage with
     websocket+SSE continuity assertions
+  - added merged env-map extended jitter reconnect coverage with websocket+SSE
+    continuity assertions
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

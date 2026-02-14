@@ -1902,6 +1902,31 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-14 (Merged env-map jitter reconnect coverage)
+
+### Summary
+- Added headless integration coverage for extended alternating reconnect cycles
+  with mixed websocket close timing and reconnect jitter.
+- Test validates:
+  - each jittered cycle receives websocket `SESSION_CREATED` and SSE
+    `STATE_UPDATE` events.
+  - invalid prompt rejection and valid prompt recovery remain stable in all
+    jittered cycles.
+  - session ids remain unique across the full extended sequence.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps mixed-close reconnect jitter stable across extended alternating cycles"` ✅
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
 - Full gates (equivalent commands; bun/bunx unavailable in this shell):
   - `npx biome check . && npx eslint .` ✅
   - `npx tsc --noEmit` ✅

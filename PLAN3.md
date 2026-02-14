@@ -2734,3 +2734,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock mixed websocket-close timing continuity under merged env-map
       alternating reconnect validation cycles.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map jitter reconnect coverage)
+
+- Additional merged env-map jitter reconnect hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for extended alternating reconnect cycles with
+      mixed websocket close timing plus reconnect jitter before session create.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable across the jittered sequence.
+    - verifies invalid-prompt rejection and valid-prompt recovery remain stable
+      across all jittered cycles with unique session ids.
+  - Goal:
+    - lock extended jittered reconnect continuity under merged env-map
+      validation cycles.

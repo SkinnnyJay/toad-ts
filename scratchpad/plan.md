@@ -620,6 +620,11 @@
     websocket close timing (before vs after prompt recovery)
   - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
     remains stable across mixed close-order cycles
+- Added merged env-map jitter reconnect hardening:
+  - headless integration now validates extended reconnect cycles with mixed
+    close timing and reconnect jitter before session creation
+  - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity plus
+    validation recovery stability across all jittered cycles
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
