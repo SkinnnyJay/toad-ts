@@ -1747,6 +1747,32 @@
 - Targeted:
   - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
 
+## 2026-02-14 (merged env-map reconnect-order jitter amplitude asymmetry coverage)
+
+### Summary
+- Updated `__tests__/integration/server/headless-server.integration.test.ts`
+  to expand reconnect-order segment-asymmetry coverage with asymmetric
+  websocket vs SSE segment-open jitter amplitudes per order path.
+- Test now validates:
+  - `SSE-first` cycles use lower websocket open jitter with higher SSE jitter.
+  - `websocket-first` cycles invert that jitter amplitude split.
+  - websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity stays stable
+    under combined cadence + segment-count asymmetry + jitter-amplitude
+    asymmetry + asymmetric invalid-prompt burst pressure.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps reconnect-order inversion stable across dual cadence stream cycles"` ✅
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (merged env-map reconnect-order segment asymmetry coverage)
 
 ### Summary

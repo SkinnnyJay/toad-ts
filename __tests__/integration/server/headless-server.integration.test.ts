@@ -5218,7 +5218,8 @@ describe("headless server", () => {
       const websocketReconnectCadenceByCycle = [1, 3, 1, 3] as const;
       const sseReconnectCadenceByCycle = [2, 1, 2, 1] as const;
       const openSseFirstByCycle = [true, false, true, false] as const;
-      const openOrderJitterByCycleMs = [0, 2, 1, 2] as const;
+      const websocketOpenJitterByCycleMs = [0, 3, 0, 3] as const;
+      const sseOpenJitterByCycleMs = [3, 0, 3, 0] as const;
       const createJitterByCycleMs = [1, 0, 2, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
@@ -5235,6 +5236,9 @@ describe("headless server", () => {
           sseReconnectCadenceByCycle[cycleIndex]
         );
         expect(websocketSegmentSizes.length).not.toBe(sseSegmentSizes.length);
+        expect(websocketOpenJitterByCycleMs[cycleIndex]).not.toBe(
+          sseOpenJitterByCycleMs[cycleIndex]
+        );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
         let sseSegmentIndex = 0;
@@ -5251,7 +5255,7 @@ describe("headless server", () => {
           await new Promise<void>((resolve) => {
             setTimeout(
               () => resolve(),
-              (openOrderJitterByCycleMs[cycleIndex] + websocketSegmentIndex) % 3
+              (websocketOpenJitterByCycleMs[cycleIndex] + cycleIndex + websocketSegmentIndex) % 4
             );
           });
           activeSocket = new WebSocket(`ws://${host}:${port}`);
@@ -5267,7 +5271,7 @@ describe("headless server", () => {
           await new Promise<void>((resolve) => {
             setTimeout(
               () => resolve(),
-              (openOrderJitterByCycleMs[cycleIndex] + sseSegmentIndex + 1) % 3
+              (sseOpenJitterByCycleMs[cycleIndex] + cycleIndex + sseSegmentIndex + 1) % 4
             );
           });
           sseSegmentRemaining = sseSegmentExpectedCount;

@@ -2901,3 +2901,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock reconnect-order continuity under explicit websocket/SSE segment-count
       asymmetry mapped by order path in the same runtime sequence.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order jitter amplitude asymmetry coverage)
+
+- Additional merged env-map reconnect-order jitter amplitude asymmetry hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order segment-asymmetry coverage with asymmetric
+      websocket vs SSE segment-open jitter amplitudes per order path.
+    - `SSE-first` cycles now use lower websocket/open jitter with higher SSE
+      jitter, while `websocket-first` cycles invert jitter amplitude split.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable while jitter amplitude asymmetry is layered with segment-
+      count asymmetry, per-order-path cadence, and asymmetric burst pressure.
+  - Goal:
+    - lock reconnect-order continuity when websocket/SSE segment-open jitter
+      amplitude varies asymmetrically by order path in the same runtime sequence.
