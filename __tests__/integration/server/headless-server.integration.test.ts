@@ -5234,6 +5234,8 @@ describe("headless server", () => {
       const websocketCloseDelayWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
       const sseCloseDelaySseFirstByCycleMs = [0, 2, 0, 2] as const;
       const sseCloseDelayWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
+      const closeInterleaveDelaySseFirstByCycleMs = [0, 2, 0, 2] as const;
+      const closeInterleaveDelayWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5272,6 +5274,9 @@ describe("headless server", () => {
         );
         expect(sseCloseDelaySseFirstByCycleMs[cycleIndex]).not.toBe(
           sseCloseDelayWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(closeInterleaveDelaySseFirstByCycleMs[cycleIndex]).not.toBe(
+          closeInterleaveDelayWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -5318,6 +5323,47 @@ describe("headless server", () => {
           })();
         };
 
+        const closeWebsocketSegment = async (): Promise<void> => {
+          await expect(websocketSegmentPromise).resolves.toEqual(websocketSegmentSessionIds);
+          await new Promise<void>((resolve) => {
+            const websocketCloseDelayByCycle = openSseFirstByCycle[cycleIndex]
+              ? websocketCloseDelaySseFirstByCycleMs[cycleIndex]
+              : websocketCloseDelayWebsocketFirstByCycleMs[cycleIndex];
+            setTimeout(() => resolve(), websocketCloseDelayByCycle % 4);
+          });
+          await new Promise<void>((resolve) => {
+            if (activeSocket?.readyState === WebSocket.CLOSED) {
+              resolve();
+              return;
+            }
+            activeSocket?.once("close", () => resolve());
+            activeSocket?.close();
+          });
+          activeSocket = null;
+          websocketSegmentPromise = null;
+        };
+
+        const closeSseSegment = async (): Promise<void> => {
+          const stateUpdates = z
+            .array(
+              z
+                .object({
+                  connectionStatus: z.string().optional(),
+                  currentSessionId: z.string().optional(),
+                })
+                .passthrough()
+            )
+            .parse(await stateUpdatePromise);
+          expect(stateUpdates).toHaveLength(sseSegmentExpectedCount);
+          stateUpdatePromise = null;
+          await new Promise<void>((resolve) => {
+            const sseCloseDelayByCycle = openSseFirstByCycle[cycleIndex]
+              ? sseCloseDelaySseFirstByCycleMs[cycleIndex]
+              : sseCloseDelayWebsocketFirstByCycleMs[cycleIndex];
+            setTimeout(() => resolve(), sseCloseDelayByCycle % 3);
+          });
+        };
+
         for (let cycleCreateIndex = 0; cycleCreateIndex < cycleCreateCount; cycleCreateIndex += 1) {
           if (websocketSegmentRemaining === 0 && sseSegmentRemaining === 0) {
             if (openSseFirstByCycle[cycleIndex]) {
@@ -5358,46 +5404,29 @@ describe("headless server", () => {
           websocketSegmentRemaining -= 1;
           sseSegmentRemaining -= 1;
           createRequestIndex += 1;
-
-          if (websocketSegmentRemaining === 0) {
-            await expect(websocketSegmentPromise).resolves.toEqual(websocketSegmentSessionIds);
-            await new Promise<void>((resolve) => {
-              const websocketCloseDelayByCycle = openSseFirstByCycle[cycleIndex]
-                ? websocketCloseDelaySseFirstByCycleMs[cycleIndex]
-                : websocketCloseDelayWebsocketFirstByCycleMs[cycleIndex];
-              setTimeout(() => resolve(), websocketCloseDelayByCycle % 4);
-            });
-            await new Promise<void>((resolve) => {
-              if (activeSocket?.readyState === WebSocket.CLOSED) {
-                resolve();
-                return;
-              }
-              activeSocket?.once("close", () => resolve());
-              activeSocket?.close();
-            });
-            activeSocket = null;
-            websocketSegmentPromise = null;
-          }
-
-          if (sseSegmentRemaining === 0) {
-            const stateUpdates = z
-              .array(
-                z
-                  .object({
-                    connectionStatus: z.string().optional(),
-                    currentSessionId: z.string().optional(),
-                  })
-                  .passthrough()
-              )
-              .parse(await stateUpdatePromise);
-            expect(stateUpdates).toHaveLength(sseSegmentExpectedCount);
-            stateUpdatePromise = null;
-            await new Promise<void>((resolve) => {
-              const sseCloseDelayByCycle = openSseFirstByCycle[cycleIndex]
-                ? sseCloseDelaySseFirstByCycleMs[cycleIndex]
-                : sseCloseDelayWebsocketFirstByCycleMs[cycleIndex];
-              setTimeout(() => resolve(), sseCloseDelayByCycle % 3);
-            });
+          const shouldCloseWebsocketSegment = websocketSegmentRemaining === 0;
+          const shouldCloseSseSegment = sseSegmentRemaining === 0;
+          const closeInterleaveDelayByCycle = openSseFirstByCycle[cycleIndex]
+            ? closeInterleaveDelaySseFirstByCycleMs[cycleIndex]
+            : closeInterleaveDelayWebsocketFirstByCycleMs[cycleIndex];
+          if (shouldCloseWebsocketSegment && shouldCloseSseSegment) {
+            if (openSseFirstByCycle[cycleIndex]) {
+              await closeSseSegment();
+              await new Promise<void>((resolve) => {
+                setTimeout(() => resolve(), closeInterleaveDelayByCycle % 3);
+              });
+              await closeWebsocketSegment();
+            } else {
+              await closeWebsocketSegment();
+              await new Promise<void>((resolve) => {
+                setTimeout(() => resolve(), closeInterleaveDelayByCycle % 3);
+              });
+              await closeSseSegment();
+            }
+          } else if (shouldCloseWebsocketSegment) {
+            await closeWebsocketSegment();
+          } else if (shouldCloseSseSegment) {
+            await closeSseSegment();
           }
         }
 
