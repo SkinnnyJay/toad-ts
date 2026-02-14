@@ -655,6 +655,12 @@
   - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity plus
     invalid-prompt burst recovery stability under jittered reconnect-order
     permutations
+- Added merged env-map reconnect-order asymmetric burst hardening:
+  - headless integration now validates longer reconnect-order inversion runs
+    with asymmetric invalid-prompt burst sizes mapped to stream-open order path
+    (`SSE-first` vs `websocket-first`)
+  - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity plus
+    valid-prompt recovery stability under asymmetric burst pressure
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

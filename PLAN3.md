@@ -2834,3 +2834,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock reconnect-order inversion continuity under per-cycle jitter
       variation in both stream-open orders.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order asymmetric burst coverage)
+
+- Additional merged env-map reconnect-order asymmetric burst hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order inversion coverage to run more alternating
+      `SSE -> websocket` and `websocket -> SSE` cycles under dual cadence.
+    - added asymmetric invalid-prompt burst sizes mapped to reconnect order
+      paths (`SSE-first` lower burst, `websocket-first` higher burst).
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable while asymmetric burst pressure varies by order path.
+  - Goal:
+    - lock reconnect-order continuity when invalid-prompt burst pressure is
+      asymmetric across alternating stream-open order paths.
