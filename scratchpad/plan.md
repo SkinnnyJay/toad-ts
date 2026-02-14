@@ -3251,10 +3251,20 @@
   - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
     rejection, and valid-prompt recovery remain stable under the expanded
     stacked reconnect-order asymmetry matrix
+- Added merged env-map reconnect-order post-close prompt-burst recovery-lozenge asymmetry hardening:
+  - reconnect-order post-close prompt-burst recovery-billette coverage now
+    applies asymmetric post-close prompt-burst recovery-lozenge jitter per
+    order path
+  - `SSE-first` cycles use lower post-close prompt-burst recovery-lozenge
+    jitter, while `websocket-first` cycles use higher post-close prompt-burst
+    recovery-lozenge jitter
+  - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
+    rejection, and valid-prompt recovery remain stable under the expanded
+    stacked reconnect-order asymmetry matrix
 - New next candidate:
-  - evaluate whether reconnect-order post-close prompt-burst recovery-billette
+  - evaluate whether reconnect-order post-close prompt-burst recovery-lozenge
     asymmetry should include asymmetric post-close prompt-burst recovery-
-    lozenge jitter by order path
+    fusil jitter by order path
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers
