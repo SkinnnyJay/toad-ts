@@ -600,6 +600,11 @@
     behavior after invalid prompt validation and subsequent valid prompt
   - verifies repeated `STATE_UPDATE` delivery across first and second SSE
     stream connections in the same runtime
+- Added merged env-map interleaved stream reconnect hardening:
+  - headless integration now validates interleaved websocket + `/api/events`
+    reconnect cycles across longer mixed validation sequences
+  - verifies first and second websocket/SSE connection pairs both receive
+    expected `SESSION_CREATED` and `STATE_UPDATE` events in the same runtime
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

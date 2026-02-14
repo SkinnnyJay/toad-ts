@@ -2668,3 +2668,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock SSE stream reconnect continuity after prompt validation failures
       under merged env-map validation cycles.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map interleaved stream reconnect coverage)
+
+- Additional merged env-map interleaved stream reconnect hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage that interleaves websocket and `/api/events`
+      SSE reconnect cycles under merged env-map validation flows.
+    - verifies first websocket/SSE pair remains stable during two session
+      creations with invalid prompt rejection + valid prompt recovery.
+    - verifies second websocket/SSE pair reconnects and continues receiving
+      `SESSION_CREATED` and `STATE_UPDATE` events in the same runtime.
+  - Goal:
+    - lock long-sequence interleaved websocket+SSE reconnect stability under
+      merged env-map validation cycles.

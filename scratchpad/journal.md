@@ -1802,6 +1802,30 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-14 (Merged env-map interleaved stream reconnect coverage)
+
+### Summary
+- Added headless integration coverage for interleaved websocket and `/api/events`
+  SSE reconnect cycles under merged env-map empty-expansion validation flows.
+- Test validates:
+  - first websocket/SSE pair remains stable across two session creations with
+    invalid prompt rejection and valid prompt recovery.
+  - second websocket/SSE pair reconnects and still receives
+    `SESSION_CREATED` / `STATE_UPDATE` events in the same runtime.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps interleaved websocket and sse reconnect cycles stable under merged env-map validation"` ✅
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
 - Full gates (equivalent commands; bun/bunx unavailable in this shell):
   - `npx biome check . && npx eslint .` ✅
   - `npx tsc --noEmit` ✅

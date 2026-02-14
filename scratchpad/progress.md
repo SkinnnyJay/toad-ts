@@ -213,6 +213,8 @@
     `STATE_UPDATE` SSE assertions during mixed validation cycles
   - added merged env-map `/api/events` SSE teardown/reconnect continuity
     coverage after prompt validation failures
+  - added merged env-map interleaved websocket+SSE reconnect continuity
+    coverage for longer mixed validation sequences
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

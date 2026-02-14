@@ -87,6 +87,44 @@ const collectStateUpdateEvents = async (
   throw new Error("Events stream ended before expected state-update events were collected.");
 };
 
+const collectSessionCreatedEvents = async (
+  socket: WebSocket,
+  expectedCount: number
+): Promise<string[]> => {
+  return new Promise((resolve, reject) => {
+    const sessionIds: string[] = [];
+
+    const onError = (error: Error): void => {
+      socket.off("message", onMessage);
+      socket.off("error", onError);
+      reject(error);
+    };
+
+    const onMessage = (data: WebSocket.RawData): void => {
+      try {
+        const event = serverEventSchema.parse(JSON.parse(data.toString()));
+        if (event.type !== SERVER_EVENT.SESSION_CREATED) {
+          return;
+        }
+        sessionIds.push(event.payload.sessionId);
+        if (sessionIds.length < expectedCount) {
+          return;
+        }
+        socket.off("message", onMessage);
+        socket.off("error", onError);
+        resolve(sessionIds);
+      } catch (error) {
+        socket.off("message", onMessage);
+        socket.off("error", onError);
+        reject(error);
+      }
+    };
+
+    socket.on("message", onMessage);
+    socket.on("error", onError);
+  });
+};
+
 const requestWithRawPath = (
   host: string,
   port: number,
@@ -3388,6 +3426,231 @@ describe("headless server", () => {
         .parse(await secondStreamPromise);
       expect(secondStateUpdateEvents).toHaveLength(1);
     } finally {
+      if (server) {
+        await server.close();
+      }
+      process.chdir(originalCwd);
+      if (originalHome === undefined) {
+        process.env.HOME = undefined;
+      } else {
+        process.env.HOME = originalHome;
+      }
+      if (originalCursorCommand === undefined) {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = undefined;
+      } else {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = originalCursorCommand;
+      }
+      if (originalGeminiCommand === undefined) {
+        process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] = undefined;
+      } else {
+        process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] = originalGeminiCommand;
+      }
+      EnvManager.resetInstance();
+      await rm(projectRoot, { recursive: true, force: true });
+      await rm(homeRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps interleaved websocket and sse reconnect cycles stable under merged env-map validation", async () => {
+    const projectRoot = await mkdtemp(
+      path.join(tmpdir(), "toadstool-headless-project-env-stream-reconnects-")
+    );
+    const homeRoot = await mkdtemp(
+      path.join(tmpdir(), "toadstool-headless-home-env-stream-reconnects-")
+    );
+    const projectHarnessDirectory = path.join(projectRoot, FILE_PATH.TOADSTOOL_DIR);
+    const homeHarnessDirectory = path.join(homeRoot, FILE_PATH.TOADSTOOL_DIR);
+    const projectHarnessFilePath = path.join(projectHarnessDirectory, FILE_PATH.HARNESSES_JSON);
+    const homeHarnessFilePath = path.join(homeHarnessDirectory, FILE_PATH.HARNESSES_JSON);
+    const originalHome = process.env.HOME;
+    const originalCwd = process.cwd();
+    const originalCursorCommand = process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND];
+    const originalGeminiCommand = process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND];
+
+    await mkdir(projectHarnessDirectory, { recursive: true });
+    await mkdir(homeHarnessDirectory, { recursive: true });
+
+    await writeFile(
+      projectHarnessFilePath,
+      JSON.stringify(
+        {
+          defaultHarness: HARNESS_DEFAULT.MOCK_ID,
+          harnesses: {
+            [HARNESS_DEFAULT.MOCK_ID]: {
+              name: "Mock",
+              command: HARNESS_DEFAULT.MOCK_ID,
+              env: {
+                PROJECT_TOKEN: "project-value",
+              },
+            },
+          },
+        },
+        null,
+        2
+      )
+    );
+    await writeFile(
+      homeHarnessFilePath,
+      JSON.stringify(
+        {
+          harnesses: {
+            [HARNESS_DEFAULT.MOCK_ID]: {
+              env: {
+                PROJECT_TOKEN: "${TOADSTOOL_CURSOR_COMMAND}",
+                USER_TOKEN: "${TOADSTOOL_GEMINI_COMMAND}",
+              },
+            },
+          },
+        },
+        null,
+        2
+      )
+    );
+
+    process.env.HOME = homeRoot;
+    process.chdir(projectRoot);
+    process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = undefined;
+    process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] = undefined;
+    EnvManager.resetInstance();
+
+    let server: Awaited<ReturnType<typeof startHeadlessServer>> | null = null;
+    let firstSocket: WebSocket | null = null;
+    let secondSocket: WebSocket | null = null;
+    try {
+      server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+      const { host, port } = server.address();
+      const baseUrl = `http://${host}:${port}`;
+
+      firstSocket = new WebSocket(`ws://${host}:${port}`);
+      await waitForOpen(firstSocket);
+
+      const firstSessionCreatedEventsPromise = collectSessionCreatedEvents(firstSocket, 2);
+      const firstStateUpdateEventsPromise = (async (): Promise<Array<Record<string, unknown>>> => {
+        const firstSseResponse = await fetch(`${baseUrl}/api/events`);
+        expect(firstSseResponse.status).toBe(200);
+        return collectStateUpdateEvents(firstSseResponse, 2);
+      })();
+
+      const firstCreateResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      expect(firstCreateResponse.status).toBe(200);
+      const firstSession = createSessionResponseSchema.parse(await firstCreateResponse.json());
+
+      const invalidPromptResponse = await fetch(
+        `${baseUrl}/sessions/${firstSession.sessionId}/prompt`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        }
+      );
+      expect(invalidPromptResponse.status).toBe(400);
+
+      const validPromptResponse = await fetch(
+        `${baseUrl}/sessions/${firstSession.sessionId}/prompt`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: "Interleaved reconnect prompt." }),
+        }
+      );
+      expect(validPromptResponse.status).toBe(200);
+
+      const secondCreateResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.MOCK_ID }),
+      });
+      expect(secondCreateResponse.status).toBe(200);
+      const secondSession = createSessionResponseSchema.parse(await secondCreateResponse.json());
+      expect(secondSession.sessionId).not.toBe(firstSession.sessionId);
+
+      const firstSessionCreatedEvents = await firstSessionCreatedEventsPromise;
+      const firstSessionCreatedEventIds = new Set(firstSessionCreatedEvents);
+      expect(firstSessionCreatedEventIds.size).toBe(2);
+      expect(firstSessionCreatedEventIds.has(firstSession.sessionId)).toBe(true);
+      expect(firstSessionCreatedEventIds.has(secondSession.sessionId)).toBe(true);
+
+      const firstStateUpdateEvents = z
+        .array(
+          z
+            .object({
+              connectionStatus: z.string().optional(),
+              currentSessionId: z.string().optional(),
+            })
+            .passthrough()
+        )
+        .parse(await firstStateUpdateEventsPromise);
+      expect(firstStateUpdateEvents).toHaveLength(2);
+
+      await new Promise<void>((resolve) => {
+        if (firstSocket?.readyState === WebSocket.CLOSED) {
+          resolve();
+          return;
+        }
+        firstSocket?.once("close", () => resolve());
+        firstSocket?.close();
+      });
+      firstSocket = null;
+
+      secondSocket = new WebSocket(`ws://${host}:${port}`);
+      await waitForOpen(secondSocket);
+
+      const secondSessionCreatedEventsPromise = collectSessionCreatedEvents(secondSocket, 1);
+      const secondStateUpdateEventsPromise = (async (): Promise<Array<Record<string, unknown>>> => {
+        const secondSseResponse = await fetch(`${baseUrl}/api/events`);
+        expect(secondSseResponse.status).toBe(200);
+        return collectStateUpdateEvents(secondSseResponse, 1);
+      })();
+
+      const thirdCreateResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      expect(thirdCreateResponse.status).toBe(200);
+      const thirdSession = createSessionResponseSchema.parse(await thirdCreateResponse.json());
+      expect(thirdSession.sessionId).not.toBe(firstSession.sessionId);
+      expect(thirdSession.sessionId).not.toBe(secondSession.sessionId);
+
+      const secondSessionCreatedEvents = await secondSessionCreatedEventsPromise;
+      expect(secondSessionCreatedEvents).toEqual([thirdSession.sessionId]);
+
+      const secondStateUpdateEvents = z
+        .array(
+          z
+            .object({
+              connectionStatus: z.string().optional(),
+              currentSessionId: z.string().optional(),
+            })
+            .passthrough()
+        )
+        .parse(await secondStateUpdateEventsPromise);
+      expect(secondStateUpdateEvents).toHaveLength(1);
+    } finally {
+      if (firstSocket) {
+        await new Promise<void>((resolve) => {
+          if (firstSocket?.readyState === WebSocket.CLOSED) {
+            resolve();
+            return;
+          }
+          firstSocket?.once("close", () => resolve());
+          firstSocket?.close();
+        });
+      }
+      if (secondSocket) {
+        await new Promise<void>((resolve) => {
+          if (secondSocket?.readyState === WebSocket.CLOSED) {
+            resolve();
+            return;
+          }
+          secondSocket?.once("close", () => resolve());
+          secondSocket?.close();
+        });
+      }
       if (server) {
         await server.close();
       }
