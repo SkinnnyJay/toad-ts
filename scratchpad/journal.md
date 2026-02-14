@@ -1754,6 +1754,14 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
 
 ## 2026-02-13 (Unregistered adapter create-session integration coverage)
 
@@ -2538,3 +2546,18 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-14 (Merged env-map websocket continuity coverage)
+
+### Summary
+- Added headless integration coverage for websocket `SESSION_CREATED` event
+  stability while merged env-map empty-expansion validation cycles execute.
+- Test validates:
+  - repeated create/invalid-prompt/valid-prompt cycles do not destabilize the
+    websocket stream.
+  - websocket event payloads include distinct session ids for all created
+    sessions in the cycle.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅

@@ -207,6 +207,8 @@
     plus invalid-prompt validation recovery under merged env-map expansions
   - added headless integration coverage for repeated invalid prompt cycles
     across multiple merged env-map sessions with recovery continuity
+  - added headless integration coverage for websocket `SESSION_CREATED` stream
+    stability during merged env-map mixed validation cycles
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

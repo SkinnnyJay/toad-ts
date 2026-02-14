@@ -2960,6 +2960,215 @@ describe("headless server", () => {
     }
   });
 
+  it("keeps websocket session-created stream stable during merged env-map cycles", async () => {
+    const projectRoot = await mkdtemp(
+      path.join(tmpdir(), "toadstool-headless-project-env-events-")
+    );
+    const homeRoot = await mkdtemp(path.join(tmpdir(), "toadstool-headless-home-env-events-"));
+    const projectHarnessDirectory = path.join(projectRoot, FILE_PATH.TOADSTOOL_DIR);
+    const homeHarnessDirectory = path.join(homeRoot, FILE_PATH.TOADSTOOL_DIR);
+    const projectHarnessFilePath = path.join(projectHarnessDirectory, FILE_PATH.HARNESSES_JSON);
+    const homeHarnessFilePath = path.join(homeHarnessDirectory, FILE_PATH.HARNESSES_JSON);
+    const originalHome = process.env.HOME;
+    const originalCwd = process.cwd();
+    const originalCursorCommand = process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND];
+    const originalGeminiCommand = process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND];
+
+    await mkdir(projectHarnessDirectory, { recursive: true });
+    await mkdir(homeHarnessDirectory, { recursive: true });
+
+    await writeFile(
+      projectHarnessFilePath,
+      JSON.stringify(
+        {
+          defaultHarness: HARNESS_DEFAULT.MOCK_ID,
+          harnesses: {
+            [HARNESS_DEFAULT.MOCK_ID]: {
+              name: "Mock",
+              command: HARNESS_DEFAULT.MOCK_ID,
+              env: {
+                PROJECT_TOKEN: "project-value",
+              },
+            },
+          },
+        },
+        null,
+        2
+      )
+    );
+    await writeFile(
+      homeHarnessFilePath,
+      JSON.stringify(
+        {
+          harnesses: {
+            [HARNESS_DEFAULT.MOCK_ID]: {
+              env: {
+                PROJECT_TOKEN: "${TOADSTOOL_CURSOR_COMMAND}",
+                USER_TOKEN: "${TOADSTOOL_GEMINI_COMMAND}",
+              },
+            },
+          },
+        },
+        null,
+        2
+      )
+    );
+
+    process.env.HOME = homeRoot;
+    process.chdir(projectRoot);
+    process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = undefined;
+    process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] = undefined;
+    EnvManager.resetInstance();
+
+    let server: Awaited<ReturnType<typeof startHeadlessServer>> | null = null;
+    let socket: WebSocket | null = null;
+    try {
+      server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+      const { host, port } = server.address();
+      const baseUrl = `http://${host}:${port}`;
+
+      socket = new WebSocket(`ws://${host}:${port}`);
+      await waitForOpen(socket);
+
+      const createdSessionIds: string[] = [];
+      const sessionCreatedReady = new Promise<void>((resolve, reject) => {
+        const onError = (error: Error): void => {
+          socket?.off("message", onMessage);
+          socket?.off("error", onError);
+          reject(error);
+        };
+
+        const onMessage = (data: WebSocket.RawData): void => {
+          try {
+            const event = serverEventSchema.parse(JSON.parse(data.toString()));
+            if (event.type !== SERVER_EVENT.SESSION_CREATED) {
+              return;
+            }
+            createdSessionIds.push(event.payload.sessionId);
+            if (createdSessionIds.length < 3) {
+              return;
+            }
+            socket?.off("message", onMessage);
+            socket?.off("error", onError);
+            resolve();
+          } catch (error) {
+            socket?.off("message", onMessage);
+            socket?.off("error", onError);
+            reject(error);
+          }
+        };
+
+        socket?.on("message", onMessage);
+        socket?.on("error", onError);
+      });
+
+      const firstCreateResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      expect(firstCreateResponse.status).toBe(200);
+      const firstSession = createSessionResponseSchema.parse(await firstCreateResponse.json());
+
+      const firstInvalidPrompt = await fetch(
+        `${baseUrl}/sessions/${firstSession.sessionId}/prompt`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        }
+      );
+      expect(firstInvalidPrompt.status).toBe(400);
+
+      const firstValidPrompt = await fetch(`${baseUrl}/sessions/${firstSession.sessionId}/prompt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "Event cycle first prompt." }),
+      });
+      expect(firstValidPrompt.status).toBe(200);
+
+      const secondCreateResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.MOCK_ID }),
+      });
+      expect(secondCreateResponse.status).toBe(200);
+      const secondSession = createSessionResponseSchema.parse(await secondCreateResponse.json());
+      expect(secondSession.sessionId).not.toBe(firstSession.sessionId);
+
+      const secondInvalidPrompt = await fetch(
+        `${baseUrl}/sessions/${secondSession.sessionId}/prompt`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        }
+      );
+      expect(secondInvalidPrompt.status).toBe(400);
+
+      const secondValidPrompt = await fetch(
+        `${baseUrl}/sessions/${secondSession.sessionId}/prompt`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: "Event cycle second prompt." }),
+        }
+      );
+      expect(secondValidPrompt.status).toBe(200);
+
+      const thirdCreateResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      expect(thirdCreateResponse.status).toBe(200);
+      const thirdSession = createSessionResponseSchema.parse(await thirdCreateResponse.json());
+      expect(thirdSession.sessionId).not.toBe(firstSession.sessionId);
+      expect(thirdSession.sessionId).not.toBe(secondSession.sessionId);
+
+      await sessionCreatedReady;
+
+      const uniqueEventSessionIds = new Set(createdSessionIds);
+      expect(uniqueEventSessionIds.size).toBe(3);
+      expect(uniqueEventSessionIds.has(firstSession.sessionId)).toBe(true);
+      expect(uniqueEventSessionIds.has(secondSession.sessionId)).toBe(true);
+      expect(uniqueEventSessionIds.has(thirdSession.sessionId)).toBe(true);
+    } finally {
+      if (socket) {
+        await new Promise<void>((resolve) => {
+          if (socket?.readyState === WebSocket.CLOSED) {
+            resolve();
+            return;
+          }
+          socket?.once("close", () => resolve());
+          socket?.close();
+        });
+      }
+      if (server) {
+        await server.close();
+      }
+      process.chdir(originalCwd);
+      if (originalHome === undefined) {
+        process.env.HOME = undefined;
+      } else {
+        process.env.HOME = originalHome;
+      }
+      if (originalCursorCommand === undefined) {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = undefined;
+      } else {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = originalCursorCommand;
+      }
+      if (originalGeminiCommand === undefined) {
+        process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] = undefined;
+      } else {
+        process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] = originalGeminiCommand;
+      }
+      EnvManager.resetInstance();
+      await rm(projectRoot, { recursive: true, force: true });
+      await rm(homeRoot, { recursive: true, force: true });
+    }
+  });
+
   it("keeps server responsive after repeated fallback explicit mock requests", async () => {
     const temporaryRoot = await mkdtemp(
       path.join(tmpdir(), "toadstool-headless-fallback-default-")

@@ -583,6 +583,12 @@
     across multiple sessions under merged env-map empty-expansion configuration
   - verifies validation rejection stability plus valid prompt recovery and
     trailing session creation continuity in the same runtime
+- Added merged env-map websocket continuity hardening:
+  - headless integration now validates websocket session-created event stream
+    stability while mixed create/invalid-prompt/valid-prompt cycles run under
+    merged env-map empty-expansion configuration
+  - verifies websocket emits distinct session-created events for each created
+    session id without destabilizing server continuity
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

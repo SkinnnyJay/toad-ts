@@ -2618,3 +2618,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock long-run validation-cycle continuity under merged env-map
       empty-expansion scenarios.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map websocket continuity coverage)
+
+- Additional merged env-map websocket integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for websocket session-created event stability
+      during merged env-map empty-expansion request cycles.
+    - verifies event stream remains stable while mixed create/invalid-prompt/
+      valid-prompt flows run in the same server runtime.
+    - verifies websocket emits distinct `SESSION_CREATED` events for each
+      created session id across the full cycle.
+  - Goal:
+    - lock websocket event-stream continuity under merged env-map validation
+      cycles.
