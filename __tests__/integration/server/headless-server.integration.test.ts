@@ -5560,6 +5560,10 @@ describe("headless server", () => {
       const postClosePromptBurstRecoveryPaleJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const postClosePromptBurstRecoveryFessJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
       const postClosePromptBurstRecoveryFessJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
+      const postClosePromptBurstRecoveryChevronJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
+      const postClosePromptBurstRecoveryChevronJitterWebsocketFirstByCycleMs = [
+        2, 0, 2, 0,
+      ] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5966,6 +5970,9 @@ describe("headless server", () => {
         );
         expect(postClosePromptBurstRecoveryFessJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postClosePromptBurstRecoveryFessJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postClosePromptBurstRecoveryChevronJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postClosePromptBurstRecoveryChevronJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -7520,6 +7527,21 @@ describe("headless server", () => {
                   cycleSessionIndex +
                   cycleIndex +
                   3) %
+                  4
+              );
+            });
+            await new Promise<void>((resolve) => {
+              const postClosePromptBurstRecoveryChevronJitterByCycle = openSseFirstByCycle[
+                cycleIndex
+              ]
+                ? postClosePromptBurstRecoveryChevronJitterSseFirstByCycleMs[cycleIndex]
+                : postClosePromptBurstRecoveryChevronJitterWebsocketFirstByCycleMs[cycleIndex];
+              setTimeout(
+                () => resolve(),
+                (postClosePromptBurstRecoveryChevronJitterByCycle +
+                  cycleSessionIndex +
+                  cycleIndex +
+                  2) %
                   4
               );
             });
