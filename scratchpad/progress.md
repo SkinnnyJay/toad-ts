@@ -895,6 +895,8 @@
     hot shell/terminal command paths
   - completed P1 backlog item B29 by adding reconnect-cycle signal
     attach/detach idempotency regression coverage
+  - completed P1 backlog item B30 by implementing SQLite optimize/checkpoint/
+    vacuum maintenance policy with bounded cadence
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

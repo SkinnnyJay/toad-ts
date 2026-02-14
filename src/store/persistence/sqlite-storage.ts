@@ -18,8 +18,17 @@ const SQLITE_URL_PREFIX = "file:";
 const SQLITE_ERROR_MESSAGE = {
   OPERATION_TIMED_OUT: "SQLite operation timed out",
 } as const;
+const SQLITE_MAINTENANCE_SQL = {
+  OPTIMIZE: "PRAGMA optimize",
+  CHECKPOINT_TRUNCATE: "PRAGMA wal_checkpoint(TRUNCATE)",
+  VACUUM: "VACUUM",
+} as const;
 
 export class SqliteStore {
+  private saveCount = 0;
+  private lastMaintenanceAt = Date.now();
+  private lastVacuumAt = Date.now();
+
   private constructor(private readonly prisma: PrismaClient) {}
 
   static async create(filePath: string): Promise<SqliteStore> {
@@ -159,6 +168,8 @@ export class SqliteStore {
           }
         )
     );
+
+    await this.maybeRunMaintenance();
   }
 
   async searchMessages(query: ChatQuery): Promise<unknown> {
@@ -296,6 +307,9 @@ export class SqliteStore {
     // DDL statements cannot use parameterized values, so we use $executeRawUnsafe
     await this.prisma.$executeRawUnsafe("PRAGMA journal_mode = WAL");
     await this.prisma.$executeRawUnsafe("PRAGMA synchronous = NORMAL");
+    await this.prisma.$executeRawUnsafe(
+      `PRAGMA wal_autocheckpoint = ${LIMIT.SQLITE_WAL_AUTOCHECKPOINT_PAGES}`
+    );
     await this.prisma.$executeRawUnsafe(`PRAGMA busy_timeout = ${TIMEOUT.SQLITE_BUSY_MS}`);
     await this.prisma.$executeRawUnsafe(
       `CREATE TABLE IF NOT EXISTS sessions (
@@ -381,5 +395,44 @@ export class SqliteStore {
           reject(error);
         });
     });
+  }
+
+  private async maybeRunMaintenance(): Promise<void> {
+    this.saveCount += 1;
+    const now = Date.now();
+    const shouldRunMaintenance =
+      this.saveCount % LIMIT.SQLITE_MAINTENANCE_SAVE_INTERVAL === 0 ||
+      now - this.lastMaintenanceAt >= LIMIT.SQLITE_MAINTENANCE_MIN_INTERVAL_MS;
+    if (!shouldRunMaintenance) {
+      return;
+    }
+
+    this.lastMaintenanceAt = now;
+    const shouldRunVacuum =
+      this.saveCount % LIMIT.SQLITE_VACUUM_SAVE_INTERVAL === 0 ||
+      now - this.lastVacuumAt >= LIMIT.SQLITE_VACUUM_MIN_INTERVAL_MS;
+    if (shouldRunVacuum) {
+      this.lastVacuumAt = now;
+    }
+
+    try {
+      await this.withStatementTimeout(
+        "sqlite optimize",
+        async () => await this.prisma.$executeRawUnsafe(SQLITE_MAINTENANCE_SQL.OPTIMIZE)
+      );
+      await this.withStatementTimeout(
+        "sqlite wal checkpoint",
+        async () => await this.prisma.$executeRawUnsafe(SQLITE_MAINTENANCE_SQL.CHECKPOINT_TRUNCATE)
+      );
+      if (!shouldRunVacuum) {
+        return;
+      }
+      await this.withStatementTimeout(
+        "sqlite vacuum",
+        async () => await this.prisma.$executeRawUnsafe(SQLITE_MAINTENANCE_SQL.VACUUM)
+      );
+    } catch {
+      // Ignore best-effort maintenance failures so snapshot writes still succeed.
+    }
   }
 }

@@ -1,5 +1,32 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B30 SQLite maintenance policy hardening)
+
+### Summary
+- Completed P1 backlog item B30 in `PLAN3.md` by adding explicit SQLite
+  maintenance lifecycle policy for long-running runtimes.
+- Updated:
+  - `src/config/limits.ts` with bounded maintenance cadence constants.
+  - `src/store/persistence/sqlite-storage.ts` with post-save best-effort
+    optimize/checkpoint/vacuum scheduling and WAL autocheckpoint setup.
+  - `__tests__/unit/store/sqlite-storage.unit.test.ts` with focused policy
+    cadence and failure-tolerance coverage.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/store/sqlite-storage.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B29 reconnect signal idempotency regression coverage)
 
 ### Summary

@@ -3928,9 +3928,17 @@
     in `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts`
   - added repeated-disconnect idempotency assertions to prevent signal-handler
     accumulation regressions
+- Completed P1 backlog item B30 SQLite maintenance policy hardening:
+  - added explicit optimize/checkpoint/vacuum cadence limits in
+    `src/config/limits.ts`
+  - implemented best-effort post-save maintenance lifecycle in
+    `src/store/persistence/sqlite-storage.ts`
+  - configured WAL autocheckpoint threshold during schema initialization
+  - added focused maintenance policy coverage in
+    `__tests__/unit/store/sqlite-storage.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B30 by introducing SQLite maintenance policy
-    for long-lived performance stability
+  - evaluate severity backlog item B31 by adding cancellation/depth bounds to
+    recursive file-search traversal paths
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers
