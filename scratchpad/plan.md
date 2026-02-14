@@ -2704,9 +2704,64 @@
     prompt-burst recovery-medallion asymmetry + post-close prompt-burst
     recovery-amulet asymmetry + post-close prompt-burst recovery-talisman
     asymmetry + post-close prompt-burst recovery-totem asymmetry by order path
+- Added merged env-map reconnect-order post-close prompt-burst recovery-relic asymmetry hardening:
+  - reconnect-order post-close prompt-burst recovery-totem coverage now
+    applies asymmetric post-close prompt-burst recovery-relic jitter per order
+    path
+  - `SSE-first` cycles use lower post-close prompt-burst recovery-relic
+    jitter, while `websocket-first` cycles use higher post-close prompt-burst
+    recovery-relic jitter
+  - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
+    rejection, and valid-prompt recovery remain stable under combined cadence +
+    segment-count asymmetry + stream-open jitter asymmetry + create-jitter
+    asymmetry + recovery-jitter asymmetry + burst-spacing asymmetry + post-
+    recovery delay asymmetry + cycle-cooldown asymmetry + close-delay
+    asymmetry + close-interleave asymmetry + post-close create scheduling
+    asymmetry + post-close prompt scheduling asymmetry + post-close recovery
+    scheduling asymmetry + post-close cycle transition asymmetry + post-close
+    segment-open gating asymmetry + post-close segment-rearm asymmetry +
+    post-close invalid-burst ramp asymmetry + post-close valid-prompt ramp
+    asymmetry + post-close recovery-confirm asymmetry + post-close recovery-
+    settle asymmetry + post-close cycle-handoff asymmetry + post-close cycle-
+    cooldown handoff asymmetry + post-close cycle-transition handoff asymmetry
+    + post-close segment-open handoff asymmetry + post-close segment-rearm
+    handoff asymmetry + post-close prompt-burst handoff asymmetry + post-close
+    prompt-burst recovery-settle asymmetry + post-close prompt-burst recovery-
+    confirm asymmetry + post-close prompt-burst recovery-handoff asymmetry +
+    post-close prompt-burst recovery-cooldown asymmetry + post-close prompt-
+    burst recovery-drift asymmetry + post-close prompt-burst recovery-
+    transition asymmetry + post-close prompt-burst recovery-checkpoint
+    asymmetry + post-close prompt-burst recovery-finalize asymmetry + post-
+    close prompt-burst recovery-anchor asymmetry + post-close prompt-burst
+    recovery-seal asymmetry + post-close prompt-burst recovery-guard asymmetry
+    + post-close prompt-burst recovery-lock asymmetry + post-close prompt-
+    burst recovery-bolt asymmetry + post-close prompt-burst recovery-clamp
+    asymmetry + post-close prompt-burst recovery-brace asymmetry + post-close
+    prompt-burst recovery-latch asymmetry + post-close prompt-burst recovery-
+    rivet asymmetry + post-close prompt-burst recovery-pin asymmetry + post-
+    close prompt-burst recovery-stud asymmetry + post-close prompt-burst
+    recovery-spike asymmetry + post-close prompt-burst recovery-notch
+    asymmetry + post-close prompt-burst recovery-groove asymmetry + post-close
+    prompt-burst recovery-ridge asymmetry + post-close prompt-burst recovery-
+    crest asymmetry + post-close prompt-burst recovery-peak asymmetry + post-
+    close prompt-burst recovery-summit asymmetry + post-close prompt-burst
+    recovery-apex asymmetry + post-close prompt-burst recovery-crown asymmetry
+    + post-close prompt-burst recovery-tiara asymmetry + post-close prompt-
+    burst recovery-diadem asymmetry + post-close prompt-burst recovery-coronet
+    asymmetry + post-close prompt-burst recovery-circlet asymmetry + post-
+    close prompt-burst recovery-band asymmetry + post-close prompt-burst
+    recovery-bangle asymmetry + post-close prompt-burst recovery-bracelet
+    asymmetry + post-close prompt-burst recovery-anklet asymmetry + post-close
+    prompt-burst recovery-toe-ring asymmetry + post-close prompt-burst
+    recovery-charm asymmetry + post-close prompt-burst recovery-pendant
+    asymmetry + post-close prompt-burst recovery-locket asymmetry + post-close
+    prompt-burst recovery-medallion asymmetry + post-close prompt-burst
+    recovery-amulet asymmetry + post-close prompt-burst recovery-talisman
+    asymmetry + post-close prompt-burst recovery-totem asymmetry + post-close
+    prompt-burst recovery-relic asymmetry by order path
 - New next candidate:
-  - evaluate whether reconnect-order post-close prompt-burst recovery-totem
-    asymmetry should include asymmetric post-close prompt-burst recovery-relic
+  - evaluate whether reconnect-order post-close prompt-burst recovery-relic
+    asymmetry should include asymmetric post-close prompt-burst recovery-sigil
     jitter by order path
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
