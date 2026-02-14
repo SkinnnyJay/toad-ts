@@ -516,6 +516,11 @@
     configured default harness points to an unregistered custom adapter id
   - verifies canonical adapter-not-registered responses persist across repeats
     and explicit mock sessions remain operational in the same runtime
+- Added repeated fallback mock continuity hardening:
+  - headless integration now validates repeated explicit mock session creation
+    when harness-file loading fails and server falls back to default harness config
+  - verifies fallback-path repeated success semantics and distinct generated
+    session ids across consecutive requests
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

@@ -181,6 +181,8 @@
     requests with post-failure mock continuity checks
   - added headless integration coverage for repeated default-route custom-adapter
     registration failures with post-failure mock continuity checks
+  - added headless integration coverage for repeated fallback-path explicit mock
+    session creation success semantics when harness config loading fails
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
