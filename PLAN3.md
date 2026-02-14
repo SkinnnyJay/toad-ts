@@ -2437,3 +2437,21 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock continuity semantics under repeated explicit fallback-path session
       creation requests.
+
+## Execution Log Addendum — 2026-02-13 (repeated fallback-trigger continuity coverage)
+
+- Additional fallback-trigger continuity integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for repeated explicit `harnessId: "mock"`
+      session requests when fallback is triggered by empty harness
+      configuration.
+    - added integration coverage for repeated explicit `harnessId: "mock"`
+      session requests when fallback is triggered by missing configured default
+      harness id.
+    - verifies repeated fallback-trigger requests succeed with valid and
+      distinct session ids in both scenarios.
+  - Goal:
+    - lock continuity semantics across additional fallback-trigger variants
+      beyond malformed harness JSON.

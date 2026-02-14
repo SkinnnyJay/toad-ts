@@ -521,6 +521,12 @@
     when harness-file loading fails and server falls back to default harness config
   - verifies fallback-path repeated success semantics and distinct generated
     session ids across consecutive requests
+- Added repeated fallback-trigger continuity hardening:
+  - headless integration now validates repeated explicit mock session creation
+    for fallback paths triggered by empty harness config and missing configured
+    default harness id
+  - verifies repeated fallback-trigger requests produce successful responses
+    and distinct generated session ids in both scenarios
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

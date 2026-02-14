@@ -1540,6 +1540,69 @@ describe("headless server", () => {
     }
   });
 
+  it("keeps server responsive after repeated fallback requests when harnesses are empty", async () => {
+    const temporaryRoot = await mkdtemp(path.join(tmpdir(), "toadstool-headless-empty-repeated-"));
+    const harnessDirectory = path.join(temporaryRoot, FILE_PATH.TOADSTOOL_DIR);
+    const harnessFilePath = path.join(harnessDirectory, FILE_PATH.HARNESSES_JSON);
+    const originalHome = process.env.HOME;
+    const originalCwd = process.cwd();
+
+    await mkdir(harnessDirectory, { recursive: true });
+    await writeFile(
+      harnessFilePath,
+      JSON.stringify(
+        {
+          defaultHarness: "empty",
+          harnesses: {},
+        },
+        null,
+        2
+      )
+    );
+
+    process.env.HOME = temporaryRoot;
+    process.chdir(temporaryRoot);
+    EnvManager.resetInstance();
+
+    let server: Awaited<ReturnType<typeof startHeadlessServer>> | null = null;
+    try {
+      server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+      const { host, port } = server.address();
+      const baseUrl = `http://${host}:${port}`;
+
+      const firstResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.MOCK_ID }),
+      });
+      expect(firstResponse.status).toBe(200);
+      const firstPayload = createSessionResponseSchema.parse(await firstResponse.json());
+      expect(firstPayload.sessionId).toBeTruthy();
+
+      const secondResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.MOCK_ID }),
+      });
+      expect(secondResponse.status).toBe(200);
+      const secondPayload = createSessionResponseSchema.parse(await secondResponse.json());
+      expect(secondPayload.sessionId).toBeTruthy();
+      expect(secondPayload.sessionId).not.toBe(firstPayload.sessionId);
+    } finally {
+      if (server) {
+        await server.close();
+      }
+      process.chdir(originalCwd);
+      if (originalHome === undefined) {
+        process.env.HOME = undefined;
+      } else {
+        process.env.HOME = originalHome;
+      }
+      EnvManager.resetInstance();
+      await rm(temporaryRoot, { recursive: true, force: true });
+    }
+  });
+
   it("falls back to default harness config when configured default harness is missing", async () => {
     const temporaryRoot = await mkdtemp(path.join(tmpdir(), "toadstool-headless-missing-default-"));
     const harnessDirectory = path.join(temporaryRoot, FILE_PATH.TOADSTOOL_DIR);
@@ -1583,6 +1646,76 @@ describe("headless server", () => {
       expect(response.status).toBe(200);
       const payload = createSessionResponseSchema.parse(await response.json());
       expect(payload.sessionId).toBeTruthy();
+    } finally {
+      if (server) {
+        await server.close();
+      }
+      process.chdir(originalCwd);
+      if (originalHome === undefined) {
+        process.env.HOME = undefined;
+      } else {
+        process.env.HOME = originalHome;
+      }
+      EnvManager.resetInstance();
+      await rm(temporaryRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps server responsive after repeated fallback requests when default harness is missing", async () => {
+    const temporaryRoot = await mkdtemp(
+      path.join(tmpdir(), "toadstool-headless-missing-default-repeated-")
+    );
+    const harnessDirectory = path.join(temporaryRoot, FILE_PATH.TOADSTOOL_DIR);
+    const harnessFilePath = path.join(harnessDirectory, FILE_PATH.HARNESSES_JSON);
+    const originalHome = process.env.HOME;
+    const originalCwd = process.cwd();
+
+    await mkdir(harnessDirectory, { recursive: true });
+    await writeFile(
+      harnessFilePath,
+      JSON.stringify(
+        {
+          defaultHarness: "missing",
+          harnesses: {
+            alpha: {
+              name: "Alpha",
+              command: "alpha-cli",
+            },
+          },
+        },
+        null,
+        2
+      )
+    );
+
+    process.env.HOME = temporaryRoot;
+    process.chdir(temporaryRoot);
+    EnvManager.resetInstance();
+
+    let server: Awaited<ReturnType<typeof startHeadlessServer>> | null = null;
+    try {
+      server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+      const { host, port } = server.address();
+      const baseUrl = `http://${host}:${port}`;
+
+      const firstResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.MOCK_ID }),
+      });
+      expect(firstResponse.status).toBe(200);
+      const firstPayload = createSessionResponseSchema.parse(await firstResponse.json());
+      expect(firstPayload.sessionId).toBeTruthy();
+
+      const secondResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.MOCK_ID }),
+      });
+      expect(secondResponse.status).toBe(200);
+      const secondPayload = createSessionResponseSchema.parse(await secondResponse.json());
+      expect(secondPayload.sessionId).toBeTruthy();
+      expect(secondPayload.sessionId).not.toBe(firstPayload.sessionId);
     } finally {
       if (server) {
         await server.close();
