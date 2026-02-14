@@ -186,6 +186,9 @@
   - added headless integration coverage for repeated fallback-trigger explicit
     mock session creation when fallback is caused by empty harnesses or missing
     configured default harness id
+  - added headless integration coverage for repeated fallback-trigger explicit
+    mock session creation when project/user merged config selects a missing user
+    default harness id
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

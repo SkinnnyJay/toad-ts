@@ -527,6 +527,12 @@
     default harness id
   - verifies repeated fallback-trigger requests produce successful responses
     and distinct generated session ids in both scenarios
+- Added repeated merge-override fallback continuity hardening:
+  - headless integration now validates repeated explicit mock session creation
+    when project/user merged harness config selects a missing user default id
+    and server falls back to default harness config
+  - verifies repeated fallback requests return successful responses and distinct
+    session ids in the same runtime
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
