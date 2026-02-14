@@ -637,6 +637,12 @@
     continue alternating default/explicit harness paths
   - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity plus
     invalid-prompt burst recovery stability across all cadence permutations
+- Added merged env-map dual cadence reconnect hardening:
+  - headless integration now validates reconnect cycles where websocket and SSE
+    reconnect cadence both vary per cycle while alternating default/explicit
+    session create requests continue
+  - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity plus
+    invalid-prompt burst recovery stability across combined cadence permutations
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

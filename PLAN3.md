@@ -2784,3 +2784,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock long-run stream stability when SSE reconnect cadence varies per
       cycle under merged env-map validation flows.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map dual cadence reconnect coverage)
+
+- Additional merged env-map dual cadence reconnect hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for reconnect cycles that vary both websocket
+      reconnect cadence and SSE reconnect cadence per cycle.
+    - verifies each websocket segment receives expected `SESSION_CREATED`
+      events while per-segment SSE streams receive expected `STATE_UPDATE`
+      events across alternating default/explicit session creation requests.
+    - verifies invalid-prompt burst rejection and valid-prompt recovery remain
+      stable for all created sessions across cadence permutations.
+  - Goal:
+    - lock stream continuity when websocket and SSE reconnect cadences vary
+      together under merged env-map validation flows.
