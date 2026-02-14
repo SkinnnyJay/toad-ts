@@ -625,6 +625,12 @@
     close timing and reconnect jitter before session creation
   - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity plus
     validation recovery stability across all jittered cycles
+- Added merged env-map alternating burst-size reconnect hardening:
+  - headless integration now validates extended reconnect cycles that alternate
+    default/explicit harness requests while varying invalid-prompt burst sizes
+    per cycle
+  - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity plus
+    prompt validation recovery stability across all burst-size permutations
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

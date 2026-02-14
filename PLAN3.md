@@ -2750,3 +2750,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock extended jittered reconnect continuity under merged env-map
       validation cycles.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map alternating burst-size reconnect coverage)
+
+- Additional merged env-map alternating burst-size reconnect hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for extended reconnect runs where each cycle
+      alternates default vs explicit `harnessId: "mock"` requests while
+      varying invalid-prompt burst sizes.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable across all burst-size permutations.
+    - verifies repeated invalid-prompt rejection and valid-prompt recovery
+      remain stable with unique session ids across the full sequence.
+  - Goal:
+    - lock reconnect continuity under alternating invalid-prompt burst-size
+      patterns during merged env-map validation cycles.

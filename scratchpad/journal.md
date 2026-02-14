@@ -1746,6 +1746,34 @@
 ### Validation
 - Targeted:
   - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+
+## 2026-02-14 (Merged env-map alternating burst-size reconnect coverage)
+
+### Summary
+- Added headless integration coverage for extended reconnect sequences under
+  merged env-map empty-expansion configuration where each cycle alternates:
+  - default vs explicit `harnessId: "mock"` session-create requests,
+  - mixed websocket close timing, and
+  - variable invalid-prompt burst sizes before valid-prompt recovery.
+- Test validates:
+  - websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity remain
+    stable across all burst-size permutations.
+  - repeated invalid prompt submissions are consistently rejected.
+  - follow-up valid prompt submissions recover successfully in every cycle.
+  - all created session ids remain unique across the extended run.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps jitter reconnect cycles stable with alternating invalid-prompt burst sizes"` ✅
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
 - Full gates (equivalent commands; bun/bunx unavailable in this shell):
   - `npx biome check . && npx eslint .` ✅
   - `npx tsc --noEmit` ✅
