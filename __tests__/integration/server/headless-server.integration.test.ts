@@ -5268,6 +5268,8 @@ describe("headless server", () => {
       const postCloseSegmentRearmHandoffJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
       const postClosePromptBurstHandoffJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
       const postClosePromptBurstHandoffJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
+      const postClosePromptBurstRecoverySettleJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
+      const postClosePromptBurstRecoverySettleJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5357,6 +5359,9 @@ describe("headless server", () => {
         );
         expect(postClosePromptBurstHandoffJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postClosePromptBurstHandoffJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postClosePromptBurstRecoverySettleJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postClosePromptBurstRecoverySettleJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -5623,6 +5628,15 @@ describe("headless server", () => {
             });
             expect(invalidPromptResponse.status).toBe(400);
           }
+          await new Promise<void>((resolve) => {
+            const postClosePromptBurstRecoverySettleJitterByCycle = openSseFirstByCycle[cycleIndex]
+              ? postClosePromptBurstRecoverySettleJitterSseFirstByCycleMs[cycleIndex]
+              : postClosePromptBurstRecoverySettleJitterWebsocketFirstByCycleMs[cycleIndex];
+            setTimeout(
+              () => resolve(),
+              (postClosePromptBurstRecoverySettleJitterByCycle + cycleSessionIndex + cycleIndex) % 4
+            );
+          });
           await new Promise<void>((resolve) => {
             const postCloseRecoveryJitterByCycle = openSseFirstByCycle[cycleIndex]
               ? postCloseRecoveryJitterSseFirstByCycleMs[cycleIndex]
