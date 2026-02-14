@@ -887,6 +887,8 @@
     request to remove hidden cross-command state coupling
   - completed P1 backlog item B25 by replacing terminal output byte trimming
     with a linear-time UTF-8-safe truncation strategy
+  - completed P1 backlog item B26 by optimizing shell-session sentinel scanning
+    to bounded incremental search windows
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

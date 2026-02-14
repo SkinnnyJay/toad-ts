@@ -3908,9 +3908,14 @@
   - preserved UTF-8 boundary safety for multibyte truncation paths
   - added focused regression coverage in
     `__tests__/unit/tools/terminal-manager.unit.test.ts`
+- Completed P1 backlog item B26 shell-session sentinel scan optimization:
+  - replaced repeated full-buffer sentinel scanning with bounded incremental
+    search-window tracking in `src/tools/shell-session.ts`
+  - added split-chunk sentinel regression coverage in
+    `__tests__/unit/tools/shell-session.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B26 by optimizing sentinel completion
-    scanning in shell sessions to avoid repeated full-buffer scans
+  - evaluate severity backlog item B27 by formalizing Hook IPC auth/nonce
+    handshake semantics for HTTP transport mode
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

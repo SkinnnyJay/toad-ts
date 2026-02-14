@@ -115,6 +115,7 @@ class ShellSession {
   private stdoutBuffer = "";
   private stderrBuffer = "";
   private stdoutCarry = "";
+  private sentinelSearchStart = 0;
   private timer?: NodeJS.Timeout;
 
   constructor(options: ShellSessionOptions) {
@@ -155,6 +156,7 @@ class ShellSession {
     this.stdoutBuffer = this.stdoutCarry;
     this.stderrBuffer = "";
     this.stdoutCarry = "";
+    this.sentinelSearchStart = 0;
 
     const env = { ...EnvManager.getInstance().getSnapshot(), ...this.baseEnv, ...next.env };
     this.ensureProcess(this.baseDir, env);
@@ -176,8 +178,9 @@ class ShellSession {
     this.child.stderr.setEncoding("utf8");
 
     this.child.stdout.on("data", (chunk: string) => {
+      const previousLength = this.stdoutBuffer.length;
       this.stdoutBuffer += chunk;
-      this.checkForCompletion();
+      this.checkForCompletion(previousLength);
     });
     this.child.stderr.on("data", (chunk: string) => {
       this.stderrBuffer += chunk;
@@ -237,21 +240,30 @@ class ShellSession {
     }
   }
 
-  private checkForCompletion(): void {
+  private checkForCompletion(previousLength: number): void {
     if (!this.active) return;
     const sentinel = `${SHELL_CONTROL.SENTINEL_PREFIX}${this.active.id}`;
-    const markerIndex = this.stdoutBuffer.indexOf(sentinel);
-    if (markerIndex < 0) return;
+    const boundedStart = Math.min(this.sentinelSearchStart, previousLength);
+    const searchStart = Math.max(boundedStart - sentinel.length + 1, 0);
+    const markerIndex = this.stdoutBuffer.indexOf(sentinel, searchStart);
+    if (markerIndex < 0) {
+      this.sentinelSearchStart = Math.max(this.stdoutBuffer.length - sentinel.length + 1, 0);
+      return;
+    }
 
     const afterMarker = this.stdoutBuffer.slice(markerIndex + sentinel.length);
     const lineBreakIndex = afterMarker.indexOf("\n");
-    if (lineBreakIndex < 0) return;
+    if (lineBreakIndex < 0) {
+      this.sentinelSearchStart = markerIndex;
+      return;
+    }
 
     const exitToken = afterMarker.slice(1, lineBreakIndex).trim();
     const parsedExit = Number.parseInt(exitToken, 10);
     const exitCode = Number.isNaN(parsedExit) ? null : parsedExit;
     const stdout = this.stdoutBuffer.slice(0, markerIndex);
     this.stdoutCarry = afterMarker.slice(lineBreakIndex + 1);
+    this.sentinelSearchStart = 0;
     this.finishActive(exitCode, null, stdout);
   }
 

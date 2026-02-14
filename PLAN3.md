@@ -7057,6 +7057,23 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - eliminate O(n^2)-style trimming behavior for large terminal output while
       preserving deterministic truncation semantics.
 
+## Execution Log Addendum — 2026-02-14 (B26 sentinel scan optimization hardening)
+
+- Additional P1 backlog hardening for shell-session completion detection:
+  - Updated:
+    - `src/tools/shell-session.ts`
+    - `__tests__/unit/tools/shell-session.unit.test.ts`
+  - Hardening changes:
+    - replaced repeated full-buffer sentinel `indexOf` scanning with bounded
+      incremental search-window tracking.
+    - maintained split-chunk sentinel correctness via search-window backtracking
+      and dedicated regression coverage.
+    - reset sentinel search state deterministically across command lifecycle
+      transitions.
+  - Goal:
+    - avoid repeated full-buffer sentinel scan costs while preserving completion
+      detection correctness across chunk boundaries.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7089,7 +7106,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B23 | P1 | fix Windows command quoting/escaping for paths containing spaces, `&`, `^`, and unicode characters.
 - [x] - B24 | P1 | remove implicit shell cwd coupling by isolating command execution context per request.
 - [x] - B25 | P1 | optimize terminal output byte trimming to avoid O(n^2) behavior for large outputs.
-- [ ] - B26 | P1 | optimize sentinel completion scanning in shell sessions to avoid repeated full-buffer scans.
+- [x] - B26 | P1 | optimize sentinel completion scanning in shell sessions to avoid repeated full-buffer scans.
 - [ ] - B27 | P1 | formalize Hook IPC auth/nonce handshake for HTTP transport mode.
 - [ ] - B28 | P1 | reduce repeated large env snapshot merges in hot command paths.
 - [ ] - B29 | P1 | add regression tests for signal attach/detach idempotency across reconnect cycles.

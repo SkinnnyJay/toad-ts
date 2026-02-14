@@ -19,6 +19,7 @@ interface SpawnController {
 
 interface SpawnControllerOptions {
   autoRespond: boolean;
+  splitSentinel?: boolean;
 }
 
 const SENTINEL_REGEX = /echo (__TOADSTOOL_CMD_END__[A-Za-z0-9_-]+):%errorlevel%/;
@@ -51,6 +52,16 @@ const createSpawnController = (options: SpawnControllerOptions): SpawnController
         return;
       }
       setTimeout(() => {
+        if (options.splitSentinel) {
+          const splitIndex = Math.max(Math.floor(sentinel.length / 2), 1);
+          const left = sentinel.slice(0, splitIndex);
+          const right = sentinel.slice(splitIndex);
+          stdout.write(`command output\r\n${left}`);
+          setTimeout(() => {
+            stdout.write(`${right}:0\r\n`);
+          }, 0);
+          return;
+        }
         stdout.write(`command output\r\n${sentinel}:0\r\n`);
       }, 0);
     });
@@ -189,6 +200,17 @@ describe("ShellSessionManager", () => {
     const joinedPayload = controller.stdinPayloads.join("");
     expect(joinedPayload).toContain('cd /d "/tmp/base/nested"');
     expect(joinedPayload).toContain('cd /d "/tmp/base"');
+    manager.dispose();
+  });
+
+  it("detects completion when sentinel marker is split across stdout chunks", async () => {
+    const controller = createSpawnController({ autoRespond: true, splitSentinel: true });
+    const manager = new ShellSessionManager({ spawnFn: controller.spawnFn, env: {} });
+
+    const result = await manager.execute("echo split");
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("command output");
     manager.dispose();
   });
 });

@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B26 shell-session sentinel scan optimization)
+
+### Summary
+- Completed P1 backlog item B26 in `PLAN3.md` by optimizing shell-session
+  completion sentinel scanning.
+- Updated `src/tools/shell-session.ts`:
+  - introduced bounded sentinel search window tracking instead of scanning the
+    full stdout buffer on each chunk append,
+  - preserved chunk-boundary correctness with backtracking around sentinel
+    boundaries,
+  - reset search tracking cleanly across command lifecycle transitions.
+- Expanded `__tests__/unit/tools/shell-session.unit.test.ts` with split-sentinel
+  chunk regression coverage.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/tools/shell-session.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B25 terminal byte-trim O(n) hardening)
 
 ### Summary
