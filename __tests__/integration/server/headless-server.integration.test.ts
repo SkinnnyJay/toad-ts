@@ -5274,6 +5274,10 @@ describe("headless server", () => {
       const postClosePromptBurstRecoveryConfirmJitterWebsocketFirstByCycleMs = [
         2, 0, 2, 0,
       ] as const;
+      const postClosePromptBurstRecoveryHandoffJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
+      const postClosePromptBurstRecoveryHandoffJitterWebsocketFirstByCycleMs = [
+        3, 0, 3, 0,
+      ] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5369,6 +5373,9 @@ describe("headless server", () => {
         );
         expect(postClosePromptBurstRecoveryConfirmJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postClosePromptBurstRecoveryConfirmJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postClosePromptBurstRecoveryHandoffJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postClosePromptBurstRecoveryHandoffJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -5697,6 +5704,23 @@ describe("headless server", () => {
               (postCloseRecoveryConfirmJitterByCycle + cycleSessionIndex + cycleIndex + 1) % 4
             );
           });
+          if (cycleSessionIndex < cycleSessionIds.length - 1) {
+            await new Promise<void>((resolve) => {
+              const postClosePromptBurstRecoveryHandoffJitterByCycle = openSseFirstByCycle[
+                cycleIndex
+              ]
+                ? postClosePromptBurstRecoveryHandoffJitterSseFirstByCycleMs[cycleIndex]
+                : postClosePromptBurstRecoveryHandoffJitterWebsocketFirstByCycleMs[cycleIndex];
+              setTimeout(
+                () => resolve(),
+                (postClosePromptBurstRecoveryHandoffJitterByCycle +
+                  cycleSessionIndex +
+                  cycleIndex +
+                  2) %
+                  4
+              );
+            });
+          }
 
           await new Promise<void>((resolve) => {
             const postRecoveryDelayByCycle = openSseFirstByCycle[cycleIndex]
