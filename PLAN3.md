@@ -7116,6 +7116,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - reduce repeated large environment snapshot merge cost in hot execution
       paths without changing command semantics.
 
+## Execution Log Addendum — 2026-02-14 (B29 reconnect signal idempotency regression coverage)
+
+- Additional P1 backlog hardening for reconnect signal attach/detach behavior:
+  - Updated:
+    - `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts`
+  - Hardening changes:
+    - added explicit reconnect-cycle regression coverage asserting SIGINT/SIGTERM
+      listener counts remain stable across repeated run/disconnect cycles.
+    - added idempotent repeated-disconnect assertions to prevent signal-handler
+      accumulation regressions.
+  - Goal:
+    - ensure reconnect flows preserve signal attach/detach idempotency without
+      process-level listener leaks.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7151,7 +7165,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B26 | P1 | optimize sentinel completion scanning in shell sessions to avoid repeated full-buffer scans.
 - [x] - B27 | P1 | formalize Hook IPC auth/nonce handshake for HTTP transport mode.
 - [x] - B28 | P1 | reduce repeated large env snapshot merges in hot command paths.
-- [ ] - B29 | P1 | add regression tests for signal attach/detach idempotency across reconnect cycles.
+- [x] - B29 | P1 | add regression tests for signal attach/detach idempotency across reconnect cycles.
 - [ ] - B30 | P1 | add SQLite maintenance policy (vacuum/pragma optimize/checkpoint) to stabilize long-lived performance.
 - [ ] - B31 | P1 | add cancellation tokens and depth limits to recursive file/search operations.
 - [ ] - B32 | P1 | introduce transcript virtualization strategy for very large chat histories.

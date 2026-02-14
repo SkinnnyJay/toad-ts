@@ -3923,9 +3923,14 @@
   - replaced repeated hot-path snapshot+merge operations with overlay merges
     only when request-level env overrides are supplied
   - added focused regression coverage asserting stable snapshot-call counts
+- Completed P1 backlog item B29 reconnect signal idempotency regression coverage:
+  - added reconnect-cycle signal attach/detach listener-count regression checks
+    in `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts`
+  - added repeated-disconnect idempotency assertions to prevent signal-handler
+    accumulation regressions
 - New next candidate:
-  - evaluate severity backlog item B29 by adding reconnect idempotency coverage
-    for signal attach/detach cycles
+  - evaluate severity backlog item B30 by introducing SQLite maintenance policy
+    for long-lived performance stability
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

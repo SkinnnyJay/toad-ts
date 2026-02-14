@@ -320,4 +320,34 @@ describe("CliAgentProcessRunner", () => {
     expect(process.listenerCount("SIGINT")).toBe(baselineSigintListeners);
     expect(process.listenerCount("SIGTERM")).toBe(baselineSigtermListeners);
   });
+
+  it("keeps signal attach/detach idempotent across reconnect cycles", async () => {
+    const baselineSigintListeners = process.listenerCount("SIGINT");
+    const baselineSigtermListeners = process.listenerCount("SIGTERM");
+    const { spawnFn } = createSpawnFn([{ holdOpen: true }, { holdOpen: true }]);
+    const runner = new CliAgentProcessRunner({
+      command: "agent",
+      env: {},
+      spawnFn,
+      defaultCommandTimeoutMs: 100,
+      forceKillTimeoutMs: 10,
+      loggerName: "TestCliAgentProcessRunner",
+    });
+
+    const firstCommand = runner.runStreamingCommand(["-p"]);
+    await Promise.resolve();
+    await runner.disconnect();
+    await firstCommand;
+    await runner.disconnect();
+    expect(process.listenerCount("SIGINT")).toBe(baselineSigintListeners);
+    expect(process.listenerCount("SIGTERM")).toBe(baselineSigtermListeners);
+
+    const secondCommand = runner.runStreamingCommand(["-p"]);
+    await Promise.resolve();
+    await runner.disconnect();
+    await secondCommand;
+    await runner.disconnect();
+    expect(process.listenerCount("SIGINT")).toBe(baselineSigintListeners);
+    expect(process.listenerCount("SIGTERM")).toBe(baselineSigtermListeners);
+  });
 });

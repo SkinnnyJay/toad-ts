@@ -1,5 +1,33 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B29 reconnect signal idempotency regression coverage)
+
+### Summary
+- Completed P1 backlog item B29 in `PLAN3.md` by adding reconnect-cycle signal
+  attach/detach idempotency tests.
+- Updated:
+  - `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts`
+- Added regression assertions that:
+  - SIGINT/SIGTERM listener counts remain stable across repeated
+    run/disconnect cycles,
+  - repeated `disconnect()` calls stay idempotent without accumulating process
+    signal handlers.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B28 env snapshot merge reduction hardening)
 
 ### Summary
