@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B34 streamed session export writes hardening)
+
+### Summary
+- Completed P1 backlog item B34 in `PLAN3.md` by shifting session export writes
+  to streamed pipelines for large payload safety.
+- Updated:
+  - `src/utils/session-export.ts`
+  - `__tests__/unit/utils/session-export.unit.test.ts`
+- Changes:
+  - JSON and Markdown exports now write chunked stream output directly to disk.
+  - ZIP export writeout now streams generated output into file stream.
+  - expanded unit coverage to validate JSON, Markdown, and ZIP export/import
+    flows.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/session-export.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B33 streaming markdown reparse reduction hardening)
 
 ### Summary

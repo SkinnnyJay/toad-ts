@@ -6,7 +6,11 @@ import { describe, expect, it } from "vitest";
 import { CONTENT_BLOCK_TYPE } from "@/constants/content-block-types";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
 import { PLAN_STATUS } from "@/constants/plan-status";
-import { SESSION_EXPORT_JSON_EXTENSION } from "@/constants/session-export";
+import {
+  SESSION_EXPORT_JSON_EXTENSION,
+  SESSION_EXPORT_MARKDOWN_EXTENSION,
+  SESSION_EXPORT_ZIP_EXTENSION,
+} from "@/constants/session-export";
 import { SESSION_MODE } from "@/constants/session-modes";
 import { TASK_STATUS } from "@/constants/task-status";
 import {
@@ -22,8 +26,7 @@ import { exportSessionToFile, importSessionFromFile } from "@/utils/session-expo
 const createTempDir = async (): Promise<string> => mkdtemp(join(tmpdir(), "toad-export-"));
 
 describe("session export", () => {
-  it("exports and imports JSON payloads", async () => {
-    const dir = await createTempDir();
+  const createFixture = () => {
     const session = SessionSchema.parse({
       id: SessionIdSchema.parse("sess-1"),
       title: "Session",
@@ -61,6 +64,12 @@ describe("session export", () => {
       createdAt: 1,
       updatedAt: 1,
     });
+    return { session, message, plan };
+  };
+
+  it("exports and imports JSON payloads", async () => {
+    const dir = await createTempDir();
+    const { session, message, plan } = createFixture();
 
     const filePath = join(dir, `session${SESSION_EXPORT_JSON_EXTENSION}`);
     await exportSessionToFile({
@@ -73,6 +82,43 @@ describe("session export", () => {
 
     const raw = await readFile(filePath, "utf8");
     expect(raw).toContain('"session"');
+
+    const imported = await importSessionFromFile(filePath);
+    expect(imported.session.id).toBe(session.id);
+    expect(imported.messages).toHaveLength(1);
+    expect(imported.plan?.id).toBe(plan.id);
+    expect(imported.contextAttachments).toEqual(["README.md"]);
+  });
+
+  it("streams markdown exports to disk", async () => {
+    const dir = await createTempDir();
+    const { session, message } = createFixture();
+    const filePath = join(dir, `session${SESSION_EXPORT_MARKDOWN_EXTENSION}`);
+
+    await exportSessionToFile({
+      session,
+      messages: [message],
+      filePath,
+    });
+
+    const raw = await readFile(filePath, "utf8");
+    expect(raw).toContain("# Session");
+    expect(raw).toContain("## User");
+    expect(raw).toContain("hello");
+  });
+
+  it("exports and imports ZIP payloads", async () => {
+    const dir = await createTempDir();
+    const { session, message, plan } = createFixture();
+    const filePath = join(dir, `session${SESSION_EXPORT_ZIP_EXTENSION}`);
+
+    await exportSessionToFile({
+      session,
+      messages: [message],
+      plan,
+      contextAttachments: ["README.md"],
+      filePath,
+    });
 
     const imported = await importSessionFromFile(filePath);
     expect(imported.session.id).toBe(session.id);

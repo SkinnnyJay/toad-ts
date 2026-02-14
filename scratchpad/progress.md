@@ -903,6 +903,8 @@
     MessageList default behavior
   - completed P1 backlog item B33 by bypassing markdown reparsing during active
     streaming chunk rendering
+  - completed P1 backlog item B34 by streaming JSON/Markdown/ZIP session export
+    writes to reduce peak in-memory payload pressure
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

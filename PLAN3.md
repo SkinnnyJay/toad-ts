@@ -7200,6 +7200,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - avoid full markdown reparsing on every streamed chunk while preserving
       finalized markdown rendering behavior after streaming ends.
 
+## Execution Log Addendum — 2026-02-14 (B34 streamed session export writes hardening)
+
+- Additional P1 backlog hardening for export memory pressure:
+  - Updated:
+    - `src/utils/session-export.ts`
+    - `__tests__/unit/utils/session-export.unit.test.ts`
+  - Hardening changes:
+    - switched JSON/Markdown session export writes from single large in-memory
+      payload writes to chunked stream pipelines.
+    - added ZIP output stream piping to avoid full in-memory buffer assembly
+      during writeout.
+    - added focused coverage for JSON, Markdown, and ZIP export/import paths.
+  - Goal:
+    - reduce peak memory spikes for large session exports by streaming write
+      output incrementally to disk.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7240,7 +7256,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B31 | P1 | add cancellation tokens and depth limits to recursive file/search operations.
 - [x] - B32 | P1 | introduce transcript virtualization strategy for very large chat histories.
 - [x] - B33 | P1 | avoid full markdown reparsing on each chunk; adopt incremental parse/update path.
-- [ ] - B34 | P1 | stream session export writes instead of building large in-memory payloads.
+- [x] - B34 | P1 | stream session export writes instead of building large in-memory payloads.
 - [ ] - B35 | P1 | batch and throttle token optimizer telemetry writes to reduce IO pressure.
 - [ ] - B36 | P1 | cache update-check results with TTL to prevent repeated remote calls in one runtime.
 - [ ] - B37 | P1 | de-correlate provider retries to avoid synchronized thundering-herd behavior.

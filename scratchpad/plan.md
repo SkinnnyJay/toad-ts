@@ -3954,9 +3954,15 @@
     markdown renderer during active streaming chunks
   - added focused renderer coverage in
     `__tests__/unit/ui/content-block-renderer.unit.test.ts`
+- Completed P1 backlog item B34 streamed session export writes:
+  - updated `src/utils/session-export.ts` to stream JSON/Markdown export writes
+    via chunked pipelines
+  - updated ZIP write path to stream zip output to disk
+  - expanded export coverage in
+    `__tests__/unit/utils/session-export.unit.test.ts` across JSON/Markdown/ZIP
 - New next candidate:
-  - evaluate severity backlog item B34 by streaming session export writes to
-    avoid large in-memory payload assembly spikes
+  - evaluate severity backlog item B35 by batching/throttling token optimizer
+    telemetry write pressure
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers
