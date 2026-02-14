@@ -737,6 +737,97 @@ describe("headless server", () => {
     }
   });
 
+  it("keeps server responsive after repeated cursor adapter-not-registered responses", async () => {
+    const temporaryRoot = await mkdtemp(
+      path.join(tmpdir(), "toadstool-headless-cursor-disabled-repeated-")
+    );
+    const harnessDirectory = path.join(temporaryRoot, FILE_PATH.TOADSTOOL_DIR);
+    const harnessFilePath = path.join(harnessDirectory, FILE_PATH.HARNESSES_JSON);
+    const originalHome = process.env.HOME;
+    const originalCwd = process.cwd();
+    const originalCursorEnabled = process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED];
+
+    await mkdir(harnessDirectory, { recursive: true });
+    await writeFile(
+      harnessFilePath,
+      JSON.stringify(
+        {
+          defaultHarness: HARNESS_DEFAULT.CURSOR_CLI_ID,
+          harnesses: {
+            [HARNESS_DEFAULT.CURSOR_CLI_ID]: {
+              name: "Cursor",
+              command: "cursor-agent",
+            },
+            [HARNESS_DEFAULT.MOCK_ID]: {
+              name: "Mock",
+              command: HARNESS_DEFAULT.MOCK_ID,
+            },
+          },
+        },
+        null,
+        2
+      )
+    );
+
+    process.env.HOME = temporaryRoot;
+    process.chdir(temporaryRoot);
+    process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED] = "false";
+    EnvManager.resetInstance();
+
+    let server: Awaited<ReturnType<typeof startHeadlessServer>> | null = null;
+    try {
+      server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+      const { host, port } = server.address();
+      const baseUrl = `http://${host}:${port}`;
+
+      const firstResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      expect(firstResponse.status).toBe(404);
+      await expect(firstResponse.json()).resolves.toEqual({
+        error: formatHarnessAdapterNotRegisteredError(HARNESS_DEFAULT.CURSOR_CLI_ID),
+      });
+
+      const secondResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      expect(secondResponse.status).toBe(404);
+      await expect(secondResponse.json()).resolves.toEqual({
+        error: formatHarnessAdapterNotRegisteredError(HARNESS_DEFAULT.CURSOR_CLI_ID),
+      });
+
+      const mockResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.MOCK_ID }),
+      });
+      expect(mockResponse.status).toBe(200);
+      const payload = createSessionResponseSchema.parse(await mockResponse.json());
+      expect(payload.sessionId).toBeTruthy();
+    } finally {
+      if (server) {
+        await server.close();
+      }
+      process.chdir(originalCwd);
+      if (originalHome === undefined) {
+        process.env.HOME = undefined;
+      } else {
+        process.env.HOME = originalHome;
+      }
+      if (originalCursorEnabled === undefined) {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED] = undefined;
+      } else {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED] = originalCursorEnabled;
+      }
+      EnvManager.resetInstance();
+      await rm(temporaryRoot, { recursive: true, force: true });
+    }
+  });
+
   it("keeps non-cursor harnesses operational when cursor adapter is disabled", async () => {
     const temporaryRoot = await mkdtemp(path.join(tmpdir(), "toadstool-headless-cursor-partial-"));
     const harnessDirectory = path.join(temporaryRoot, FILE_PATH.TOADSTOOL_DIR);

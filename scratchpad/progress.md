@@ -171,6 +171,8 @@
     configured requests with post-failure mock continuity checks
   - expanded harness-registry factory coverage to assert cursor adapter
     exclusion semantics when `enableCursor` is false
+  - added headless integration coverage for repeated adapter-not-registered
+    responses when cursor default harness remains configured but adapter is disabled
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

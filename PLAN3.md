@@ -2338,3 +2338,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
       when `includeMock: true`.
   - Goal:
     - lock adapter presence semantics for cursor-disabled registry construction.
+
+## Execution Log Addendum — 2026-02-13 (repeated adapter-not-registered coverage)
+
+- Additional adapter-disable continuity integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for repeated default `/sessions` requests when
+      `defaultHarness` is `cursor-cli` and cursor adapter is disabled in
+      registry construction.
+    - verifies consecutive requests return canonical adapter-not-registered
+      responses.
+    - verifies explicit `mock` session creation remains successful in the same
+      running server instance.
+  - Goal:
+    - lock continuity semantics under repeated adapter-not-registered response
+      cycles.

@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added repeated adapter-not-registered integration coverage:
+  - headless integration now verifies consecutive default `/sessions` requests
+    return canonical adapter-not-registered responses when `defaultHarness` is
+    `cursor-cli` but cursor adapter is disabled
+  - validates explicit `mock` session creation still succeeds after repeated
+    adapter-not-registered responses in the same runtime
 - Added harness-registry cursor-disable unit coverage:
   - registry factory tests now assert `createHarnessRegistry(...)` excludes
     `cursor-cli` when cursor is disabled while still including `mock` when
