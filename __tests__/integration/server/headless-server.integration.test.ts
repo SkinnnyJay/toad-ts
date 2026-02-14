@@ -5258,6 +5258,8 @@ describe("headless server", () => {
       const postCloseRecoverySettleJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const postCloseCycleHandoffJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
       const postCloseCycleHandoffJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
+      const postCloseCycleCooldownHandoffJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
+      const postCloseCycleCooldownHandoffJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5332,6 +5334,9 @@ describe("headless server", () => {
         );
         expect(postCloseCycleHandoffJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postCloseCycleHandoffJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postCloseCycleCooldownHandoffJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postCloseCycleCooldownHandoffJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -5643,6 +5648,17 @@ describe("headless server", () => {
             : cycleCooldownWebsocketFirstByCycleMs[cycleIndex];
           setTimeout(() => resolve(), (cycleCooldownByCycle + cycleIndex + 1) % 3);
         });
+        if (cycleIndex < createCountByCycle.length - 1) {
+          await new Promise<void>((resolve) => {
+            const postCloseCycleCooldownHandoffJitterByCycle = openSseFirstByCycle[cycleIndex]
+              ? postCloseCycleCooldownHandoffJitterSseFirstByCycleMs[cycleIndex]
+              : postCloseCycleCooldownHandoffJitterWebsocketFirstByCycleMs[cycleIndex];
+            setTimeout(
+              () => resolve(),
+              (postCloseCycleCooldownHandoffJitterByCycle + cycleIndex + 2) % 4
+            );
+          });
+        }
         await new Promise<void>((resolve) => {
           const postCloseCycleTransitionJitterByCycle = openSseFirstByCycle[cycleIndex]
             ? postCloseCycleTransitionJitterSseFirstByCycleMs[cycleIndex]
