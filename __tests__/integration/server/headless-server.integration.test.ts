@@ -5262,6 +5262,8 @@ describe("headless server", () => {
       const postCloseCycleCooldownHandoffJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const postCloseCycleTransitionHandoffJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
       const postCloseCycleTransitionHandoffJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
+      const postCloseSegmentOpenHandoffJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
+      const postCloseSegmentOpenHandoffJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5342,6 +5344,9 @@ describe("headless server", () => {
         );
         expect(postCloseCycleTransitionHandoffJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postCloseCycleTransitionHandoffJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postCloseSegmentOpenHandoffJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postCloseSegmentOpenHandoffJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -5430,6 +5435,17 @@ describe("headless server", () => {
         };
 
         for (let cycleCreateIndex = 0; cycleCreateIndex < cycleCreateCount; cycleCreateIndex += 1) {
+          if (cycleCreateIndex === 0 && cycleIndex > 0) {
+            await new Promise<void>((resolve) => {
+              const postCloseSegmentOpenHandoffJitterByCycle = openSseFirstByCycle[cycleIndex]
+                ? postCloseSegmentOpenHandoffJitterSseFirstByCycleMs[cycleIndex]
+                : postCloseSegmentOpenHandoffJitterWebsocketFirstByCycleMs[cycleIndex];
+              setTimeout(
+                () => resolve(),
+                (postCloseSegmentOpenHandoffJitterByCycle + cycleIndex + cycleCreateIndex + 1) % 4
+              );
+            });
+          }
           if (
             cycleCreateIndex > 0 &&
             websocketSegmentRemaining === 0 &&
