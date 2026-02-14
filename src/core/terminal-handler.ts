@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { isAbsolute, normalize, resolve } from "node:path";
 import { TERMINAL_KILL_GRACE_MS } from "@/config/timeouts";
 import { TRUTHY_STRINGS } from "@/constants/boolean-strings";
@@ -8,6 +8,7 @@ import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
 import { isPathWithinBase } from "@/utils/pathContainment.utils";
 import { isPathEscape } from "@/utils/pathEscape.utils";
+import { acquireProcessSlot, bindProcessSlotToChild } from "@/utils/process-concurrency.utils";
 
 export interface ExecOptions {
   cwd?: string;
@@ -68,7 +69,16 @@ export class TerminalHandler {
     );
     const env = { ...EnvManager.getInstance().getSnapshot(), ...options.env };
     return new Promise<ExecResult>((resolve, reject) => {
-      const child = spawn(command, args, { cwd, env });
+      const releaseSlot = acquireProcessSlot("terminal-handler");
+      let child: ChildProcessWithoutNullStreams;
+      try {
+        child = spawn(command, args, { cwd, env });
+      } catch (error) {
+        releaseSlot();
+        reject(error);
+        return;
+      }
+      bindProcessSlotToChild(child, releaseSlot);
       let stdout = "";
       let stderr = "";
       let finished = false;

@@ -871,6 +871,8 @@
     buffers to prevent unbounded growth on malformed/infinite streams
   - completed P0 backlog item B17 by adding lifecycle retention pruning for
     completed background tasks to prevent long-session memory growth
+  - completed P0 backlog item B18 by enforcing global spawned-process
+    concurrency caps across shell/provider execution pathways
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

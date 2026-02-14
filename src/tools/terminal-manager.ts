@@ -8,6 +8,7 @@ import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
 import { isPathWithinBase } from "@/utils/pathContainment.utils";
 import { isPathEscape } from "@/utils/pathEscape.utils";
+import { acquireProcessSlot, bindProcessSlotToChild } from "@/utils/process-concurrency.utils";
 import { nanoid } from "nanoid";
 
 export interface TerminalSessionOptions {
@@ -76,10 +77,17 @@ class TerminalSession {
 
   constructor(options: TerminalSessionOptions) {
     this.outputLimit = options.outputByteLimit ?? LIMIT.TERMINAL_OUTPUT_MAX_BYTES;
-    this.child = spawn(options.command, options.args ?? [], {
-      cwd: options.cwd,
-      env: options.env,
-    });
+    const releaseSlot = acquireProcessSlot("terminal-session");
+    try {
+      this.child = spawn(options.command, options.args ?? [], {
+        cwd: options.cwd,
+        env: options.env,
+      });
+    } catch (error) {
+      releaseSlot();
+      throw error;
+    }
+    bindProcessSlotToChild(this.child, releaseSlot);
 
     this.child.stdout.setEncoding("utf8");
     this.child.stderr.setEncoding("utf8");

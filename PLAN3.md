@@ -6900,6 +6900,30 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - prevent unbounded accumulation of completed/failed/cancelled background
       tasks during long runtimes.
 
+## Execution Log Addendum — 2026-02-14 (B18 spawned-process concurrency guard hardening)
+
+- Additional P0 backlog hardening for spawned process concurrency safety:
+  - Updated:
+    - `src/utils/process-concurrency.utils.ts` (new shared utility)
+    - `src/core/cli-agent/cli-agent-process-runner.ts`
+    - `src/tools/terminal-manager.ts`
+    - `src/tools/interactive-shell.ts`
+    - `src/core/terminal-handler.ts`
+    - `src/core/search/search-service.ts`
+    - `src/config/limits.ts`
+    - `__tests__/unit/utils/process-concurrency.utils.unit.test.ts` (new)
+  - Hardening changes:
+    - added shared global process-slot acquisition/release utility with
+      deterministic child lifecycle binding.
+    - enforced global spawned-process concurrency cap across CLI agent runner,
+      terminal manager sessions, interactive shell execution, terminal handler,
+      and search service rg spawns.
+    - added explicit `PROCESS_CONCURRENCY_MAX` limit.
+    - added focused unit coverage for concurrency limit enforcement and
+      child-close release semantics.
+  - Goal:
+    - prevent runaway concurrent spawn storms across shell/provider pathways.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6921,7 +6945,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B15 | P0 | ensure update-check and remote metadata calls never block startup critical path.
 - [x] - B16 | P0 | cap provider stream parser buffers to prevent unbounded growth with malformed/infinite streams.
 - [x] - B17 | P0 | add lifecycle cleanup for completed background tasks to prevent long-session memory creep.
-- [ ] - B18 | P0 | enforce global process concurrency limits for spawned shell/provider tasks.
+- [x] - B18 | P0 | enforce global process concurrency limits for spawned shell/provider tasks.
 - [ ] - B19 | P0 | protect clipboard command pipes from large-payload memory spikes and stalled child processes.
 - [ ] - B20 | P0 | guarantee crash-safe cleanup of UNIX socket files and temporary artifacts on abrupt termination.
 

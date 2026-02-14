@@ -5,6 +5,7 @@ import {
 } from "node:child_process";
 import { PLATFORM } from "@/constants/platform";
 import { createClassLogger } from "@/utils/logging/logger.utils";
+import { acquireProcessSlot, bindProcessSlotToChild } from "@/utils/process-concurrency.utils";
 
 export interface CliAgentCommandResult {
   stdout: string;
@@ -192,13 +193,20 @@ export class CliAgentProcessRunner {
   private spawn(args: string[]): ChildProcessWithoutNullStreams {
     const commandArgs = [...this.args, ...args];
     this.logger.debug("Spawning cli command", { command: this.command, args: commandArgs });
-
-    return this.spawnFn(this.command, commandArgs, {
-      cwd: this.cwd,
-      env: this.env,
-      detached: process.platform !== PLATFORM.WIN32,
-      stdio: "pipe",
-    });
+    const releaseSlot = acquireProcessSlot("cli-agent");
+    try {
+      const child = this.spawnFn(this.command, commandArgs, {
+        cwd: this.cwd,
+        env: this.env,
+        detached: process.platform !== PLATFORM.WIN32,
+        stdio: "pipe",
+      });
+      bindProcessSlotToChild(child, releaseSlot);
+      return child;
+    } catch (error) {
+      releaseSlot();
+      throw error;
+    }
   }
 
   private async terminateActiveProcess(signal: NodeJS.Signals): Promise<void> {

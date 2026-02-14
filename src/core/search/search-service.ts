@@ -1,10 +1,11 @@
-import { spawn } from "node:child_process";
+import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { isAbsolute, normalize, resolve } from "node:path";
 
 import { TRUTHY_STRINGS } from "@/constants/boolean-strings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { SEARCH_GLOB_EXCLUDES } from "@/constants/ignore-patterns";
 import { EnvManager } from "@/utils/env/env.utils";
+import { acquireProcessSlot, bindProcessSlotToChild } from "@/utils/process-concurrency.utils";
 import { rgPath } from "@vscode/ripgrep";
 import fg from "fast-glob";
 import fuzzysort from "fuzzysort";
@@ -136,7 +137,16 @@ export class SearchService {
 
   private async spawnRg(args: string[], cwd: string): Promise<string> {
     return new Promise<string>((resolvePromise, reject) => {
-      const child = spawn(rgPath, args, { cwd });
+      const releaseSlot = acquireProcessSlot("search-service-rg");
+      let child: ChildProcessWithoutNullStreams;
+      try {
+        child = spawn(rgPath, args, { cwd });
+      } catch (error) {
+        releaseSlot();
+        reject(error);
+        return;
+      }
+      bindProcessSlotToChild(child, releaseSlot);
       let stdout = "";
       let stderr = "";
 

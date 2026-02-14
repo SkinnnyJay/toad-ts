@@ -1,5 +1,40 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B18 spawned-process concurrency guard hardening)
+
+### Summary
+- Completed P0 backlog item B18 in `PLAN3.md` by adding global spawned-process
+  concurrency guards.
+- Added shared utility `src/utils/process-concurrency.utils.ts`:
+  - process-slot acquire/release guard with global active counter,
+  - child lifecycle binding helper for deterministic slot release on
+    close/error,
+  - test helpers for deterministic unit isolation.
+- Applied concurrency guard integration in:
+  - `src/core/cli-agent/cli-agent-process-runner.ts`
+  - `src/tools/terminal-manager.ts`
+  - `src/tools/interactive-shell.ts`
+  - `src/core/terminal-handler.ts`
+  - `src/core/search/search-service.ts`
+- Added `PROCESS_CONCURRENCY_MAX` in `src/config/limits.ts`.
+- Added focused unit coverage in
+  `__tests__/unit/utils/process-concurrency.utils.unit.test.ts`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/process-concurrency.utils.unit.test.ts __tests__/unit/core/terminal-handler.unit.test.ts __tests__/unit/tools/terminal-manager.unit.test.ts __tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts __tests__/unit/core/search-service.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B17 background-task lifecycle retention hardening)
 
 ### Summary

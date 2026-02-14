@@ -3846,9 +3846,17 @@
     `src/config/limits.ts`
   - added focused unit coverage in
     `__tests__/unit/store/background-task-store.unit.test.ts`
+- Completed P0 backlog item B18 spawned-process concurrency guard hardening:
+  - added shared global process concurrency utility in
+    `src/utils/process-concurrency.utils.ts`
+  - enforced process slot limits in cli-agent runner, terminal manager,
+    interactive shell, terminal handler, and search rg spawn paths
+  - added process concurrency limit constant in `src/config/limits.ts`
+  - added focused unit coverage in
+    `__tests__/unit/utils/process-concurrency.utils.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B18 by enforcing global process concurrency
-    limits for spawned shell/provider/background tasks
+  - evaluate severity backlog item B19 by protecting clipboard command pipes
+    from large payload spikes and stalled child processes
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers
