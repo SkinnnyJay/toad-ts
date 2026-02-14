@@ -2404,3 +2404,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
       unknown-harness failures in the same runtime.
   - Goal:
     - lock continuity semantics under repeated unknown-harness request cycles.
+
+## Execution Log Addendum — 2026-02-13 (repeated default custom-adapter continuity coverage)
+
+- Additional default-route adapter continuity integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for repeated default `/sessions` requests when
+      configured `defaultHarness` points to an unregistered custom adapter id.
+    - verifies two consecutive default requests return canonical
+      adapter-not-registered responses for the custom harness id.
+    - verifies explicit `mock` session creation still succeeds after repeated
+      default adapter-not-registered failures in the same runtime.
+  - Goal:
+    - lock continuity semantics under repeated default-route custom-adapter
+      registration failures.

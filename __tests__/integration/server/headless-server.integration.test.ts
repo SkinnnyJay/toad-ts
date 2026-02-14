@@ -766,6 +766,89 @@ describe("headless server", () => {
     }
   });
 
+  it("keeps server responsive after repeated default adapter-not-registered responses", async () => {
+    const customHarnessId = "custom";
+    const temporaryRoot = await mkdtemp(path.join(tmpdir(), "toadstool-headless-custom-repeated-"));
+    const harnessDirectory = path.join(temporaryRoot, FILE_PATH.TOADSTOOL_DIR);
+    const harnessFilePath = path.join(harnessDirectory, FILE_PATH.HARNESSES_JSON);
+    const originalHome = process.env.HOME;
+    const originalCwd = process.cwd();
+
+    await mkdir(harnessDirectory, { recursive: true });
+    await writeFile(
+      harnessFilePath,
+      JSON.stringify(
+        {
+          defaultHarness: customHarnessId,
+          harnesses: {
+            [customHarnessId]: {
+              name: "Custom",
+              command: "custom-cli",
+            },
+            [HARNESS_DEFAULT.MOCK_ID]: {
+              name: "Mock",
+              command: HARNESS_DEFAULT.MOCK_ID,
+            },
+          },
+        },
+        null,
+        2
+      )
+    );
+
+    process.env.HOME = temporaryRoot;
+    process.chdir(temporaryRoot);
+    EnvManager.resetInstance();
+
+    let server: Awaited<ReturnType<typeof startHeadlessServer>> | null = null;
+    try {
+      server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+      const { host, port } = server.address();
+      const baseUrl = `http://${host}:${port}`;
+
+      const firstResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      expect(firstResponse.status).toBe(404);
+      await expect(firstResponse.json()).resolves.toEqual({
+        error: formatHarnessAdapterNotRegisteredError(customHarnessId),
+      });
+
+      const secondResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      expect(secondResponse.status).toBe(404);
+      await expect(secondResponse.json()).resolves.toEqual({
+        error: formatHarnessAdapterNotRegisteredError(customHarnessId),
+      });
+
+      const mockResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.MOCK_ID }),
+      });
+      expect(mockResponse.status).toBe(200);
+      const payload = createSessionResponseSchema.parse(await mockResponse.json());
+      expect(payload.sessionId).toBeTruthy();
+    } finally {
+      if (server) {
+        await server.close();
+      }
+      process.chdir(originalCwd);
+      if (originalHome === undefined) {
+        process.env.HOME = undefined;
+      } else {
+        process.env.HOME = originalHome;
+      }
+      EnvManager.resetInstance();
+      await rm(temporaryRoot, { recursive: true, force: true });
+    }
+  });
+
   it("returns not found when cursor harness is configured but cursor adapter is disabled", async () => {
     const temporaryRoot = await mkdtemp(path.join(tmpdir(), "toadstool-headless-cursor-disabled-"));
     const harnessDirectory = path.join(temporaryRoot, FILE_PATH.TOADSTOOL_DIR);

@@ -511,6 +511,11 @@
     return canonical harness-not-configured responses
   - verifies explicit mock session creation succeeds after repeated unknown-harness
     failures in the same server runtime
+- Added repeated default custom-adapter continuity hardening:
+  - headless integration now validates repeated default-route requests when
+    configured default harness points to an unregistered custom adapter id
+  - verifies canonical adapter-not-registered responses persist across repeats
+    and explicit mock sessions remain operational in the same runtime
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
