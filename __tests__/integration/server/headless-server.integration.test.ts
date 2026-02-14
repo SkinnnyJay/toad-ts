@@ -5594,6 +5594,10 @@ describe("headless server", () => {
       const postClosePromptBurstRecoveryLabelJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
       const postClosePromptBurstRecoveryMottoJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
       const postClosePromptBurstRecoveryMottoJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
+      const postClosePromptBurstRecoverySupporterJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
+      const postClosePromptBurstRecoverySupporterJitterWebsocketFirstByCycleMs = [
+        3, 0, 3, 0,
+      ] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5964,6 +5968,9 @@ describe("headless server", () => {
         );
         expect(postClosePromptBurstRecoveryMottoJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postClosePromptBurstRecoveryMottoJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postClosePromptBurstRecoverySupporterJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postClosePromptBurstRecoverySupporterJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         expect(postClosePromptBurstRecoveryRustreJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postClosePromptBurstRecoveryRustreJitterWebsocketFirstByCycleMs[cycleIndex]
@@ -7770,6 +7777,21 @@ describe("headless server", () => {
                   cycleSessionIndex +
                   cycleIndex +
                   2) %
+                  4
+              );
+            });
+            await new Promise<void>((resolve) => {
+              const postClosePromptBurstRecoverySupporterJitterByCycle = openSseFirstByCycle[
+                cycleIndex
+              ]
+                ? postClosePromptBurstRecoverySupporterJitterSseFirstByCycleMs[cycleIndex]
+                : postClosePromptBurstRecoverySupporterJitterWebsocketFirstByCycleMs[cycleIndex];
+              setTimeout(
+                () => resolve(),
+                (postClosePromptBurstRecoverySupporterJitterByCycle +
+                  cycleSessionIndex +
+                  cycleIndex +
+                  3) %
                   4
               );
             });
