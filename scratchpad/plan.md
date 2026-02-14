@@ -3221,10 +3221,20 @@
   - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
     rejection, and valid-prompt recovery remain stable under the expanded
     stacked reconnect-order asymmetry matrix
+- Added merged env-map reconnect-order post-close prompt-burst recovery-escarbuncle asymmetry hardening:
+  - reconnect-order post-close prompt-burst recovery-inescutcheon coverage now
+    applies asymmetric post-close prompt-burst recovery-escarbuncle jitter per
+    order path
+  - `SSE-first` cycles use lower post-close prompt-burst recovery-escarbuncle
+    jitter, while `websocket-first` cycles use higher post-close prompt-burst
+    recovery-escarbuncle jitter
+  - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
+    rejection, and valid-prompt recovery remain stable under the expanded
+    stacked reconnect-order asymmetry matrix
 - New next candidate:
-  - evaluate whether reconnect-order post-close prompt-burst recovery-inescutcheon
+  - evaluate whether reconnect-order post-close prompt-burst recovery-escarbuncle
     asymmetry should include asymmetric post-close prompt-burst recovery-
-    escarbuncle jitter by order path
+    roundel jitter by order path
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers
