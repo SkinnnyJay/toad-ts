@@ -1,5 +1,33 @@
 # Scratchpad Journal
 
+## 2026-02-14 (Merged env-map reconnect-order post-close recovery-motto asymmetry coverage)
+
+### Summary
+- Expanded reconnect-order inversion hardening in
+  `__tests__/integration/server/headless-server.integration.test.ts` with
+  asymmetric post-close prompt-burst recovery-motto jitter per order path.
+- Added order-path-specific recovery-motto jitter constants and asymmetry
+  assertions (`SSE-first` lower, `websocket-first` higher).
+- Applied recovery-motto jitter in the intra-cycle handoff sequence after
+  recovery-label jitter to stress websocket `SESSION_CREATED` and SSE
+  `STATE_UPDATE` continuity under the expanded stacked asymmetry matrix.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps reconnect-order inversion stable across dual cadence stream cycles"` ✅
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `npx tsc --noEmit` ✅
+  - `bun run test` ❌ (`bun: command not found`)
+  - `npx vitest run` ✅
+  - `bun run build` ❌ (`bun: command not found`)
+  - `npx tsup` ✅
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (Merged env-map reconnect-order post-close recovery-label asymmetry coverage)
 
 ### Summary
