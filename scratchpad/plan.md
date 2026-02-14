@@ -796,9 +796,23 @@
     asymmetry + close-interleave asymmetry + post-close create scheduling
     asymmetry + post-close prompt scheduling asymmetry + post-close recovery
     scheduling asymmetry by order path
+- Added merged env-map reconnect-order post-close cycle transition asymmetry hardening:
+  - reconnect-order post-close recovery scheduling coverage now applies
+    asymmetric post-close cycle transition jitter per order path
+  - `SSE-first` cycles use lower post-close cycle transition jitter, while
+    `websocket-first` cycles use higher post-close cycle transition jitter
+  - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
+    rejection, and valid-prompt recovery remain stable under combined cadence +
+    segment-count asymmetry + stream-open jitter asymmetry + create-jitter
+    asymmetry + recovery-jitter asymmetry + burst-spacing asymmetry + post-
+    recovery delay asymmetry + cycle-cooldown asymmetry + close-delay
+    asymmetry + close-interleave asymmetry + post-close create scheduling
+    asymmetry + post-close prompt scheduling asymmetry + post-close recovery
+    scheduling asymmetry + post-close cycle transition asymmetry by order path
 - New next candidate:
-  - evaluate whether reconnect-order post-close recovery scheduling asymmetry
-    should include asymmetric post-close cycle transition jitter by order path
+  - evaluate whether reconnect-order post-close cycle transition asymmetry
+    should include asymmetric post-close segment-open gating jitter by order
+    path
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
