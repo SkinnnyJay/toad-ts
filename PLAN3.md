@@ -3180,3 +3180,28 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock reconnect-order continuity when post-close segment-rearm timing
       varies asymmetrically by order path.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order post-close invalid-burst ramp asymmetry coverage)
+
+- Additional merged env-map reconnect-order post-close invalid-burst ramp asymmetry hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order post-close segment-rearm coverage with
+      asymmetric post-close invalid-burst ramp jitter by reconnect order path.
+    - `SSE-first` cycles now use lower post-close invalid-burst ramp jitter
+      while `websocket-first` cycles use higher post-close invalid-burst ramp
+      jitter.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable while post-close invalid-burst ramp asymmetry is layered
+      with post-close segment-rearm asymmetry, post-close segment-open gating
+      asymmetry, post-close cycle transition asymmetry, post-close recovery
+      scheduling asymmetry, post-close prompt scheduling asymmetry, post-close
+      create scheduling asymmetry, close-interleave asymmetry, close-delay
+      asymmetry, cycle-cooldown asymmetry, post-recovery delay asymmetry,
+      burst-spacing asymmetry, recovery-jitter asymmetry, create-jitter
+      asymmetry, stream-open jitter asymmetry, segment-count asymmetry, and
+      cadence variation.
+  - Goal:
+    - lock reconnect-order continuity when post-close invalid-burst ramp timing
+      varies asymmetrically by order path.
