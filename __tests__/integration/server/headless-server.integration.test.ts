@@ -5218,6 +5218,8 @@ describe("headless server", () => {
       const websocketReconnectCadenceByCycle = [1, 3, 1, 3] as const;
       const sseReconnectCadenceByCycle = [1, 3, 1, 3] as const;
       const openSseFirstByCycle = [true, false, true, false] as const;
+      const openOrderJitterByCycleMs = [0, 2, 1, 2] as const;
+      const createJitterByCycleMs = [1, 0, 2, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5245,6 +5247,12 @@ describe("headless server", () => {
         const openNextWebsocketSegment = async (): Promise<void> => {
           const expectedCount = websocketSegmentSizes[websocketSegmentIndex];
           websocketSegmentIndex += 1;
+          await new Promise<void>((resolve) => {
+            setTimeout(
+              () => resolve(),
+              (openOrderJitterByCycleMs[cycleIndex] + websocketSegmentIndex) % 3
+            );
+          });
           activeSocket = new WebSocket(`ws://${host}:${port}`);
           await waitForOpen(activeSocket);
           websocketSegmentRemaining = expectedCount;
@@ -5252,9 +5260,15 @@ describe("headless server", () => {
           websocketSegmentPromise = collectSessionCreatedEvents(activeSocket, expectedCount);
         };
 
-        const openNextSseSegment = (): void => {
+        const openNextSseSegment = async (): Promise<void> => {
           sseSegmentExpectedCount = sseSegmentSizes[sseSegmentIndex];
           sseSegmentIndex += 1;
+          await new Promise<void>((resolve) => {
+            setTimeout(
+              () => resolve(),
+              (openOrderJitterByCycleMs[cycleIndex] + sseSegmentIndex + 1) % 3
+            );
+          });
           sseSegmentRemaining = sseSegmentExpectedCount;
           stateUpdatePromise = (async (): Promise<Array<Record<string, unknown>>> => {
             const stateUpdateResponse = await fetch(`${baseUrl}/api/events`);
@@ -5268,20 +5282,23 @@ describe("headless server", () => {
         for (let cycleCreateIndex = 0; cycleCreateIndex < cycleCreateCount; cycleCreateIndex += 1) {
           if (websocketSegmentRemaining === 0 && sseSegmentRemaining === 0) {
             if (openSseFirstByCycle[cycleIndex]) {
-              openNextSseSegment();
+              await openNextSseSegment();
               await openNextWebsocketSegment();
             } else {
               await openNextWebsocketSegment();
-              openNextSseSegment();
+              await openNextSseSegment();
             }
           } else if (websocketSegmentRemaining === 0) {
             await openNextWebsocketSegment();
           } else if (sseSegmentRemaining === 0) {
-            openNextSseSegment();
+            await openNextSseSegment();
           }
 
           await new Promise<void>((resolve) => {
-            setTimeout(() => resolve(), (cycleIndex + cycleCreateIndex + createRequestIndex) % 3);
+            setTimeout(
+              () => resolve(),
+              (createJitterByCycleMs[cycleIndex] + cycleCreateIndex + createRequestIndex) % 3
+            );
           });
 
           const createSessionRequestBody =

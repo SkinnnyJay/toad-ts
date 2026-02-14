@@ -667,6 +667,12 @@
     higher cadence) while preserving dual stream assertions
   - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
     rejection, and valid-prompt recovery remain stable across expanded cadence
+- Added merged env-map reconnect-order jitter expansion hardening:
+  - reconnect-order inversion cadence coverage now applies explicit per-order-
+    path jitter arrays for stream-open sequencing and create timing
+  - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
+    rejection, and valid-prompt recovery remain stable under combined cadence +
+    jitter expansion by order path
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

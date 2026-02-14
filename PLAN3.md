@@ -2868,3 +2868,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock reconnect-order continuity when cadence expansion and asymmetric
       burst pressure vary per order path in one runtime sequence.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order jitter expansion coverage)
+
+- Additional merged env-map reconnect-order jitter expansion hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order inversion cadence coverage with explicit
+      per-order-path jitter arrays for stream-open sequencing and create timing.
+    - kept asymmetric per-order-path cadence (`SSE-first` lower cadence,
+      `websocket-first` higher cadence) and asymmetric invalid-prompt bursts.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remain stable while jitter and burst pressure vary by order path.
+  - Goal:
+    - lock reconnect-order continuity under simultaneous per-order-path cadence
+      and per-order-path jitter expansion in the same runtime sequence.

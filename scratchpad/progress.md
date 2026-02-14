@@ -237,6 +237,8 @@
     websocket+SSE continuity assertions under order-path-specific burst sizes
   - added merged env-map reconnect-order cadence expansion coverage with
     websocket+SSE continuity assertions under order-path-specific create cadence
+  - added merged env-map reconnect-order jitter expansion coverage with
+    websocket+SSE continuity assertions under order-path-specific jitter arrays
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

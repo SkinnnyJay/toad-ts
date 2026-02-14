@@ -1747,6 +1747,35 @@
 - Targeted:
   - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
 
+## 2026-02-14 (Merged env-map reconnect-order jitter expansion coverage)
+
+### Summary
+- Expanded reconnect-order inversion cadence coverage by introducing explicit
+  per-order-path jitter arrays:
+  - stream-open jitter varies by order path/cycle.
+  - create-request jitter varies by order path/cycle.
+- Test validates:
+  - websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity remains
+    stable under combined order-path cadence + jitter expansion.
+  - asymmetric invalid-prompt burst pressure (`SSE-first` vs
+    `websocket-first`) remains stable.
+  - valid prompt recovery and unique session-id continuity remain stable across
+    the full expanded sequence.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps reconnect-order inversion stable across dual cadence stream cycles"` ✅
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps reconnect-order inversion stable with per-cycle jitter variation"` ✅
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (Merged env-map reconnect-order cadence expansion coverage)
 
 ### Summary
