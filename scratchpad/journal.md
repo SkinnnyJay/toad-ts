@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B33 streaming markdown reparse reduction hardening)
+
+### Summary
+- Completed P1 backlog item B33 in `PLAN3.md` by reducing markdown parsing churn
+  during streaming text updates.
+- Updated:
+  - `src/ui/components/messages/ContentBlockRenderer.tsx`
+  - `__tests__/unit/ui/content-block-renderer.unit.test.ts`
+- Changes:
+  - active streaming text chunks now render as raw text (no markdown parser
+    invocation) until stream completion.
+  - finalized non-streaming text blocks continue through markdown renderer.
+  - added focused renderer tests confirming streaming path skips markdown
+    renderer calls.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/ui/content-block-renderer.unit.test.ts __tests__/unit/ui/markdown-rendering.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B32 transcript virtualization strategy hardening)
 
 ### Summary

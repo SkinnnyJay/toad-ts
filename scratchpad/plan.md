@@ -3949,9 +3949,14 @@
   - added large-history regression coverage in
     `__tests__/unit/ui/message-list.unit.test.ts` to verify navigation to
     earliest messages beyond prior truncation limits
+- Completed P1 backlog item B33 streaming markdown reparse reduction:
+  - updated `src/ui/components/messages/ContentBlockRenderer.tsx` to bypass
+    markdown renderer during active streaming chunks
+  - added focused renderer coverage in
+    `__tests__/unit/ui/content-block-renderer.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B33 by reducing full markdown reparsing on
-    streaming chunk updates
+  - evaluate severity backlog item B34 by streaming session export writes to
+    avoid large in-memory payload assembly spikes
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

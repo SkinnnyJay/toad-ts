@@ -7184,6 +7184,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - enable true transcript virtualization for large session histories without
       silently dropping older messages from the navigable UI.
 
+## Execution Log Addendum — 2026-02-14 (B33 streaming markdown reparse reduction hardening)
+
+- Additional P1 backlog hardening for streamed markdown rendering cost:
+  - Updated:
+    - `src/ui/components/messages/ContentBlockRenderer.tsx`
+    - `__tests__/unit/ui/content-block-renderer.unit.test.ts` (new)
+  - Hardening changes:
+    - bypassed markdown renderer during active streaming text chunks and render
+      raw text directly until stream completion.
+    - retained full markdown rendering for non-streaming finalized text blocks.
+    - added focused renderer coverage proving streaming path skips markdown
+      renderer invocation.
+  - Goal:
+    - avoid full markdown reparsing on every streamed chunk while preserving
+      finalized markdown rendering behavior after streaming ends.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7223,7 +7239,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B30 | P1 | add SQLite maintenance policy (vacuum/pragma optimize/checkpoint) to stabilize long-lived performance.
 - [x] - B31 | P1 | add cancellation tokens and depth limits to recursive file/search operations.
 - [x] - B32 | P1 | introduce transcript virtualization strategy for very large chat histories.
-- [ ] - B33 | P1 | avoid full markdown reparsing on each chunk; adopt incremental parse/update path.
+- [x] - B33 | P1 | avoid full markdown reparsing on each chunk; adopt incremental parse/update path.
 - [ ] - B34 | P1 | stream session export writes instead of building large in-memory payloads.
 - [ ] - B35 | P1 | batch and throttle token optimizer telemetry writes to reduce IO pressure.
 - [ ] - B36 | P1 | cache update-check results with TTL to prevent repeated remote calls in one runtime.

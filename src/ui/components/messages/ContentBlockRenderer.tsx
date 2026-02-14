@@ -86,7 +86,10 @@ export const ContentBlockRenderer = memo(function ContentBlockRenderer({
 }): ReactNode {
   switch (block.type) {
     case CONTENT_BLOCK_TYPE.TEXT:
-      return <MarkdownRenderer markdown={block.text ?? ""} streaming={isStreaming} />;
+      if (isStreaming) {
+        return <text>{block.text ?? ""}</text>;
+      }
+      return <MarkdownRenderer markdown={block.text ?? ""} />;
     case CONTENT_BLOCK_TYPE.THINKING:
       return <ThinkingBlock text={block.text ?? ""} />;
     case CONTENT_BLOCK_TYPE.CODE:

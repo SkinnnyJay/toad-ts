@@ -901,6 +901,8 @@
     cancellation token handling
   - completed P1 backlog item B32 by enabling full transcript virtualization in
     MessageList default behavior
+  - completed P1 backlog item B33 by bypassing markdown reparsing during active
+    streaming chunk rendering
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first
