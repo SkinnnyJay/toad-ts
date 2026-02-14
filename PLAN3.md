@@ -6756,6 +6756,32 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - lock down Hook IPC HTTP mode to local-only traffic and reject
       non-local-origin requests deterministically.
 
+## Execution Log Addendum — 2026-02-14 (B11 strict request-body memory bounds hardening)
+
+- Additional P0 backlog hardening for JSON body memory and stream safety:
+  - Updated:
+    - `src/server/request-body.ts`
+    - `src/config/server.ts`
+    - `src/config/limits.ts`
+    - `__tests__/unit/server/request-body.unit.test.ts`
+    - `__tests__/unit/server/api-route-tui-handlers.unit.test.ts`
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added request-body preflight checks for malformed/oversized
+      `content-length` values before stream accumulation begins.
+    - rejected unsupported `content-encoding` values for JSON body parsing to
+      avoid accepting compressed payload paths outside explicit decompression.
+    - introduced bounded request-body read duration via
+      `SERVER_BODY_READ_TIMEOUT_MS` and retained deterministic invalid-request
+      error mapping on timeout/abort paths.
+    - added guarded request stream draining after rejection to avoid retaining
+      unread request payload bytes in parser paths.
+    - expanded unit and integration coverage for compressed payload rejection,
+      malformed header handling, and timeout behavior.
+  - Goal:
+    - enforce deterministic memory-safe request body handling across JSON
+      endpoints under compressed and slow-client input conditions.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6770,7 +6796,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B08 | P0 | prevent process signal handler accumulation across repeated runner lifecycles to avoid listener leaks.
 - [x] - B09 | P0 | guarantee timeout kill path reaps grandchildren on Windows and POSIX under high churn.
 - [x] - B10 | P0 | secure HTTP Hook IPC mode with explicit local-only binding and request-origin validation.
-- [ ] - B11 | P0 | enforce strict request-body memory bounds for all JSON endpoints under compressed/slowloris inputs.
+- [x] - B11 | P0 | enforce strict request-body memory bounds for all JSON endpoints under compressed/slowloris inputs.
 - [ ] - B12 | P0 | cap session stream in-memory message accumulation for very long-running sessions.
 - [ ] - B13 | P0 | add bounded retry/backoff strategy with jitter for diff worker and external process bridges to prevent retry storms.
 - [ ] - B14 | P0 | add transaction/statement timeouts and cancellation paths for long-running SQLite operations.

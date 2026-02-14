@@ -1,11 +1,12 @@
 import { EventEmitter } from "node:events";
 import type { IncomingMessage } from "node:http";
+import { SERVER_CONFIG } from "@/config/server";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { parseJsonRequestBody, readRequestBody } from "@/server/request-body";
 import { describe, expect, it } from "vitest";
 
-const createRequest = (): IncomingMessage => {
-  return new EventEmitter() as IncomingMessage;
+const createRequest = (headers: IncomingMessage["headers"] = {}): IncomingMessage => {
+  return Object.assign(new EventEmitter(), { headers }) as IncomingMessage;
 };
 
 const emitPayload = (req: IncomingMessage, payload: string): void => {
@@ -80,6 +81,31 @@ describe("request-body helpers", () => {
     emitPayload(req, "12345");
 
     await expect(pending).rejects.toThrow(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE);
+  });
+
+  it("rejects request body when content-length exceeds configured max", async () => {
+    const req = createRequest({ "content-length": "5" });
+    await expect(readRequestBody(req, 4)).rejects.toThrow(
+      SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE
+    );
+  });
+
+  it("rejects request body when content-length is malformed", async () => {
+    const req = createRequest({ "content-length": "four" });
+    await expect(readRequestBody(req, 4)).rejects.toThrow(SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
+  });
+
+  it("rejects request body when content-encoding is unsupported", async () => {
+    const req = createRequest({ "content-encoding": "gzip" });
+    await expect(readRequestBody(req)).rejects.toThrow(SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
+  });
+
+  it("allows request body when content-encoding is identity", async () => {
+    const req = createRequest({ "content-encoding": "identity" });
+    const pending = readRequestBody(req);
+    emitPayload(req, '{"value":"ok"}');
+
+    await expect(pending).resolves.toBe('{"value":"ok"}');
   });
 
   it("rejects when combined chunk size exceeds configured max", async () => {
@@ -216,5 +242,12 @@ describe("request-body helpers", () => {
     emitClosed(req);
 
     await expect(pending).rejects.toThrow(SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
+  });
+
+  it("rejects when request body read exceeds timeout", async () => {
+    const req = createRequest();
+    await expect(readRequestBody(req, SERVER_CONFIG.MAX_BODY_BYTES, 1)).rejects.toThrow(
+      SERVER_RESPONSE_MESSAGE.INVALID_REQUEST
+    );
   });
 });

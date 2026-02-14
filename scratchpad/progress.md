@@ -852,6 +852,10 @@
   - completed P0 backlog item B10 by locking Hook IPC HTTP transport to local
     host bindings and local-origin request validation with explicit forbidden
     responses for non-local traffic
+  - completed P0 backlog item B11 by hardening shared JSON request-body parsing
+    with strict preflight header checks, bounded read duration, and
+    deterministic compressed/slow-client rejection semantics across server
+    endpoints
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

@@ -3782,9 +3782,23 @@
     `src/constants/server-response-messages.ts`
   - expanded hook IPC and http-status unit coverage for local-host fallback and
     origin-guard behavior
+- Completed P0 backlog item B11 strict request-body memory bounds hardening:
+  - hardened `src/server/request-body.ts` with preflight content-length and
+    content-encoding validation before stream accumulation
+  - added bounded request-body read duration using
+    `SERVER_BODY_READ_TIMEOUT_MS` (`src/config/server.ts`,
+    `src/config/limits.ts`)
+  - added guarded request stream draining on rejection to avoid retaining
+    unread payload bytes in failure paths
+  - expanded coverage in:
+    - `__tests__/unit/server/request-body.unit.test.ts`
+    - `__tests__/unit/server/api-route-tui-handlers.unit.test.ts`
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+    for compressed-body rejection, malformed header handling, timeout behavior,
+    and endpoint-level invalid-request mapping consistency
 - New next candidate:
-  - evaluate severity backlog item B11 by enforcing strict request-body memory
-    bounds under compressed/slow-client input patterns
+  - evaluate severity backlog item B12 by capping in-memory session stream
+    message accumulation for long-running sessions
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

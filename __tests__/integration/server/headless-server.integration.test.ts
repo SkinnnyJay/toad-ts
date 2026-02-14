@@ -8715,6 +8715,68 @@ describe("headless server", () => {
     }
   });
 
+  it("rejects compressed json payloads with invalid-request errors", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const createResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Encoding": "gzip",
+        },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.MOCK_ID }),
+      });
+      expect(createResponse.status).toBe(400);
+      await expect(createResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      });
+
+      const baselineSessionResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.MOCK_ID }),
+      });
+      expect(baselineSessionResponse.status).toBe(200);
+      const baselineSessionPayload = createSessionResponseSchema.parse(
+        await baselineSessionResponse.json()
+      );
+
+      const promptResponse = await fetch(
+        `${baseUrl}/sessions/${baselineSessionPayload.sessionId}/prompt`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Content-Encoding": "gzip",
+          },
+          body: JSON.stringify({ prompt: "hello" }),
+        }
+      );
+      expect(promptResponse.status).toBe(400);
+      await expect(promptResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      });
+
+      const apiResponse = await fetch(`${baseUrl}/api/tui/execute-command`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Encoding": "gzip",
+        },
+        body: JSON.stringify({ command: "echo hi" }),
+      });
+      expect(apiResponse.status).toBe(400);
+      await expect(apiResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
   it("returns empty message list for unknown session ids", async () => {
     const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
     const { host, port } = server.address();

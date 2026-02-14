@@ -34,7 +34,10 @@ const createResponseCapture = (): {
 };
 
 const createRequest = (): IncomingMessage => {
-  return new EventEmitter() as IncomingMessage;
+  return Object.assign(new EventEmitter(), {
+    headers: {},
+    resume: () => undefined,
+  }) as IncomingMessage;
 };
 
 const invokeJsonHandler = async (

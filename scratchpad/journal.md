@@ -1,5 +1,39 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B11 strict request-body memory bounds hardening)
+
+### Summary
+- Completed P0 backlog item B11 in `PLAN3.md` by hardening shared request-body
+  parsing across JSON server endpoints.
+- Updated `src/server/request-body.ts` with:
+  - preflight `content-length` validation,
+  - unsupported `content-encoding` rejection,
+  - bounded body-read duration via timeout,
+  - guarded stream draining on rejection paths.
+- Added `SERVER_BODY_READ_TIMEOUT_MS` constants in:
+  - `src/config/limits.ts`
+  - `src/config/server.ts`
+- Expanded coverage in:
+  - `__tests__/unit/server/request-body.unit.test.ts`
+  - `__tests__/unit/server/api-route-tui-handlers.unit.test.ts`
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-body.unit.test.ts` ✅
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "returns request body too large for oversized payloads|rejects compressed json payloads with invalid-request errors"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B10 Hook IPC HTTP local-origin lock down hardening)
 
 ### Summary
