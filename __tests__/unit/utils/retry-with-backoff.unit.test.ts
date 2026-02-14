@@ -87,4 +87,34 @@ describe("retryWithBackoff", () => {
     expect(onRetry).toHaveBeenCalledWith(expect.objectContaining({ delayMs: 110 }));
     vi.useRealTimers();
   });
+
+  it("de-correlates retry delays with jittered base offsets", async () => {
+    vi.useFakeTimers();
+    const collectDelay = async (randomValue: number): Promise<number> => {
+      const onRetry = vi.fn();
+      const operation = vi.fn(async (attempt: number) => {
+        if (attempt < 2) {
+          throw new Error("transient");
+        }
+        return "ok";
+      });
+
+      const promise = retryWithBackoff(operation, {
+        maxAttempts: 2,
+        baseMs: 100,
+        capMs: 500,
+        jitterRatio: 0.2,
+        randomFn: () => randomValue,
+        onRetry,
+      });
+      await vi.runAllTimersAsync();
+      await promise;
+      return onRetry.mock.calls[0]?.[0]?.delayMs ?? 0;
+    };
+
+    const lowRandomDelay = await collectDelay(0);
+    const highRandomDelay = await collectDelay(1);
+    expect(highRandomDelay).toBeGreaterThan(lowRandomDelay);
+    vi.useRealTimers();
+  });
 });

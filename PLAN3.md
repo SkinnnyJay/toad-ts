@@ -7249,6 +7249,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - avoid repeated update-check filesystem/network work during a single
       process runtime while preserving scheduled check behavior.
 
+## Execution Log Addendum — 2026-02-14 (B37 provider retry de-correlation hardening)
+
+- Additional P1 backlog hardening for retry thundering-herd prevention:
+  - Updated:
+    - `src/utils/async/retryWithBackoff.ts`
+    - `__tests__/unit/utils/retry-with-backoff.unit.test.ts`
+  - Hardening changes:
+    - introduced decorrelated per-operation retry base offsets under jittered
+      retry mode.
+    - preserved bounded retry caps and existing retry callback semantics.
+    - added focused regression coverage validating decorrelated delay spread
+      behavior.
+  - Goal:
+    - reduce synchronized retry bursts across parallel retry loops and improve
+      resilience under shared failure conditions.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7292,7 +7308,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B34 | P1 | stream session export writes instead of building large in-memory payloads.
 - [x] - B35 | P1 | batch and throttle token optimizer telemetry writes to reduce IO pressure.
 - [x] - B36 | P1 | cache update-check results with TTL to prevent repeated remote calls in one runtime.
-- [ ] - B37 | P1 | de-correlate provider retries to avoid synchronized thundering-herd behavior.
+- [x] - B37 | P1 | de-correlate provider retries to avoid synchronized thundering-herd behavior.
 - [ ] - B38 | P1 | bound error log payload size for provider streaming failures.
 - [ ] - B39 | P1 | throttle command-palette/filter recompute path under rapid keypress input.
 - [ ] - B40 | P1 | add hard caps for nested hook/prompt subprocess chains.

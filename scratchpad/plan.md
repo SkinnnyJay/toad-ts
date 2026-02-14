@@ -3973,9 +3973,14 @@
     `src/utils/update-check.ts`
   - added focused dedupe coverage in
     `__tests__/unit/utils/update-check.unit.test.ts`
+- Completed P1 backlog item B37 provider retry de-correlation:
+  - added decorrelated retry-base offsets in
+    `src/utils/async/retryWithBackoff.ts`
+  - added focused delay-spread coverage in
+    `__tests__/unit/utils/retry-with-backoff.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B37 by de-correlating provider retry bursts
-    to avoid synchronized thundering-herd behavior
+  - evaluate severity backlog item B38 by bounding/truncating oversized
+    provider failure log payloads
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

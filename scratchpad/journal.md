@@ -1,5 +1,33 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B37 provider retry de-correlation hardening)
+
+### Summary
+- Completed P1 backlog item B37 in `PLAN3.md` by de-correlating jittered retry
+  flows to reduce synchronized retry bursts.
+- Updated:
+  - `src/utils/async/retryWithBackoff.ts`
+  - `__tests__/unit/utils/retry-with-backoff.unit.test.ts`
+- Changes:
+  - added per-operation decorrelated retry base offsets in jittered retry mode.
+  - retained retry cap/jitter bounds and callback behavior.
+  - added focused regression test validating decorrelated delay spread.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/retry-with-backoff.unit.test.ts __tests__/unit/core/claude-cli-harness.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B36 update-check runtime TTL caching hardening)
 
 ### Summary

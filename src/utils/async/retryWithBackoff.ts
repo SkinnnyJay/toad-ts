@@ -24,6 +24,18 @@ const sleep = (ms: number): Promise<void> =>
 
 const clampDelay = (value: number, capMs: number): number => Math.max(0, Math.min(value, capMs));
 
+const resolveDecorrelatedBaseMs = (
+  baseMs: number,
+  jitterRatio: number,
+  randomFn: () => number
+): number => {
+  if (jitterRatio <= 0) {
+    return baseMs;
+  }
+  const offset = baseMs * jitterRatio * randomFn();
+  return baseMs + offset;
+};
+
 const withJitter = (
   delayMs: number,
   capMs: number,
@@ -52,6 +64,7 @@ export async function retryWithBackoff<T>(
     jitterRatio = LIMIT.RETRY_JITTER_RATIO,
     randomFn = Math.random,
   } = options;
+  const decorrelatedBaseMs = resolveDecorrelatedBaseMs(baseMs, jitterRatio, randomFn);
   let lastError: Error | null = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -68,7 +81,7 @@ export async function retryWithBackoff<T>(
       }
 
       const delayWithoutJitter = Math.min(
-        baseMs * LIMIT.RETRY_EXPONENTIAL_BASE ** (attempt - 1),
+        decorrelatedBaseMs * LIMIT.RETRY_EXPONENTIAL_BASE ** (attempt - 1),
         capMs
       );
       const delay = withJitter(delayWithoutJitter, capMs, jitterRatio, randomFn);
