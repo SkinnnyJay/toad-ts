@@ -812,6 +812,10 @@
     helm asymmetry coverage with websocket+SSE continuity assertions under
     order-path-specific post-close prompt-burst recovery-helm jitter
     amplitudes
+  - added merged env-map reconnect-order post-close prompt-burst recovery-
+    cartouche asymmetry coverage with websocket+SSE continuity assertions
+    under order-path-specific post-close prompt-burst recovery-cartouche
+    jitter amplitudes
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first
