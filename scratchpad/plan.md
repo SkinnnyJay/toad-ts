@@ -572,6 +572,12 @@
     sequences in the same runtime under merged env-map empty-expansion overrides
   - verifies mixed-path session creations and follow-up prompt submission remain
     successful while merged config stays valid and avoids fallback
+- Added merged env-map mixed-validation continuity hardening:
+  - headless integration now validates mixed explicit/default session-create
+    ordering with invalid prompt payload rejection under merged env-map
+    empty-expansion configuration
+  - verifies subsequent valid prompt and trailing session creation remain
+    successful after validation failure in the same runtime
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

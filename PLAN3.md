@@ -2586,3 +2586,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock mixed explicit/default request continuity for merged env-map
       empty-expansion scenarios.
+
+## Execution Log Addendum — 2026-02-13 (merged env-map mixed-validation continuity coverage)
+
+- Additional merged env-map mixed-validation integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for mixed explicit/default session-create
+      ordering followed by invalid prompt payload validation under merged
+      env-map empty-expansion configuration.
+    - verifies invalid prompt payload rejection remains canonical (`400`) and
+      does not destabilize runtime behavior.
+    - verifies subsequent valid prompt submission and trailing session creation
+      remain successful in the same runtime.
+  - Goal:
+    - lock mixed request-order + validation continuity under merged env-map
+      empty-expansion scenarios.

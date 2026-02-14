@@ -203,6 +203,8 @@
     scenarios that include repeated prompt submissions after session creation
   - added headless integration coverage for merged env-map empty-expansion
     scenarios with mixed default/explicit session-create sequences
+  - added headless integration coverage for mixed default/explicit ordering
+    plus invalid-prompt validation recovery under merged env-map expansions
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
