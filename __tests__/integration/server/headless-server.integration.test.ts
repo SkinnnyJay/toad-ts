@@ -5614,6 +5614,10 @@ describe("headless server", () => {
       ] as const;
       const postClosePromptBurstRecoveryLiveryJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
       const postClosePromptBurstRecoveryLiveryJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
+      const postClosePromptBurstRecoveryEscutcheonJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
+      const postClosePromptBurstRecoveryEscutcheonJitterWebsocketFirstByCycleMs = [
+        3, 0, 3, 0,
+      ] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -6002,6 +6006,9 @@ describe("headless server", () => {
         );
         expect(postClosePromptBurstRecoveryLiveryJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postClosePromptBurstRecoveryLiveryJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postClosePromptBurstRecoveryEscutcheonJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postClosePromptBurstRecoveryEscutcheonJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         expect(postClosePromptBurstRecoveryRustreJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postClosePromptBurstRecoveryRustreJitterWebsocketFirstByCycleMs[cycleIndex]
@@ -7896,6 +7903,21 @@ describe("headless server", () => {
                   cycleSessionIndex +
                   cycleIndex +
                   2) %
+                  4
+              );
+            });
+            await new Promise<void>((resolve) => {
+              const postClosePromptBurstRecoveryEscutcheonJitterByCycle = openSseFirstByCycle[
+                cycleIndex
+              ]
+                ? postClosePromptBurstRecoveryEscutcheonJitterSseFirstByCycleMs[cycleIndex]
+                : postClosePromptBurstRecoveryEscutcheonJitterWebsocketFirstByCycleMs[cycleIndex];
+              setTimeout(
+                () => resolve(),
+                (postClosePromptBurstRecoveryEscutcheonJitterByCycle +
+                  cycleSessionIndex +
+                  cycleIndex +
+                  3) %
                   4
               );
             });
