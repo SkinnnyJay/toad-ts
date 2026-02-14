@@ -3758,9 +3758,17 @@
     `FsHandler`)
   - added focused unit coverage for sibling-prefix rejection and win32
     case-insensitive containment behavior across terminal/shell/fs paths
+- Completed P0 backlog item B08 signal-handler lifecycle hardening:
+  - updated `src/core/cli-agent/cli-agent-process-runner.ts` to detach
+    SIGINT/SIGTERM listeners automatically when streaming child lifecycle
+    cleanup completes
+  - expanded
+    `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts`
+    with repeated streaming lifecycle assertions that listener counts return to
+    baseline after each run
 - New next candidate:
-  - evaluate severity backlog item B08 by preventing process signal-handler
-    accumulation across repeated runner lifecycles
+  - evaluate severity backlog item B09 by guaranteeing timeout kill paths reap
+    child/grandchild process trees across POSIX and Windows
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

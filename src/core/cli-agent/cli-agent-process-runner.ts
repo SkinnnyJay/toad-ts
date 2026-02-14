@@ -304,6 +304,9 @@ export class CliAgentProcessRunner {
     if (this.activeChild === child) {
       this.activeChild = null;
     }
+    if (!this.activeChild) {
+      this.detachSignalHandlers();
+    }
   }
 
   private attachSignalHandlers(): void {

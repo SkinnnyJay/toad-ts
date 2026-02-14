@@ -843,6 +843,9 @@
   - completed P0 backlog item B07 by replacing prefix-based base containment
     checks with canonical relative-path comparison and win32 case-insensitive
     normalization across terminal/shell/fs path resolution flows
+  - completed P0 backlog item B08 by hardening cli-agent process runner signal
+    handler lifecycle cleanup so SIGINT/SIGTERM listeners do not accumulate
+    across repeated streaming command runs
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

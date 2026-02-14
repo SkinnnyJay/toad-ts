@@ -1,5 +1,32 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B08 signal-handler lifecycle hardening for cli-agent runners)
+
+### Summary
+- Completed P0 backlog item B08 in `PLAN3.md` by hardening
+  `src/core/cli-agent/cli-agent-process-runner.ts`.
+- Updated runner child cleanup path to detach SIGINT/SIGTERM listeners whenever
+  active streaming process lifecycle completes, preventing listener retention.
+- Expanded
+  `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts`
+  with repeated streaming lifecycle assertions that verify signal listener
+  counts return to baseline after each run.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B07 canonical base-path containment hardening)
 
 ### Summary

@@ -6700,6 +6700,23 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - guarantee robust base-directory containment checks independent of prefix
       collisions and case-insensitive path variants.
 
+## Execution Log Addendum — 2026-02-14 (B08 signal-handler lifecycle hardening for cli-agent runners)
+
+- Additional P0 backlog hardening for process signal handler lifecycle:
+  - Updated:
+    - `src/core/cli-agent/cli-agent-process-runner.ts`
+    - `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts`
+  - Hardening changes:
+    - ensured signal handlers are detached automatically when active streaming
+      process lifecycle ends via child cleanup.
+    - prevented listener accumulation across repeated streaming command
+      lifecycles on long-running runner instances.
+    - added focused unit coverage asserting SIGINT/SIGTERM listener counts return
+      to baseline after each streaming command completion.
+  - Goal:
+    - eliminate latent global signal-listener leaks across repeated
+      cli-agent runner streaming sessions.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6711,7 +6728,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B05 | P0 | close Linux clipboard reliability gap by handling Wayland (`wl-copy`) and headless display failure modes.
 - [x] - B06 | P0 | fix path-escape detection for Windows separators (`..\\`) and mixed separator payloads.
 - [x] - B07 | P0 | replace `startsWith` cwd containment check with canonical path comparison safe for case-insensitive filesystems.
-- [ ] - B08 | P0 | prevent process signal handler accumulation across repeated runner lifecycles to avoid listener leaks.
+- [x] - B08 | P0 | prevent process signal handler accumulation across repeated runner lifecycles to avoid listener leaks.
 - [ ] - B09 | P0 | guarantee timeout kill path reaps grandchildren on Windows and POSIX under high churn.
 - [ ] - B10 | P0 | secure HTTP Hook IPC mode with explicit local-only binding and request-origin validation.
 - [ ] - B11 | P0 | enforce strict request-body memory bounds for all JSON endpoints under compressed/slowloris inputs.

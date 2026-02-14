@@ -275,4 +275,29 @@ describe("CliAgentProcessRunner", () => {
     expect(killTreeCalls.length).toBe(1);
     expect(calls[0]?.killSignals).toEqual(["SIGTERM"]);
   });
+
+  it("detaches signal handlers after each streaming command lifecycle", async () => {
+    const baselineSigintListeners = process.listenerCount("SIGINT");
+    const baselineSigtermListeners = process.listenerCount("SIGTERM");
+    const { spawnFn } = createSpawnFn([
+      { stdout: "chunk-one", exitCode: 0 },
+      { stdout: "chunk-two", exitCode: 0 },
+    ]);
+    const runner = new CliAgentProcessRunner({
+      command: "agent",
+      env: {},
+      spawnFn,
+      defaultCommandTimeoutMs: 50,
+      forceKillTimeoutMs: 10,
+      loggerName: "TestCliAgentProcessRunner",
+    });
+
+    await runner.runStreamingCommand(["-p"]);
+    expect(process.listenerCount("SIGINT")).toBe(baselineSigintListeners);
+    expect(process.listenerCount("SIGTERM")).toBe(baselineSigtermListeners);
+
+    await runner.runStreamingCommand(["-p"]);
+    expect(process.listenerCount("SIGINT")).toBe(baselineSigintListeners);
+    expect(process.listenerCount("SIGTERM")).toBe(baselineSigtermListeners);
+  });
 });
