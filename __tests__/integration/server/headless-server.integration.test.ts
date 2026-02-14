@@ -5230,6 +5230,10 @@ describe("headless server", () => {
       const postRecoveryDelayWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
       const cycleCooldownSseFirstByCycleMs = [0, 2, 0, 2] as const;
       const cycleCooldownWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
+      const websocketCloseDelaySseFirstByCycleMs = [0, 3, 0, 3] as const;
+      const websocketCloseDelayWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
+      const sseCloseDelaySseFirstByCycleMs = [0, 2, 0, 2] as const;
+      const sseCloseDelayWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5262,6 +5266,12 @@ describe("headless server", () => {
         );
         expect(cycleCooldownSseFirstByCycleMs[cycleIndex]).not.toBe(
           cycleCooldownWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(websocketCloseDelaySseFirstByCycleMs[cycleIndex]).not.toBe(
+          websocketCloseDelayWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(sseCloseDelaySseFirstByCycleMs[cycleIndex]).not.toBe(
+          sseCloseDelayWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -5352,6 +5362,12 @@ describe("headless server", () => {
           if (websocketSegmentRemaining === 0) {
             await expect(websocketSegmentPromise).resolves.toEqual(websocketSegmentSessionIds);
             await new Promise<void>((resolve) => {
+              const websocketCloseDelayByCycle = openSseFirstByCycle[cycleIndex]
+                ? websocketCloseDelaySseFirstByCycleMs[cycleIndex]
+                : websocketCloseDelayWebsocketFirstByCycleMs[cycleIndex];
+              setTimeout(() => resolve(), websocketCloseDelayByCycle % 4);
+            });
+            await new Promise<void>((resolve) => {
               if (activeSocket?.readyState === WebSocket.CLOSED) {
                 resolve();
                 return;
@@ -5376,6 +5392,12 @@ describe("headless server", () => {
               .parse(await stateUpdatePromise);
             expect(stateUpdates).toHaveLength(sseSegmentExpectedCount);
             stateUpdatePromise = null;
+            await new Promise<void>((resolve) => {
+              const sseCloseDelayByCycle = openSseFirstByCycle[cycleIndex]
+                ? sseCloseDelaySseFirstByCycleMs[cycleIndex]
+                : sseCloseDelayWebsocketFirstByCycleMs[cycleIndex];
+              setTimeout(() => resolve(), sseCloseDelayByCycle % 3);
+            });
           }
         }
 

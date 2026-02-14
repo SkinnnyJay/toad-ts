@@ -737,6 +737,17 @@
     segment-count asymmetry + stream-open jitter asymmetry + create-jitter
     asymmetry + recovery-jitter asymmetry + burst-spacing asymmetry + post-
     recovery delay asymmetry + cycle-cooldown asymmetry by order path
+- Added merged env-map reconnect-order close-delay asymmetry hardening:
+  - reconnect-order cycle-cooldown coverage now applies asymmetric websocket
+    and SSE close-delay amplitudes per order path
+  - `SSE-first` cycles use lower websocket/SSE close-delay amplitudes, while
+    `websocket-first` cycles use higher close-delay amplitudes
+  - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
+    rejection, and valid-prompt recovery remain stable under combined cadence +
+    segment-count asymmetry + stream-open jitter asymmetry + create-jitter
+    asymmetry + recovery-jitter asymmetry + burst-spacing asymmetry + post-
+    recovery delay asymmetry + cycle-cooldown asymmetry + close-delay
+    asymmetry by order path
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
