@@ -7097,6 +7097,25 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - formalize and enforce authenticated hook request handshake for Hook IPC
       HTTP transport mode.
 
+## Execution Log Addendum — 2026-02-14 (B28 env snapshot merge reduction hardening)
+
+- Additional P1 backlog hardening for hot command-path env merge overhead:
+  - Updated:
+    - `src/tools/shell-session.ts`
+    - `src/tools/terminal-manager.ts`
+    - `__tests__/unit/tools/shell-session.unit.test.ts`
+    - `__tests__/unit/tools/terminal-manager.unit.test.ts`
+  - Hardening changes:
+    - precomputed runtime base env snapshots in shell-session and terminal
+      manager constructors.
+    - replaced repeated per-command/per-session full env snapshot merges with
+      lightweight overlay merges only when request-level env overrides exist.
+    - added focused coverage validating stable snapshot-call counts across
+      multiple queued command/session invocations.
+  - Goal:
+    - reduce repeated large environment snapshot merge cost in hot execution
+      paths without changing command semantics.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7131,7 +7150,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B25 | P1 | optimize terminal output byte trimming to avoid O(n^2) behavior for large outputs.
 - [x] - B26 | P1 | optimize sentinel completion scanning in shell sessions to avoid repeated full-buffer scans.
 - [x] - B27 | P1 | formalize Hook IPC auth/nonce handshake for HTTP transport mode.
-- [ ] - B28 | P1 | reduce repeated large env snapshot merges in hot command paths.
+- [x] - B28 | P1 | reduce repeated large env snapshot merges in hot command paths.
 - [ ] - B29 | P1 | add regression tests for signal attach/detach idempotency across reconnect cycles.
 - [ ] - B30 | P1 | add SQLite maintenance policy (vacuum/pragma optimize/checkpoint) to stabilize long-lived performance.
 - [ ] - B31 | P1 | add cancellation tokens and depth limits to recursive file/search operations.

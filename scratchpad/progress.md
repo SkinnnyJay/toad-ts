@@ -891,6 +891,8 @@
     to bounded incremental search windows
   - completed P1 backlog item B27 by enforcing Hook IPC HTTP auth/nonce
     handshake and propagating auth headers through hook shims
+  - completed P1 backlog item B28 by reducing repeated env snapshot merges in
+    hot shell/terminal command paths
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

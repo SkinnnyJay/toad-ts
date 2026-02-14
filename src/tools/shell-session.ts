@@ -109,6 +109,7 @@ class ShellSession {
   private readonly usesShell: boolean;
   private readonly isWindows: boolean;
   private readonly baseEnv: NodeJS.ProcessEnv;
+  private readonly runtimeBaseEnv: NodeJS.ProcessEnv;
   private child?: ChildProcessWithoutNullStreams;
   private readonly queue: PendingCommand[] = [];
   private active: PendingCommand | null = null;
@@ -128,6 +129,10 @@ class ShellSession {
     this.args = shell.args;
     this.usesShell = shell.usesShell;
     this.isWindows = shell.isWindows;
+    this.runtimeBaseEnv = {
+      ...EnvManager.getInstance().getSnapshot(),
+      ...this.baseEnv,
+    };
   }
 
   execute(command: string, options: ShellCommandOptions = {}): Promise<ShellCommandResult> {
@@ -158,7 +163,7 @@ class ShellSession {
     this.stdoutCarry = "";
     this.sentinelSearchStart = 0;
 
-    const env = { ...EnvManager.getInstance().getSnapshot(), ...this.baseEnv, ...next.env };
+    const env = next.env ? { ...this.runtimeBaseEnv, ...next.env } : this.runtimeBaseEnv;
     this.ensureProcess(this.baseDir, env);
     this.writeCommand(next);
   }

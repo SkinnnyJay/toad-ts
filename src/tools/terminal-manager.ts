@@ -166,6 +166,7 @@ export class TerminalManager {
   private readonly baseDir: string;
   private readonly allowEscape: boolean;
   private readonly baseEnv: NodeJS.ProcessEnv;
+  private readonly runtimeBaseEnv: NodeJS.ProcessEnv;
   private readonly maxSessions: number;
   private readonly sessions = new Map<string, TerminalSession>();
 
@@ -173,6 +174,10 @@ export class TerminalManager {
     this.baseDir = options.baseDir ?? process.cwd();
     this.allowEscape = shouldAllowEscape(options.env, options.allowEscape);
     this.baseEnv = options.env ?? {};
+    this.runtimeBaseEnv = {
+      ...EnvManager.getInstance().getSnapshot(),
+      ...this.baseEnv,
+    };
     this.maxSessions = options.maxSessions ?? LIMIT.TERMINAL_SESSION_MAX_SESSIONS;
   }
 
@@ -185,7 +190,7 @@ export class TerminalManager {
     }
 
     const cwd = resolveCwd(options.cwd ?? this.baseDir, this.baseDir, this.allowEscape);
-    const env = { ...EnvManager.getInstance().getSnapshot(), ...this.baseEnv, ...options.env };
+    const env = options.env ? { ...this.runtimeBaseEnv, ...options.env } : this.runtimeBaseEnv;
     this.enforceSessionCapacity();
     const terminalId = `term-${nanoid(LIMIT.NANOID_LENGTH)}`;
     const session = new TerminalSession({ ...options, cwd, env });

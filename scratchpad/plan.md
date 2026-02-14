@@ -3918,9 +3918,14 @@
   - enforced auth guard validation for Hook IPC HTTP requests
   - propagated hook token/nonce env to node/bash hook shims
   - added focused server and hook-env auth coverage in cursor hook tests
+- Completed P1 backlog item B28 env snapshot merge reduction hardening:
+  - precomputed runtime env base snapshots in terminal manager and shell session
+  - replaced repeated hot-path snapshot+merge operations with overlay merges
+    only when request-level env overrides are supplied
+  - added focused regression coverage asserting stable snapshot-call counts
 - New next candidate:
-  - evaluate severity backlog item B28 by reducing repeated large env snapshot
-    merges in hot command paths
+  - evaluate severity backlog item B29 by adding reconnect idempotency coverage
+    for signal attach/detach cycles
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

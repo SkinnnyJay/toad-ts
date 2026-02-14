@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { TerminalManager } from "@/tools/terminal-manager";
+import { EnvManager } from "@/utils/env/env.utils";
 
 const LONG_RUNNING_SCRIPT = "setTimeout(() => {}, 5000);";
 
@@ -133,5 +134,31 @@ describe("TerminalManager output byte trimming", () => {
     expect(output.output).not.toContain("�");
     expect(output.truncated).toBe(true);
     manager.release(sessionId);
+  });
+});
+
+describe("TerminalManager env snapshot usage", () => {
+  it("avoids repeated env snapshot merges per session creation", async () => {
+    EnvManager.resetInstance();
+    const envManager = EnvManager.getInstance();
+    const snapshotSpy = vi.spyOn(envManager, "getSnapshot");
+    const manager = new TerminalManager({ allowEscape: true, env: {} });
+
+    const firstSession = manager.createSession({
+      command: process.execPath,
+      args: ["-e", "process.stdout.write('one')"],
+    });
+    const secondSession = manager.createSession({
+      command: process.execPath,
+      args: ["-e", "process.stdout.write('two')"],
+    });
+
+    await manager.waitForExit(firstSession);
+    await manager.waitForExit(secondSession);
+    manager.release(firstSession);
+    manager.release(secondSession);
+
+    expect(snapshotSpy).toHaveBeenCalledTimes(1);
+    snapshotSpy.mockRestore();
   });
 });

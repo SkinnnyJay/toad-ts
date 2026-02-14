@@ -5,7 +5,7 @@ import { SIGNAL } from "@/constants/signals";
 import { ShellSessionManager } from "@/tools/shell-session";
 import { EnvManager } from "@/utils/env/env.utils";
 import { EventEmitter } from "eventemitter3";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 interface SpawnController {
   spawnFn: (
@@ -211,6 +211,21 @@ describe("ShellSessionManager", () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("command output");
+    manager.dispose();
+  });
+
+  it("avoids repeated env snapshot merges for queued commands", async () => {
+    const controller = createSpawnController({ autoRespond: true });
+    EnvManager.resetInstance();
+    const envManager = EnvManager.getInstance();
+    const snapshotSpy = vi.spyOn(envManager, "getSnapshot");
+    const manager = new ShellSessionManager({ spawnFn: controller.spawnFn, env: {} });
+
+    await manager.execute("echo first");
+    await manager.execute("echo second");
+
+    expect(snapshotSpy).toHaveBeenCalledTimes(1);
+    snapshotSpy.mockRestore();
     manager.dispose();
   });
 });
