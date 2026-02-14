@@ -4751,6 +4751,30 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - lock reconnect-order continuity when post-close prompt-burst recovery-
       flag timing varies asymmetrically by order path.
 
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order post-close prompt-burst recovery-pennant asymmetry coverage)
+
+- Additional merged env-map reconnect-order post-close prompt-burst recovery-pennant asymmetry hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order post-close prompt-burst recovery-flag coverage
+      with asymmetric post-close prompt-burst recovery-pennant jitter by reconnect
+      order path.
+    - `SSE-first` cycles now use lower post-close prompt-burst recovery-pennant
+      jitter while `websocket-first` cycles use higher post-close prompt-burst
+      recovery-pennant jitter.
+    - applies post-close prompt-burst recovery-pennant jitter for intra-cycle
+      session handoff after post-close prompt-burst recovery-flag jitter.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable while post-close prompt-burst recovery-pennant asymmetry
+      is layered with post-close prompt-burst recovery-flag asymmetry, post-
+      close prompt-burst recovery-standard asymmetry, post-close prompt-burst
+      recovery-banner asymmetry, and post-close prompt-burst recovery-badge
+      asymmetry under reconnect-order inversion.
+  - Goal:
+    - lock reconnect-order continuity when post-close prompt-burst recovery-
+      pennant timing varies asymmetrically by order path.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
