@@ -2310,3 +2310,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock server continuity semantics under repeated harness connect-failure
       cycles.
+
+## Execution Log Addendum — 2026-02-13 (repeated cursor-not-configured coverage)
+
+- Additional repeated-request continuity integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for repeated explicit `cursor-cli` requests
+      when cursor is disabled in default harness config.
+    - verifies consecutive explicit `cursor-cli` requests return canonical
+      harness-not-configured responses.
+    - verifies explicit `mock` session creation still succeeds after repeated
+      cursor-not-configured paths in the same server instance.
+  - Goal:
+    - lock continuity semantics under repeated explicit harness-not-configured
+      request cycles.

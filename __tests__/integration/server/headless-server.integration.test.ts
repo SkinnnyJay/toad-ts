@@ -563,6 +563,55 @@ describe("headless server", () => {
     }
   });
 
+  it("keeps server responsive after repeated cursor-not-configured requests", async () => {
+    const originalCursorEnabled = process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED];
+    process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED] = "false";
+    EnvManager.resetInstance();
+
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const firstCursorResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.CURSOR_CLI_ID }),
+      });
+      expect(firstCursorResponse.status).toBe(404);
+      await expect(firstCursorResponse.json()).resolves.toEqual({
+        error: formatHarnessNotConfiguredError(HARNESS_DEFAULT.CURSOR_CLI_ID),
+      });
+
+      const secondCursorResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.CURSOR_CLI_ID }),
+      });
+      expect(secondCursorResponse.status).toBe(404);
+      await expect(secondCursorResponse.json()).resolves.toEqual({
+        error: formatHarnessNotConfiguredError(HARNESS_DEFAULT.CURSOR_CLI_ID),
+      });
+
+      const mockResponse = await fetch(`${baseUrl}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: HARNESS_DEFAULT.MOCK_ID }),
+      });
+      expect(mockResponse.status).toBe(200);
+      const payload = createSessionResponseSchema.parse(await mockResponse.json());
+      expect(payload.sessionId).toBeTruthy();
+    } finally {
+      await server.close();
+      if (originalCursorEnabled === undefined) {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED] = undefined;
+      } else {
+        process.env[ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED] = originalCursorEnabled;
+      }
+      EnvManager.resetInstance();
+    }
+  });
+
   it("returns not found when selected harness adapter is not registered", async () => {
     const temporaryRoot = await mkdtemp(path.join(tmpdir(), "toadstool-headless-"));
     const harnessDirectory = path.join(temporaryRoot, FILE_PATH.TOADSTOOL_DIR);

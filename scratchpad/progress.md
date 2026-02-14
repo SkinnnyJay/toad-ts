@@ -167,6 +167,8 @@
     and padded/case-insensitive cursor feature-flag parsing behavior
   - added headless integration coverage for repeated default cursor-harness
     connection failures with post-failure mock continuity checks
+  - added headless integration coverage for repeated explicit cursor-not-
+    configured requests with post-failure mock continuity checks
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

@@ -2097,3 +2097,26 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Repeated cursor-not-configured integration coverage)
+
+### Summary
+- Added headless integration coverage for repeated explicit `cursor-cli`
+  requests when cursor is disabled in default harness config.
+- Test validates:
+  - two consecutive explicit `cursor-cli` requests return canonical
+    harness-not-configured responses.
+  - explicit `mock` session creation still succeeds in the same server
+    instance afterward.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
