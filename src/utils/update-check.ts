@@ -14,6 +14,12 @@ import { loadPackageInfo } from "@/utils/package-info";
 import { z } from "zod";
 
 const logger = createClassLogger("UpdateCheck");
+const UPDATE_CHECK_SCHEDULER = {
+  DEFER_MS: 0,
+} as const;
+
+let scheduledTimer: NodeJS.Timeout | null = null;
+let scheduledCheck: Promise<void> | null = null;
 
 const updateCacheSchema = z
   .object({
@@ -102,6 +108,43 @@ const fetchLatestVersion = async (packageName: string): Promise<string | null> =
 };
 
 export const checkForUpdates = async (): Promise<void> => {
+  try {
+    await performUpdateCheck();
+  } catch (error) {
+    logger.debug("Update check pipeline failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+export const scheduleUpdateCheck = (runCheck: () => Promise<void> = checkForUpdates): void => {
+  if (scheduledTimer || scheduledCheck) {
+    return;
+  }
+  scheduledTimer = setTimeout(() => {
+    scheduledTimer = null;
+    scheduledCheck = runCheck()
+      .catch((error) => {
+        logger.debug("Scheduled update check failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      })
+      .finally(() => {
+        scheduledCheck = null;
+      });
+  }, UPDATE_CHECK_SCHEDULER.DEFER_MS);
+  scheduledTimer.unref();
+};
+
+export const resetUpdateCheckSchedulerForTests = (): void => {
+  if (scheduledTimer) {
+    clearTimeout(scheduledTimer);
+    scheduledTimer = null;
+  }
+  scheduledCheck = null;
+};
+
+const performUpdateCheck = async (): Promise<void> => {
   const env = EnvManager.getInstance().getSnapshot();
   if (env[ENV_KEY.TOADSTOOL_DISABLE_UPDATE_CHECK]?.toLowerCase() === BOOLEAN_STRINGS.TRUE) {
     return;

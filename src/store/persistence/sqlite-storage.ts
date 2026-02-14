@@ -130,35 +130,34 @@ export class SqliteStore {
       isStreaming: message.isStreaming ?? false,
     }));
 
-    const operations: Prisma.PrismaPromise<unknown>[] = [
-      this.prisma.$executeRawUnsafe("DELETE FROM messages_fts"),
-      this.prisma.message.deleteMany(),
-      this.prisma.session.deleteMany(),
-    ];
-
-    if (sessions.length > 0) {
-      operations.push(this.prisma.session.createMany({ data: sessions }));
-    }
-    if (messages.length > 0) {
-      operations.push(this.prisma.message.createMany({ data: messages }));
-    }
-
-    for (const message of messageEntries) {
-      const contentText = this.extractSearchText(message.content);
-      operations.push(
-        this.prisma.$executeRaw(
-          Prisma.sql`INSERT INTO messages_fts (message_id, session_id, content) VALUES (${message.id}, ${message.sessionId}, ${contentText})`
-        )
-      );
-    }
-
     await this.withTransactionTimeout(
       "save snapshot",
       async () =>
-        await this.prisma.$transaction(operations, {
-          maxWait: TIMEOUT.SQLITE_BUSY_MS,
-          timeout: TIMEOUT.SQLITE_TRANSACTION_TIMEOUT_MS,
-        })
+        await this.prisma.$transaction(
+          async (tx) => {
+            await tx.$executeRawUnsafe("DELETE FROM messages_fts");
+            await tx.message.deleteMany();
+            await tx.session.deleteMany();
+
+            if (sessions.length > 0) {
+              await tx.session.createMany({ data: sessions });
+            }
+            if (messages.length > 0) {
+              await tx.message.createMany({ data: messages });
+            }
+
+            for (const message of messageEntries) {
+              const contentText = this.extractSearchText(message.content);
+              await tx.$executeRaw(
+                Prisma.sql`INSERT INTO messages_fts (message_id, session_id, content) VALUES (${message.id}, ${message.sessionId}, ${contentText})`
+              );
+            }
+          },
+          {
+            maxWait: TIMEOUT.SQLITE_BUSY_MS,
+            timeout: TIMEOUT.SQLITE_TRANSACTION_TIMEOUT_MS,
+          }
+        )
     );
   }
 

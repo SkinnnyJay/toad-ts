@@ -1,5 +1,41 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B15 startup non-blocking update-check hardening)
+
+### Summary
+- Completed P0 backlog item B15 in `PLAN3.md` by hardening startup update-check
+  behavior to avoid critical-path blocking.
+- Updated `src/utils/update-check.ts` with:
+  - deferred scheduler (`scheduleUpdateCheck`) for background execution,
+  - in-flight dedupe guards,
+  - resilient catch paths that swallow scheduler failures,
+  - test reset helper for deterministic unit coverage.
+- Updated `src/cli.ts` to use `scheduleUpdateCheck()` instead of direct
+  `void checkForUpdates()` calls on startup paths.
+- Expanded `__tests__/unit/utils/update-check.unit.test.ts` to verify:
+  - deduped in-flight scheduling behavior,
+  - rerun after prior completion,
+  - rejection resilience without scheduler lockup.
+- Applied B14 compatibility follow-up in `src/store/persistence/sqlite-storage.ts`:
+  - moved save snapshot transaction timeout path to interactive transaction
+    callback overload compatible with current Prisma typings.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/update-check.unit.test.ts __tests__/e2e/cli-subcommands.e2e.test.ts` ✅
+  - `npx vitest run __tests__/unit/utils/update-check.unit.test.ts __tests__/integration/store/persistence-sqlite.integration.test.ts __tests__/integration/store/sqlite-storage.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B14 SQLite timeout/cancellation hardening)
 
 ### Summary

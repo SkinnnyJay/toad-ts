@@ -6841,6 +6841,24 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - prevent indefinitely hanging SQLite statements/transactions and guarantee
       cancellation/recovery paths for stuck persistence operations.
 
+## Execution Log Addendum — 2026-02-14 (B15 non-blocking update-check startup hardening)
+
+- Additional P0 backlog hardening for startup/render critical path isolation:
+  - Updated:
+    - `src/utils/update-check.ts`
+    - `src/cli.ts`
+    - `__tests__/unit/utils/update-check.unit.test.ts`
+  - Hardening changes:
+    - introduced deferred update-check scheduler to run update checks in a
+      non-blocking background path after startup begins.
+    - added in-flight dedupe and resilient failure swallowing for scheduled
+      update checks to prevent duplicate concurrent startup metadata calls.
+    - added test reset hook and expanded unit coverage for scheduler dedupe,
+      post-completion re-run, and rejection resilience.
+  - Goal:
+    - ensure remote update metadata checks cannot block CLI startup or the
+      render critical path.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6859,7 +6877,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B12 | P0 | cap session stream in-memory message accumulation for very long-running sessions.
 - [x] - B13 | P0 | add bounded retry/backoff strategy with jitter for diff worker and external process bridges to prevent retry storms.
 - [x] - B14 | P0 | add transaction/statement timeouts and cancellation paths for long-running SQLite operations.
-- [ ] - B15 | P0 | ensure update-check and remote metadata calls never block startup critical path.
+- [x] - B15 | P0 | ensure update-check and remote metadata calls never block startup critical path.
 - [ ] - B16 | P0 | cap provider stream parser buffers to prevent unbounded growth with malformed/infinite streams.
 - [ ] - B17 | P0 | add lifecycle cleanup for completed background tasks to prevent long-session memory creep.
 - [ ] - B18 | P0 | enforce global process concurrency limits for spawned shell/provider tasks.

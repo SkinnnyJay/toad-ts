@@ -3820,9 +3820,20 @@
   - added SQLite timeout constants in `src/config/timeouts.ts`
   - added focused worker-timeout restart unit coverage in
     `__tests__/unit/store/sqlite-provider.unit.test.ts`
+- Follow-up stabilization on B14:
+  - switched snapshot save flow to interactive Prisma transaction callback
+    timeout path (compatible with current Prisma overloads) while retaining
+    timeout semantics.
+- Completed P0 backlog item B15 startup non-blocking update-check hardening:
+  - added deferred and deduplicated background update-check scheduler in
+    `src/utils/update-check.ts`
+  - switched CLI startup paths to `scheduleUpdateCheck()` to avoid critical path
+    blocking behavior
+  - expanded `__tests__/unit/utils/update-check.unit.test.ts` coverage for
+    scheduler dedupe and rejection resilience
 - New next candidate:
-  - evaluate severity backlog item B15 by ensuring update-check and remote
-    metadata calls never block startup critical path
+  - evaluate severity backlog item B16 by capping provider parser buffers for
+    malformed/infinite stream inputs
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

@@ -865,6 +865,8 @@
   - completed P0 backlog item B14 by adding SQLite statement/transaction
     timeouts plus worker request timeout/restart cancellation paths for stuck
     persistence operations
+  - completed P0 backlog item B15 by deferring and deduplicating update-check
+    metadata calls so startup/render paths remain non-blocking
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

@@ -14,7 +14,7 @@ import { resolveServerConfig } from "@/server/server-config";
 import { App } from "@/ui/components/App";
 import { EnvManager } from "@/utils/env/env.utils";
 import { writeTerminalSetupScript } from "@/utils/terminal-setup";
-import { checkForUpdates } from "@/utils/update-check";
+import { scheduleUpdateCheck } from "@/utils/update-check";
 
 EnvManager.bootstrap();
 
@@ -47,7 +47,7 @@ program
   .command("start", { isDefault: true })
   .description("Start the interactive TUI (default)")
   .action(async () => {
-    void checkForUpdates();
+    scheduleUpdateCheck();
     try {
       process.title = TERMINAL_TITLE;
       if (process.stdout.isTTY) {
@@ -254,7 +254,7 @@ if (!subcommandUsed) {
     );
     process.stdout.write("Headless mode: prompt queued for execution.\n");
   } else {
-    void checkForUpdates();
+    scheduleUpdateCheck();
     if (opts.server) {
       const config = resolveServerConfig({
         host: opts.host,
