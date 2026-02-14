@@ -2936,3 +2936,21 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock reconnect-order continuity when create-timing jitter amplitude
       varies asymmetrically by order path in the same runtime sequence.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order recovery-jitter asymmetry coverage)
+
+- Additional merged env-map reconnect-order recovery-jitter asymmetry hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order create-jitter asymmetry coverage with asymmetric
+      invalid-to-valid prompt recovery jitter amplitudes by order path.
+    - `SSE-first` cycles now use lower recovery jitter amplitudes while
+      `websocket-first` cycles use higher recovery jitter amplitudes.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable while recovery-jitter asymmetry is layered with create-
+      jitter asymmetry, stream-open jitter asymmetry, segment-count asymmetry,
+      cadence variation, and asymmetric invalid-prompt burst pressure.
+  - Goal:
+    - lock reconnect-order continuity when invalid-prompt recovery timing varies
+      asymmetrically by order path in the same runtime sequence.

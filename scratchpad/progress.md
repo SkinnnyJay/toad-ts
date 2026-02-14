@@ -248,6 +248,9 @@
   - added merged env-map reconnect-order create-jitter asymmetry coverage with
     websocket+SSE continuity assertions under order-path-specific create-jitter
     amplitudes
+  - added merged env-map reconnect-order recovery-jitter asymmetry coverage
+    with websocket+SSE continuity assertions under order-path-specific
+    invalid-prompt recovery jitter amplitudes
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

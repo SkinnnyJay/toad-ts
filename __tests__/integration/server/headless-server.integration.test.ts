@@ -5222,6 +5222,8 @@ describe("headless server", () => {
       const sseOpenJitterByCycleMs = [3, 0, 3, 0] as const;
       const createJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
       const createJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
+      const recoveryJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
+      const recoveryJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5242,6 +5244,9 @@ describe("headless server", () => {
         );
         expect(createJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           createJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(recoveryJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          recoveryJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -5375,6 +5380,13 @@ describe("headless server", () => {
             });
             expect(invalidPromptResponse.status).toBe(400);
           }
+
+          await new Promise<void>((resolve) => {
+            const recoveryJitterByCycle = openSseFirstByCycle[cycleIndex]
+              ? recoveryJitterSseFirstByCycleMs[cycleIndex]
+              : recoveryJitterWebsocketFirstByCycleMs[cycleIndex];
+            setTimeout(() => resolve(), recoveryJitterByCycle % 3);
+          });
 
           const validPromptResponse = await fetch(`${baseUrl}/sessions/${sessionId}/prompt`, {
             method: "POST",
