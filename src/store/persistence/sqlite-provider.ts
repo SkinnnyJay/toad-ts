@@ -1,5 +1,6 @@
 import { Worker } from "node:worker_threads";
 
+import { TIMEOUT } from "@/config/timeouts";
 import { ENV_VALUE } from "@/constants/env-values";
 import { PERSISTENCE_REQUEST_TYPE } from "@/constants/persistence-request-types";
 import { SessionSnapshotSchema } from "@/store/session-persistence";
@@ -49,6 +50,7 @@ type WorkerResponse<T> = WorkerSuccessResponse<T> | WorkerErrorResponse;
 type PendingRequest = {
   resolve: (value: unknown) => void;
   reject: (error: Error) => void;
+  timeout: NodeJS.Timeout;
 };
 
 interface SqliteClient {
@@ -60,45 +62,44 @@ interface SqliteClient {
 }
 
 class SqliteWorkerClient implements SqliteClient {
-  private readonly worker: Worker;
+  private worker: Worker;
+  private readonly config: WorkerConfig;
   private readonly pending = new Map<string, PendingRequest>();
+  private isClosing = false;
+  private restartPromise: Promise<void> | null = null;
 
   constructor(config: WorkerConfig) {
-    const execArgv = process.execArgv.some((arg) => arg.includes("tsx"))
-      ? []
-      : ["--import=tsx/esm"];
-
-    this.worker = new Worker(new URL("./sqlite-worker.ts", import.meta.url), {
-      workerData: config,
-      execArgv,
-    });
-
-    this.worker.on("message", (message: WorkerResponse<unknown>) => {
-      const pending = this.pending.get(message.id);
-      if (!pending) return;
-      this.pending.delete(message.id);
-
-      if (message.success) {
-        pending.resolve(message.data);
-      } else {
-        pending.reject(new Error(message.error));
-      }
-    });
-
-    this.worker.on("error", (error) => {
-      for (const pending of this.pending.values()) {
-        pending.reject(error);
-      }
-      this.pending.clear();
-    });
+    this.config = config;
+    this.worker = this.createWorker();
   }
 
   private async request<T>(payload: WorkerRequestPayload): Promise<T> {
+    if (this.isClosing) {
+      throw new Error("Sqlite worker closed");
+    }
     const id = nanoid();
     const request: WorkerRequest = { ...payload, id };
+    const timeoutError = new Error(
+      `SQLite worker request timed out after ${TIMEOUT.SQLITE_WORKER_REQUEST_TIMEOUT_MS}ms`
+    );
 
     const response = new Promise<T>((resolve, reject) => {
-      this.pending.set(id, { resolve: resolve as (value: unknown) => void, reject });
+      const timeout = setTimeout(() => {
+        const pending = this.pending.get(id);
+        if (!pending) {
+          return;
+        }
+        this.pending.delete(id);
+        pending.reject(timeoutError);
+        void this.restartWorker(timeoutError);
+      }, TIMEOUT.SQLITE_WORKER_REQUEST_TIMEOUT_MS);
+
+      timeout.unref();
+      this.pending.set(id, {
+        resolve: resolve as (value: unknown) => void,
+        reject,
+        timeout,
+      });
     });
 
     this.worker.postMessage(request);
@@ -122,13 +123,77 @@ class SqliteWorkerClient implements SqliteClient {
   }
 
   async close(): Promise<void> {
-    await this.request<void>({ type: PERSISTENCE_REQUEST_TYPE.CLOSE });
+    this.isClosing = true;
     const closedError = new Error("Sqlite worker closed");
-    for (const { reject } of this.pending.values()) {
-      reject(closedError);
+    this.rejectAllPending(closedError);
+    try {
+      this.worker.postMessage({ id: nanoid(), type: PERSISTENCE_REQUEST_TYPE.CLOSE });
+    } catch {
+      // Ignore postMessage failures during shutdown.
+    }
+    await this.worker.terminate();
+  }
+
+  private createWorker(): Worker {
+    const execArgv = process.execArgv.some((arg) => arg.includes("tsx"))
+      ? []
+      : ["--import=tsx/esm"];
+
+    const worker = new Worker(new URL("./sqlite-worker.ts", import.meta.url), {
+      workerData: this.config,
+      execArgv,
+    });
+    worker.on("message", (message: WorkerResponse<unknown>) => {
+      const pending = this.pending.get(message.id);
+      if (!pending) return;
+      this.pending.delete(message.id);
+      clearTimeout(pending.timeout);
+
+      if (message.success) {
+        pending.resolve(message.data);
+      } else {
+        pending.reject(new Error(message.error));
+      }
+    });
+    worker.on("error", (error) => {
+      if (this.isClosing) {
+        return;
+      }
+      void this.restartWorker(error instanceof Error ? error : new Error(String(error)));
+    });
+    return worker;
+  }
+
+  private rejectAllPending(error: Error): void {
+    for (const pending of this.pending.values()) {
+      clearTimeout(pending.timeout);
+      pending.reject(error);
     }
     this.pending.clear();
-    await this.worker.terminate();
+  }
+
+  private async restartWorker(error: Error): Promise<void> {
+    if (this.isClosing) {
+      return;
+    }
+    if (this.restartPromise) {
+      return await this.restartPromise;
+    }
+
+    this.restartPromise = (async () => {
+      this.rejectAllPending(error);
+      const previousWorker = this.worker;
+      await previousWorker.terminate();
+      if (!this.isClosing) {
+        this.worker = this.createWorker();
+      }
+    })();
+
+    try {
+      await this.restartPromise;
+    } finally {
+      this.restartPromise = null;
+    }
   }
 }
 

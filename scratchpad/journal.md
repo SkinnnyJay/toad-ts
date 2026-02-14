@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B14 SQLite timeout/cancellation hardening)
+
+### Summary
+- Completed P0 backlog item B14 in `PLAN3.md` by hardening SQLite operation
+  timeout and cancellation behavior.
+- Updated `src/store/persistence/sqlite-storage.ts` with:
+  - statement-level timeout wrappers for load/search/history flows,
+  - transaction timeout wrapper for snapshot save flow.
+- Updated `src/store/persistence/sqlite-provider.ts` worker client with:
+  - request timeout/cancellation handling,
+  - timed-out worker restart/recovery path,
+  - deterministic pending-request rejection on close/restart.
+- Added timeout constants in `src/config/timeouts.ts`.
+- Added `__tests__/unit/store/sqlite-provider.unit.test.ts` coverage for worker
+  timeout restart behavior.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/store/sqlite-provider.unit.test.ts __tests__/integration/store/persistence-sqlite.integration.test.ts __tests__/integration/store/sqlite-storage.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B13 bounded retry jitter hardening for worker/process bridges)
 
 ### Summary

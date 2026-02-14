@@ -6821,6 +6821,26 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - de-correlate retry timing across worker/process bridges to reduce
       synchronized retry bursts under transient failures.
 
+## Execution Log Addendum — 2026-02-14 (B14 SQLite timeout/cancellation hardening)
+
+- Additional P0 backlog hardening for long-running SQLite operation safety:
+  - Updated:
+    - `src/store/persistence/sqlite-storage.ts`
+    - `src/store/persistence/sqlite-provider.ts`
+    - `src/config/timeouts.ts`
+    - `__tests__/unit/store/sqlite-provider.unit.test.ts`
+  - Hardening changes:
+    - added explicit statement/transaction timeout enforcement wrappers in
+      SQLite store operations.
+    - added transaction timeout/cap behavior for snapshot save transactions.
+    - added worker-request timeout handling that cancels/rejects timed-out
+      requests and restarts worker processes to recover from stuck operations.
+    - added deterministic worker-timeout unit coverage to verify restart and
+      cancellation behavior.
+  - Goal:
+    - prevent indefinitely hanging SQLite statements/transactions and guarantee
+      cancellation/recovery paths for stuck persistence operations.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6838,7 +6858,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B11 | P0 | enforce strict request-body memory bounds for all JSON endpoints under compressed/slowloris inputs.
 - [x] - B12 | P0 | cap session stream in-memory message accumulation for very long-running sessions.
 - [x] - B13 | P0 | add bounded retry/backoff strategy with jitter for diff worker and external process bridges to prevent retry storms.
-- [ ] - B14 | P0 | add transaction/statement timeouts and cancellation paths for long-running SQLite operations.
+- [x] - B14 | P0 | add transaction/statement timeouts and cancellation paths for long-running SQLite operations.
 - [ ] - B15 | P0 | ensure update-check and remote metadata calls never block startup critical path.
 - [ ] - B16 | P0 | cap provider stream parser buffers to prevent unbounded growth with malformed/infinite streams.
 - [ ] - B17 | P0 | add lifecycle cleanup for completed background tasks to prevent long-session memory creep.

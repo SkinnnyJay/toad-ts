@@ -3811,9 +3811,18 @@
   - added retry jitter constants in `src/config/limits.ts`
   - expanded `__tests__/unit/utils/retry-with-backoff.unit.test.ts` with
     bounded jitter coverage
+- Completed P0 backlog item B14 SQLite timeout/cancellation hardening:
+  - added statement/transaction timeout wrappers in
+    `src/store/persistence/sqlite-storage.ts` and transaction timeout usage in
+    snapshot save flow
+  - added worker-request timeout/cancellation + worker restart recovery logic in
+    `src/store/persistence/sqlite-provider.ts`
+  - added SQLite timeout constants in `src/config/timeouts.ts`
+  - added focused worker-timeout restart unit coverage in
+    `__tests__/unit/store/sqlite-provider.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B14 by adding transaction/statement timeout
-    and cancellation paths for long-running SQLite operations
+  - evaluate severity backlog item B15 by ensuring update-check and remote
+    metadata calls never block startup critical path
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

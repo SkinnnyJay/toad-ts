@@ -15,6 +15,9 @@ import type { Message, Session } from "@/types/domain";
 import type { ChatQuery } from "./persistence-provider";
 
 const SQLITE_URL_PREFIX = "file:";
+const SQLITE_ERROR_MESSAGE = {
+  OPERATION_TIMED_OUT: "SQLite operation timed out",
+} as const;
 
 export class SqliteStore {
   private constructor(private readonly prisma: PrismaClient) {}
@@ -42,8 +45,14 @@ export class SqliteStore {
   }
 
   async loadSnapshot(): Promise<unknown> {
-    const sessions: PrismaSession[] = await this.prisma.session.findMany();
-    const messages: PrismaMessage[] = await this.prisma.message.findMany();
+    const sessions: PrismaSession[] = await this.withStatementTimeout(
+      "load sessions",
+      async () => await this.prisma.session.findMany()
+    );
+    const messages: PrismaMessage[] = await this.withStatementTimeout(
+      "load messages",
+      async () => await this.prisma.message.findMany()
+    );
 
     const messageRecords: Message[] = messages.map((record) =>
       MessageSchema.parse({
@@ -143,15 +152,26 @@ export class SqliteStore {
       );
     }
 
-    await this.prisma.$transaction(operations);
+    await this.withTransactionTimeout(
+      "save snapshot",
+      async () =>
+        await this.prisma.$transaction(operations, {
+          maxWait: TIMEOUT.SQLITE_BUSY_MS,
+          timeout: TIMEOUT.SQLITE_TRANSACTION_TIMEOUT_MS,
+        })
+    );
   }
 
   async searchMessages(query: ChatQuery): Promise<unknown> {
     type FtsRow = { message_id: string };
     let messageIds: string[] | undefined;
     if (query.text) {
-      const rows = await this.prisma.$queryRaw<FtsRow[]>(
-        Prisma.sql`SELECT message_id FROM messages_fts WHERE messages_fts MATCH ${query.text}`
+      const rows = await this.withStatementTimeout(
+        "search fts rows",
+        async () =>
+          await this.prisma.$queryRaw<FtsRow[]>(
+            Prisma.sql`SELECT message_id FROM messages_fts WHERE messages_fts MATCH ${query.text}`
+          )
       );
       messageIds = rows.map((row) => row.message_id);
       if (messageIds.length === 0) {
@@ -176,12 +196,16 @@ export class SqliteStore {
       };
     }
 
-    const results: PrismaMessage[] = await this.prisma.message.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      take: query.limit ?? LIMIT.DEFAULT_PAGINATION_LIMIT,
-      skip: query.offset ?? 0,
-    });
+    const results: PrismaMessage[] = await this.withStatementTimeout(
+      "search messages",
+      async () =>
+        await this.prisma.message.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          take: query.limit ?? LIMIT.DEFAULT_PAGINATION_LIMIT,
+          skip: query.offset ?? 0,
+        })
+    );
 
     return results.map((record) =>
       MessageSchema.parse({
@@ -196,17 +220,25 @@ export class SqliteStore {
   }
 
   async getSessionHistory(sessionId: string): Promise<unknown> {
-    const session: PrismaSession | null = await this.prisma.session.findUnique({
-      where: { id: sessionId },
-    });
+    const session: PrismaSession | null = await this.withStatementTimeout(
+      "load session history session",
+      async () =>
+        await this.prisma.session.findUnique({
+          where: { id: sessionId },
+        })
+    );
     if (!session) {
       throw new Error(`Session ${sessionId} not found`);
     }
 
-    const messages: PrismaMessage[] = await this.prisma.message.findMany({
-      where: { sessionId },
-      orderBy: { createdAt: "asc" },
-    });
+    const messages: PrismaMessage[] = await this.withStatementTimeout(
+      "load session history messages",
+      async () =>
+        await this.prisma.message.findMany({
+          where: { sessionId },
+          orderBy: { createdAt: "asc" },
+        })
+    );
 
     const messageRecords: Message[] = messages.map((record) =>
       MessageSchema.parse({
@@ -296,5 +328,59 @@ export class SqliteStore {
     await this.prisma.$executeRawUnsafe(
       "CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(message_id, session_id, content)"
     );
+  }
+
+  private async withStatementTimeout<T>(
+    operationName: string,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    return await this.withTimeout(operationName, TIMEOUT.SQLITE_STATEMENT_TIMEOUT_MS, operation);
+  }
+
+  private async withTransactionTimeout<T>(
+    operationName: string,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    return await this.withTimeout(operationName, TIMEOUT.SQLITE_TRANSACTION_TIMEOUT_MS, operation);
+  }
+
+  private async withTimeout<T>(
+    operationName: string,
+    timeoutMs: number,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    return await new Promise<T>((resolve, reject) => {
+      let settled = false;
+      const timeout = setTimeout(() => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        reject(
+          new Error(
+            `${SQLITE_ERROR_MESSAGE.OPERATION_TIMED_OUT}: ${operationName} (${timeoutMs}ms)`
+          )
+        );
+      }, timeoutMs);
+
+      timeout.unref();
+      void operation()
+        .then((result) => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          clearTimeout(timeout);
+          resolve(result);
+        })
+        .catch((error) => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          clearTimeout(timeout);
+          reject(error);
+        });
+    });
   }
 }
