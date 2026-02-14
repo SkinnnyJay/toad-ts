@@ -2355,3 +2355,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock continuity semantics under repeated adapter-not-registered response
       cycles.
+
+## Execution Log Addendum — 2026-02-13 (repeated default cursor-disabled coverage)
+
+- Additional repeated default-route continuity integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for repeated default `/sessions` requests when
+      cursor is default harness and cursor adapter is disabled.
+    - verifies consecutive default requests return canonical
+      adapter-not-registered responses.
+    - verifies explicit `mock` session creation remains successful after those
+      repeated default failures.
+  - Goal:
+    - lock continuity semantics under repeated default-route adapter-disabled
+      response cycles.

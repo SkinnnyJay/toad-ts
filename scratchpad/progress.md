@@ -173,6 +173,8 @@
     exclusion semantics when `enableCursor` is false
   - added headless integration coverage for repeated adapter-not-registered
     responses when cursor default harness remains configured but adapter is disabled
+  - added headless integration coverage for repeated default-route adapter-not-
+    registered responses under cursor-disabled default harness configuration
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
