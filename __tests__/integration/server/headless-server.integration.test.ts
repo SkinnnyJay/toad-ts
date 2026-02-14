@@ -5214,9 +5214,9 @@ describe("headless server", () => {
       const { host, port } = server.address();
       const baseUrl = `http://${host}:${port}`;
 
-      const createCountByCycle = [2, 2, 2, 2] as const;
-      const websocketReconnectCadenceByCycle = [1, 2, 1, 2] as const;
-      const sseReconnectCadenceByCycle = [2, 1, 2, 1] as const;
+      const createCountByCycle = [1, 3, 1, 3] as const;
+      const websocketReconnectCadenceByCycle = [1, 3, 1, 3] as const;
+      const sseReconnectCadenceByCycle = [1, 3, 1, 3] as const;
       const openSseFirstByCycle = [true, false, true, false] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];

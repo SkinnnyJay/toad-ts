@@ -2850,3 +2850,21 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock reconnect-order continuity when invalid-prompt burst pressure is
       asymmetric across alternating stream-open order paths.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order cadence expansion coverage)
+
+- Additional merged env-map reconnect-order cadence expansion hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order inversion cycles to use per-order-path cadence
+      expansion in the same runtime (`SSE-first` cycles with lower create
+      cadence, `websocket-first` cycles with higher create cadence).
+    - kept dual-stream reconnect validation active with websocket
+      `SESSION_CREATED` and SSE `STATE_UPDATE` assertions across expanded
+      cadence permutations.
+    - preserved asymmetric invalid-prompt burst pressure by reconnect order and
+      verified valid-prompt recovery with unique session ids throughout.
+  - Goal:
+    - lock reconnect-order continuity when cadence expansion and asymmetric
+      burst pressure vary per order path in one runtime sequence.

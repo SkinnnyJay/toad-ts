@@ -661,6 +661,12 @@
     (`SSE-first` vs `websocket-first`)
   - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity plus
     valid-prompt recovery stability under asymmetric burst pressure
+- Added merged env-map reconnect-order cadence expansion hardening:
+  - reconnect-order inversion coverage now expands per-order-path create
+    cadence in one runtime (`SSE-first` lower cadence, `websocket-first`
+    higher cadence) while preserving dual stream assertions
+  - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
+    rejection, and valid-prompt recovery remain stable across expanded cadence
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
