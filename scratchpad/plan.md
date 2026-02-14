@@ -605,6 +605,11 @@
     reconnect cycles across longer mixed validation sequences
   - verifies first and second websocket/SSE connection pairs both receive
     expected `SESSION_CREATED` and `STATE_UPDATE` events in the same runtime
+- Added merged env-map alternating reconnect hardening:
+  - headless integration now validates repeated reconnect cycles with
+    alternating default and explicit `mock` harness create requests
+  - verifies each alternating cycle preserves websocket `SESSION_CREATED` and
+    SSE `STATE_UPDATE` continuity plus prompt validation recovery behavior
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

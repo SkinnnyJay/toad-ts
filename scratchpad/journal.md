@@ -1826,6 +1826,31 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-14 (Merged env-map alternating reconnect coverage)
+
+### Summary
+- Added headless integration coverage for repeated reconnect cycles with
+  alternating default and explicit `mock` harness session-create requests.
+- Test validates:
+  - each reconnect cycle receives websocket `SESSION_CREATED` and SSE
+    `STATE_UPDATE` events.
+  - invalid prompt payload rejection and follow-up valid prompt recovery remain
+    stable across alternating cycles.
+  - all created session ids remain unique across the sequence.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps alternating default and explicit reconnect cycles stable under merged env-map validation"` ✅
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
 - Full gates (equivalent commands; bun/bunx unavailable in this shell):
   - `npx biome check . && npx eslint .` ✅
   - `npx tsc --noEmit` ✅

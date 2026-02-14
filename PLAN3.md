@@ -2684,3 +2684,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock long-sequence interleaved websocket+SSE reconnect stability under
       merged env-map validation cycles.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map alternating reconnect coverage)
+
+- Additional merged env-map alternating reconnect integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for repeated reconnect cycles that alternate
+      default and explicit `harnessId: "mock"` session-create requests.
+    - verifies each cycle receives websocket `SESSION_CREATED` and SSE
+      `STATE_UPDATE` events, with prompt validation rejection + recovery.
+    - verifies all created sessions remain unique across alternating reconnect
+      cycles in the same runtime.
+  - Goal:
+    - lock alternating explicit/default reconnect continuity under merged
+      env-map validation cycles.

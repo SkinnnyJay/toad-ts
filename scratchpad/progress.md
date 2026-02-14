@@ -215,6 +215,8 @@
     coverage after prompt validation failures
   - added merged env-map interleaved websocket+SSE reconnect continuity
     coverage for longer mixed validation sequences
+  - added merged env-map alternating default/explicit reconnect cycle coverage
+    with combined websocket+SSE continuity assertions
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
