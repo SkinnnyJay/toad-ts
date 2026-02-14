@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B13 bounded retry jitter hardening for worker/process bridges)
+
+### Summary
+- Completed P0 backlog item B13 in `PLAN3.md` by hardening retry behavior in
+  shared async utility and diff-worker bridge paths.
+- Updated `src/utils/async/retryWithBackoff.ts` to support bounded retry jitter
+  with configurable ratio/random source while preserving bounded exponential
+  delay caps.
+- Updated `src/utils/diff/diff-worker-client.ts` to use bounded retry-with-jitter
+  for diff worker requests.
+- Added retry and diff-worker retry constants in `src/config/limits.ts`.
+- Expanded `__tests__/unit/utils/retry-with-backoff.unit.test.ts` with bounded
+  jitter behavior assertions.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/retry-with-backoff.unit.test.ts __tests__/unit/core/claude-cli-harness.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B12 in-memory session message cap hardening)
 
 ### Summary

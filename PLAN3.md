@@ -6802,6 +6802,25 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - prevent unbounded in-memory session message accumulation under very
       long-running streaming/chat workloads.
 
+## Execution Log Addendum — 2026-02-14 (B13 bounded retry jitter hardening for worker/process bridges)
+
+- Additional P0 backlog hardening for retry storm prevention:
+  - Updated:
+    - `src/utils/async/retryWithBackoff.ts`
+    - `src/utils/diff/diff-worker-client.ts`
+    - `src/config/limits.ts`
+    - `__tests__/unit/utils/retry-with-backoff.unit.test.ts`
+  - Hardening changes:
+    - added bounded jitter support to shared retry/backoff utility with
+      configurable jitter ratio and deterministic test hooks.
+    - integrated bounded retry-with-jitter behavior into diff-worker bridge
+      requests with explicit retry attempt and delay limits.
+    - centralized retry jitter and diff-worker retry constants in config limits.
+    - expanded retry utility unit coverage for bounded jitter delay behavior.
+  - Goal:
+    - de-correlate retry timing across worker/process bridges to reduce
+      synchronized retry bursts under transient failures.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6818,7 +6837,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B10 | P0 | secure HTTP Hook IPC mode with explicit local-only binding and request-origin validation.
 - [x] - B11 | P0 | enforce strict request-body memory bounds for all JSON endpoints under compressed/slowloris inputs.
 - [x] - B12 | P0 | cap session stream in-memory message accumulation for very long-running sessions.
-- [ ] - B13 | P0 | add bounded retry/backoff strategy with jitter for diff worker and external process bridges to prevent retry storms.
+- [x] - B13 | P0 | add bounded retry/backoff strategy with jitter for diff worker and external process bridges to prevent retry storms.
 - [ ] - B14 | P0 | add transaction/statement timeouts and cancellation paths for long-running SQLite operations.
 - [ ] - B15 | P0 | ensure update-check and remote metadata calls never block startup critical path.
 - [ ] - B16 | P0 | cap provider stream parser buffers to prevent unbounded growth with malformed/infinite streams.

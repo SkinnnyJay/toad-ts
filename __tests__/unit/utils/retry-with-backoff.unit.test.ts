@@ -16,6 +16,7 @@ describe("retryWithBackoff", () => {
       maxAttempts: 3,
       baseMs: 50,
       capMs: 200,
+      jitterRatio: 0,
       onRetry,
     });
 
@@ -48,6 +49,7 @@ describe("retryWithBackoff", () => {
         maxAttempts: 3,
         baseMs: 10,
         capMs: 10,
+        jitterRatio: 0,
         shouldRetry: (err) => {
           expect(err).toBe(error);
           return false;
@@ -58,6 +60,31 @@ describe("retryWithBackoff", () => {
 
     expect(operation).toHaveBeenCalledTimes(1);
 
+    vi.useRealTimers();
+  });
+
+  it("applies bounded jitter to retry delays", async () => {
+    vi.useFakeTimers();
+    const onRetry = vi.fn();
+    const operation = vi.fn(async (attempt: number) => {
+      if (attempt < 2) {
+        throw new Error("transient");
+      }
+      return "ok";
+    });
+
+    const promise = retryWithBackoff(operation, {
+      maxAttempts: 2,
+      baseMs: 100,
+      capMs: 110,
+      jitterRatio: 0.2,
+      randomFn: () => 1,
+      onRetry,
+    });
+    await vi.runAllTimersAsync();
+
+    await expect(promise).resolves.toBe("ok");
+    expect(onRetry).toHaveBeenCalledWith(expect.objectContaining({ delayMs: 110 }));
     vi.useRealTimers();
   });
 });

@@ -1,6 +1,8 @@
 import { Worker } from "node:worker_threads";
 
+import { LIMIT } from "@/config/limits";
 import { ENV_VALUE } from "@/constants/env-values";
+import { retryWithBackoff } from "@/utils/async/retryWithBackoff";
 import { EnvManager } from "@/utils/env/env.utils";
 import { nanoid } from "nanoid";
 
@@ -88,7 +90,11 @@ export const computeDiffInWorker = async (
   }
 
   try {
-    return await diffWorkerClient.requestDiff(params);
+    return await retryWithBackoff(async () => await diffWorkerClient.requestDiff(params), {
+      maxAttempts: LIMIT.DIFF_WORKER_RETRY_MAX_ATTEMPTS,
+      baseMs: LIMIT.DIFF_WORKER_RETRY_BASE_MS,
+      capMs: LIMIT.DIFF_WORKER_RETRY_CAP_MS,
+    });
   } catch {
     return null;
   }

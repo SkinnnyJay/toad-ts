@@ -3803,9 +3803,17 @@
     preserving message retention for other sessions
   - expanded `__tests__/unit/store/app-store.unit.test.ts` with deterministic
     eviction-order and cross-session isolation assertions
+- Completed P0 backlog item B13 bounded retry jitter hardening:
+  - enhanced shared `retryWithBackoff` utility with bounded jitter controls
+    (configurable jitter ratio + deterministic random hook for tests)
+  - integrated bounded retry+jitter behavior into diff-worker bridge requests
+    in `src/utils/diff/diff-worker-client.ts`
+  - added retry jitter constants in `src/config/limits.ts`
+  - expanded `__tests__/unit/utils/retry-with-backoff.unit.test.ts` with
+    bounded jitter coverage
 - New next candidate:
-  - evaluate severity backlog item B13 by adding bounded retry/backoff strategy
-    with jitter for diff worker and external process bridges
+  - evaluate severity backlog item B14 by adding transaction/statement timeout
+    and cancellation paths for long-running SQLite operations
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers
