@@ -287,6 +287,9 @@
   - added merged env-map reconnect-order post-close invalid-burst ramp
     asymmetry coverage with websocket+SSE continuity assertions under order-
     path-specific post-close invalid-burst ramp jitter amplitudes
+  - added merged env-map reconnect-order post-close valid-prompt ramp
+    asymmetry coverage with websocket+SSE continuity assertions under order-
+    path-specific post-close valid-prompt ramp jitter amplitudes
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
