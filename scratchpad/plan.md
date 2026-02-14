@@ -977,9 +977,30 @@
     settle asymmetry + post-close cycle-handoff asymmetry + post-close cycle-
     cooldown handoff asymmetry + post-close cycle-transition handoff asymmetry
     + post-close segment-open handoff asymmetry by order path
+- Added merged env-map reconnect-order post-close segment-rearm handoff asymmetry hardening:
+  - reconnect-order post-close segment-open handoff coverage now applies
+    asymmetric post-close segment-rearm handoff jitter per order path
+  - `SSE-first` cycles use lower post-close segment-rearm handoff jitter,
+    while `websocket-first` cycles use higher post-close segment-rearm handoff
+    jitter
+  - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
+    rejection, and valid-prompt recovery remain stable under combined cadence +
+    segment-count asymmetry + stream-open jitter asymmetry + create-jitter
+    asymmetry + recovery-jitter asymmetry + burst-spacing asymmetry + post-
+    recovery delay asymmetry + cycle-cooldown asymmetry + close-delay
+    asymmetry + close-interleave asymmetry + post-close create scheduling
+    asymmetry + post-close prompt scheduling asymmetry + post-close recovery
+    scheduling asymmetry + post-close cycle transition asymmetry + post-close
+    segment-open gating asymmetry + post-close segment-rearm asymmetry +
+    post-close invalid-burst ramp asymmetry + post-close valid-prompt ramp
+    asymmetry + post-close recovery-confirm asymmetry + post-close recovery-
+    settle asymmetry + post-close cycle-handoff asymmetry + post-close cycle-
+    cooldown handoff asymmetry + post-close cycle-transition handoff asymmetry
+    + post-close segment-open handoff asymmetry + post-close segment-rearm
+    handoff asymmetry by order path
 - New next candidate:
-  - evaluate whether reconnect-order post-close segment-open handoff asymmetry
-    should include asymmetric post-close segment-rearm handoff jitter by order
+  - evaluate whether reconnect-order post-close segment-rearm handoff asymmetry
+    should include asymmetric post-close prompt-burst handoff jitter by order
     path
 
 ## Exit Criteria

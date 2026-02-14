@@ -5264,6 +5264,8 @@ describe("headless server", () => {
       const postCloseCycleTransitionHandoffJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
       const postCloseSegmentOpenHandoffJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
       const postCloseSegmentOpenHandoffJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
+      const postCloseSegmentRearmHandoffJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
+      const postCloseSegmentRearmHandoffJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5347,6 +5349,9 @@ describe("headless server", () => {
         );
         expect(postCloseSegmentOpenHandoffJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postCloseSegmentOpenHandoffJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postCloseSegmentRearmHandoffJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postCloseSegmentRearmHandoffJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -5465,6 +5470,17 @@ describe("headless server", () => {
             cycleCreateIndex > 0 &&
             (websocketSegmentRemaining === 0) !== (sseSegmentRemaining === 0)
           ) {
+            if (cycleIndex > 0) {
+              await new Promise<void>((resolve) => {
+                const postCloseSegmentRearmHandoffJitterByCycle = openSseFirstByCycle[cycleIndex]
+                  ? postCloseSegmentRearmHandoffJitterSseFirstByCycleMs[cycleIndex]
+                  : postCloseSegmentRearmHandoffJitterWebsocketFirstByCycleMs[cycleIndex];
+                setTimeout(
+                  () => resolve(),
+                  (postCloseSegmentRearmHandoffJitterByCycle + cycleCreateIndex + cycleIndex) % 4
+                );
+              });
+            }
             await new Promise<void>((resolve) => {
               const postCloseSegmentRearmJitterByCycle = openSseFirstByCycle[cycleIndex]
                 ? postCloseSegmentRearmJitterSseFirstByCycleMs[cycleIndex]
