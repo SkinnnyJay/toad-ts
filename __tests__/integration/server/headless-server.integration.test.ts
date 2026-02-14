@@ -5410,6 +5410,8 @@ describe("headless server", () => {
       const postClosePromptBurstRecoveryPennantJitterWebsocketFirstByCycleMs = [
         3, 0, 3, 0,
       ] as const;
+      const postClosePromptBurstRecoveryGuidonJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
+      const postClosePromptBurstRecoveryGuidonJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5664,6 +5666,9 @@ describe("headless server", () => {
         );
         expect(postClosePromptBurstRecoveryPennantJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postClosePromptBurstRecoveryPennantJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postClosePromptBurstRecoveryGuidonJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postClosePromptBurstRecoveryGuidonJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -6756,6 +6761,21 @@ describe("headless server", () => {
                   cycleSessionIndex +
                   cycleIndex +
                   3) %
+                  4
+              );
+            });
+            await new Promise<void>((resolve) => {
+              const postClosePromptBurstRecoveryGuidonJitterByCycle = openSseFirstByCycle[
+                cycleIndex
+              ]
+                ? postClosePromptBurstRecoveryGuidonJitterSseFirstByCycleMs[cycleIndex]
+                : postClosePromptBurstRecoveryGuidonJitterWebsocketFirstByCycleMs[cycleIndex];
+              setTimeout(
+                () => resolve(),
+                (postClosePromptBurstRecoveryGuidonJitterByCycle +
+                  cycleSessionIndex +
+                  cycleIndex +
+                  2) %
                   4
               );
             });
