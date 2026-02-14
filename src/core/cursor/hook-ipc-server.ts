@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { unlink } from "node:fs/promises";
 import http from "node:http";
 import { tmpdir } from "node:os";
@@ -5,6 +6,7 @@ import path from "node:path";
 import { DEFAULT_HOST } from "@/config/server";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
+import { HOOK_IPC_AUTH } from "@/constants/hook-ipc-auth";
 import { HTTP_METHOD } from "@/constants/http-methods";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { PERMISSION } from "@/constants/permissions";
@@ -59,6 +61,7 @@ const HOOK_IPC_TRANSPORT = {
 const HOOK_IPC_HANDLER = {
   METHOD_GUARD: "method_guard",
   ORIGIN_GUARD: "origin_guard",
+  AUTH_GUARD: "auth_guard",
 } as const;
 
 type HookIpcTransport = (typeof HOOK_IPC_TRANSPORT)[keyof typeof HOOK_IPC_TRANSPORT];
@@ -80,10 +83,23 @@ const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, fallback: 
   return result;
 };
 
+const readHeaderValue = (headers: http.IncomingHttpHeaders, key: string): string | undefined => {
+  const raw = headers[key];
+  if (typeof raw === "string") {
+    return raw;
+  }
+  if (Array.isArray(raw)) {
+    return raw[0];
+  }
+  return undefined;
+};
+
 export interface HookIpcEndpoint {
   transport: HookIpcTransport;
   socketPath?: string;
   url?: string;
+  authToken?: string;
+  authNonce?: string;
 }
 
 export interface HookIpcServerOptions {
@@ -114,6 +130,8 @@ export class HookIpcServer {
   private readonly host: string;
   private readonly port: number;
   private readonly requestTimeoutMs: number;
+  private readonly httpAuthToken: string;
+  private readonly httpAuthNonce: string;
 
   private handlers: HookIpcServerHandlers = {};
   private server: http.Server | null = null;
@@ -132,6 +150,8 @@ export class HookIpcServer {
     this.host = this.resolveHttpHost(options.host ?? HOOK_IPC_DEFAULT.HOST);
     this.port = options.port ?? 0;
     this.requestTimeoutMs = options.requestTimeoutMs ?? CURSOR_LIMIT.HOOK_REQUEST_TIMEOUT_MS;
+    this.httpAuthToken = randomUUID();
+    this.httpAuthNonce = randomUUID();
   }
 
   public setHandlers(handlers: HookIpcServerHandlers): void {
@@ -166,6 +186,31 @@ export class HookIpcServer {
           }
         );
         sendErrorResponse(res, HTTP_STATUS.FORBIDDEN, SERVER_RESPONSE_MESSAGE.ORIGIN_NOT_ALLOWED);
+        return;
+      }
+
+      if (
+        this.endpoint?.transport === HOOK_IPC_TRANSPORT.HTTP &&
+        !this.isAuthorizedHttpRequest(req)
+      ) {
+        logRequestValidationFailure(
+          this.logger,
+          {
+            source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+            handler: HOOK_IPC_HANDLER.AUTH_GUARD,
+            method: req.method ?? "",
+            pathname: req.url ?? HOOK_IPC_DEFAULT.PATHNAME,
+          },
+          {
+            error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+            mappedMessage: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+          }
+        );
+        sendErrorResponse(
+          res,
+          HTTP_STATUS.UNAUTHORIZED,
+          SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED
+        );
         return;
       }
 
@@ -262,6 +307,8 @@ export class HookIpcServer {
     this.endpoint = {
       transport: HOOK_IPC_TRANSPORT.HTTP,
       url: `http://${this.host}:${resolvedPort}${HOOK_IPC_DEFAULT.PATHNAME}`,
+      authToken: this.httpAuthToken,
+      authNonce: this.httpAuthNonce,
     };
     return this.endpoint;
   }
@@ -316,6 +363,12 @@ export class HookIpcServer {
     } catch (_error) {
       return false;
     }
+  }
+
+  private isAuthorizedHttpRequest(request: http.IncomingMessage): boolean {
+    const token = readHeaderValue(request.headers, HOOK_IPC_AUTH.TOKEN_HEADER);
+    const nonce = readHeaderValue(request.headers, HOOK_IPC_AUTH.NONCE_HEADER);
+    return token === this.httpAuthToken && nonce === this.httpAuthNonce;
   }
 
   private async startUnixSocketServer(server: http.Server): Promise<HookIpcEndpoint | null> {

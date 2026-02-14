@@ -2,6 +2,7 @@ import http from "node:http";
 import { SERVER_CONFIG } from "@/config/server";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
+import { HOOK_IPC_AUTH } from "@/constants/hook-ipc-auth";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { PERMISSION } from "@/constants/permissions";
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
@@ -10,11 +11,28 @@ import * as requestBody from "@/server/request-body";
 import { REQUEST_PARSING_SOURCE } from "@/server/request-error-normalization";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+const buildHookHttpAuthHeaders = (endpoint: HookIpcEndpoint): Record<string, string> => {
+  if (endpoint.transport !== "http") {
+    return {};
+  }
+  const headers: Record<string, string> = {};
+  if (endpoint.authToken) {
+    headers[HOOK_IPC_AUTH.TOKEN_HEADER] = endpoint.authToken;
+  }
+  if (endpoint.authNonce) {
+    headers[HOOK_IPC_AUTH.NONCE_HEADER] = endpoint.authNonce;
+  }
+  return headers;
+};
+
 const postJson = async (endpoint: HookIpcEndpoint, payload: Record<string, unknown>) => {
   if (endpoint.transport === "http" && endpoint.url) {
     const response = await fetch(endpoint.url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...buildHookHttpAuthHeaders(endpoint),
+      },
       body: JSON.stringify(payload),
     });
     return (await response.json()) as Record<string, unknown>;
@@ -68,6 +86,7 @@ const requestHttpEndpoint = async (
     method,
     headers: {
       "Content-Type": "application/json",
+      ...buildHookHttpAuthHeaders(endpoint),
       ...headers,
     },
     body,
@@ -99,6 +118,7 @@ const requestHttpEndpointWithNodeHeaders = async (
           path: target.pathname,
           headers: {
             "Content-Type": "application/json",
+            ...buildHookHttpAuthHeaders(endpoint),
             ...headers,
           },
         },
@@ -143,6 +163,7 @@ const HOOK_REQUEST_STREAM_ERROR = {
 const HOOK_IPC_HANDLER = {
   METHOD_GUARD: "method_guard",
   ORIGIN_GUARD: "origin_guard",
+  AUTH_GUARD: "auth_guard",
 } as const;
 
 const getHookIpcWarnSpy = (hookServer: HookIpcServer) => {
@@ -363,6 +384,36 @@ describe("HookIpcServer", () => {
       pathname: "/",
       error: SERVER_RESPONSE_MESSAGE.ORIGIN_NOT_ALLOWED,
       mappedMessage: SERVER_RESPONSE_MESSAGE.ORIGIN_NOT_ALLOWED,
+    });
+    warnSpy.mockRestore();
+  });
+
+  it("rejects http requests with invalid hook auth headers", async () => {
+    server = new HookIpcServer({ transport: "http" });
+    const warnSpy = getHookIpcWarnSpy(server);
+    const endpoint = await server.start();
+
+    const response = await requestHttpEndpoint(
+      endpoint,
+      "POST",
+      JSON.stringify(createValidHookPayload()),
+      {
+        [HOOK_IPC_AUTH.TOKEN_HEADER]: "invalid-token",
+        [HOOK_IPC_AUTH.NONCE_HEADER]: "invalid-nonce",
+      }
+    );
+
+    expect(response).toEqual({
+      status: HTTP_STATUS.UNAUTHORIZED,
+      payload: { error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED },
+    });
+    expect(warnSpy).toHaveBeenCalledWith("Request validation failed", {
+      source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+      handler: HOOK_IPC_HANDLER.AUTH_GUARD,
+      method: "POST",
+      pathname: "/",
+      error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      mappedMessage: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
     });
     warnSpy.mockRestore();
   });

@@ -3913,9 +3913,14 @@
     search-window tracking in `src/tools/shell-session.ts`
   - added split-chunk sentinel regression coverage in
     `__tests__/unit/tools/shell-session.unit.test.ts`
+- Completed P1 backlog item B27 Hook IPC auth/nonce handshake hardening:
+  - added HTTP hook auth header constants and endpoint auth metadata support
+  - enforced auth guard validation for Hook IPC HTTP requests
+  - propagated hook token/nonce env to node/bash hook shims
+  - added focused server and hook-env auth coverage in cursor hook tests
 - New next candidate:
-  - evaluate severity backlog item B27 by formalizing Hook IPC auth/nonce
-    handshake semantics for HTTP transport mode
+  - evaluate severity backlog item B28 by reducing repeated large env snapshot
+    merges in hot command paths
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

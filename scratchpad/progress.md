@@ -889,6 +889,8 @@
     with a linear-time UTF-8-safe truncation strategy
   - completed P1 backlog item B26 by optimizing shell-session sentinel scanning
     to bounded incremental search windows
+  - completed P1 backlog item B27 by enforcing Hook IPC HTTP auth/nonce
+    handshake and propagating auth headers through hook shims
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

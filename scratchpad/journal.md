@@ -1,5 +1,40 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B27 Hook IPC auth/nonce handshake hardening)
+
+### Summary
+- Completed P1 backlog item B27 in `PLAN3.md` by formalizing Hook IPC HTTP
+  transport authentication via explicit token + nonce handshake.
+- Added `src/constants/hook-ipc-auth.ts` and extended env key constants with
+  dedicated hook auth token/nonce keys.
+- Updated `src/core/cursor/hook-ipc-server.ts`:
+  - generates HTTP auth token/nonce for server lifecycle,
+  - enforces auth guard checks on HTTP requests,
+  - exposes auth metadata through HTTP endpoint descriptors.
+- Updated `src/core/cursor/hooks-config-generator.ts`:
+  - emits hook auth env vars for HTTP endpoints,
+  - forwards auth headers from node/bash hook shims for HTTP posts.
+- Expanded focused coverage across:
+  - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+  - `__tests__/unit/core/cursor/hooks-config-generator.unit.test.ts`
+  - `__tests__/unit/core/cursor/cursor-cli-harness.unit.test.ts`
+  - `__tests__/integration/core/cursor-harness.integration.test.ts`
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts __tests__/unit/core/cursor/hooks-config-generator.unit.test.ts __tests__/unit/core/cursor/cursor-cli-harness.unit.test.ts __tests__/integration/core/cursor-harness.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B26 shell-session sentinel scan optimization)
 
 ### Summary

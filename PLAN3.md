@@ -7074,6 +7074,29 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - avoid repeated full-buffer sentinel scan costs while preserving completion
       detection correctness across chunk boundaries.
 
+## Execution Log Addendum — 2026-02-14 (B27 Hook IPC auth/nonce handshake hardening)
+
+- Additional P1 backlog hardening for Hook IPC HTTP transport authentication:
+  - Updated:
+    - `src/constants/hook-ipc-auth.ts` (new)
+    - `src/constants/env-keys.ts`
+    - `src/core/cursor/hook-ipc-server.ts`
+    - `src/core/cursor/hooks-config-generator.ts`
+    - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+    - `__tests__/unit/core/cursor/hooks-config-generator.unit.test.ts`
+    - `__tests__/unit/core/cursor/cursor-cli-harness.unit.test.ts`
+    - `__tests__/integration/core/cursor-harness.integration.test.ts`
+  - Hardening changes:
+    - added explicit HTTP hook auth header contract (`token` + `nonce`).
+    - generated per-server HTTP auth token/nonce material and enforced auth
+      guard validation for HTTP hook requests.
+    - propagated auth token/nonce to hook shim environments via dedicated env
+      keys and HTTP header forwarding in node/bash shims.
+    - added focused unauthorized-request and hook-env propagation coverage.
+  - Goal:
+    - formalize and enforce authenticated hook request handshake for Hook IPC
+      HTTP transport mode.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7107,7 +7130,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B24 | P1 | remove implicit shell cwd coupling by isolating command execution context per request.
 - [x] - B25 | P1 | optimize terminal output byte trimming to avoid O(n^2) behavior for large outputs.
 - [x] - B26 | P1 | optimize sentinel completion scanning in shell sessions to avoid repeated full-buffer scans.
-- [ ] - B27 | P1 | formalize Hook IPC auth/nonce handshake for HTTP transport mode.
+- [x] - B27 | P1 | formalize Hook IPC auth/nonce handshake for HTTP transport mode.
 - [ ] - B28 | P1 | reduce repeated large env snapshot merges in hot command paths.
 - [ ] - B29 | P1 | add regression tests for signal attach/detach idempotency across reconnect cycles.
 - [ ] - B30 | P1 | add SQLite maintenance policy (vacuum/pragma optimize/checkpoint) to stabilize long-lived performance.

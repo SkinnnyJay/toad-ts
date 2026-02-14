@@ -40,7 +40,11 @@ describe("HooksConfigGenerator", () => {
     expect(hooksRaw).toContain("preToolUse");
     expect(hooksRaw).toContain("toadstool-cursor-hook");
     expect(nodeShimRaw).toContain("TOADSTOOL_HOOK_SOCKET");
+    expect(nodeShimRaw).toContain("TOADSTOOL_HOOK_TOKEN");
+    expect(nodeShimRaw).toContain("TOADSTOOL_HOOK_NONCE");
     expect(bashShimRaw).toContain("TOADSTOOL_HOOK_SOCKET");
+    expect(bashShimRaw).toContain("TOADSTOOL_HOOK_TOKEN");
+    expect(bashShimRaw).toContain("TOADSTOOL_HOOK_NONCE");
 
     await install.restore();
     await expect(readFile(install.hooksPath, ENCODING.UTF8)).rejects.toThrow();
@@ -90,9 +94,13 @@ describe("HooksConfigGenerator", () => {
     const env = generator.createHookEnv({
       transport: "http",
       url: "http://127.0.0.1:9999/",
+      authToken: "token-1",
+      authNonce: "nonce-1",
     });
 
     expect(env[ENV_KEY.TOADSTOOL_HOOK_SOCKET]).toBe("http://127.0.0.1:9999/");
+    expect(env[ENV_KEY.TOADSTOOL_HOOK_TOKEN]).toBe("token-1");
+    expect(env[ENV_KEY.TOADSTOOL_HOOK_NONCE]).toBe("nonce-1");
   });
 
   it("supports installing hooks at user-level cursor directory", () => {

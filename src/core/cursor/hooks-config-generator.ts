@@ -4,6 +4,7 @@ import path from "node:path";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
+import { HOOK_IPC_AUTH } from "@/constants/hook-ipc-auth";
 import { INDENT_SPACES } from "@/constants/json-format";
 import type { HookIpcEndpoint } from "@/core/cursor/hook-ipc-server";
 import { createClassLogger } from "@/utils/logging/logger.utils";
@@ -65,15 +66,24 @@ for await (const chunk of process.stdin) {
 
 const payload = chunks.join("");
 const endpoint = process.env.${ENV_KEY.TOADSTOOL_HOOK_SOCKET};
+const hookToken = process.env.${ENV_KEY.TOADSTOOL_HOOK_TOKEN};
+const hookNonce = process.env.${ENV_KEY.TOADSTOOL_HOOK_NONCE};
 if (!endpoint || payload.length === 0) {
   process.stdout.write("{}");
   process.exit(0);
 }
 
 const postHttp = async () => {
+  const headers = { "Content-Type": "application/json" };
+  if (hookToken) {
+    headers["${HOOK_IPC_AUTH.TOKEN_HEADER}"] = hookToken;
+  }
+  if (hookNonce) {
+    headers["${HOOK_IPC_AUTH.NONCE_HEADER}"] = hookNonce;
+  }
   const response = await fetch(endpoint, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: payload,
   });
   const text = await response.text();
@@ -119,6 +129,8 @@ const buildBashShimContent = (nodeShimPath: string): string => {
   return `#!/usr/bin/env bash
 payload="$(cat)"
 endpoint="\${${ENV_KEY.TOADSTOOL_HOOK_SOCKET}:-}"
+hook_token="\${${ENV_KEY.TOADSTOOL_HOOK_TOKEN}:-}"
+hook_nonce="\${${ENV_KEY.TOADSTOOL_HOOK_NONCE}:-}"
 
 if [ -z "$endpoint" ] || [ -z "$payload" ]; then
   printf '{}'
@@ -139,7 +151,14 @@ if ! command -v curl >/dev/null 2>&1; then
 fi
 
 if [[ "$endpoint" == http://* || "$endpoint" == https://* ]]; then
-  response="$(curl -sS -X POST -H "Content-Type: application/json" --data "$payload" "$endpoint" 2>/dev/null || true)"
+  auth_headers=()
+  if [ -n "$hook_token" ]; then
+    auth_headers+=(-H "${HOOK_IPC_AUTH.TOKEN_HEADER}: $hook_token")
+  fi
+  if [ -n "$hook_nonce" ]; then
+    auth_headers+=(-H "${HOOK_IPC_AUTH.NONCE_HEADER}: $hook_nonce")
+  fi
+  response="$(curl -sS -X POST -H "Content-Type: application/json" "\${auth_headers[@]}" --data "$payload" "$endpoint" 2>/dev/null || true)"
 else
   response="$(curl -sS --unix-socket "$endpoint" -X POST -H "Content-Type: application/json" --data "$payload" "http://localhost/" 2>/dev/null || true)"
 fi
@@ -232,9 +251,14 @@ export class HooksConfigGenerator {
   }
 
   public createHookEnv(endpoint: HookIpcEndpoint): Record<string, string> {
-    return {
+    const env: Record<string, string> = {
       [ENV_KEY.TOADSTOOL_HOOK_SOCKET]: endpoint.socketPath ?? endpoint.url ?? "",
     };
+    if (endpoint.authToken && endpoint.authNonce) {
+      env[ENV_KEY.TOADSTOOL_HOOK_TOKEN] = endpoint.authToken;
+      env[ENV_KEY.TOADSTOOL_HOOK_NONCE] = endpoint.authNonce;
+    }
+    return env;
   }
 
   public async install(_endpoint: HookIpcEndpoint): Promise<HooksInstallResult> {

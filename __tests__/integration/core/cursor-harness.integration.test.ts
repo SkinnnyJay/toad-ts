@@ -156,7 +156,7 @@ class FakeHooksGenerator extends HooksConfigGenerator {
     super({ projectRoot: "/workspace" });
   }
 
-  public override createHookEnv(): Record<string, string> {
+  public override createHookEnv(_endpoint: HookIpcEndpoint): Record<string, string> {
     return {
       [ENV_KEY.TOADSTOOL_HOOK_SOCKET]: "http://127.0.0.1:9090/",
     };
