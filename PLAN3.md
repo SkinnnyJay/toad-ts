@@ -2294,3 +2294,19 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock adapter-list normalization and feature-flag parsing behavior at the
       harness-registry factory boundary.
+
+## Execution Log Addendum — 2026-02-13 (repeated cursor connect-failure coverage)
+
+- Additional repeated-failure resilience integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for repeated default cursor harness connection
+      failures within the same running server instance.
+    - verifies consecutive default `/sessions` attempts return canonical server
+      errors when cursor connect checks fail.
+    - verifies explicit `mock` session creation still succeeds after repeated
+      cursor failures.
+  - Goal:
+    - lock server continuity semantics under repeated harness connect-failure
+      cycles.

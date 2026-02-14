@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added repeated cursor connect-failure integration coverage:
+  - headless integration now verifies consecutive default cursor-harness
+    failures return canonical server errors in the same runtime
+  - validates explicit `mock` session creation still succeeds after repeated
+    cursor connection failures
 - Added harness-registry normalization unit coverage:
   - registry factory unit tests now assert `createHarnessRegistry(...)` omits
     mock adapter entries when `includeMock: false`
