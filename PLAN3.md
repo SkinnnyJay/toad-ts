@@ -6859,6 +6859,29 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - ensure remote update metadata checks cannot block CLI startup or the
       render critical path.
 
+## Execution Log Addendum — 2026-02-14 (B16 provider parser buffer cap hardening)
+
+- Additional P0 backlog hardening for malformed/infinite provider streams:
+  - Updated:
+    - `src/core/providers/stream-parser-buffer.ts` (new shared utility)
+    - `src/core/providers/anthropic-provider.ts`
+    - `src/core/providers/openai-provider.ts`
+    - `src/core/providers/openai-compatible-provider.ts`
+    - `src/core/providers/ollama-provider.ts`
+    - `src/config/limits.ts`
+    - `__tests__/unit/core/stream-parser-buffer.unit.test.ts`
+  - Hardening changes:
+    - added shared parser-buffer append helper with byte-cap trimming and
+      newline resynchronization behavior.
+    - applied shared capped parsing across Anthropic/OpenAI/OpenAI-compatible/
+      Ollama streaming adapters.
+    - introduced explicit provider parser-buffer byte limit constant.
+    - added focused unit coverage for bounded split/remainder behavior and
+      overflow resynchronization semantics.
+  - Goal:
+    - prevent unbounded memory growth in provider stream parsers under malformed
+      or infinite chunk streams.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6878,7 +6901,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B13 | P0 | add bounded retry/backoff strategy with jitter for diff worker and external process bridges to prevent retry storms.
 - [x] - B14 | P0 | add transaction/statement timeouts and cancellation paths for long-running SQLite operations.
 - [x] - B15 | P0 | ensure update-check and remote metadata calls never block startup critical path.
-- [ ] - B16 | P0 | cap provider stream parser buffers to prevent unbounded growth with malformed/infinite streams.
+- [x] - B16 | P0 | cap provider stream parser buffers to prevent unbounded growth with malformed/infinite streams.
 - [ ] - B17 | P0 | add lifecycle cleanup for completed background tasks to prevent long-session memory creep.
 - [ ] - B18 | P0 | enforce global process concurrency limits for spawned shell/provider tasks.
 - [ ] - B19 | P0 | protect clipboard command pipes from large-payload memory spikes and stalled child processes.

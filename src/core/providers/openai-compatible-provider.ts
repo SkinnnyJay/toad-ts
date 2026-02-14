@@ -1,3 +1,4 @@
+import { LIMIT } from "@/config/limits";
 import { PROVIDER_STREAM } from "@/constants/provider-stream";
 import type {
   ProviderAdapter,
@@ -6,6 +7,7 @@ import type {
   ProviderOptions,
   ProviderStreamChunk,
 } from "./provider-types";
+import { appendChunkToParserBuffer } from "./stream-parser-buffer";
 
 /**
  * Generic OpenAI-compatible provider adapter.
@@ -110,9 +112,13 @@ export class OpenAICompatibleProvider implements ProviderAdapter {
         const { done, value } = await reader.read();
         if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
+        const nextBuffer = appendChunkToParserBuffer(
+          buffer,
+          decoder.decode(value, { stream: true }),
+          LIMIT.PROVIDER_STREAM_PARSER_BUFFER_MAX_BYTES
+        );
+        buffer = nextBuffer.remainder;
+        const lines = nextBuffer.lines;
 
         for (const line of lines) {
           if (!line.startsWith(PROVIDER_STREAM.SSE_DATA_PREFIX)) continue;

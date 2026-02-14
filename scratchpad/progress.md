@@ -867,6 +867,8 @@
     persistence operations
   - completed P0 backlog item B15 by deferring and deduplicating update-check
     metadata calls so startup/render paths remain non-blocking
+  - completed P0 backlog item B16 by adding bounded provider stream parser
+    buffers to prevent unbounded growth on malformed/infinite streams
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

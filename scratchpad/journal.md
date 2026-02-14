@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B16 provider parser-buffer cap hardening)
+
+### Summary
+- Completed P0 backlog item B16 in `PLAN3.md` by capping provider stream parser
+  buffers for malformed/infinite chunk paths.
+- Added `src/core/providers/stream-parser-buffer.ts`:
+  - shared append+split helper with max-byte cap and overflow newline
+    resynchronization semantics.
+- Applied shared capped parser helper in:
+  - `src/core/providers/anthropic-provider.ts`
+  - `src/core/providers/openai-provider.ts`
+  - `src/core/providers/openai-compatible-provider.ts`
+  - `src/core/providers/ollama-provider.ts`
+- Added `PROVIDER_STREAM_PARSER_BUFFER_MAX_BYTES` in `src/config/limits.ts`.
+- Added focused unit coverage in
+  `__tests__/unit/core/stream-parser-buffer.unit.test.ts`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/core/stream-parser-buffer.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B15 startup non-blocking update-check hardening)
 
 ### Summary

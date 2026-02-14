@@ -3831,9 +3831,17 @@
     blocking behavior
   - expanded `__tests__/unit/utils/update-check.unit.test.ts` coverage for
     scheduler dedupe and rejection resilience
+- Completed P0 backlog item B16 provider parser-buffer cap hardening:
+  - added shared capped parser buffer helper in
+    `src/core/providers/stream-parser-buffer.ts`
+  - applied capped chunk parsing across Anthropic/OpenAI/OpenAI-compatible/
+    Ollama stream adapters
+  - added parser buffer size constant in `src/config/limits.ts`
+  - added focused unit coverage in
+    `__tests__/unit/core/stream-parser-buffer.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B16 by capping provider parser buffers for
-    malformed/infinite stream inputs
+  - evaluate severity backlog item B17 by adding lifecycle cleanup/retention
+    policy for completed background tasks
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers
