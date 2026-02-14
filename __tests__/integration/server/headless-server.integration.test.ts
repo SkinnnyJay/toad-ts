@@ -5352,6 +5352,10 @@ describe("headless server", () => {
       const postClosePromptBurstRecoveryBandJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
       const postClosePromptBurstRecoveryBangleJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
       const postClosePromptBurstRecoveryBangleJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
+      const postClosePromptBurstRecoveryBraceletJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
+      const postClosePromptBurstRecoveryBraceletJitterWebsocketFirstByCycleMs = [
+        3, 0, 3, 0,
+      ] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5543,6 +5547,9 @@ describe("headless server", () => {
         );
         expect(postClosePromptBurstRecoveryBangleJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postClosePromptBurstRecoveryBangleJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postClosePromptBurstRecoveryBraceletJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postClosePromptBurstRecoveryBraceletJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -6336,6 +6343,21 @@ describe("headless server", () => {
                   cycleSessionIndex +
                   cycleIndex +
                   2) %
+                  4
+              );
+            });
+            await new Promise<void>((resolve) => {
+              const postClosePromptBurstRecoveryBraceletJitterByCycle = openSseFirstByCycle[
+                cycleIndex
+              ]
+                ? postClosePromptBurstRecoveryBraceletJitterSseFirstByCycleMs[cycleIndex]
+                : postClosePromptBurstRecoveryBraceletJitterWebsocketFirstByCycleMs[cycleIndex];
+              setTimeout(
+                () => resolve(),
+                (postClosePromptBurstRecoveryBraceletJitterByCycle +
+                  cycleSessionIndex +
+                  cycleIndex +
+                  3) %
                   4
               );
             });
