@@ -689,6 +689,15 @@
   - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
     rejection, and valid-prompt recovery remain stable under combined cadence +
     segment-count asymmetry + jitter-amplitude asymmetry by order path
+- Added merged env-map reconnect-order create-jitter asymmetry hardening:
+  - reconnect-order jitter-amplitude coverage now applies asymmetric
+    create-jitter amplitudes per order path
+  - `SSE-first` cycles use lower create-jitter amplitude, while
+    `websocket-first` cycles use higher create-jitter amplitude
+  - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
+    rejection, and valid-prompt recovery remain stable under combined cadence +
+    segment-count asymmetry + stream-open jitter asymmetry + create-jitter
+    asymmetry by order path
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
