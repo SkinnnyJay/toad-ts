@@ -1,5 +1,33 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B09 timeout kill escalation hardening for cli-agent runners)
+
+### Summary
+- Completed P0 backlog item B09 in `PLAN3.md` by hardening timeout kill-path
+  behavior in `src/core/cli-agent/cli-agent-process-runner.ts`.
+- Timeout handling now initiates with `SIGTERM` and escalates to `SIGKILL` when
+  the process remains alive beyond grace windows.
+- Added close-aware signal/wait helper semantics and warning logs for non-closing
+  process scenarios after escalation attempts.
+- Expanded
+  `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts`
+  with timeout escalation signal-order assertions.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B08 signal-handler lifecycle hardening for cli-agent runners)
 
 ### Summary

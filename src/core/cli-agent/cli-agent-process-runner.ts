@@ -105,7 +105,7 @@ export class CliAgentProcessRunner {
           return;
         }
         completed = true;
-        void this.forceKillChild(child);
+        void this.killChild(child, "SIGTERM");
         reject(new Error(`CLI command timed out after ${timeoutMs}ms: ${args.join(" ")}`));
       }, timeoutMs);
 
@@ -210,10 +210,6 @@ export class CliAgentProcessRunner {
     await this.killChild(child, signal);
   }
 
-  private async forceKillChild(child: ChildProcessWithoutNullStreams): Promise<void> {
-    await this.killChild(child, "SIGKILL");
-  }
-
   private async killChild(
     child: ChildProcessWithoutNullStreams,
     signal: NodeJS.Signals
@@ -223,20 +219,40 @@ export class CliAgentProcessRunner {
       return;
     }
 
+    let closed = await this.sendSignalAndAwaitClose(child, pid, signal);
+    if (!closed && signal !== "SIGKILL") {
+      closed = await this.sendSignalAndAwaitClose(child, pid, "SIGKILL");
+    }
+    if (!closed) {
+      this.logger.warn("CLI process did not close after termination signals", { pid, signal });
+    }
+
+    this.cleanupChild(child);
+  }
+
+  private async sendSignalAndAwaitClose(
+    child: ChildProcessWithoutNullStreams,
+    pid: number,
+    signal: NodeJS.Signals
+  ): Promise<boolean> {
     try {
       await this.killTreeFn(pid, signal);
     } catch (_error) {
       child.kill(signal);
     }
 
-    await new Promise<void>((resolve) => {
+    if (this.isChildClosed(child)) {
+      return true;
+    }
+
+    return await new Promise<boolean>((resolve) => {
       let settled = false;
       const timeout = setTimeout(() => {
         if (settled) {
           return;
         }
         settled = true;
-        resolve();
+        resolve(false);
       }, this.forceKillTimeoutMs);
 
       child.once("close", () => {
@@ -245,11 +261,13 @@ export class CliAgentProcessRunner {
         }
         settled = true;
         clearTimeout(timeout);
-        resolve();
+        resolve(true);
       });
     });
+  }
 
-    this.cleanupChild(child);
+  private isChildClosed(child: ChildProcessWithoutNullStreams): boolean {
+    return child.exitCode != null || child.signalCode != null;
   }
 
   private async killProcessTree(pid: number, signal: NodeJS.Signals): Promise<void> {

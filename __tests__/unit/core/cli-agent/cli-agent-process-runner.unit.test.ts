@@ -178,6 +178,26 @@ describe("CliAgentProcessRunner", () => {
     await expect(runner.runCommand(["hang"])).rejects.toThrow("timed out");
   });
 
+  it("escalates timeout termination from SIGTERM to SIGKILL when process remains alive", async () => {
+    const { spawnFn } = createSpawnFn([{ holdOpen: true }]);
+    const killTreeSignals: NodeJS.Signals[] = [];
+    const runner = new CliAgentProcessRunner({
+      command: "agent",
+      env: {},
+      spawnFn,
+      killTreeFn: async (_pid, signal) => {
+        killTreeSignals.push(signal);
+      },
+      defaultCommandTimeoutMs: 1,
+      forceKillTimeoutMs: 1,
+      loggerName: "TestCliAgentProcessRunner",
+    });
+
+    await expect(runner.runCommand(["hang"])).rejects.toThrow("timed out");
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(killTreeSignals).toEqual(["SIGTERM", "SIGKILL"]);
+  });
+
   it("applies env overrides to subsequent spawned commands", async () => {
     const { spawnFn, calls } = createSpawnFn([{ stdout: "ok", exitCode: 0 }]);
     const runner = new CliAgentProcessRunner({

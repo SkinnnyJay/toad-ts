@@ -3766,9 +3766,17 @@
     `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts`
     with repeated streaming lifecycle assertions that listener counts return to
     baseline after each run
+- Completed P0 backlog item B09 timeout kill escalation hardening:
+  - updated `src/core/cli-agent/cli-agent-process-runner.ts` timeout path to
+    start termination with `SIGTERM` and escalate to `SIGKILL` when needed
+  - added close-aware signal/wait helper semantics and explicit warning path for
+    processes that remain alive after escalation
+  - expanded
+    `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts`
+    with timeout escalation assertions (`SIGTERM` -> `SIGKILL`)
 - New next candidate:
-  - evaluate severity backlog item B09 by guaranteeing timeout kill paths reap
-    child/grandchild process trees across POSIX and Windows
+  - evaluate severity backlog item B10 by locking down Hook IPC HTTP mode with
+    strict local-only binding and request-origin validation
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

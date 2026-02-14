@@ -6717,6 +6717,23 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - eliminate latent global signal-listener leaks across repeated
       cli-agent runner streaming sessions.
 
+## Execution Log Addendum — 2026-02-14 (B09 timeout kill escalation hardening for cli-agent runners)
+
+- Additional P0 backlog hardening for timeout kill-path process reaping:
+  - Updated:
+    - `src/core/cli-agent/cli-agent-process-runner.ts`
+    - `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts`
+  - Hardening changes:
+    - changed command timeout handling to initiate termination with `SIGTERM`
+      and escalate to `SIGKILL` when the process remains alive past grace.
+    - introduced explicit close-aware signal send/wait helper and stale-process
+      warning path when processes fail to close after escalation.
+    - expanded unit coverage to assert timeout escalation signal order and
+      continued cleanup behavior under non-closing process scenarios.
+  - Goal:
+    - improve guarantees that timeout kill paths aggressively reap stuck child
+      process trees under high churn on POSIX and Windows kill-tree backends.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6729,7 +6746,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B06 | P0 | fix path-escape detection for Windows separators (`..\\`) and mixed separator payloads.
 - [x] - B07 | P0 | replace `startsWith` cwd containment check with canonical path comparison safe for case-insensitive filesystems.
 - [x] - B08 | P0 | prevent process signal handler accumulation across repeated runner lifecycles to avoid listener leaks.
-- [ ] - B09 | P0 | guarantee timeout kill path reaps grandchildren on Windows and POSIX under high churn.
+- [x] - B09 | P0 | guarantee timeout kill path reaps grandchildren on Windows and POSIX under high churn.
 - [ ] - B10 | P0 | secure HTTP Hook IPC mode with explicit local-only binding and request-origin validation.
 - [ ] - B11 | P0 | enforce strict request-body memory bounds for all JSON endpoints under compressed/slowloris inputs.
 - [ ] - B12 | P0 | cap session stream in-memory message accumulation for very long-running sessions.
