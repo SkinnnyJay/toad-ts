@@ -834,6 +834,9 @@
   - completed P0 backlog item B04 by hardening Hook IPC startup transport
     selection with deterministic unix-socket-to-http fallback and endpoint-aware
     shutdown cleanup semantics for socket/path edge failures
+  - completed P0 backlog item B05 by hardening Linux clipboard behavior with
+    Wayland-first command selection (`wl-copy`), X11 fallback gating, and
+    headless no-spawn handling for deterministic failure behavior
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

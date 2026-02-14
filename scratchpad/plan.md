@@ -3731,9 +3731,17 @@
   - expanded
     `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts` with explicit
     unix-socket failure fallback coverage and HTTP fallback roundtrip assertions
+- Completed P0 backlog item B05 Linux clipboard reliability hardening:
+  - updated `src/utils/clipboard/clipboard.utils.ts` to prefer `wl-copy` on
+    Wayland sessions and avoid X11 clipboard command attempts in headless mode
+  - added centralized display/session env keys in `src/constants/env-keys.ts`
+    (`DISPLAY`, `WAYLAND_DISPLAY`, `XDG_SESSION_TYPE`)
+  - added focused clipboard unit coverage in
+    `__tests__/unit/utils/clipboard.utils.unit.test.ts` for Wayland preference,
+    X11 fallback, and headless no-spawn behavior
 - New next candidate:
-  - evaluate severity backlog item B05 by hardening Linux clipboard reliability
-    for Wayland (`wl-copy`) and headless-display failure modes
+  - evaluate severity backlog item B06 by hardening path-escape detection for
+    Windows separators (`..\\`) and mixed-separator payloads
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

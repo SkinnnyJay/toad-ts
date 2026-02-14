@@ -1,18 +1,50 @@
 import { spawn } from "node:child_process";
 
+import { ENV_KEY } from "@/constants/env-keys";
 import { PLATFORM } from "@/constants/platform";
+import { EnvManager } from "@/utils/env/env.utils";
+
+const CLIPBOARD_COMMAND = {
+  PBCOPY: "pbcopy",
+  CLIP: "clip",
+  WLCOPY: "wl-copy",
+  XCLIP: "xclip",
+  XSEL: "xsel",
+} as const;
+
+const LINUX_SESSION_TYPE = {
+  WAYLAND: "wayland",
+} as const;
 
 const buildClipboardCommands = (): Array<{ command: string; args: string[] }> => {
   if (process.platform === PLATFORM.DARWIN) {
-    return [{ command: "pbcopy", args: [] }];
+    return [{ command: CLIPBOARD_COMMAND.PBCOPY, args: [] }];
   }
   if (process.platform === PLATFORM.WIN32) {
-    return [{ command: "clip", args: [] }];
+    return [{ command: CLIPBOARD_COMMAND.CLIP, args: [] }];
   }
-  return [
-    { command: "xclip", args: ["-selection", "clipboard"] },
-    { command: "xsel", args: ["--clipboard", "--input"] },
-  ];
+  const env = EnvManager.getInstance().getSnapshot();
+  const sessionType = (env[ENV_KEY.XDG_SESSION_TYPE] ?? "").trim().toLowerCase();
+  const hasWayland =
+    (env[ENV_KEY.WAYLAND_DISPLAY] ?? "").trim().length > 0 ||
+    sessionType === LINUX_SESSION_TYPE.WAYLAND;
+  const hasX11 = (env[ENV_KEY.DISPLAY] ?? "").trim().length > 0;
+  if (!hasWayland && !hasX11) {
+    return [];
+  }
+
+  const commands: Array<{ command: string; args: string[] }> = [];
+  if (hasWayland) {
+    commands.push({ command: CLIPBOARD_COMMAND.WLCOPY, args: [] });
+  }
+  if (hasX11) {
+    commands.push(
+      { command: CLIPBOARD_COMMAND.XCLIP, args: ["-selection", "clipboard"] },
+      { command: CLIPBOARD_COMMAND.XSEL, args: ["--clipboard", "--input"] }
+    );
+  }
+
+  return commands;
 };
 
 const tryClipboardCommand = async (

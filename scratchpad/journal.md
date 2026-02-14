@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B05 Linux clipboard Wayland/headless reliability hardening)
+
+### Summary
+- Completed P0 backlog item B05 in `PLAN3.md` by hardening
+  `src/utils/clipboard/clipboard.utils.ts`.
+- Added Wayland-aware clipboard command selection (`wl-copy` first) and
+  constrained X11 command fallback (`xclip`/`xsel`) to sessions with X11
+  display availability.
+- Added explicit headless Linux behavior: no clipboard command spawn attempts
+  when neither Wayland nor X11 display signals are present.
+- Added display/session env-key constants in `src/constants/env-keys.ts` and
+  focused unit coverage in
+  `__tests__/unit/utils/clipboard.utils.unit.test.ts`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/clipboard.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B04 Hook IPC transport fallback hardening)
 
 ### Summary
