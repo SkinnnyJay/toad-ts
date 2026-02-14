@@ -6554,11 +6554,31 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - lock reconnect-order continuity when post-close prompt-burst recovery-
       vamplate timing varies asymmetrically by order path.
 
+## Execution Log Addendum — 2026-02-14 (B01 deterministic shell-session teardown for Windows cmd lifecycle)
+
+- Additional P0 backlog hardening for deterministic shell-session teardown:
+  - Updated:
+    - `src/tools/shell-session.ts`
+    - `src/ui/components/chat/Chat.tsx`
+    - `__tests__/unit/tools/shell-session.unit.test.ts`
+  - Hardening changes:
+    - added deterministic shell-session teardown semantics that reject active and
+      queued commands when a shell session is disposed.
+    - hardened Windows teardown path to send `SIGTERM` followed by forced
+      `SIGKILL` so `cmd.exe /K` sessions do not survive disposal.
+    - added explicit `ShellSessionManager.dispose()` and wired chat runtime
+      cleanup to dispose shell sessions during runtime replacement/unmount.
+    - added focused unit coverage validating Windows dispose hard-kill behavior
+      and rejection semantics for active/queued commands.
+  - Goal:
+    - prevent command-shell leakage for Windows `cmd.exe /K` sessions and
+      enforce deterministic teardown behavior across shell runtime lifecycles.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
 
-- [ ] - B01 | P0 | shell-session keeps `cmd.exe /K` alive; enforce hard session teardown to prevent command shell leaks on Windows.
+- [x] - B01 | P0 | shell-session keeps `cmd.exe /K` alive; enforce hard session teardown to prevent command shell leaks on Windows.
 - [ ] - B02 | P0 | verify detached child process cleanup across POSIX and Windows in `cli-agent-process-runner` to prevent orphan subprocess trees.
 - [ ] - B03 | P0 | add retention/eviction for `TerminalManager.sessions` to prevent unbounded memory growth from unreleased sessions.
 - [ ] - B04 | P0 | harden Hook IPC transport selection for Windows socket/path edge cases and force deterministic fallback behavior.

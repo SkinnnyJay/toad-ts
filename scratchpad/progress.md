@@ -820,6 +820,10 @@
     vamplate asymmetry coverage with websocket+SSE continuity assertions
     under order-path-specific post-close prompt-burst recovery-vamplate
     jitter amplitudes
+  - completed P0 backlog item B01 by hardening `shell-session` teardown:
+    Windows dispose now forces `SIGTERM` + `SIGKILL`, active/queued commands
+    are rejected on dispose, and chat runtime cleanup now disposes shell
+    sessions on runtime replacement/unmount
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

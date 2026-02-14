@@ -49,6 +49,7 @@ const SHELL_CONTROL = {
   DEFAULT_WINDOWS_COMMAND: "cmd.exe",
   DEFAULT_POSIX_ARGS: ["-s"],
   SENTINEL_PREFIX: "__TOADSTOOL_CMD_END__",
+  DISPOSE_ERROR_MESSAGE: "Shell session disposed.",
 } as const;
 
 const shouldAllowEscape = (env?: NodeJS.ProcessEnv, override?: boolean): boolean => {
@@ -228,7 +229,7 @@ class ShellSession {
     if (command.timeoutMs) {
       this.timer = setTimeout(() => {
         if (this.child) {
-          this.child.kill(SIGNAL.SIGTERM);
+          this.terminateChildProcess(this.child);
           this.finishActive(null, SIGNAL.SIGTERM);
         }
       }, command.timeoutMs);
@@ -276,9 +277,40 @@ class ShellSession {
     this.processQueue();
   }
 
+  private rejectPendingCommands(message: string): void {
+    const active = this.active;
+    this.active = null;
+    if (active) {
+      active.reject(new Error(message));
+    }
+
+    while (this.queue.length > 0) {
+      const pending = this.queue.shift();
+      if (!pending) {
+        continue;
+      }
+      pending.reject(new Error(message));
+    }
+  }
+
+  private terminateChildProcess(child: ChildProcessWithoutNullStreams): void {
+    if (!child.killed) {
+      child.kill(SIGNAL.SIGTERM);
+    }
+    if (this.isWindows) {
+      child.kill(SIGNAL.SIGKILL);
+    }
+  }
+
   dispose(): void {
-    if (this.child && !this.child.killed) {
-      this.child.kill(SIGNAL.SIGTERM);
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = undefined;
+    }
+
+    this.rejectPendingCommands(SHELL_CONTROL.DISPOSE_ERROR_MESSAGE);
+    if (this.child) {
+      this.terminateChildProcess(this.child);
     }
     this.child = undefined;
   }
@@ -317,5 +349,10 @@ export class ShellSessionManager {
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
     return lines.slice(0, LIMIT.SHELL_COMPLETION_MAX_RESULTS);
+  }
+
+  dispose(): void {
+    this.session?.dispose();
+    this.session = undefined;
   }
 }

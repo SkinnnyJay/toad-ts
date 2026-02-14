@@ -3691,9 +3691,19 @@
   - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
     rejection, and valid-prompt recovery remain stable under the expanded
     stacked reconnect-order asymmetry matrix
+- Completed P0 backlog item B01 deterministic shell-session teardown hardening:
+  - added deterministic shell-session dispose behavior that rejects active and
+    queued commands
+  - hardened Windows dispose path to force `SIGTERM` + `SIGKILL` teardown for
+    `cmd.exe /K` lifecycle cleanup
+  - added `ShellSessionManager.dispose()` and chat runtime cleanup wiring to
+    dispose shell sessions during runtime unmount/replacement
+  - added focused unit coverage in
+    `__tests__/unit/tools/shell-session.unit.test.ts` for active+queued
+    dispose rejection semantics and Windows forced-teardown signals
 - New next candidate:
-  - evaluate severity backlog item B01 by enforcing deterministic shell-session
-    teardown for Windows `cmd.exe /K` lifecycle cleanup
+  - evaluate severity backlog item B02 by validating detached child-process
+    tree cleanup across POSIX/Windows in cli-agent process runners
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

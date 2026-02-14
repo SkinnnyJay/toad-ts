@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B01 deterministic shell-session teardown for Windows cmd lifecycle)
+
+### Summary
+- Completed P0 backlog item B01 in `PLAN3.md` by hardening deterministic
+  teardown behavior in `src/tools/shell-session.ts`.
+- Added disposal-path command rejection semantics so active and queued shell
+  commands fail fast with a canonical disposal error on teardown.
+- Hardened Windows shell teardown path to force `SIGTERM` then `SIGKILL` for
+  `cmd.exe /K` lifecycles.
+- Added `ShellSessionManager.dispose()` and wired `Chat` runtime cleanup in
+  `src/ui/components/chat/Chat.tsx` so shell sessions are disposed when tool
+  runtime instances are replaced/unmounted.
+- Added focused unit coverage in
+  `__tests__/unit/tools/shell-session.unit.test.ts` validating Windows hard
+  teardown signals plus active/queued command rejection behavior.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/tools/shell-session.unit.test.ts` ✅
+  - `npx vitest run __tests__/unit/ui/chat-components.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (Merged env-map reconnect-order post-close recovery-vamplate asymmetry coverage)
 
 ### Summary
