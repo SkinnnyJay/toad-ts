@@ -7167,6 +7167,23 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - bound recursive traversal resource usage and enable deterministic
       cancellation paths for long-running search operations.
 
+## Execution Log Addendum — 2026-02-14 (B32 transcript virtualization strategy hardening)
+
+- Additional P1 backlog hardening for large chat-history rendering:
+  - Updated:
+    - `src/ui/components/MessageList.tsx`
+    - `__tests__/unit/ui/message-list.unit.test.ts`
+  - Hardening changes:
+    - switched message-list default behavior from hard truncation to full
+      transcript virtualization (optional cap remains available via prop).
+    - preserved virtualized windowing/scroll behavior while enabling navigation
+      to older messages beyond historical truncation limits.
+    - added focused regression coverage verifying HOME-key navigation reaches
+      earliest messages in large histories.
+  - Goal:
+    - enable true transcript virtualization for large session histories without
+      silently dropping older messages from the navigable UI.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7205,7 +7222,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B29 | P1 | add regression tests for signal attach/detach idempotency across reconnect cycles.
 - [x] - B30 | P1 | add SQLite maintenance policy (vacuum/pragma optimize/checkpoint) to stabilize long-lived performance.
 - [x] - B31 | P1 | add cancellation tokens and depth limits to recursive file/search operations.
-- [ ] - B32 | P1 | introduce transcript virtualization strategy for very large chat histories.
+- [x] - B32 | P1 | introduce transcript virtualization strategy for very large chat histories.
 - [ ] - B33 | P1 | avoid full markdown reparsing on each chunk; adopt incremental parse/update path.
 - [ ] - B34 | P1 | stream session export writes instead of building large in-memory payloads.
 - [ ] - B35 | P1 | batch and throttle token optimizer telemetry writes to reduce IO pressure.

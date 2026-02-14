@@ -3943,9 +3943,15 @@
     errors
   - added focused depth/cancellation coverage in
     `__tests__/unit/core/search-service.unit.test.ts`
+- Completed P1 backlog item B32 transcript virtualization strategy hardening:
+  - updated `src/ui/components/MessageList.tsx` to default to full transcript
+    virtualization (optional hard cap remains opt-in)
+  - added large-history regression coverage in
+    `__tests__/unit/ui/message-list.unit.test.ts` to verify navigation to
+    earliest messages beyond prior truncation limits
 - New next candidate:
-  - evaluate severity backlog item B32 by introducing transcript virtualization
-    strategy for large chat histories
+  - evaluate severity backlog item B33 by reducing full markdown reparsing on
+    streaming chunk updates
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

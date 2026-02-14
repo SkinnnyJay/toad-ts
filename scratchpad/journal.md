@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B32 transcript virtualization strategy hardening)
+
+### Summary
+- Completed P1 backlog item B32 in `PLAN3.md` by shifting MessageList default
+  behavior from hard truncation to full transcript virtualization.
+- Updated:
+  - `src/ui/components/MessageList.tsx`
+  - `__tests__/unit/ui/message-list.unit.test.ts`
+- Changes:
+  - default MessageList rendering now uses the full transcript windowing path
+    unless an explicit `maxMessages` cap is provided.
+  - added regression test confirming HOME-key navigation reaches earliest
+    messages in large chat histories.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/ui/message-list.unit.test.ts __tests__/unit/ui/chat-performance.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B31 recursive search depth/cancellation hardening)
 
 ### Summary

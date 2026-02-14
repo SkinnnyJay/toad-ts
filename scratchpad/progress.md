@@ -899,6 +899,8 @@
     vacuum maintenance policy with bounded cadence
   - completed P1 backlog item B31 by adding recursive search depth bounds and
     cancellation token handling
+  - completed P1 backlog item B32 by enabling full transcript virtualization in
+    MessageList default behavior
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

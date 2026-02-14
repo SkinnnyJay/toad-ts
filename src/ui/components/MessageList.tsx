@@ -15,7 +15,7 @@ import stripAnsi from "strip-ansi";
 
 interface MessageListProps {
   messages: Message[];
-  /** Render only the most recent N messages to reduce output load. */
+  /** Optional hard cap of most-recent messages; omit to use full transcript virtualization. */
   maxMessages?: number;
   height?: number;
   isFocused?: boolean;
@@ -75,18 +75,15 @@ function estimateTotalContentLines(messages: Message[]): number {
 }
 
 export const MessageList = memo(
-  ({
-    messages,
-    maxMessages = LIMIT.MESSAGE_LIST_MAX_MESSAGES,
-    height,
-    isFocused = true,
-  }: MessageListProps): ReactNode => {
+  ({ messages, maxMessages, height, isFocused = true }: MessageListProps): ReactNode => {
     const { toolCalls } = useToolCalls();
     const terminal = useTerminalDimensions();
     const isEmpty = useMemo(() => messages.length === 0, [messages.length]);
 
     const limitedMessages = useMemo(() => {
-      if (messages.length <= maxMessages) return messages;
+      if (!maxMessages || maxMessages <= 0 || messages.length <= maxMessages) {
+        return messages;
+      }
       return messages.slice(-maxMessages);
     }, [maxMessages, messages]);
 
