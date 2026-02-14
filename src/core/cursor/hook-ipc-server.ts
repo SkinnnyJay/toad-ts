@@ -26,6 +26,7 @@ import {
   CursorStopOutputSchema,
 } from "@/types/cursor-hooks.types";
 import { createClassLogger } from "@/utils/logging/logger.utils";
+import { TEMP_ARTIFACT_TYPE, registerTempArtifact } from "@/utils/temp-artifact-cleanup.utils";
 
 const HOOK_IPC_DEFAULT = {
   HOST: DEFAULT_HOST,
@@ -117,6 +118,7 @@ export class HookIpcServer {
   private handlers: HookIpcServerHandlers = {};
   private server: http.Server | null = null;
   private endpoint: HookIpcEndpoint | null = null;
+  private unregisterSocketArtifact: (() => void) | null = null;
 
   public constructor(options: HookIpcServerOptions = {}) {
     const transport =
@@ -278,6 +280,8 @@ export class HookIpcServer {
     });
 
     if (endpoint?.transport === HOOK_IPC_TRANSPORT.UNIX_SOCKET) {
+      this.unregisterSocketArtifact?.();
+      this.unregisterSocketArtifact = null;
       await unlink(this.socketPath).catch(() => undefined);
     }
   }
@@ -321,6 +325,11 @@ export class HookIpcServer {
         server.once("error", (error) => reject(error));
         server.listen(this.socketPath, () => resolve());
       });
+      this.unregisterSocketArtifact?.();
+      this.unregisterSocketArtifact = registerTempArtifact(
+        this.socketPath,
+        TEMP_ARTIFACT_TYPE.FILE
+      );
       return {
         transport: HOOK_IPC_TRANSPORT.UNIX_SOCKET,
         socketPath: this.socketPath,

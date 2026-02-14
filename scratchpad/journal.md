@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B20 crash-safe temp artifact cleanup hardening)
+
+### Summary
+- Completed P0 backlog item B20 in `PLAN3.md` by adding crash-safe cleanup for
+  unix sockets and temporary artifact directories.
+- Added `src/utils/temp-artifact-cleanup.utils.ts`:
+  - artifact registry with type-aware cleanup,
+  - best-effort cleanup hooks on process `exit`, `SIGINT`, and `SIGTERM`,
+  - deterministic test helpers.
+- Integrated artifact registration in:
+  - `src/core/cursor/hook-ipc-server.ts` (unix socket artifacts),
+  - `src/utils/editor/externalEditor.ts` (editor temp directories).
+- Added focused unit coverage in
+  `__tests__/unit/utils/temp-artifact-cleanup.utils.unit.test.ts`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/temp-artifact-cleanup.utils.unit.test.ts __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B19 clipboard pipe bounds/stall hardening)
 
 ### Summary

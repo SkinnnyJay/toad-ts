@@ -875,6 +875,8 @@
     concurrency caps across shell/provider execution pathways
   - completed P0 backlog item B19 by adding clipboard payload/stall guardrails
     to prevent pipe memory spikes and hanging child processes
+  - completed P0 backlog item B20 by adding crash-safe temp artifact cleanup
+    hooks for unix sockets and editor temp directories
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

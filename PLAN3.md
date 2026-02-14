@@ -6940,6 +6940,23 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - prevent clipboard command pipe memory spikes and stalled child hangs.
 
+## Execution Log Addendum — 2026-02-14 (B20 crash-safe temp artifact cleanup hardening)
+
+- Additional P0 backlog hardening for socket/temp artifact crash cleanup:
+  - Updated:
+    - `src/utils/temp-artifact-cleanup.utils.ts` (new shared utility)
+    - `src/core/cursor/hook-ipc-server.ts`
+    - `src/utils/editor/externalEditor.ts`
+    - `__tests__/unit/utils/temp-artifact-cleanup.utils.unit.test.ts` (new)
+  - Hardening changes:
+    - added shared temp-artifact registry with process-exit/signal cleanup hooks.
+    - registered unix socket artifacts for hook IPC server lifecycle cleanup.
+    - registered external editor temp directories for crash-safe cleanup.
+    - added focused unit coverage validating registered file/directory cleanup.
+  - Goal:
+    - guarantee best-effort cleanup of UNIX socket files and temp artifacts on
+      abrupt termination.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6963,7 +6980,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B17 | P0 | add lifecycle cleanup for completed background tasks to prevent long-session memory creep.
 - [x] - B18 | P0 | enforce global process concurrency limits for spawned shell/provider tasks.
 - [x] - B19 | P0 | protect clipboard command pipes from large-payload memory spikes and stalled child processes.
-- [ ] - B20 | P0 | guarantee crash-safe cleanup of UNIX socket files and temporary artifacts on abrupt termination.
+- [x] - B20 | P0 | guarantee crash-safe cleanup of UNIX socket files and temporary artifacts on abrupt termination.
 
 ### P1 - High impact performance, reliability, and platform parity
 

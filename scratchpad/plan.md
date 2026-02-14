@@ -3860,9 +3860,18 @@
   - added clipboard pipe limits in `src/config/limits.ts`
   - expanded clipboard unit coverage for oversized payload and stalled child
     behavior in `__tests__/unit/utils/clipboard.utils.unit.test.ts`
+- Completed P0 backlog item B20 crash-safe temp artifact cleanup hardening:
+  - added shared temp artifact registry/cleanup utility in
+    `src/utils/temp-artifact-cleanup.utils.ts`
+  - registered Hook IPC unix socket artifacts for exit/signal cleanup in
+    `src/core/cursor/hook-ipc-server.ts`
+  - registered external editor temp directories for crash-safe cleanup in
+    `src/utils/editor/externalEditor.ts`
+  - added focused cleanup coverage in
+    `__tests__/unit/utils/temp-artifact-cleanup.utils.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B20 by guaranteeing crash-safe cleanup of
-    UNIX socket files and temporary artifacts on abrupt termination
+  - evaluate severity backlog item B21 by preventing detached `afplay`
+    accumulation during rapid completion events on macOS
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

@@ -8,6 +8,7 @@ import { ENV_KEY } from "@/constants/env-keys";
 import { runInteractiveShellCommand } from "@/tools/interactive-shell";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
+import { TEMP_ARTIFACT_TYPE, registerTempArtifact } from "@/utils/temp-artifact-cleanup.utils";
 import type { CliRenderer } from "@opentui/core";
 
 export interface ExternalEditorOptions {
@@ -52,6 +53,7 @@ export const openExternalEditor = async (
 
   const tempDir = await mkdtemp(path.join(tmpdir(), TEMP_DIR_PREFIX));
   const filePath = path.join(tempDir, TEMP_FILE_NAME);
+  const unregisterTempDir = registerTempArtifact(tempDir, TEMP_ARTIFACT_TYPE.DIRECTORY);
 
   try {
     await writeFile(filePath, options.initialValue ?? "", ENCODING.UTF8);
@@ -71,6 +73,7 @@ export const openExternalEditor = async (
     });
     return null;
   } finally {
+    unregisterTempDir();
     await rm(tempDir, { recursive: true, force: true });
   }
 };
