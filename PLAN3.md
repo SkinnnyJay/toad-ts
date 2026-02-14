@@ -6975,6 +6975,30 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - prevent detached `afplay` process accumulation during rapid completion
       events on macOS.
 
+## Execution Log Addendum — 2026-02-14 (B22 Linux desktop capability detection hardening)
+
+- Additional P1 backlog hardening for Linux desktop capability awareness:
+  - Updated:
+    - `src/constants/linux-desktop-capabilities.ts` (new)
+    - `src/utils/linux-desktop-capability.utils.ts` (new)
+    - `src/utils/clipboard/clipboard.utils.ts`
+    - `src/ui/components/chat/slash-command-actions.ts`
+    - `src/constants/slash-command-messages.ts`
+    - `__tests__/unit/utils/linux-desktop-capability.utils.unit.test.ts` (new)
+    - `__tests__/unit/ui/slash-command-runner.unit.test.ts`
+  - Hardening changes:
+    - added explicit Linux desktop capability model (`wayland`, `x11`, `mixed`,
+      `headless`, `non_linux`) with normalized env detection utility.
+    - routed clipboard backend selection through shared desktop capability
+      detection instead of ad-hoc env checks.
+    - added explicit `/copy` headless Linux guard path to avoid ambiguous
+      clipboard failures in UI slash-command flows.
+    - added focused unit coverage for desktop detection permutations and
+      headless `/copy` messaging behavior.
+  - Goal:
+    - make clipboard and UI-dependent flows explicitly capability-aware on
+      Linux desktop variants.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7003,7 +7027,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 ### P1 - High impact performance, reliability, and platform parity
 
 - [x] - B21 | P1 | prevent detached `afplay` process accumulation during rapid completion events on macOS.
-- [ ] - B22 | P1 | add explicit Linux desktop capability detection (X11/Wayland/headless) for clipboard and UI-dependent flows.
+- [x] - B22 | P1 | add explicit Linux desktop capability detection (X11/Wayland/headless) for clipboard and UI-dependent flows.
 - [ ] - B23 | P1 | fix Windows command quoting/escaping for paths containing spaces, `&`, `^`, and unicode characters.
 - [ ] - B24 | P1 | remove implicit shell cwd coupling by isolating command execution context per request.
 - [ ] - B25 | P1 | optimize terminal output byte trimming to avoid O(n^2) behavior for large outputs.

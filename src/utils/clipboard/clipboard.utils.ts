@@ -1,10 +1,11 @@
 import { spawn } from "node:child_process";
 import { LIMIT } from "@/config/limits";
+import { LINUX_DESKTOP_CAPABILITY } from "@/constants/linux-desktop-capabilities";
 
-import { ENV_KEY } from "@/constants/env-keys";
 import { PLATFORM } from "@/constants/platform";
 import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
+import { detectLinuxDesktopCapability } from "@/utils/linux-desktop-capability.utils";
 
 const CLIPBOARD_COMMAND = {
   PBCOPY: "pbcopy",
@@ -14,10 +15,6 @@ const CLIPBOARD_COMMAND = {
   XSEL: "xsel",
 } as const;
 
-const LINUX_SESSION_TYPE = {
-  WAYLAND: "wayland",
-} as const;
-
 const buildClipboardCommands = (): Array<{ command: string; args: string[] }> => {
   if (process.platform === PLATFORM.DARWIN) {
     return [{ command: CLIPBOARD_COMMAND.PBCOPY, args: [] }];
@@ -25,21 +22,18 @@ const buildClipboardCommands = (): Array<{ command: string; args: string[] }> =>
   if (process.platform === PLATFORM.WIN32) {
     return [{ command: CLIPBOARD_COMMAND.CLIP, args: [] }];
   }
+
   const env = EnvManager.getInstance().getSnapshot();
-  const sessionType = (env[ENV_KEY.XDG_SESSION_TYPE] ?? "").trim().toLowerCase();
-  const hasWayland =
-    (env[ENV_KEY.WAYLAND_DISPLAY] ?? "").trim().length > 0 ||
-    sessionType === LINUX_SESSION_TYPE.WAYLAND;
-  const hasX11 = (env[ENV_KEY.DISPLAY] ?? "").trim().length > 0;
-  if (!hasWayland && !hasX11) {
+  const desktop = detectLinuxDesktopCapability(env, process.platform);
+  if (desktop.capability === LINUX_DESKTOP_CAPABILITY.HEADLESS) {
     return [];
   }
 
   const commands: Array<{ command: string; args: string[] }> = [];
-  if (hasWayland) {
+  if (desktop.hasWayland) {
     commands.push({ command: CLIPBOARD_COMMAND.WLCOPY, args: [] });
   }
-  if (hasX11) {
+  if (desktop.hasX11) {
     commands.push(
       { command: CLIPBOARD_COMMAND.XCLIP, args: ["-selection", "clipboard"] },
       { command: CLIPBOARD_COMMAND.XSEL, args: ["--clipboard", "--input"] }

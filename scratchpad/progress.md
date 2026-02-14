@@ -879,6 +879,8 @@
     hooks for unix sockets and editor temp directories
   - completed P1 backlog item B21 by preventing macOS completion-sound process
     accumulation via single-active-child guarding
+  - completed P1 backlog item B22 by introducing explicit Linux desktop
+    capability detection for clipboard and UI-dependent slash-command flows
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

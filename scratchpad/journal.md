@@ -1,5 +1,39 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B22 Linux desktop capability detection hardening)
+
+### Summary
+- Completed P1 backlog item B22 in `PLAN3.md` by adding explicit Linux desktop
+  capability detection for clipboard and UI-dependent slash-command paths.
+- Added:
+  - `src/constants/linux-desktop-capabilities.ts`
+  - `src/utils/linux-desktop-capability.utils.ts`
+- Updated:
+  - `src/utils/clipboard/clipboard.utils.ts` to use shared capability detection
+    for backend selection.
+  - `src/ui/components/chat/slash-command-actions.ts` to provide explicit
+    headless Linux clipboard unavailability message for `/copy`.
+  - `src/constants/slash-command-messages.ts` with a headless Linux copy
+    unavailability message.
+- Added focused coverage in:
+  - `__tests__/unit/utils/linux-desktop-capability.utils.unit.test.ts`
+  - `__tests__/unit/ui/slash-command-runner.unit.test.ts`
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/linux-desktop-capability.utils.unit.test.ts __tests__/unit/utils/clipboard.utils.unit.test.ts __tests__/unit/ui/slash-command-runner.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B21 macOS completion-sound process retention hardening)
 
 ### Summary

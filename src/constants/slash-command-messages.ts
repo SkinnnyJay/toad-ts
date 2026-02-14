@@ -21,6 +21,8 @@ export const SLASH_COMMAND_MESSAGE = {
   MEMORY_OPEN_FAILED: "Failed to open memory file.",
   COPY_NOT_AVAILABLE: "Clipboard copy is not available.",
   COPY_FAILED: "Failed to copy to clipboard.",
+  COPY_UNAVAILABLE_HEADLESS_LINUX:
+    "Clipboard copy is unavailable in headless Linux sessions (no X11/Wayland display).",
   COPY_NO_CONTENT: "No assistant response available to copy.",
   HOOKS_NOT_AVAILABLE: "Hooks panel is not available.",
   PROGRESS_NOT_AVAILABLE: "Progress panel is not available.",

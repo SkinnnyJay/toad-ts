@@ -3,8 +3,10 @@ import path from "node:path";
 import { extname } from "node:path";
 
 import { ENCODING } from "@/constants/encodings";
+import { LINUX_DESKTOP_CAPABILITY } from "@/constants/linux-desktop-capabilities";
 import { MEMORY_FILE, MEMORY_TARGET } from "@/constants/memory-files";
 import { MESSAGE_ROLE } from "@/constants/message-roles";
+import { PLATFORM } from "@/constants/platform";
 import {
   SLASH_COMMAND_MESSAGE,
   formatCopySuccessMessage,
@@ -15,6 +17,8 @@ import {
   formatUnshareMessage,
 } from "@/constants/slash-command-messages";
 import type { Message, Plan, Session, SessionId } from "@/types/domain";
+import { EnvManager } from "@/utils/env/env.utils";
+import { detectLinuxDesktopCapability } from "@/utils/linux-desktop-capability.utils";
 import {
   exportSessionToFile,
   generateDefaultExportName,
@@ -103,6 +107,14 @@ export const runCopyCommand = async (
   }
   if (!deps.copyToClipboard) {
     deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.COPY_NOT_AVAILABLE);
+    return;
+  }
+  if (
+    process.platform === PLATFORM.LINUX &&
+    detectLinuxDesktopCapability(EnvManager.getInstance().getSnapshot()).capability ===
+      LINUX_DESKTOP_CAPABILITY.HEADLESS
+  ) {
+    deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.COPY_UNAVAILABLE_HEADLESS_LINUX);
     return;
   }
   const messages = orderMessages(deps.getMessagesForSession(sessionId));

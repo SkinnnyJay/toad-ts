@@ -3874,9 +3874,20 @@
     `afplay` process behavior
   - added focused unit coverage in
     `__tests__/unit/utils/completion-sound.utils.unit.test.ts`
+- Completed P1 backlog item B22 Linux desktop capability detection hardening:
+  - added explicit Linux desktop capability constants and detector utility in
+    `src/constants/linux-desktop-capabilities.ts` and
+    `src/utils/linux-desktop-capability.utils.ts`
+  - routed clipboard backend selection through shared capability detection in
+    `src/utils/clipboard/clipboard.utils.ts`
+  - added explicit headless Linux `/copy` guard in
+    `src/ui/components/chat/slash-command-actions.ts`
+  - added focused coverage in
+    `__tests__/unit/utils/linux-desktop-capability.utils.unit.test.ts` and
+    `__tests__/unit/ui/slash-command-runner.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B22 by adding explicit Linux desktop
-    capability detection for clipboard/UI-dependent flows
+  - evaluate severity backlog item B23 by fixing Windows command quoting and
+    escaping for spaces/shell metacharacters/unicode paths
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers
