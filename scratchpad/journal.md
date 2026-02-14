@@ -1892,6 +1892,41 @@
 ### Git
 - Branch: `cursor/plan3-tasks-completion-62e5`
 
+## 2026-02-14 (Merged env-map reconnect-order post-close segment-rearm asymmetry coverage)
+
+### Summary
+- Added reconnect-order hardening coverage for asymmetric post-close segment-
+  rearm jitter by order path in
+  `__tests__/integration/server/headless-server.integration.test.ts`.
+- Test validates:
+  - `SSE-first` cycles apply lower post-close segment-rearm jitter.
+  - `websocket-first` cycles apply higher post-close segment-rearm jitter.
+  - websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity remains
+    stable while post-close segment-rearm asymmetry is layered with post-close
+    segment-open gating asymmetry, post-close cycle transition asymmetry, post-
+    close recovery scheduling asymmetry, post-close prompt scheduling
+    asymmetry, post-close create scheduling asymmetry, close-interleave
+    asymmetry, close-delay asymmetry, cycle-cooldown asymmetry, post-recovery
+    delay asymmetry, burst-spacing asymmetry, recovery-jitter asymmetry,
+    create-jitter asymmetry, stream-open jitter asymmetry, segment-count
+    asymmetry, and cadence variation.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps reconnect-order inversion stable across dual cadence stream cycles"` ✅
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+### Git
+- Branch: `cursor/plan3-tasks-completion-62e5`
+
 ## 2026-02-14 (Merged env-map reconnect-order post-close create scheduling asymmetry coverage)
 
 ### Summary
