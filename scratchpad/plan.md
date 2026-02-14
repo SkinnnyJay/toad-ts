@@ -595,6 +595,11 @@
     cycles execute
   - verifies combined websocket `SESSION_CREATED` and SSE `STATE_UPDATE`
     continuity in the same runtime
+- Added merged env-map SSE reconnect continuity hardening:
+  - headless integration now validates `/api/events` teardown + reconnect
+    behavior after invalid prompt validation and subsequent valid prompt
+  - verifies repeated `STATE_UPDATE` delivery across first and second SSE
+    stream connections in the same runtime
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

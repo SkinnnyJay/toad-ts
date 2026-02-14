@@ -1776,6 +1776,32 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-14 (Merged env-map SSE reconnect continuity coverage)
+
+### Summary
+- Added headless integration coverage for `/api/events` SSE teardown/reconnect
+  behavior after prompt validation failures in merged env-map empty-expansion
+  scenarios.
+- Test validates:
+  - first SSE stream receives `STATE_UPDATE` events during session creation.
+  - invalid prompt validation failure and follow-up valid prompt do not break
+    stream reconnection behavior.
+  - second SSE stream reconnect still receives `STATE_UPDATE` events in the
+    same runtime.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps state-update stream reconnectable after merged env-map validation failures"` ✅
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
 - Full gates (equivalent commands; bun/bunx unavailable in this shell):
   - `npx biome check . && npx eslint .` ✅
   - `npx tsc --noEmit` ✅
