@@ -163,6 +163,8 @@
     and unsupported cursor feature-flag fallback defaults
   - added headless integration coverage for cursor disablement in default
     harness config with explicit cursor-not-configured semantics
+  - expanded harness-registry factory coverage for registry-level mock omission
+    and padded/case-insensitive cursor feature-flag parsing behavior
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

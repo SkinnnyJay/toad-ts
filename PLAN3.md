@@ -2280,3 +2280,17 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock default-config feature-flag semantics so disabled cursor harnesses
       fail deterministically without impacting available default harnesses.
+
+## Execution Log Addendum — 2026-02-13 (harness-registry normalization coverage)
+
+- Additional harness registry unit hardening:
+  - Updated:
+    - `__tests__/unit/harness/harness-registry-factory.unit.test.ts`
+  - Hardening changes:
+    - added registry-level coverage that `createHarnessRegistry(...)` omits the
+      mock adapter when `includeMock: false`.
+    - added wrapper-level coverage for padded/case-insensitive cursor env-flag
+      values in `isCursorHarnessEnabled(...)`.
+  - Goal:
+    - lock adapter-list normalization and feature-flag parsing behavior at the
+      harness-registry factory boundary.

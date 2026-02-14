@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added harness-registry normalization unit coverage:
+  - registry factory unit tests now assert `createHarnessRegistry(...)` omits
+    mock adapter entries when `includeMock: false`
+  - added wrapper-level assertions for padded/case-insensitive cursor env-flag
+    parsing behavior in `isCursorHarnessEnabled(...)`
 - Added cursor default-config disablement integration coverage:
   - headless integration now verifies that with cursor disabled in default
     harness configuration, explicit `cursor-cli` requests return canonical
