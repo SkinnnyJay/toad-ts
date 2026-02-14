@@ -2870,12 +2870,22 @@
     recovery-amulet asymmetry + post-close prompt-burst recovery-talisman
     asymmetry + post-close prompt-burst recovery-totem asymmetry + post-close
     prompt-burst recovery-relic asymmetry + post-close prompt-burst recovery-
-    sigil asymmetry + post-close prompt-burst recovery-glyph asymmetry by
-    order path
+    sigil asymmetry + post-close prompt-burst recovery-glyph asymmetry + post-
+    close prompt-burst recovery-rune asymmetry by order path
+- Added merged env-map reconnect-order post-close prompt-burst recovery-rune asymmetry hardening:
+  - reconnect-order post-close prompt-burst recovery-glyph coverage now
+    applies asymmetric post-close prompt-burst recovery-rune jitter per order
+    path
+  - `SSE-first` cycles use lower post-close prompt-burst recovery-rune jitter,
+    while `websocket-first` cycles use higher post-close prompt-burst
+    recovery-rune jitter
+  - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
+    rejection, and valid-prompt recovery remain stable under the expanded
+    stacked reconnect-order asymmetry matrix
 - New next candidate:
-  - evaluate whether reconnect-order post-close prompt-burst recovery-glyph
-    asymmetry should include asymmetric post-close prompt-burst recovery-rune
-    jitter by order path
+  - evaluate whether reconnect-order post-close prompt-burst recovery-rune
+    asymmetry should include asymmetric post-close prompt-burst recovery-
+    insignia jitter by order path
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

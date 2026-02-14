@@ -4583,6 +4583,30 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - lock reconnect-order continuity when post-close prompt-burst recovery-
       glyph timing varies asymmetrically by order path.
 
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order post-close prompt-burst recovery-rune asymmetry coverage)
+
+- Additional merged env-map reconnect-order post-close prompt-burst recovery-rune asymmetry hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order post-close prompt-burst recovery-glyph coverage
+      with asymmetric post-close prompt-burst recovery-rune jitter by reconnect
+      order path.
+    - `SSE-first` cycles now use lower post-close prompt-burst recovery-rune
+      jitter while `websocket-first` cycles use higher post-close prompt-burst
+      recovery-rune jitter.
+    - applies post-close prompt-burst recovery-rune jitter for intra-cycle
+      session handoff after post-close prompt-burst recovery-glyph jitter.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable while post-close prompt-burst recovery-rune asymmetry is
+      layered with post-close prompt-burst recovery-glyph asymmetry, post-close
+      prompt-burst recovery-sigil asymmetry, post-close prompt-burst recovery-
+      relic asymmetry, and post-close prompt-burst recovery-totem asymmetry
+      under reconnect-order inversion.
+  - Goal:
+    - lock reconnect-order continuity when post-close prompt-burst recovery-
+      rune timing varies asymmetrically by order path.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
