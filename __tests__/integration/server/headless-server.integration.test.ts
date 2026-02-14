@@ -33,6 +33,60 @@ const waitForOpen = (socket: WebSocket): Promise<void> => {
   });
 };
 
+const collectStateUpdateEvents = async (
+  response: Response,
+  expectedCount: number
+): Promise<Array<Record<string, unknown>>> => {
+  if (!response.body) {
+    throw new Error("Events stream response body is missing.");
+  }
+
+  const stateUpdates: Array<Record<string, unknown>> = [];
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffered = "";
+
+  while (stateUpdates.length < expectedCount) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    buffered += decoder.decode(value, { stream: true });
+
+    let separatorIndex = buffered.indexOf("\n\n");
+    while (separatorIndex !== -1) {
+      const frame = buffered.slice(0, separatorIndex).trim();
+      buffered = buffered.slice(separatorIndex + 2);
+      separatorIndex = buffered.indexOf("\n\n");
+
+      if (!frame.startsWith("data: ")) {
+        continue;
+      }
+      const serializedEvent = frame
+        .split("\n")
+        .filter((line) => line.startsWith("data: "))
+        .map((line) => line.replace(/^data:\s?/, ""))
+        .join("\n");
+      const stateUpdateEvent = z
+        .object({
+          type: z.literal(SERVER_EVENT.STATE_UPDATE),
+          currentSessionId: z.string().optional(),
+          connectionStatus: z.string().optional(),
+        })
+        .passthrough()
+        .parse(JSON.parse(serializedEvent));
+      stateUpdates.push(stateUpdateEvent);
+      if (stateUpdates.length >= expectedCount) {
+        await reader.cancel();
+        return stateUpdates;
+      }
+    }
+  }
+
+  await reader.cancel();
+  throw new Error("Events stream ended before expected state-update events were collected.");
+};
+
 const requestWithRawPath = (
   host: string,
   port: number,
@@ -3029,6 +3083,13 @@ describe("headless server", () => {
 
       socket = new WebSocket(`ws://${host}:${port}`);
       await waitForOpen(socket);
+      const stateUpdatePromise = (async (): Promise<Array<Record<string, unknown>>> => {
+        const stateUpdateResponse = await fetch(`${baseUrl}/api/events`);
+        expect(stateUpdateResponse.status).toBe(200);
+        const stateUpdateContentType = stateUpdateResponse.headers.get("content-type") ?? "";
+        expect(stateUpdateContentType).toContain("text/event-stream");
+        return collectStateUpdateEvents(stateUpdateResponse, 3);
+      })();
 
       const createdSessionIds: string[] = [];
       const sessionCreatedReady = new Promise<void>((resolve, reject) => {
@@ -3127,12 +3188,25 @@ describe("headless server", () => {
       expect(thirdSession.sessionId).not.toBe(secondSession.sessionId);
 
       await sessionCreatedReady;
+      const stateUpdateEvents = await stateUpdatePromise;
 
       const uniqueEventSessionIds = new Set(createdSessionIds);
       expect(uniqueEventSessionIds.size).toBe(3);
       expect(uniqueEventSessionIds.has(firstSession.sessionId)).toBe(true);
       expect(uniqueEventSessionIds.has(secondSession.sessionId)).toBe(true);
       expect(uniqueEventSessionIds.has(thirdSession.sessionId)).toBe(true);
+
+      const parsedStateUpdates = z
+        .array(
+          z
+            .object({
+              connectionStatus: z.string(),
+              currentSessionId: z.string().optional(),
+            })
+            .passthrough()
+        )
+        .parse(stateUpdateEvents);
+      expect(parsedStateUpdates).toHaveLength(3);
     } finally {
       if (socket) {
         await new Promise<void>((resolve) => {

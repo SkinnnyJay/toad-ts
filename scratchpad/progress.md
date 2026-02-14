@@ -209,6 +209,8 @@
     across multiple merged env-map sessions with recovery continuity
   - added headless integration coverage for websocket `SESSION_CREATED` stream
     stability during merged env-map mixed validation cycles
+  - extended merged env-map stream coverage with repeated `/api/events`
+    `STATE_UPDATE` SSE assertions during mixed validation cycles
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)

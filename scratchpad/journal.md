@@ -1754,6 +1754,36 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-14 (Merged env-map state-update stream continuity coverage)
+
+### Summary
+- Extended merged env-map websocket continuity integration scenario with
+  concurrent `/api/events` SSE coverage.
+- Test now validates repeated `STATE_UPDATE` stream delivery while mixed
+  create/invalid-prompt/valid-prompt cycles execute.
+- Combined stream assertions now lock both websocket `SESSION_CREATED` and SSE
+  `STATE_UPDATE` continuity in the same runtime.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
 - Full gates (equivalent commands; bun/bunx unavailable in this shell):
   - `npx biome check . && npx eslint .` ✅
   - `npx tsc --noEmit` ✅

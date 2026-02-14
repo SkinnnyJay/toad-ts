@@ -589,6 +589,12 @@
     merged env-map empty-expansion configuration
   - verifies websocket emits distinct session-created events for each created
     session id without destabilizing server continuity
+- Added merged env-map state-update stream continuity hardening:
+  - headless integration now validates concurrent `/api/events` SSE delivery
+    of repeated `STATE_UPDATE` events while merged env-map mixed validation
+    cycles execute
+  - verifies combined websocket `SESSION_CREATED` and SSE `STATE_UPDATE`
+    continuity in the same runtime
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.

@@ -2634,3 +2634,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock websocket event-stream continuity under merged env-map validation
       cycles.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map state-update stream continuity coverage)
+
+- Additional merged env-map state-update stream integration hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - extended merged env-map websocket continuity scenario with concurrent
+      `/api/events` SSE assertions for repeated `STATE_UPDATE` event delivery.
+    - added stream-frame collection helper that parses SSE payloads and
+      verifies repeated state-update emissions while mixed create/invalid
+      prompt/valid prompt cycles execute.
+    - verifies websocket `SESSION_CREATED` continuity and SSE `STATE_UPDATE`
+      continuity together in the same runtime.
+  - Goal:
+    - lock combined websocket + SSE stream stability under merged env-map
+      validation cycles.
