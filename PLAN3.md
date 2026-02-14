@@ -6594,13 +6594,33 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - prevent orphan subprocess trees by verifying cleanup guarantees for
       detached cli-agent child processes on POSIX and Windows.
 
+## Execution Log Addendum — 2026-02-14 (B03 terminal session retention/eviction capacity hardening)
+
+- Additional P0 backlog hardening for bounded terminal session memory usage:
+  - Updated:
+    - `src/tools/terminal-manager.ts`
+    - `src/config/limits.ts`
+    - `__tests__/unit/tools/terminal-manager.unit.test.ts`
+  - Hardening changes:
+    - added `TerminalManager` capacity controls (`maxSessions`) with default
+      `LIMIT.TERMINAL_SESSION_MAX_SESSIONS`.
+    - implemented deterministic eviction of oldest completed sessions when
+      capacity is reached, preventing unbounded growth in retained sessions.
+    - added explicit limit enforcement error when capacity is exhausted and no
+      completed sessions can be safely evicted.
+    - expanded unit coverage for completed-session eviction, active-session
+      preservation, and hard-cap rejection semantics.
+  - Goal:
+    - bound terminal session memory growth while preserving active sessions and
+      predictable behavior under sustained session churn.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
 
 - [x] - B01 | P0 | shell-session keeps `cmd.exe /K` alive; enforce hard session teardown to prevent command shell leaks on Windows.
 - [x] - B02 | P0 | verify detached child process cleanup across POSIX and Windows in `cli-agent-process-runner` to prevent orphan subprocess trees.
-- [ ] - B03 | P0 | add retention/eviction for `TerminalManager.sessions` to prevent unbounded memory growth from unreleased sessions.
+- [x] - B03 | P0 | add retention/eviction for `TerminalManager.sessions` to prevent unbounded memory growth from unreleased sessions.
 - [ ] - B04 | P0 | harden Hook IPC transport selection for Windows socket/path edge cases and force deterministic fallback behavior.
 - [ ] - B05 | P0 | close Linux clipboard reliability gap by handling Wayland (`wl-copy`) and headless display failure modes.
 - [ ] - B06 | P0 | fix path-escape detection for Windows separators (`..\\`) and mixed separator payloads.

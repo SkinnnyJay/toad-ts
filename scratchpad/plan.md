@@ -3713,9 +3713,19 @@
     `__tests__/unit/core/cli-agent/cli-agent-process-runner.unit.test.ts`
     with detached spawn semantics coverage and cross-platform fallback kill
     assertions for streaming disconnect cleanup
+- Completed P0 backlog item B03 terminal session retention/eviction hardening:
+  - added bounded `TerminalManager` session capacity with configurable
+    `maxSessions` and default `LIMIT.TERMINAL_SESSION_MAX_SESSIONS`
+  - implemented deterministic eviction of oldest completed sessions before
+    admitting new sessions at capacity
+  - added explicit limit rejection when all retained sessions are active and no
+    completed sessions are safe to evict
+  - added focused unit coverage in
+    `__tests__/unit/tools/terminal-manager.unit.test.ts` for eviction and
+    hard-cap behavior under active/completed session mixes
 - New next candidate:
-  - evaluate severity backlog item B03 by adding retention/eviction bounds for
-    `TerminalManager` sessions to prevent unbounded memory growth
+  - evaluate severity backlog item B04 by hardening Hook IPC transport
+    selection and deterministic Windows fallback behavior
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

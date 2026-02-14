@@ -828,6 +828,9 @@
     detached process-tree cleanup across POSIX/Windows via explicit kill-tree
     strategy injection, Windows `taskkill` tree termination with timeout+fallback,
     and expanded disconnect/cleanup unit coverage
+  - completed P0 backlog item B03 by hardening `TerminalManager` with bounded
+    session capacity + completed-session eviction, preventing unbounded
+    in-memory session growth while preserving active sessions
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

@@ -27,6 +27,7 @@ export interface TerminalManagerOptions {
   baseDir?: string;
   allowEscape?: boolean;
   env?: NodeJS.ProcessEnv;
+  maxSessions?: number;
 }
 
 const shouldAllowEscape = (env?: NodeJS.ProcessEnv, override?: boolean): boolean => {
@@ -124,6 +125,10 @@ class TerminalSession {
     return this.exitPromise;
   }
 
+  isComplete(): boolean {
+    return this.exitCode !== null || this.signal !== null;
+  }
+
   kill(): void {
     if (this.exitCode !== null || this.signal !== null) {
       return;
@@ -147,12 +152,14 @@ export class TerminalManager {
   private readonly baseDir: string;
   private readonly allowEscape: boolean;
   private readonly baseEnv: NodeJS.ProcessEnv;
+  private readonly maxSessions: number;
   private readonly sessions = new Map<string, TerminalSession>();
 
   constructor(options: TerminalManagerOptions = {}) {
     this.baseDir = options.baseDir ?? process.cwd();
     this.allowEscape = shouldAllowEscape(options.env, options.allowEscape);
     this.baseEnv = options.env ?? {};
+    this.maxSessions = options.maxSessions ?? LIMIT.TERMINAL_SESSION_MAX_SESSIONS;
   }
 
   createSession(options: TerminalSessionOptions): string {
@@ -165,6 +172,7 @@ export class TerminalManager {
 
     const cwd = resolveCwd(options.cwd ?? this.baseDir, this.baseDir, this.allowEscape);
     const env = { ...EnvManager.getInstance().getSnapshot(), ...this.baseEnv, ...options.env };
+    this.enforceSessionCapacity();
     const terminalId = `term-${nanoid(LIMIT.NANOID_LENGTH)}`;
     const session = new TerminalSession({ ...options, cwd, env });
     this.sessions.set(terminalId, session);
@@ -202,5 +210,27 @@ export class TerminalManager {
     }
     session.release();
     this.sessions.delete(terminalId);
+  }
+
+  private enforceSessionCapacity(): void {
+    while (this.sessions.size >= this.maxSessions && this.evictOldestCompletedSession()) {
+      // keep evicting completed sessions until under cap or no completed session remains
+    }
+
+    if (this.sessions.size >= this.maxSessions) {
+      throw new Error("Terminal session limit reached; release existing sessions first.");
+    }
+  }
+
+  private evictOldestCompletedSession(): boolean {
+    for (const [terminalId, session] of this.sessions) {
+      if (!session.isComplete()) {
+        continue;
+      }
+      session.release();
+      this.sessions.delete(terminalId);
+      return true;
+    }
+    return false;
   }
 }

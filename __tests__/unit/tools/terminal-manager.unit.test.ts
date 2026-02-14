@@ -1,0 +1,74 @@
+import { describe, expect, it } from "vitest";
+
+import { TerminalManager } from "@/tools/terminal-manager";
+
+const LONG_RUNNING_SCRIPT = "setTimeout(() => {}, 5000);";
+
+describe("TerminalManager session retention", () => {
+  it("evicts completed sessions when capacity is reached", async () => {
+    const manager = new TerminalManager({ allowEscape: true, maxSessions: 1 });
+    const firstSession = manager.createSession({
+      command: process.execPath,
+      args: ["-e", "process.stdout.write('first')"],
+    });
+    await manager.waitForExit(firstSession);
+
+    const secondSession = manager.createSession({
+      command: process.execPath,
+      args: ["-e", "process.stdout.write('second')"],
+    });
+    const secondOutput = await manager.waitForExit(secondSession);
+
+    expect(secondOutput.output).toContain("second");
+    expect(() => manager.getOutput(firstSession)).toThrow("Terminal not found");
+
+    manager.release(secondSession);
+  });
+
+  it("throws when capacity is reached and no completed sessions can be evicted", async () => {
+    const manager = new TerminalManager({ allowEscape: true, maxSessions: 1 });
+    const firstSession = manager.createSession({
+      command: process.execPath,
+      args: ["-e", LONG_RUNNING_SCRIPT],
+    });
+
+    expect(() =>
+      manager.createSession({
+        command: process.execPath,
+        args: ["-e", "process.stdout.write('blocked')"],
+      })
+    ).toThrow("Terminal session limit reached");
+
+    manager.kill(firstSession);
+    await manager.waitForExit(firstSession);
+    manager.release(firstSession);
+  });
+
+  it("evicts the oldest completed session while preserving active sessions", async () => {
+    const manager = new TerminalManager({ allowEscape: true, maxSessions: 2 });
+    const activeSession = manager.createSession({
+      command: process.execPath,
+      args: ["-e", LONG_RUNNING_SCRIPT],
+    });
+    const completedSession = manager.createSession({
+      command: process.execPath,
+      args: ["-e", "process.stdout.write('done')"],
+    });
+    await manager.waitForExit(completedSession);
+
+    const replacementSession = manager.createSession({
+      command: process.execPath,
+      args: ["-e", "process.stdout.write('replacement')"],
+    });
+    await manager.waitForExit(replacementSession);
+
+    expect(() => manager.getOutput(completedSession)).toThrow("Terminal not found");
+    expect(() => manager.getOutput(activeSession)).not.toThrow();
+    expect(manager.getOutput(replacementSession).output).toContain("replacement");
+
+    manager.kill(activeSession);
+    await manager.waitForExit(activeSession);
+    manager.release(activeSession);
+    manager.release(replacementSession);
+  });
+});

@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B03 terminal session retention/eviction capacity hardening)
+
+### Summary
+- Completed P0 backlog item B03 in `PLAN3.md` by hardening
+  `src/tools/terminal-manager.ts`.
+- Added bounded terminal session capacity (`maxSessions`) with default
+  `LIMIT.TERMINAL_SESSION_MAX_SESSIONS`.
+- Implemented deterministic eviction of oldest completed sessions before
+  admitting new sessions at capacity, plus explicit hard-cap rejection when
+  only active sessions remain.
+- Added focused unit coverage in
+  `__tests__/unit/tools/terminal-manager.unit.test.ts` for:
+  - completed-session eviction behavior,
+  - active-session preservation during eviction,
+  - capacity rejection semantics when no completed sessions are evictable.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/tools/terminal-manager.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B02 detached process-tree cleanup hardening for cli-agent runners)
 
 ### Summary
