@@ -2817,3 +2817,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock dual-cadence stream continuity under alternating reconnect-order
       inversion (`SSE -> websocket` vs `websocket -> SSE`).
+
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order jitter coverage)
+
+- Additional merged env-map reconnect-order jitter hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage that keeps reconnect-order inversion while
+      introducing per-cycle jitter variation for both stream-open ordering and
+      create-request cadence.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remain stable under `SSE -> websocket` and `websocket -> SSE` orders.
+    - verifies invalid-prompt burst rejection and valid-prompt recovery remain
+      stable with unique session ids across jittered order permutations.
+  - Goal:
+    - lock reconnect-order inversion continuity under per-cycle jitter
+      variation in both stream-open orders.

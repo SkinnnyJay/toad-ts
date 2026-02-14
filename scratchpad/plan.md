@@ -649,6 +649,12 @@
     variation remains active
   - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity plus
     invalid-prompt burst recovery stability under both reconnect orders
+- Added merged env-map reconnect-order jitter hardening:
+  - headless integration now validates reconnect-order inversion with per-cycle
+    jitter variation for stream-open ordering and create cadence
+  - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity plus
+    invalid-prompt burst recovery stability under jittered reconnect-order
+    permutations
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
