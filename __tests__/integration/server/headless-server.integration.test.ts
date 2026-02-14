@@ -5224,6 +5224,8 @@ describe("headless server", () => {
       const createJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
       const recoveryJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
       const recoveryJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
+      const invalidBurstSpacingSseFirstByCycleMs = [0, 2, 0, 2] as const;
+      const invalidBurstSpacingWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5247,6 +5249,9 @@ describe("headless server", () => {
         );
         expect(recoveryJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           recoveryJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(invalidBurstSpacingSseFirstByCycleMs[cycleIndex]).not.toBe(
+          invalidBurstSpacingWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -5368,11 +5373,20 @@ describe("headless server", () => {
         expect(sseSegmentIndex).toBe(sseSegmentSizes.length);
 
         for (const sessionId of cycleSessionIds) {
+          const invalidBurstSpacingByCycle = openSseFirstByCycle[cycleIndex]
+            ? invalidBurstSpacingSseFirstByCycleMs[cycleIndex]
+            : invalidBurstSpacingWebsocketFirstByCycleMs[cycleIndex];
           for (
             let invalidAttemptIndex = 0;
             invalidAttemptIndex < invalidPromptBurstByCycle[cycleIndex];
             invalidAttemptIndex += 1
           ) {
+            await new Promise<void>((resolve) => {
+              setTimeout(
+                () => resolve(),
+                (invalidBurstSpacingByCycle + invalidAttemptIndex + cycleIndex) % 3
+              );
+            });
             const invalidPromptResponse = await fetch(`${baseUrl}/sessions/${sessionId}/prompt`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },

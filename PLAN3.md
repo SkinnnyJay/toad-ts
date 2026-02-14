@@ -2954,3 +2954,21 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock reconnect-order continuity when invalid-prompt recovery timing varies
       asymmetrically by order path in the same runtime sequence.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order burst-spacing asymmetry coverage)
+
+- Additional merged env-map reconnect-order burst-spacing asymmetry hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order recovery-jitter coverage with asymmetric
+      invalid-prompt burst spacing amplitudes by reconnect order path.
+    - `SSE-first` cycles now use lower invalid-burst spacing while
+      `websocket-first` cycles use higher invalid-burst spacing.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable while burst-spacing asymmetry is layered with recovery-
+      jitter asymmetry, create-jitter asymmetry, stream-open jitter asymmetry,
+      segment-count asymmetry, cadence variation, and asymmetric burst sizes.
+  - Goal:
+    - lock reconnect-order continuity when invalid-prompt burst spacing varies
+      asymmetrically by order path in the same runtime sequence.

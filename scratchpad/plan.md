@@ -707,6 +707,16 @@
     rejection, and valid-prompt recovery remain stable under combined cadence +
     segment-count asymmetry + stream-open jitter asymmetry + create-jitter
     asymmetry + recovery-jitter asymmetry by order path
+- Added merged env-map reconnect-order burst-spacing asymmetry hardening:
+  - reconnect-order recovery-jitter coverage now applies asymmetric invalid-
+    prompt burst spacing amplitudes per order path
+  - `SSE-first` cycles use lower invalid-burst spacing, while
+    `websocket-first` cycles use higher invalid-burst spacing
+  - verifies websocket `SESSION_CREATED`, SSE `STATE_UPDATE`, asymmetric burst
+    rejection, and valid-prompt recovery remain stable under combined cadence +
+    segment-count asymmetry + stream-open jitter asymmetry + create-jitter
+    asymmetry + recovery-jitter asymmetry + burst-spacing asymmetry by order
+    path
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
