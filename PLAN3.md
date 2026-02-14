@@ -2700,3 +2700,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock alternating explicit/default reconnect continuity under merged
       env-map validation cycles.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map alternating burst reconnect coverage)
+
+- Additional merged env-map alternating burst reconnect hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - added integration coverage for repeated reconnect cycles that alternate
+      default and explicit session-create requests while issuing multiple
+      invalid prompt payloads before recovery.
+    - verifies each cycle preserves websocket `SESSION_CREATED` and SSE
+      `STATE_UPDATE` continuity plus two consecutive validation rejections.
+    - verifies follow-up valid prompt recovery and unique session ids across
+      the full reconnect sequence.
+  - Goal:
+    - lock alternating reconnect continuity under repeated invalid-prompt
+      bursts in merged env-map validation cycles.

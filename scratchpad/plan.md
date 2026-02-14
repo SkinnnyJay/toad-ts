@@ -610,6 +610,11 @@
     alternating default and explicit `mock` harness create requests
   - verifies each alternating cycle preserves websocket `SESSION_CREATED` and
     SSE `STATE_UPDATE` continuity plus prompt validation recovery behavior
+- Added merged env-map alternating burst reconnect hardening:
+  - headless integration now validates alternating reconnect cycles where each
+    cycle includes repeated invalid prompt payload bursts before recovery
+  - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+    persist alongside repeated bad-request validation and valid-prompt recovery
 
 ## Exit Criteria
 - PLAN3 remains fully checked and validated.
