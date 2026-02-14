@@ -3723,9 +3723,17 @@
   - added focused unit coverage in
     `__tests__/unit/tools/terminal-manager.unit.test.ts` for eviction and
     hard-cap behavior under active/completed session mixes
+- Completed P0 backlog item B04 Hook IPC transport fallback hardening:
+  - added deterministic unix-socket startup fallback to HTTP in
+    `src/core/cursor/hook-ipc-server.ts` for socket path/permission edge failures
+  - updated shutdown cleanup semantics to key off active endpoint transport
+    instead of configured transport after fallback
+  - expanded
+    `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts` with explicit
+    unix-socket failure fallback coverage and HTTP fallback roundtrip assertions
 - New next candidate:
-  - evaluate severity backlog item B04 by hardening Hook IPC transport
-    selection and deterministic Windows fallback behavior
+  - evaluate severity backlog item B05 by hardening Linux clipboard reliability
+    for Wayland (`wl-copy`) and headless-display failure modes
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

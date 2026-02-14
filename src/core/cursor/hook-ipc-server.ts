@@ -206,16 +206,11 @@ export class HookIpcServer {
     this.server = server;
 
     if (this.transport === HOOK_IPC_TRANSPORT.UNIX_SOCKET) {
-      await unlink(this.socketPath).catch(() => undefined);
-      await new Promise<void>((resolve, reject) => {
-        server.once("error", (error) => reject(error));
-        server.listen(this.socketPath, () => resolve());
-      });
-      this.endpoint = {
-        transport: HOOK_IPC_TRANSPORT.UNIX_SOCKET,
-        socketPath: this.socketPath,
-      };
-      return this.endpoint;
+      const unixEndpoint = await this.startUnixSocketServer(server);
+      if (unixEndpoint) {
+        this.endpoint = unixEndpoint;
+        return this.endpoint;
+      }
     }
 
     await new Promise<void>((resolve, reject) => {
@@ -234,6 +229,7 @@ export class HookIpcServer {
 
   public async stop(): Promise<void> {
     const server = this.server;
+    const endpoint = this.endpoint;
     this.server = null;
     this.endpoint = null;
     if (!server) {
@@ -244,8 +240,29 @@ export class HookIpcServer {
       server.close(() => resolve());
     });
 
-    if (this.transport === HOOK_IPC_TRANSPORT.UNIX_SOCKET) {
+    if (endpoint?.transport === HOOK_IPC_TRANSPORT.UNIX_SOCKET) {
       await unlink(this.socketPath).catch(() => undefined);
+    }
+  }
+
+  private async startUnixSocketServer(server: http.Server): Promise<HookIpcEndpoint | null> {
+    await unlink(this.socketPath).catch(() => undefined);
+    try {
+      await new Promise<void>((resolve, reject) => {
+        server.once("error", (error) => reject(error));
+        server.listen(this.socketPath, () => resolve());
+      });
+      return {
+        transport: HOOK_IPC_TRANSPORT.UNIX_SOCKET,
+        socketPath: this.socketPath,
+      };
+    } catch (error) {
+      this.logger.warn("Unix socket startup failed; falling back to HTTP transport", {
+        platform: process.platform,
+        socketPath: this.socketPath,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
     }
   }
 

@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B04 Hook IPC transport fallback hardening)
+
+### Summary
+- Completed P0 backlog item B04 in `PLAN3.md` by hardening
+  `src/core/cursor/hook-ipc-server.ts`.
+- Added deterministic fallback behavior: when unix-socket startup fails, Hook
+  IPC now falls back to HTTP transport and continues serving hook requests.
+- Updated stop/cleanup semantics to use the active endpoint transport, avoiding
+  mismatched unix-socket unlink cleanup when fallback selected HTTP.
+- Expanded
+  `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts` with explicit
+  unix-socket startup failure fallback coverage and end-to-end hook roundtrip
+  assertions over fallback HTTP transport.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/core/cursor/hook-ipc-server.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B03 terminal session retention/eviction capacity hardening)
 
 ### Summary

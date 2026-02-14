@@ -831,6 +831,9 @@
   - completed P0 backlog item B03 by hardening `TerminalManager` with bounded
     session capacity + completed-session eviction, preventing unbounded
     in-memory session growth while preserving active sessions
+  - completed P0 backlog item B04 by hardening Hook IPC startup transport
+    selection with deterministic unix-socket-to-http fallback and endpoint-aware
+    shutdown cleanup semantics for socket/path edge failures
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first

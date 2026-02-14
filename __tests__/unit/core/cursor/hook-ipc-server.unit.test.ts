@@ -206,6 +206,26 @@ describe("HookIpcServer", () => {
     expect(response.decision).toBe(PERMISSION.ALLOW);
   });
 
+  it("falls back to http transport when unix socket startup fails", async () => {
+    server = new HookIpcServer({
+      transport: "unix_socket",
+      socketPath: "/__toadstool_invalid_socket_dir__/hooks.sock",
+      host: SERVER_CONFIG.DEFAULT_HOST,
+      port: 0,
+    });
+    const endpoint = await server.start();
+
+    expect(endpoint.transport).toBe("http");
+    expect(endpoint.url).toContain("http://");
+    const response = await postJson(endpoint, {
+      conversation_id: "conv-fallback",
+      generation_id: "gen-fallback",
+      model: "opus-4.6-thinking",
+      hook_event_name: CURSOR_HOOK_EVENT.PRE_TOOL_USE,
+    });
+    expect(response.decision).toBe(PERMISSION.ALLOW);
+  });
+
   it("keeps hook roundtrip p95 under target", async () => {
     server = new HookIpcServer();
     const endpoint = await server.start();

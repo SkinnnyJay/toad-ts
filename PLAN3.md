@@ -6614,6 +6614,24 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - bound terminal session memory growth while preserving active sessions and
       predictable behavior under sustained session churn.
 
+## Execution Log Addendum — 2026-02-14 (B04 hook IPC transport fallback hardening)
+
+- Additional P0 backlog hardening for deterministic Hook IPC transport fallback:
+  - Updated:
+    - `src/core/cursor/hook-ipc-server.ts`
+    - `__tests__/unit/core/cursor/hook-ipc-server.unit.test.ts`
+  - Hardening changes:
+    - added deterministic fallback from unix-socket startup to HTTP transport
+      when socket listen/bootstrap fails (including path/permission failures).
+    - hardened shutdown cleanup to rely on active endpoint transport rather than
+      configured transport, preventing mismatched unix unlink cleanup when
+      runtime fallback selects HTTP.
+    - added focused unit coverage for unix-socket startup failure fallback and
+      verified roundtrip hook handling over the fallback HTTP endpoint.
+  - Goal:
+    - enforce predictable Hook IPC startup behavior for Windows/socket path edge
+      cases and guarantee deterministic fallback continuity.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -6621,7 +6639,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B01 | P0 | shell-session keeps `cmd.exe /K` alive; enforce hard session teardown to prevent command shell leaks on Windows.
 - [x] - B02 | P0 | verify detached child process cleanup across POSIX and Windows in `cli-agent-process-runner` to prevent orphan subprocess trees.
 - [x] - B03 | P0 | add retention/eviction for `TerminalManager.sessions` to prevent unbounded memory growth from unreleased sessions.
-- [ ] - B04 | P0 | harden Hook IPC transport selection for Windows socket/path edge cases and force deterministic fallback behavior.
+- [x] - B04 | P0 | harden Hook IPC transport selection for Windows socket/path edge cases and force deterministic fallback behavior.
 - [ ] - B05 | P0 | close Linux clipboard reliability gap by handling Wayland (`wl-copy`) and headless display failure modes.
 - [ ] - B06 | P0 | fix path-escape detection for Windows separators (`..\\`) and mixed separator payloads.
 - [ ] - B07 | P0 | replace `startsWith` cwd containment check with canonical path comparison safe for case-insensitive filesystems.
