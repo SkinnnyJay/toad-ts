@@ -2991,3 +2991,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock reconnect-order continuity when post-recovery delay timing varies
       asymmetrically by order path in the same runtime sequence.
+
+## Execution Log Addendum — 2026-02-14 (merged env-map reconnect-order cycle-cooldown asymmetry coverage)
+
+- Additional merged env-map reconnect-order cycle-cooldown asymmetry hardening:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - expanded reconnect-order post-recovery delay coverage with asymmetric
+      cycle-end cooldown jitter amplitudes by reconnect order path.
+    - `SSE-first` cycles now use lower cycle-end cooldown jitter while
+      `websocket-first` cycles use higher cycle-end cooldown jitter.
+    - verifies websocket `SESSION_CREATED` and SSE `STATE_UPDATE` continuity
+      remains stable while cycle-cooldown asymmetry is layered with post-
+      recovery delay asymmetry, burst-spacing asymmetry, recovery-jitter
+      asymmetry, create-jitter asymmetry, stream-open jitter asymmetry,
+      segment-count asymmetry, and cadence variation.
+  - Goal:
+    - lock reconnect-order continuity when cycle-end cooldown timing varies
+      asymmetrically by order path in the same runtime sequence.

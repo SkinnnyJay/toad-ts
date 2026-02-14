@@ -257,6 +257,9 @@
   - added merged env-map reconnect-order post-recovery delay asymmetry
     coverage with websocket+SSE continuity assertions under order-path-
     specific valid-prompt post-recovery delays
+  - added merged env-map reconnect-order cycle-cooldown asymmetry coverage
+    with websocket+SSE continuity assertions under order-path-specific cycle-
+    end cooldown jitter amplitudes
   - quality gates remain green after each increment
 
 ## Phase 0 baseline quality gate (2026-02-10)
