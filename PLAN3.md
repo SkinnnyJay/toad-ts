@@ -7024,6 +7024,24 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - ensure Windows shell execution paths correctly preserve quoted commands
       and path arguments containing spaces/metacharacters/unicode.
 
+## Execution Log Addendum — 2026-02-14 (B24 shell cwd per-request isolation hardening)
+
+- Additional P1 backlog hardening for shell execution state coupling:
+  - Updated:
+    - `src/tools/shell-session.ts`
+    - `__tests__/unit/tools/shell-session.unit.test.ts`
+  - Hardening changes:
+    - removed implicit carry-forward cwd state from persistent shell session
+      command execution.
+    - enforced explicit per-request cwd reset to baseDir unless overridden by
+      command options.
+    - retained explicit cwd switching with deterministic quoting while
+      eliminating hidden cwd coupling between sequential commands.
+    - added focused regression coverage verifying per-request cwd isolation.
+  - Goal:
+    - ensure shell command execution context is deterministic and isolated per
+      command invocation.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7054,7 +7072,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B21 | P1 | prevent detached `afplay` process accumulation during rapid completion events on macOS.
 - [x] - B22 | P1 | add explicit Linux desktop capability detection (X11/Wayland/headless) for clipboard and UI-dependent flows.
 - [x] - B23 | P1 | fix Windows command quoting/escaping for paths containing spaces, `&`, `^`, and unicode characters.
-- [ ] - B24 | P1 | remove implicit shell cwd coupling by isolating command execution context per request.
+- [x] - B24 | P1 | remove implicit shell cwd coupling by isolating command execution context per request.
 - [ ] - B25 | P1 | optimize terminal output byte trimming to avoid O(n^2) behavior for large outputs.
 - [ ] - B26 | P1 | optimize sentinel completion scanning in shell sessions to avoid repeated full-buffer scans.
 - [ ] - B27 | P1 | formalize Hook IPC auth/nonce handshake for HTTP transport mode.

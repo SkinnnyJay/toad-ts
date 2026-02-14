@@ -3895,9 +3895,16 @@
   - added focused coverage in
     `__tests__/unit/utils/windows-command.utils.unit.test.ts` and
     `__tests__/unit/tools/shell-session.unit.test.ts`
+- Completed P1 backlog item B24 shell cwd per-request isolation hardening:
+  - removed implicit carried cwd session state from
+    `src/tools/shell-session.ts`
+  - enforced deterministic per-command cwd reset to base unless explicitly
+    overridden
+  - added focused regression coverage in
+    `__tests__/unit/tools/shell-session.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B24 by isolating shell cwd execution context
-    per request to remove hidden state coupling
+  - evaluate severity backlog item B25 by optimizing byte-limit trimming to
+    avoid O(n^2) output handling behavior
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

@@ -116,7 +116,6 @@ class ShellSession {
   private stderrBuffer = "";
   private stdoutCarry = "";
   private timer?: NodeJS.Timeout;
-  private currentCwd: string;
 
   constructor(options: ShellSessionOptions) {
     this.baseDir = options.baseDir ?? process.cwd();
@@ -128,7 +127,6 @@ class ShellSession {
     this.args = shell.args;
     this.usesShell = shell.usesShell;
     this.isWindows = shell.isWindows;
-    this.currentCwd = this.baseDir;
   }
 
   execute(command: string, options: ShellCommandOptions = {}): Promise<ShellCommandResult> {
@@ -212,13 +210,10 @@ class ShellSession {
 
     let cdPrefix = "";
     try {
-      const targetCwd = resolveCwd(command.cwd ?? this.currentCwd, this.baseDir, this.allowEscape);
-      if (targetCwd !== this.currentCwd) {
-        cdPrefix = this.isWindows
-          ? `cd /d ${quoteWindowsCommandValue(targetCwd)}\n`
-          : `cd "${targetCwd.replace(/"/g, '\\"')}"\n`;
-      }
-      this.currentCwd = targetCwd;
+      const targetCwd = resolveCwd(command.cwd ?? this.baseDir, this.baseDir, this.allowEscape);
+      cdPrefix = this.isWindows
+        ? `cd /d ${quoteWindowsCommandValue(targetCwd)}\n`
+        : `cd "${targetCwd.replace(/"/g, '\\"')}"\n`;
     } catch (error) {
       command.reject(error instanceof Error ? error : new Error(String(error)));
       this.active = null;

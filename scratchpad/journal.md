@@ -1,5 +1,33 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B24 shell cwd per-request isolation hardening)
+
+### Summary
+- Completed P1 backlog item B24 in `PLAN3.md` by removing hidden shell cwd
+  coupling across sequential commands.
+- Updated `src/tools/shell-session.ts`:
+  - removed carried `currentCwd` state usage across commands,
+  - always resolves each command cwd from request options or baseDir,
+  - emits deterministic cwd preamble for each command execution.
+- Expanded `__tests__/unit/tools/shell-session.unit.test.ts` with regression
+  coverage proving that a command with custom cwd does not influence the next
+  command’s cwd when omitted.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/tools/shell-session.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B23 Windows command quoting hardening)
 
 ### Summary

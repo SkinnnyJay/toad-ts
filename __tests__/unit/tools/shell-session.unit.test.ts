@@ -173,4 +173,22 @@ describe("ShellSessionManager", () => {
     expect(joinedPayload).toContain('cd /d "/tmp/path with spaces/and&caret^/ユニコード"');
     manager.dispose();
   });
+
+  it("isolates command cwd per request without reusing prior cwd", async () => {
+    const controller = createSpawnController({ autoRespond: true });
+    const manager = new ShellSessionManager({
+      spawnFn: controller.spawnFn,
+      env: {},
+      baseDir: "/tmp/base",
+      allowEscape: false,
+    });
+
+    await manager.execute("echo first", { cwd: "/tmp/base/nested" });
+    await manager.execute("echo second");
+
+    const joinedPayload = controller.stdinPayloads.join("");
+    expect(joinedPayload).toContain('cd /d "/tmp/base/nested"');
+    expect(joinedPayload).toContain('cd /d "/tmp/base"');
+    manager.dispose();
+  });
 });
