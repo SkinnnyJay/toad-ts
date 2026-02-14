@@ -367,6 +367,10 @@
     clamp asymmetry coverage with websocket+SSE continuity assertions under
     order-path-specific post-close prompt-burst recovery-clamp jitter
     amplitudes
+  - added merged env-map reconnect-order post-close prompt-burst recovery-
+    brace asymmetry coverage with websocket+SSE continuity assertions under
+    order-path-specific post-close prompt-burst recovery-brace jitter
+    amplitudes
   - added severity-ordered checklist backlog in PLAN3 with 50 incomplete tasks
     covering critical bugs, performance/memory leak risk, cross-platform
     hardening (Windows/Linux/macOS), NutJS readiness, and simplification-first
