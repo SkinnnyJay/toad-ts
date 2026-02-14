@@ -5330,6 +5330,8 @@ describe("headless server", () => {
       const postClosePromptBurstRecoveryCrestJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const postClosePromptBurstRecoveryPeakJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
       const postClosePromptBurstRecoveryPeakJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
+      const postClosePromptBurstRecoverySummitJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
+      const postClosePromptBurstRecoverySummitJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5494,6 +5496,9 @@ describe("headless server", () => {
         );
         expect(postClosePromptBurstRecoveryPeakJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postClosePromptBurstRecoveryPeakJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postClosePromptBurstRecoverySummitJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postClosePromptBurstRecoverySummitJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -6160,6 +6165,21 @@ describe("headless server", () => {
                   cycleSessionIndex +
                   cycleIndex +
                   3) %
+                  4
+              );
+            });
+            await new Promise<void>((resolve) => {
+              const postClosePromptBurstRecoverySummitJitterByCycle = openSseFirstByCycle[
+                cycleIndex
+              ]
+                ? postClosePromptBurstRecoverySummitJitterSseFirstByCycleMs[cycleIndex]
+                : postClosePromptBurstRecoverySummitJitterWebsocketFirstByCycleMs[cycleIndex];
+              setTimeout(
+                () => resolve(),
+                (postClosePromptBurstRecoverySummitJitterByCycle +
+                  cycleSessionIndex +
+                  cycleIndex +
+                  2) %
                   4
               );
             });
