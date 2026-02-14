@@ -2120,3 +2120,24 @@
   - `npm run check:literals:strict` ❌ (`bun: not found`)
   - `npx tsup` ✅
   - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
+## 2026-02-13 (Harness-registry cursor-disable unit coverage)
+
+### Summary
+- Expanded harness-registry factory unit coverage with an explicit registry-level
+  assertion for cursor disablement behavior.
+- Added test to verify `createHarnessRegistry({ enableCursor: false, includeMock: true })`:
+  - excludes `cursor-cli`
+  - still includes `mock`
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/harness/harness-registry-factory.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npm run build` ❌ (`bunx: not found`)
+  - `npm run check:literals:strict` ❌ (`bun: not found`)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅

@@ -39,6 +39,13 @@ describe("harnessRegistryFactory", () => {
     expect(registry.get(HARNESS_DEFAULT.CODEX_CLI_ID)).toBeDefined();
   });
 
+  it("creates registry without cursor adapter when cursor is disabled", () => {
+    const registry = createHarnessRegistry({ enableCursor: false, includeMock: true });
+
+    expect(registry.get(HARNESS_DEFAULT.CURSOR_CLI_ID)).toBeUndefined();
+    expect(registry.get(HARNESS_DEFAULT.MOCK_ID)).toBeDefined();
+  });
+
   it("parses cursor env flags with fallback default", () => {
     expect(isCursorHarnessEnabled({}, false)).toBe(false);
     expect(isCursorHarnessEnabled({}, true)).toBe(true);

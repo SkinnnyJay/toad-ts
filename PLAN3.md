@@ -2326,3 +2326,15 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
   - Goal:
     - lock continuity semantics under repeated explicit harness-not-configured
       request cycles.
+
+## Execution Log Addendum — 2026-02-13 (registry cursor-disable coverage)
+
+- Additional harness registry unit hardening:
+  - Updated:
+    - `__tests__/unit/harness/harness-registry-factory.unit.test.ts`
+  - Hardening changes:
+    - added registry-level assertion that `createHarnessRegistry(...)` omits
+      `cursor-cli` when `enableCursor: false`, while still including `mock`
+      when `includeMock: true`.
+  - Goal:
+    - lock adapter presence semantics for cursor-disabled registry construction.

@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added harness-registry cursor-disable unit coverage:
+  - registry factory tests now assert `createHarnessRegistry(...)` excludes
+    `cursor-cli` when cursor is disabled while still including `mock` when
+    `includeMock` remains enabled
 - Added repeated cursor-not-configured integration coverage:
   - headless integration now verifies consecutive explicit `cursor-cli`
     requests return canonical harness-not-configured responses when cursor is
