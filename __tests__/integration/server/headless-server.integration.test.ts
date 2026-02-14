@@ -5244,6 +5244,8 @@ describe("headless server", () => {
       const postCloseRecoveryJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
       const postCloseCycleTransitionJitterSseFirstByCycleMs = [0, 2, 0, 2] as const;
       const postCloseCycleTransitionJitterWebsocketFirstByCycleMs = [2, 0, 2, 0] as const;
+      const postCloseSegmentOpenGatingJitterSseFirstByCycleMs = [0, 3, 0, 3] as const;
+      const postCloseSegmentOpenGatingJitterWebsocketFirstByCycleMs = [3, 0, 3, 0] as const;
       const invalidPromptBurstByCycle = [1, 3, 1, 3] as const;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
@@ -5297,6 +5299,9 @@ describe("headless server", () => {
         );
         expect(postCloseCycleTransitionJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
           postCloseCycleTransitionJitterWebsocketFirstByCycleMs[cycleIndex]
+        );
+        expect(postCloseSegmentOpenGatingJitterSseFirstByCycleMs[cycleIndex]).not.toBe(
+          postCloseSegmentOpenGatingJitterWebsocketFirstByCycleMs[cycleIndex]
         );
         const cycleSessionIds: string[] = [];
         let websocketSegmentIndex = 0;
@@ -5385,6 +5390,21 @@ describe("headless server", () => {
         };
 
         for (let cycleCreateIndex = 0; cycleCreateIndex < cycleCreateCount; cycleCreateIndex += 1) {
+          if (
+            cycleCreateIndex > 0 &&
+            websocketSegmentRemaining === 0 &&
+            sseSegmentRemaining === 0
+          ) {
+            await new Promise<void>((resolve) => {
+              const postCloseSegmentOpenGatingJitterByCycle = openSseFirstByCycle[cycleIndex]
+                ? postCloseSegmentOpenGatingJitterSseFirstByCycleMs[cycleIndex]
+                : postCloseSegmentOpenGatingJitterWebsocketFirstByCycleMs[cycleIndex];
+              setTimeout(
+                () => resolve(),
+                (postCloseSegmentOpenGatingJitterByCycle + cycleCreateIndex + cycleIndex) % 4
+              );
+            });
+          }
           if (websocketSegmentRemaining === 0 && sseSegmentRemaining === 0) {
             if (openSseFirstByCycle[cycleIndex]) {
               await openNextSseSegment();
