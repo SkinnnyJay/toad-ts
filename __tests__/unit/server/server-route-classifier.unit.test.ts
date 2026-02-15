@@ -212,6 +212,19 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies unknown core routes with double-trailing slash variants as unhandled", () => {
+    const baseResult = classifyServerRoute(HTTP_METHOD.GET, "/unknown-endpoint//");
+    const queryResult = classifyServerRoute(HTTP_METHOD.GET, "/unknown-endpoint//?scope=all");
+    expect(baseResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(queryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies missing-action session routes with trailing-query suffix as core unhandled", () => {
     const getResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1/?view=full");
     const postResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions/session-1/?view=full");

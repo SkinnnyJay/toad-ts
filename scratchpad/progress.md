@@ -3,6 +3,10 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B176 unknown-core double-trailing classifier parity hardening
+    (core/server route classifier unit coverage now explicitly locks
+    `/unknown-endpoint//` and `/unknown-endpoint//?scope=all` as
+    core-unhandled with canonical `CORE_ROUTE_CLASSIFIER` ownership)
   - completed B175 unknown-route double-trailing auth-order coverage hardening
     (unknown-route auth-order integration coverage now explicitly locks
     double-trailing core unknown path forms under password protection with

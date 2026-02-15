@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-core double-trailing classifier parity:
+  - core/server route classifier unit suites now include
+    `/unknown-endpoint//` and `/unknown-endpoint//?scope=all`.
+  - locks canonical core-unhandled classification with
+    `CORE_ROUTE_CLASSIFIER` ownership.
 - Expanded unknown-route double-trailing auth-order coverage:
   - unknown-route auth-before-not-found integration test now includes
     double-trailing core unknown path variants:

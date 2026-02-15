@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B176 unknown-core double-trailing classifier parity)
+
+- Expanded core/server route classifier unit coverage for double-trailing
+  unknown core path variants.
+- Updated:
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B175 unknown-route double-trailing auth-order coverage)
 
 - Expanded unknown-route auth-order integration coverage for double-trailing
