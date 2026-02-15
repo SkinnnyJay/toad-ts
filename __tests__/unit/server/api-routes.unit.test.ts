@@ -153,6 +153,37 @@ describe("API Routes", () => {
       });
     });
 
+    it("classifies parameterized known paths with unsupported methods", () => {
+      const sessionResult = classifyApiRoute("POST", "/api/sessions/session-123");
+      const messagesResult = classifyApiRoute("POST", "/api/sessions/session-123/messages");
+      expect(sessionResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(messagesResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
+    it("classifies parameterized known paths with normalized suffix variants", () => {
+      const queryResult = classifyApiRoute("POST", "/api/sessions/session-123?view=compact");
+      const hashResult = classifyApiRoute("POST", "/api/sessions/session-123/messages#latest");
+      const trailingResult = classifyApiRoute("POST", "/api/sessions/session-123/messages/");
+      expect(queryResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(hashResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(trailingResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
     it("classifies unknown path as not found", () => {
       const result = classifyApiRoute("GET", "/api/does-not-exist");
       expect(result).toEqual({

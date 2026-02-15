@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded parameterized API method semantics coverage:
+  - added unit assertions that `classifyApiRoute(...)` returns
+    method-not-allowed for unsupported methods on parameterized endpoints.
+  - added integration assertions proving headless-server `405` behavior for:
+    `/api/sessions/:id` and `/api/sessions/:id/messages` including
+    trailing-slash variants.
 - Consolidated API route classification to single-pass resolution:
   - introduced shared resolver in `api-routes.ts` that determines
     method/path match and known-path status in one loop.

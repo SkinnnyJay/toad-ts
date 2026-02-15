@@ -1,5 +1,40 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B112 parameterized API method semantics coverage)
+
+### Summary
+- Expanded API method-not-allowed coverage for parameterized route patterns
+  after classification refactors.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added unit assertions for unsupported methods on:
+    - `/api/sessions/:id`
+    - `/api/sessions/:id/messages`
+    plus query/hash/trailing-slash normalization variants.
+  - expanded integration method-not-allowed coverage for:
+    - `/api/sessions/session-1`
+    - `/api/sessions/session-1/`
+    - `/api/sessions/session-1/messages`
+    - `/api/sessions/session-1/messages/`
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B111 API route single-pass classification)
 
 ### Summary

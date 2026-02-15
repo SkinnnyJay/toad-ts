@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B112 parameterized API method semantics)
+
+- Expanded API method-not-allowed coverage for parameterized routes, including
+  trailing-slash and query/hash normalized variants.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B111 API route single-pass classification)
 
 - Refactored API route classification to resolve route match + known-path
