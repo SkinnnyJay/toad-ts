@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B88 session-route parser segment normalization)
+
+### Summary
+- Hardened session route parsing against blank/missing segments and added
+  whitespace normalization on incoming route path text.
+- Updated:
+  - `src/server/session-route-path.ts`
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - parser now trims incoming pathname before processing.
+  - segment normalization rejects blank/missing `sessionId`.
+  - blank action segments now return null (invalid path) instead of emitting an
+    empty action string.
+  - expanded route parser tests for blank segment rejection and whitespace path
+    handling.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/session-route-path.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B87 server runtime host validation)
 
 ### Summary

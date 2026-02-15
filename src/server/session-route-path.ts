@@ -6,14 +6,31 @@ export interface SessionRoutePath {
   readonly action?: string;
 }
 
+const normalizeRouteSegment = (segment: string | undefined): string | undefined => {
+  if (segment === undefined) {
+    return undefined;
+  }
+  const normalizedSegment = segment.trim();
+  return normalizedSegment.length > 0 ? normalizedSegment : undefined;
+};
+
 export const parseSessionRoutePath = (pathname: string): SessionRoutePath | null => {
-  if (!pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
+  const normalizedPathname = pathname.trim();
+  if (!normalizedPathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
     return null;
   }
-  const parts = pathname.split("/");
+  const parts = normalizedPathname.split("/");
   if (parts.length > LIMIT.SESSION_ROUTE_MAX_SEGMENTS) {
     return null;
   }
-  const [_, __, sessionId, action] = parts;
+  const [_, __, rawSessionId, rawAction] = parts;
+  const sessionId = normalizeRouteSegment(rawSessionId);
+  if (!sessionId) {
+    return null;
+  }
+  const action = normalizeRouteSegment(rawAction);
+  if (rawAction !== undefined && !action) {
+    return null;
+  }
   return { sessionId, action };
 };

@@ -1,3 +1,20 @@
+## 2026-02-14 Execution Update (B88 session-route parser normalization)
+
+- Hardened `parseSessionRoutePath(...)`:
+  - trims incoming pathname text
+  - rejects blank/missing `sessionId`
+  - rejects blank action segment values
+- Updated:
+  - `src/server/session-route-path.ts`
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/session-route-path.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B87 server runtime host validation)
 
 - Hardened `resolveServerConfig(...)` host validation:

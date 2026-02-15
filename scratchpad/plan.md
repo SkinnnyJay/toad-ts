@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added session-route parser segment normalization hardening:
+  - parser now trims incoming route path text and rejects blank/missing
+    `sessionId` or blank action segments.
+  - malformed blank-segment routes now short-circuit to null route parse.
+  - expanded session-route tests for blank segment rejection and whitespace
+    wrapped path parsing.
 - Added server runtime host validation hardening:
   - runtime host normalization now rejects invalid host strings (schemes,
     malformed host metadata) and falls back to env/default hosts.

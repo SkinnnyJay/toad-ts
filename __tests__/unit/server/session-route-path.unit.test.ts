@@ -25,4 +25,21 @@ describe("parseSessionRoutePath", () => {
     expect(parseSessionRoutePath("/sessions/session-1/prompt/extra")).toBeNull();
     expect(parseSessionRoutePath("/sessions/session-1/messages/extra")).toBeNull();
   });
+
+  it("returns null for missing or blank session id segment", () => {
+    expect(parseSessionRoutePath("/sessions//prompt")).toBeNull();
+    expect(parseSessionRoutePath("/sessions/   /prompt")).toBeNull();
+  });
+
+  it("returns null for blank action segment", () => {
+    expect(parseSessionRoutePath("/sessions/session-1/")).toBeNull();
+    expect(parseSessionRoutePath("/sessions/session-1/   ")).toBeNull();
+  });
+
+  it("parses session route paths with surrounding whitespace", () => {
+    expect(parseSessionRoutePath("   /sessions/session-1/prompt   ")).toEqual({
+      sessionId: "session-1",
+      action: "prompt",
+    });
+  });
 });
