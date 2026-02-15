@@ -75,6 +75,15 @@ describe("normalizeRoutePathname", () => {
     expect(normalizeRoutePathname("/sessions//prompt//#latest")).toBe("/sessions//prompt");
   });
 
+  it("normalizes blank-session base double-trailing forms to /sessions", () => {
+    expect(normalizeRoutePathname("/sessions//")).toBe("/sessions");
+    expect(normalizeRoutePathname("/sessions//?scope=all")).toBe("/sessions");
+    expect(normalizeRoutePathname("/sessions//#summary")).toBe("/sessions");
+    expect(normalizeRoutePathname(" /sessions// ")).toBe("/sessions");
+    expect(normalizeRoutePathname(" /sessions//?scope=all ")).toBe("/sessions");
+    expect(normalizeRoutePathname(" /sessions//#summary ")).toBe("/sessions");
+  });
+
   it("retains root path while normalizing", () => {
     expect(normalizeRoutePathname("/")).toBe("/");
     expect(normalizeRoutePathname("/?check=true")).toBe("/");

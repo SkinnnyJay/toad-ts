@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded blank-session pathname normalization parity:
+  - pathname-normalization unit suite now explicitly covers plain and
+    whitespace-padded `/sessions//`, `/sessions//?scope=all`,
+    `/sessions//#summary` normalization to `/sessions`.
 - Expanded padded blank-session base method parity:
   - core-route classifier unit suite now explicitly covers whitespace-padded
     `/sessions//`, `/sessions//?scope=all`, `/sessions//#summary` variants with
