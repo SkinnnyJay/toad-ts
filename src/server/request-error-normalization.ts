@@ -38,11 +38,12 @@ const normalizeRequestFailureContext = (
 ): Record<string, unknown> => {
   const normalizedMethod = normalizeHttpMethod(context.method);
   const normalizedPathname = context.pathname.trim();
+  const normalizedHandler = context.handler?.trim();
   return {
     source: context.source,
     method: normalizedMethod.length > 0 ? normalizedMethod : FALLBACK_REQUEST_METHOD,
     pathname: normalizedPathname.length > 0 ? normalizedPathname : FALLBACK_REQUEST_PATHNAME,
-    ...(context.handler ? { handler: context.handler } : {}),
+    ...(normalizedHandler && normalizedHandler.length > 0 ? { handler: normalizedHandler } : {}),
   };
 };
 

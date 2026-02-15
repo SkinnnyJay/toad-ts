@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added request parsing-log handler normalization hardening:
+  - request parse/validation log metadata now trims handler names and omits
+    blank handler values from telemetry payloads.
+  - added logging coverage for padded and blank handler inputs.
 - Added request parsing-log method fallback hardening:
   - request parse/validation log metadata now falls back to `UNKNOWN` when
     method input is blank/whitespace.

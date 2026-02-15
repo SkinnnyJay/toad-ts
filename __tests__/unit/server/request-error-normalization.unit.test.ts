@@ -102,7 +102,7 @@ describe("request-error-normalization", () => {
         source: REQUEST_PARSING_SOURCE.API_ROUTES,
         method: " post ",
         pathname: " /api/tui/append-prompt ",
-        handler: "append_prompt",
+        handler: " append_prompt ",
       },
       {
         message: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
@@ -115,6 +115,35 @@ describe("request-error-normalization", () => {
       method: "POST",
       pathname: "/api/tui/append-prompt",
       handler: "append_prompt",
+      mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      error: UNKNOWN_ERROR_MESSAGE,
+    });
+  });
+
+  it("omits blank handler metadata when handler is whitespace", () => {
+    const warn = vi.fn();
+    const logger = { warn } as {
+      warn: (message: string, metadata?: Record<string, unknown>) => void;
+    };
+
+    logRequestParsingFailure(
+      logger,
+      {
+        source: REQUEST_PARSING_SOURCE.API_ROUTES,
+        method: "post",
+        pathname: "/api/tui/append-prompt",
+        handler: "   ",
+      },
+      {
+        message: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+        error: UNKNOWN_ERROR_MESSAGE,
+      }
+    );
+
+    expect(warn).toHaveBeenCalledWith("Request parsing failed", {
+      source: REQUEST_PARSING_SOURCE.API_ROUTES,
+      method: "POST",
+      pathname: "/api/tui/append-prompt",
       mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
       error: UNKNOWN_ERROR_MESSAGE,
     });

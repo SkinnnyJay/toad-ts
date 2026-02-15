@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B74 request parsing-log handler normalization hardening)
+
+### Summary
+- Added post-completion hardening for handler metadata normalization in
+  standardized request parsing/validation telemetry.
+- Updated:
+  - `src/server/request-error-normalization.ts`
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - request-failure context now trims handler values before logging.
+  - blank/whitespace handlers are now omitted from telemetry metadata payloads.
+  - added focused unit coverage for padded and blank handler paths.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B73 request parsing-log method fallback hardening)
 
 ### Summary
