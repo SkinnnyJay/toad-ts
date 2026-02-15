@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B97 classifier padded-path regression coverage)
+
+- Expanded classifier regression tests to lock in padded-pathname behavior for
+  method-not-allowed and not-found branches.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B96 core/API classifier pathname trim)
 
 - Hardened direct classifier calls by trimming pathnames inside:

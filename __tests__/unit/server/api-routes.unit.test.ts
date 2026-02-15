@@ -100,8 +100,24 @@ describe("API Routes", () => {
       });
     });
 
+    it("classifies padded known path with unsupported method as method not allowed", () => {
+      const result = classifyApiRoute("POST", " /api/config ");
+      expect(result).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
     it("classifies unknown path as not found", () => {
       const result = classifyApiRoute("GET", "/api/does-not-exist");
+      expect(result).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
+    it("classifies padded unknown path as not found", () => {
+      const result = classifyApiRoute("GET", " /api/does-not-exist ");
       expect(result).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,

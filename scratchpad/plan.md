@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded classifier padded-path test coverage:
+  - added explicit method-not-allowed and not-found coverage for padded API
+    pathnames in `classifyApiRoute`.
+  - added server-route classifier coverage for padded API known path with wrong
+    method.
 - Added core/api classifier pathname trim normalization:
   - `classifyCoreRoute`, `matchRoute`, and `classifyApiRoute` now normalize
     surrounding pathname whitespace before route matching.
