@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B119 malformed API scope classifier coverage)
+
+- Expanded server-route classifier unit coverage to lock API scoping behavior
+  for malformed double-segment API path variants.
+- Updated:
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B118 unknown-route auth-order session coverage)
 
 - Expanded password-protected unknown-route auth-order integration coverage for

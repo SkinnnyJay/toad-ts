@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded malformed API scope classifier coverage:
+  - added server-route classifier unit assertions proving malformed API
+    double-segment paths remain API-scoped unhandled routes
+    (`API_ROUTE_CLASSIFIER`) rather than core-scoped fallthrough.
 - Expanded unknown-route auth-order coverage for session paths:
   - password-protected not-found ordering test now includes session unknown
     and missing-action route variants with explicit unauthenticated (`401`) and

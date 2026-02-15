@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B119 malformed API scope classifier coverage)
+
+### Summary
+- Expanded server-route classifier unit coverage for malformed API path
+  variants to ensure API scope remains consistent.
+- Updated:
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added unit test for malformed API paths:
+    - `/api//config`
+    - `/api//config?scope=all`
+  - assertions lock `UNHANDLED` classification with
+    `API_ROUTE_CLASSIFIER` ownership for both GET/POST variants.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B118 unknown-route auth-order session coverage)
 
 ### Summary

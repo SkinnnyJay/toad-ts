@@ -125,4 +125,17 @@ describe("classifyServerRoute", () => {
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });
   });
+
+  it("classifies malformed api double-segment paths as api-scoped unhandled", () => {
+    const getResult = classifyServerRoute(HTTP_METHOD.GET, "/api//config");
+    const postResult = classifyServerRoute(HTTP_METHOD.POST, "/api//config?scope=all");
+    expect(getResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(postResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
 });
