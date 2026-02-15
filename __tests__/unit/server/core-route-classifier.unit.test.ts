@@ -71,6 +71,27 @@ describe("classifyCoreRoute", () => {
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
   });
 
+  it("normalizes blank-session base variants to /sessions method semantics", () => {
+    const getDoubleTrailingResult = classifyCoreRoute(HTTP_METHOD.GET, "/sessions//");
+    const getDoubleTrailingQueryResult = classifyCoreRoute(
+      HTTP_METHOD.GET,
+      "/sessions//?scope=all"
+    );
+    const getDoubleTrailingHashResult = classifyCoreRoute(HTTP_METHOD.GET, "/sessions//#summary");
+    const postDoubleTrailingResult = classifyCoreRoute(HTTP_METHOD.POST, "/sessions//");
+    const postDoubleTrailingQueryResult = classifyCoreRoute(
+      HTTP_METHOD.POST,
+      "/sessions//?scope=all"
+    );
+    const postDoubleTrailingHashResult = classifyCoreRoute(HTTP_METHOD.POST, "/sessions//#summary");
+    expect(getDoubleTrailingResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(getDoubleTrailingQueryResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(getDoubleTrailingHashResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(postDoubleTrailingResult).toEqual({ kind: CORE_ROUTE_DECISION.UNHANDLED });
+    expect(postDoubleTrailingQueryResult).toEqual({ kind: CORE_ROUTE_DECISION.UNHANDLED });
+    expect(postDoubleTrailingHashResult).toEqual({ kind: CORE_ROUTE_DECISION.UNHANDLED });
+  });
+
   it("returns method_not_allowed for non-POST /sessions/:id/prompt", () => {
     const result = classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1/prompt");
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });

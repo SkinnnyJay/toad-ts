@@ -14,6 +14,16 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded blank-session base normalization parity:
+  - session-route-path unit suite now explicitly asserts whitespace-padded
+    blank-session base variants are rejected (`null`):
+    ` /sessions// `, ` /sessions//?scope=all `, ` /sessions//#summary `.
+  - core-route classifier unit suite now explicitly asserts blank-session base
+    double-trailing variants normalize to `/sessions` method semantics:
+    - GET => `METHOD_NOT_ALLOWED`
+    - POST => `UNHANDLED`
+  - server-route classifier unit suite now explicitly asserts the same
+    normalized behavior with core handler attribution.
 - Expanded unknown/malformed route method-normalization parity:
   - api-routes unit suite now explicitly verifies lowercase/whitespace-padded
     methods classify unknown/malformed API paths as `NOT_FOUND`.
