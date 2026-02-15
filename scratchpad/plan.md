@@ -14,6 +14,16 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded protected non-API hash auth-order coverage:
+  - password-protected non-API auth-before-method integration test
+    (`applies auth checks before method semantics on non-api protected routes`)
+    now includes hash and trailing-hash variants for:
+    - `/sessions`
+    - `/sessions/:id/prompt`
+    - `/sessions/:id/messages`.
+  - locks canonical pre-auth `401` + auth-challenge and authenticated `405`
+    ordering semantics across hash-bearing and combined trailing-slash+hash
+    non-API method-guard paths.
 - Expanded integration non-API hash method coverage:
   - headless-server integration test
     `returns method not allowed for known non-api routes with unsupported methods`

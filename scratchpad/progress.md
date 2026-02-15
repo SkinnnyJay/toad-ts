@@ -3,6 +3,10 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B156 protected-non-api hash auth-order coverage hardening
+    (password-protected non-API auth-before-method integration coverage now
+    explicitly locks hash and trailing-hash variants for sessions, prompt, and
+    messages with canonical `401`/`405` ordering)
   - completed B155 integration non-api hash method coverage hardening
     (headless-server integration coverage now explicitly locks known non-API
     unsupported-method semantics across hash and trailing-hash path variants)

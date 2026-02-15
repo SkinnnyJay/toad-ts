@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B156 protected-non-api hash auth-order coverage)
+
+- Expanded password-protected non-API auth-before-method integration coverage
+  for sessions, prompt, and messages routes with hash and combined
+  trailing-slash + hash variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before method semantics on non-api protected routes"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B155 integration non-api hash method coverage)
 
 - Expanded headless-server integration coverage for known non-API
