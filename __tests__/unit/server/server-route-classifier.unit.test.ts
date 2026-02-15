@@ -734,6 +734,119 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies ancillary known api routes with allowed methods under normalized variants as api_match", () => {
+    const agentsResult = classifyServerRoute(HTTP_METHOD.GET, "/api/agents");
+    const agentsTrailingResult = classifyServerRoute(HTTP_METHOD.GET, "/api/agents/");
+    const agentsQueryResult = classifyServerRoute(HTTP_METHOD.GET, "/api/agents?scope=all");
+    const agentsHashResult = classifyServerRoute(HTTP_METHOD.GET, "/api/agents#summary");
+    const agentsDoubleTrailingResult = classifyServerRoute(HTTP_METHOD.GET, "/api/agents//");
+    const eventsResult = classifyServerRoute(HTTP_METHOD.GET, "/api/events");
+    const eventsTrailingResult = classifyServerRoute(HTTP_METHOD.GET, "/api/events/");
+    const eventsQueryResult = classifyServerRoute(HTTP_METHOD.GET, "/api/events?scope=all");
+    const eventsHashResult = classifyServerRoute(HTTP_METHOD.GET, "/api/events#summary");
+    const eventsDoubleTrailingResult = classifyServerRoute(HTTP_METHOD.GET, "/api/events//");
+    const fileSearchResult = classifyServerRoute(HTTP_METHOD.GET, "/api/files/search?q=readme");
+    const fileSearchTrailingResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/api/files/search/?q=readme"
+    );
+    const fileSearchHashResult = classifyServerRoute(HTTP_METHOD.GET, "/api/files/search#summary");
+    const fileSearchDoubleTrailingResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/api/files/search//"
+    );
+    const appendResult = classifyServerRoute(HTTP_METHOD.POST, "/api/tui/append-prompt");
+    const appendTrailingResult = classifyServerRoute(HTTP_METHOD.POST, "/api/tui/append-prompt/");
+    const appendQueryResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/api/tui/append-prompt?scope=all"
+    );
+    const appendHashResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/api/tui/append-prompt#summary"
+    );
+    const appendDoubleTrailingResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/api/tui/append-prompt//"
+    );
+    const submitResult = classifyServerRoute(HTTP_METHOD.POST, "/api/tui/submit-prompt");
+    const submitTrailingResult = classifyServerRoute(HTTP_METHOD.POST, "/api/tui/submit-prompt/");
+    const submitQueryResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/api/tui/submit-prompt?scope=all"
+    );
+    const submitHashResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/api/tui/submit-prompt#summary"
+    );
+    const submitDoubleTrailingResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/api/tui/submit-prompt//"
+    );
+    expect(agentsResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(agentsTrailingResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(agentsQueryResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(agentsHashResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(agentsDoubleTrailingResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(eventsResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(eventsTrailingResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(eventsQueryResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(eventsHashResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(eventsDoubleTrailingResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(fileSearchResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(fileSearchTrailingResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(fileSearchHashResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(fileSearchDoubleTrailingResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(appendResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(appendTrailingResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(appendQueryResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(appendHashResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(appendDoubleTrailingResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(submitResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(submitTrailingResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(submitQueryResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(submitHashResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(submitDoubleTrailingResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+  });
+
+  it("classifies ancillary known api routes with lowercase and padded methods consistently", () => {
+    const paddedAgentsGetResult = classifyServerRoute(" get ", "/api/agents");
+    const lowercaseEventsGetResult = classifyServerRoute("get", "/api/events");
+    const paddedFileSearchGetResult = classifyServerRoute(" get ", "/api/files/search?q=readme");
+    const lowercaseAppendPostResult = classifyServerRoute("post", "/api/tui/append-prompt");
+    const paddedSubmitPostResult = classifyServerRoute(" post ", "/api/tui/submit-prompt");
+    const paddedAgentsPostResult = classifyServerRoute(" post ", "/api/agents");
+    const lowercaseEventsPostResult = classifyServerRoute("post", "/api/events");
+    const paddedFileSearchPostResult = classifyServerRoute(" post ", "/api/files/search?q=readme");
+    const lowercaseAppendGetResult = classifyServerRoute("get", "/api/tui/append-prompt");
+    const paddedSubmitGetResult = classifyServerRoute(" get ", "/api/tui/submit-prompt");
+    expect(paddedAgentsGetResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(lowercaseEventsGetResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(paddedFileSearchGetResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(lowercaseAppendPostResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(paddedSubmitPostResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(paddedAgentsPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(lowercaseEventsPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedFileSearchPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(lowercaseAppendGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedSubmitGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies session-collection api path variants with unsupported methods", () => {
     const baseResult = classifyServerRoute(HTTP_METHOD.POST, "/api/sessions");
     const queryResult = classifyServerRoute(HTTP_METHOD.POST, "/api/sessions?scope=all");

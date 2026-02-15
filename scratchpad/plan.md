@@ -14,6 +14,18 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded ancillary-api allowed+method-normalization parity:
+  - api-routes classifier unit suite now explicitly locks allowed-method
+    `MATCH` semantics for ancillary known routes:
+    `/api/agents`, `/api/events`, `/api/files/search`,
+    `/api/tui/append-prompt`, `/api/tui/submit-prompt`
+    across normalized trailing/query/hash/double variants.
+  - api-routes classifier unit suite now explicitly locks lowercase and
+    whitespace-padded method handling for those same ancillary routes,
+    including method-not-allowed outcomes on unsupported methods.
+  - server-route classifier unit suite now explicitly locks matching top-level
+    `API_MATCH` and `METHOD_NOT_ALLOWED` outcomes for the same ancillary route
+    matrix with normalized method handling.
 - Expanded ancillary-api method/auth parity:
   - api-routes classifier unit suite now explicitly locks unsupported-method
     semantics for additional known routes:
