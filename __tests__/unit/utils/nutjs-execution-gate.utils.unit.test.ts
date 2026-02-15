@@ -1,6 +1,9 @@
 import { ENV_KEY } from "@/constants/env-keys";
 import { NUTJS_EXECUTION_OUTCOME } from "@/constants/nutjs-execution";
-import { NUTJS_PERMISSION_STATUS } from "@/constants/nutjs-permissions";
+import {
+  NUTJS_PERMISSION_STATUS,
+  NUTJS_WINDOWS_INTEGRITY_LEVEL,
+} from "@/constants/nutjs-permissions";
 import { PLATFORM } from "@/constants/platform";
 import { NUTJS_EXECUTION_STAGE } from "@/constants/platform-fallback-precedence";
 import {
@@ -122,6 +125,54 @@ describe("nutjs execution gate", () => {
     expect(result.executed).toBe(false);
     expect(action).not.toHaveBeenCalled();
     expect(result.diagnostics?.linuxDisplayBackend.status).toBe(NUTJS_PERMISSION_STATUS.MISSING);
+  });
+
+  it("returns permission-missing when macOS accessibility is denied", async () => {
+    const action = vi.fn(async () => "executed");
+    const result = await runNutJsActionWithGate({
+      actionId: ACTION_ID,
+      action,
+      env: {
+        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
+        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: ACTION_ID,
+      },
+      capability: {
+        platform: PLATFORM.DARWIN,
+        hasRuntime: true,
+      },
+      diagnostics: {
+        macosAccessibilityGranted: false,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.PERMISSION_MISSING);
+    expect(result.executed).toBe(false);
+    expect(action).not.toHaveBeenCalled();
+    expect(result.diagnostics?.macosAccessibility.status).toBe(NUTJS_PERMISSION_STATUS.MISSING);
+  });
+
+  it("returns permission-missing for low windows integrity level", async () => {
+    const action = vi.fn(async () => "executed");
+    const result = await runNutJsActionWithGate({
+      actionId: ACTION_ID,
+      action,
+      env: {
+        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
+        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: ACTION_ID,
+      },
+      capability: {
+        platform: PLATFORM.WIN32,
+        hasRuntime: true,
+      },
+      diagnostics: {
+        windowsIntegrityLevel: NUTJS_WINDOWS_INTEGRITY_LEVEL.LOW,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.PERMISSION_MISSING);
+    expect(result.executed).toBe(false);
+    expect(action).not.toHaveBeenCalled();
+    expect(result.diagnostics?.windowsIntegrityLevel.status).toBe(NUTJS_PERMISSION_STATUS.MISSING);
   });
 
   it("does not block execution when permission state is unknown", async () => {

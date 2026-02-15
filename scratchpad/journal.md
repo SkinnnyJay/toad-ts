@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B54 cross-platform permission-gate assertions)
+
+### Summary
+- Added post-completion cross-platform hardening for NutJS permission diagnostics
+  gate semantics.
+- Updated:
+  - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added macOS accessibility-denied assertion path expecting
+    `permission_missing`.
+  - added Windows low-integrity assertion path expecting
+    `permission_missing`.
+  - asserted diagnostics status payloads for both new cross-platform paths.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B53 NutJS diagnostics assertion hardening)
 
 ### Summary

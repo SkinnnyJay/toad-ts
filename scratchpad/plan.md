@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added cross-platform permission diagnostics gate assertion hardening:
+  - unit coverage now asserts explicit `permission_missing` outcomes for:
+    - macOS accessibility denied diagnostics,
+    - Windows low-integrity diagnostics.
+  - added diagnostics-status assertions for both new cross-platform missing
+    permission paths.
 - Added NutJS diagnostics assertion hardening:
   - unit coverage now asserts diagnostics status metadata for executed and
     permission-missing outcomes.

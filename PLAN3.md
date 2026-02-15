@@ -7562,6 +7562,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - prevent regressions where outcome values remain correct but diagnostics
       payload metadata drifts from expected permission state.
 
+## Execution Log Addendum — 2026-02-14 (B54 cross-platform permission diagnostics gate assertions)
+
+- Post-completion hardening for NutJS permission gate coverage:
+  - Updated:
+    - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - Hardening changes:
+    - added unit coverage for macOS accessibility-denied diagnostics producing
+      `permission_missing`.
+    - added unit coverage for low Windows integrity diagnostics producing
+      `permission_missing`.
+    - asserted diagnostics status payload values for both new cross-platform
+      missing-permission paths.
+  - Goal:
+    - lock cross-platform permission diagnostics enforcement semantics in the
+      NutJS execution gate beyond Linux-only coverage.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7625,3 +7641,4 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B51 | P2 | enforce permission diagnostics stage in NutJS execution gate before action execution.
 - [x] - B52 | P2 | add Linux smoke assertion for permission-missing NutJS runtime without display backend.
 - [x] - B53 | P2 | assert NutJS diagnostics metadata for executed and permission-missing outcomes.
+- [x] - B54 | P2 | assert macOS and Windows permission-missing diagnostics enforcement in NutJS gate.
