@@ -14,6 +14,17 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded integration API hash method coverage:
+  - headless-server integration test
+    `returns method not allowed for known API routes with unsupported methods`
+    now includes hash and trailing-hash variants for:
+    - `/api/config`
+    - `/api/tui/execute-command`
+    - `/api/sessions/:id`
+    - `/api/sessions/:id/messages`.
+  - locks canonical `405` + `METHOD_NOT_ALLOWED` response semantics across
+    hash-bearing and combined trailing-slash+hash API method-guard paths in
+    end-to-end server behavior.
 - Expanded request-error pathname combined coverage:
   - request-error-normalization unit tests now include parsing-failure log
     normalization for combined trailing-slash + hash + query pathname form

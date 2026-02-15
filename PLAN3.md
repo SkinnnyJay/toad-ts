@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B152 integration api hash method coverage)
+
+- Expanded headless-server integration coverage for known API unsupported-method
+  semantics on hash and combined trailing-slash + hash path variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "returns method not allowed for known API routes with unsupported methods"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B151 request-error pathname combined coverage)
 
 - Expanded request-error-normalization unit coverage to lock combined

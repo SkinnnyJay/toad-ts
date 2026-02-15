@@ -8934,11 +8934,27 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
+      const configResponseWithHash = await fetch(`${baseUrl}/api/config#summary`, {
+        method: "POST",
+      });
+      expect(configResponseWithHash.status).toBe(405);
+      await expect(configResponseWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
       const trailingConfigResponseWithQuery = await fetch(`${baseUrl}/api/config/?scope=all`, {
         method: "POST",
       });
       expect(trailingConfigResponseWithQuery.status).toBe(405);
       await expect(trailingConfigResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const trailingConfigResponseWithHash = await fetch(`${baseUrl}/api/config/#summary`, {
+        method: "POST",
+      });
+      expect(trailingConfigResponseWithHash.status).toBe(405);
+      await expect(trailingConfigResponseWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
@@ -8960,11 +8976,25 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
+      const executeResponseWithHash = await fetch(`${baseUrl}/api/tui/execute-command#summary`);
+      expect(executeResponseWithHash.status).toBe(405);
+      await expect(executeResponseWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
       const trailingExecuteResponseWithQuery = await fetch(
         `${baseUrl}/api/tui/execute-command/?scope=all`
       );
       expect(trailingExecuteResponseWithQuery.status).toBe(405);
       await expect(trailingExecuteResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const trailingExecuteResponseWithHash = await fetch(
+        `${baseUrl}/api/tui/execute-command/#summary`
+      );
+      expect(trailingExecuteResponseWithHash.status).toBe(405);
+      await expect(trailingExecuteResponseWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
@@ -8995,6 +9025,17 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
+      const sessionRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/sessions/session-1#summary`,
+        {
+          method: "POST",
+        }
+      );
+      expect(sessionRouteResponseWithHash.status).toBe(405);
+      await expect(sessionRouteResponseWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
       const trailingSessionRouteResponseWithQuery = await fetch(
         `${baseUrl}/api/sessions/session-1/?scope=all`,
         {
@@ -9003,6 +9044,17 @@ describe("headless server", () => {
       );
       expect(trailingSessionRouteResponseWithQuery.status).toBe(405);
       await expect(trailingSessionRouteResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const trailingSessionRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/sessions/session-1/#summary`,
+        {
+          method: "POST",
+        }
+      );
+      expect(trailingSessionRouteResponseWithHash.status).toBe(405);
+      await expect(trailingSessionRouteResponseWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
@@ -9039,6 +9091,17 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
+      const sessionMessagesRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/sessions/session-1/messages#summary`,
+        {
+          method: "POST",
+        }
+      );
+      expect(sessionMessagesRouteResponseWithHash.status).toBe(405);
+      await expect(sessionMessagesRouteResponseWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
       const trailingSessionMessagesRouteResponseWithQuery = await fetch(
         `${baseUrl}/api/sessions/session-1/messages/?scope=all`,
         {
@@ -9047,6 +9110,17 @@ describe("headless server", () => {
       );
       expect(trailingSessionMessagesRouteResponseWithQuery.status).toBe(405);
       await expect(trailingSessionMessagesRouteResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const trailingSessionMessagesRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/sessions/session-1/messages/#summary`,
+        {
+          method: "POST",
+        }
+      );
+      expect(trailingSessionMessagesRouteResponseWithHash.status).toBe(405);
+      await expect(trailingSessionMessagesRouteResponseWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
     } finally {

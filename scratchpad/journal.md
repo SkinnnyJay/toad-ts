@@ -1,5 +1,38 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B152 integration api hash method coverage)
+
+### Summary
+- Expanded headless-server integration coverage for known API
+  method-not-allowed semantics on hash-bearing paths.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in
+    `returns method not allowed for known API routes with unsupported methods`,
+    added hash and trailing-hash assertions for:
+    - `/api/config`
+    - `/api/tui/execute-command`
+    - `/api/sessions/session-1`
+    - `/api/sessions/session-1/messages`
+    each locked to `405` + `METHOD_NOT_ALLOWED`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "returns method not allowed for known API routes with unsupported methods"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B151 request-error pathname combined coverage)
 
 ### Summary
