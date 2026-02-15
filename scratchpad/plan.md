@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown single-segment trailing parity:
+  - core-route classifier unit suite now includes explicit unknown single-segment
+    POST/GET parity assertions for trailing base/query/hash and double-trailing
+    query/hash variants (`/unknown/`, `/unknown/?scope=all`, `/unknown/#summary`,
+    `/unknown//`, `/unknown//?scope=all`, `/unknown//#summary`).
+  - server-route classifier unit suite now includes dedicated unknown
+    single-segment trailing+double-trailing POST/GET parity assertions.
 - Expanded root-unknown POST/GET parity hardening:
   - headless-server integration suite now includes explicit unauthenticated and
     authenticated POST assertions for root unknown variants:

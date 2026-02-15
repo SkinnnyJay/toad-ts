@@ -148,6 +148,42 @@ describe("classifyCoreRoute", () => {
     expect(classifyCoreRoute(HTTP_METHOD.POST, "/unknown")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/unknown/")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/unknown/")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/unknown/?scope=all")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/unknown/?scope=all")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/unknown/#summary")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/unknown/#summary")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/unknown//")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/unknown//")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/unknown//?scope=all")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/unknown//?scope=all")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/unknown//#summary")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/unknown//#summary")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/unknown-endpoint?scope=all")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });

@@ -1,3 +1,20 @@
+## 2026-02-14 Execution Update (B208 unknown single-segment trailing parity)
+
+- Expanded core/server classifier coverage for unknown single-segment routes
+  with explicit POST/GET parity across trailing base/query/hash and
+  double-trailing suffix variants.
+- Updated:
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Validation:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B207 root-unknown post/get parity hardening)
 
 - Expanded root-unknown coverage across integration and classifier unit suites

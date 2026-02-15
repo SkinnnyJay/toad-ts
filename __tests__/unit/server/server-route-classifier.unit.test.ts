@@ -265,6 +265,58 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies unknown single-segment trailing and double-trailing variants as unhandled", () => {
+    const trailingGetResult = classifyServerRoute(HTTP_METHOD.GET, "/unknown/");
+    const trailingPostResult = classifyServerRoute(HTTP_METHOD.POST, "/unknown/");
+    const doubleTrailingGetResult = classifyServerRoute(HTTP_METHOD.GET, "/unknown//");
+    const doubleTrailingPostResult = classifyServerRoute(HTTP_METHOD.POST, "/unknown//");
+    const doubleTrailingQueryGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/unknown//?scope=all"
+    );
+    const doubleTrailingQueryPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/unknown//?scope=all"
+    );
+    const doubleTrailingHashGetResult = classifyServerRoute(HTTP_METHOD.GET, "/unknown//#summary");
+    const doubleTrailingHashPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/unknown//#summary"
+    );
+    expect(trailingGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(trailingPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingQueryGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingQueryPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingHashGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingHashPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies unknown-endpoint trailing slash variants as unhandled", () => {
     const trailingGetResult = classifyServerRoute(HTTP_METHOD.GET, "/unknown-endpoint/");
     const trailingPostResult = classifyServerRoute(HTTP_METHOD.POST, "/unknown-endpoint/");
