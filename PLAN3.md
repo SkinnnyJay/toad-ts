@@ -1,3 +1,19 @@
+## 2026-02-14 Execution Update (B137 api-routes combined-suffix unit coverage)
+
+- Expanded API route matcher/classifier unit coverage for combined
+  trailing-slash + query suffix variants across match, method-not-allowed,
+  parameterized method-not-allowed, unknown not-found, and malformed not-found
+  classification paths.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B136 core-route classifier combined-suffix coverage)
 
 - Expanded core-route classifier unit coverage for combined trailing-slash +

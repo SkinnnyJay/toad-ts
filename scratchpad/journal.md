@@ -1,5 +1,38 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B137 api-routes combined-suffix unit coverage)
+
+### Summary
+- Expanded api-routes matcher/classifier unit coverage for combined
+  trailing-slash + query suffix variants.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added assertions for combined forms in:
+    - `matchRoute` positive matching (`/api/config/?view=compact`)
+    - `classifyApiRoute` match classification (`GET /api/config/?view=compact`)
+    - known-path method-not-allowed (`POST /api/config/?view=compact`)
+    - parameterized method-not-allowed
+      (`POST /api/sessions/:id/messages/?view=compact`)
+    - unknown-path not-found (`GET /api/does-not-exist/?view=compact`)
+    - malformed-path not-found (`POST /api//config/?scope=all`).
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B136 core-route classifier combined-suffix coverage)
 
 ### Summary

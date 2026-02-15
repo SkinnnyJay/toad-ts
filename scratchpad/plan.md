@@ -14,6 +14,15 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded api-routes combined-suffix unit coverage:
+  - api-routes unit tests now include combined trailing-slash+query forms for:
+    - direct matchRoute matching
+    - known-path method-not-allowed classification
+    - parameterized known-path method-not-allowed classification
+    - unknown-path not-found classification
+    - malformed-path not-found classification.
+  - locks classifier handler ownership and decision kind stability for combined
+    normalized API route forms.
 - Expanded core-route classifier combined-suffix coverage:
   - core-route classifier unit tests now include combined
     trailing-slash+query forms for:
