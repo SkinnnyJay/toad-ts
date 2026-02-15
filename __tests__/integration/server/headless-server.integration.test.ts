@@ -10083,9 +10083,17 @@ describe("headless server", () => {
       expect(healthQueryResponse.status).toBe(200);
       await expect(healthQueryResponse.json()).resolves.toEqual({ status: "ok" });
 
+      const healthHashResponse = await fetch(`${baseUrl}/health#summary`);
+      expect(healthHashResponse.status).toBe(200);
+      await expect(healthHashResponse.json()).resolves.toEqual({ status: "ok" });
+
       const healthTrailingSlashQueryResponse = await fetch(`${baseUrl}/health/?probe=1`);
       expect(healthTrailingSlashQueryResponse.status).toBe(200);
       await expect(healthTrailingSlashQueryResponse.json()).resolves.toEqual({ status: "ok" });
+
+      const healthTrailingSlashHashResponse = await fetch(`${baseUrl}/health/#summary`);
+      expect(healthTrailingSlashHashResponse.status).toBe(200);
+      await expect(healthTrailingSlashHashResponse.json()).resolves.toEqual({ status: "ok" });
 
       const unsupportedMethodResponse = await fetch(`${baseUrl}/health`, {
         method: "POST",
@@ -10114,12 +10122,30 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
+      const unsupportedMethodHashResponse = await fetch(`${baseUrl}/health#summary`, {
+        method: "POST",
+      });
+      expect(unsupportedMethodHashResponse.status).toBe(405);
+      expect(unsupportedMethodHashResponse.headers.get("www-authenticate")).toBeNull();
+      await expect(unsupportedMethodHashResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
       const unsupportedTrailingSlashQueryResponse = await fetch(`${baseUrl}/health/?probe=1`, {
         method: "POST",
       });
       expect(unsupportedTrailingSlashQueryResponse.status).toBe(405);
       expect(unsupportedTrailingSlashQueryResponse.headers.get("www-authenticate")).toBeNull();
       await expect(unsupportedTrailingSlashQueryResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const unsupportedTrailingSlashHashResponse = await fetch(`${baseUrl}/health/#summary`, {
+        method: "POST",
+      });
+      expect(unsupportedTrailingSlashHashResponse.status).toBe(405);
+      expect(unsupportedTrailingSlashHashResponse.headers.get("www-authenticate")).toBeNull();
+      await expect(unsupportedTrailingSlashHashResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
     } finally {

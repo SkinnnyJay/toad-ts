@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B154 health hash auth-bypass coverage)
+
+### Summary
+- Expanded password-protected health-route integration coverage for
+  hash and trailing-hash path variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in
+    `keeps health-route auth bypass semantics under password protection`,
+    added assertions for:
+    - `GET /health#summary` -> `200`
+    - `GET /health/#summary` -> `200`
+    - `POST /health#summary` -> `405` with no `www-authenticate`
+    - `POST /health/#summary` -> `405` with no `www-authenticate`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps health-route auth bypass semantics under password protection"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B153 protected-api hash auth-order coverage)
 
 ### Summary

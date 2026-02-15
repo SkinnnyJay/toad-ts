@@ -3,6 +3,10 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B154 health hash auth-bypass coverage hardening
+    (password-protected health-route integration coverage now explicitly locks
+    hash and trailing-hash variants for GET bypass and unsupported POST
+    method semantics without auth challenge)
   - completed B153 protected-api hash auth-order coverage hardening
     (password-protected API auth-before-method integration coverage now
     explicitly locks hash and trailing-hash variants for config and

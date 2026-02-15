@@ -14,6 +14,17 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded health hash auth-bypass coverage:
+  - password-protected health-route integration test
+    (`keeps health-route auth bypass semantics under password protection`)
+    now includes:
+    - `GET /health#summary`
+    - `GET /health/#summary`
+    - `POST /health#summary`
+    - `POST /health/#summary`.
+  - locks canonical auth-bypass semantics (`200` for GET, `405` without
+    auth challenge for POST) across hash-bearing and combined trailing-hash
+    health-route variants.
 - Expanded protected-API hash auth-order coverage:
   - password-protected API auth-before-method integration test
     (`applies auth checks before method-not-allowed semantics on api routes`)
