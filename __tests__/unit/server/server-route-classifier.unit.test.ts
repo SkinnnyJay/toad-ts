@@ -556,7 +556,12 @@ describe("classifyServerRoute", () => {
 
   it("classifies blank-session prompt direct-query paths as core unhandled", () => {
     const result = classifyServerRoute(HTTP_METHOD.POST, "/sessions//prompt?tail=1");
+    const getResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions//prompt?tail=1");
     expect(result).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(getResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
@@ -573,6 +578,10 @@ describe("classifyServerRoute", () => {
     const promptDoubleTrailingResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions//prompt//");
     const promptDoubleTrailingQueryResult = classifyServerRoute(
       HTTP_METHOD.POST,
+      "/sessions//prompt//?tail=1"
+    );
+    const promptDoubleTrailingQueryGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
       "/sessions//prompt//?tail=1"
     );
     const promptDoubleTrailingHashResult = classifyServerRoute(
@@ -621,6 +630,10 @@ describe("classifyServerRoute", () => {
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
     expect(promptDoubleTrailingQueryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(promptDoubleTrailingQueryGetResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });

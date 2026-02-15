@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded blank-session prompt malformed direct/trailing-query GET-method parity:
+  - unknown-route auth-order integration coverage now includes explicit GET
+    assertions for `/sessions//prompt?tail=1` and
+    `/sessions//prompt/?tail=1`.
+  - core/server route classifier unit suites now include explicit GET-method
+    assertions for `/sessions//prompt?tail=1` and
+    `/sessions//prompt//?tail=1` malformed prompt query forms.
 - Expanded blank-session prompt malformed base/trailing GET-method parity:
   - unknown-route auth-order integration coverage now includes explicit GET
     assertions for `/sessions//prompt` and `/sessions//prompt/`.
