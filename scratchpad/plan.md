@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded non-API trailing-slash method semantics coverage:
+  - integration now verifies trailing-slash variants of `/sessions`,
+    `/sessions/:id/prompt`, and `/sessions/:id/messages` keep canonical
+    `405` method-not-allowed responses for unsupported methods.
 - Expanded health-route auth-bypass coverage for trailing-slash variants:
   - password-protected integration test now asserts `/health/` retains bypass
     semantics for both successful `GET` and unsupported-method `405` responses

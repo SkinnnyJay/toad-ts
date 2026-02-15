@@ -8872,9 +8872,21 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
+      const trailingSessionsResponse = await fetch(`${baseUrl}/sessions/`);
+      expect(trailingSessionsResponse.status).toBe(405);
+      await expect(trailingSessionsResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
       const promptResponse = await fetch(`${baseUrl}/sessions/session-1/prompt`);
       expect(promptResponse.status).toBe(405);
       await expect(promptResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const trailingPromptResponse = await fetch(`${baseUrl}/sessions/session-1/prompt/`);
+      expect(trailingPromptResponse.status).toBe(405);
+      await expect(trailingPromptResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
@@ -8885,6 +8897,16 @@ describe("headless server", () => {
       });
       expect(messagesResponse.status).toBe(405);
       await expect(messagesResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const trailingMessagesResponse = await fetch(`${baseUrl}/sessions/session-1/messages/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "ignored" }),
+      });
+      expect(trailingMessagesResponse.status).toBe(405);
+      await expect(trailingMessagesResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
     } finally {

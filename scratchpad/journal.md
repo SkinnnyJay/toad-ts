@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B108 non-API trailing-slash method semantics coverage)
+
+### Summary
+- Expanded headless-server integration coverage to lock method-not-allowed
+  semantics for trailing-slash session routes.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added assertions proving unsupported methods on trailing-slash variants of:
+    - `/sessions/`
+    - `/sessions/:id/prompt/`
+    - `/sessions/:id/messages/`
+    return canonical `405` + `METHOD_NOT_ALLOWED` payloads.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B107 health-route trailing-slash auth bypass coverage)
 
 ### Summary
