@@ -3978,9 +3978,16 @@
     `src/utils/async/retryWithBackoff.ts`
   - added focused delay-spread coverage in
     `__tests__/unit/utils/retry-with-backoff.unit.test.ts`
+- Completed P1 backlog item B38 provider failure payload bounding:
+  - added provider payload truncation utilities in
+    `src/core/providers/provider-error.utils.ts`
+  - enforced bounded provider HTTP failure payload formatting across OpenAI,
+    OpenAI-compatible, Anthropic, and Ollama adapters
+  - added focused truncation coverage in
+    `__tests__/unit/core/provider-error.utils.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B38 by bounding/truncating oversized
-    provider failure log payloads
+  - evaluate severity backlog item B39 by throttling command-palette/filter
+    recompute path under rapid keypress input
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

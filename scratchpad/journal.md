@@ -1,5 +1,41 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B38 provider failure payload log bounding)
+
+### Summary
+- Completed P1 backlog item B38 in `PLAN3.md` by bounding provider failure
+  payload propagation in HTTP error messages.
+- Updated:
+  - `src/config/limits.ts`
+  - `src/core/providers/provider-error.utils.ts`
+  - `src/core/providers/openai-provider.ts`
+  - `src/core/providers/openai-compatible-provider.ts`
+  - `src/core/providers/anthropic-provider.ts`
+  - `src/core/providers/ollama-provider.ts`
+  - `__tests__/unit/core/provider-error.utils.unit.test.ts`
+  - `__tests__/unit/utils/update-check.unit.test.ts` (test temp-dir isolation cleanup)
+- Changes:
+  - centralized provider failure payload truncation + formatting.
+  - enforced bounded error payload formatting across provider adapters.
+  - added focused truncation/formatting regression coverage.
+  - isolated update-check runtime cache test to temporary cwd to avoid workspace
+    artifact pollution.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/core/provider-error.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B37 provider retry de-correlation hardening)
 
 ### Summary

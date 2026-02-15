@@ -1,5 +1,6 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path, { join } from "node:path";
 import { ENCODING } from "@/constants/encodings";
 import { FILE_PATH } from "@/constants/file-paths";
 import { INDENT_SPACES } from "@/constants/json-format";
@@ -93,8 +94,11 @@ describe("update-check", () => {
     const originalFetch = global.fetch;
     const fetchMock = vi.fn(async () => ({ ok: false }));
     global.fetch = fetchMock as unknown as typeof fetch;
+    const previousCwd = process.cwd();
+    const tempCwd = await mkdtemp(join(tmpdir(), "update-check-runtime-cache-"));
+    process.chdir(tempCwd);
 
-    const cacheDir = path.join(process.cwd(), FILE_PATH.TOADSTOOL_DIR);
+    const cacheDir = path.join(tempCwd, FILE_PATH.TOADSTOOL_DIR);
     await mkdir(cacheDir, { recursive: true });
     await writeFile(
       path.join(cacheDir, FILE_PATH.UPDATE_CACHE_JSON),
@@ -107,6 +111,8 @@ describe("update-check", () => {
       await checkForUpdates();
     } finally {
       global.fetch = originalFetch;
+      process.chdir(previousCwd);
+      await rm(tempCwd, { recursive: true, force: true });
     }
 
     expect(fetchMock).toHaveBeenCalledTimes(1);

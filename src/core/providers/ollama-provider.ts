@@ -1,4 +1,5 @@
 import { LIMIT } from "@/config/limits";
+import { formatProviderHttpError } from "./provider-error.utils";
 import type {
   ProviderAdapter,
   ProviderMessage,
@@ -69,7 +70,10 @@ export class OllamaProvider implements ProviderAdapter {
 
     if (!response.ok) {
       const errorText = await response.text();
-      yield { type: "error", error: `Ollama error ${response.status}: ${errorText}` };
+      yield {
+        type: "error",
+        error: formatProviderHttpError("Ollama", response.status, errorText),
+      };
       return;
     }
 

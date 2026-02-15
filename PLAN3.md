@@ -7265,6 +7265,26 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - reduce synchronized retry bursts across parallel retry loops and improve
       resilience under shared failure conditions.
 
+## Execution Log Addendum — 2026-02-14 (B38 provider failure payload log bounding)
+
+- Additional P1 backlog hardening for provider failure log safety:
+  - Updated:
+    - `src/config/limits.ts`
+    - `src/core/providers/provider-error.utils.ts` (new)
+    - `src/core/providers/openai-provider.ts`
+    - `src/core/providers/openai-compatible-provider.ts`
+    - `src/core/providers/anthropic-provider.ts`
+    - `src/core/providers/ollama-provider.ts`
+    - `__tests__/unit/core/provider-error.utils.unit.test.ts` (new)
+  - Hardening changes:
+    - introduced centralized provider failure payload truncation helpers.
+    - enforced bounded provider HTTP error payload logging across major provider
+      adapters.
+    - added focused truncation/formatting regression tests.
+  - Goal:
+    - cap oversized provider failure payload propagation to reduce log bloat and
+      avoid memory/terminal pressure from unbounded error responses.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7309,7 +7329,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B35 | P1 | batch and throttle token optimizer telemetry writes to reduce IO pressure.
 - [x] - B36 | P1 | cache update-check results with TTL to prevent repeated remote calls in one runtime.
 - [x] - B37 | P1 | de-correlate provider retries to avoid synchronized thundering-herd behavior.
-- [ ] - B38 | P1 | bound error log payload size for provider streaming failures.
+- [x] - B38 | P1 | bound error log payload size for provider streaming failures.
 - [ ] - B39 | P1 | throttle command-palette/filter recompute path under rapid keypress input.
 - [ ] - B40 | P1 | add hard caps for nested hook/prompt subprocess chains.
 

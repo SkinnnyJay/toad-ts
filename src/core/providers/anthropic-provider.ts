@@ -1,6 +1,7 @@
 import { LIMIT } from "@/config/limits";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { PROVIDER_STREAM } from "@/constants/provider-stream";
+import { formatProviderHttpError } from "./provider-error.utils";
 import type {
   ProviderAdapter,
   ProviderMessage,
@@ -110,7 +111,10 @@ export class AnthropicProvider implements ProviderAdapter {
 
     if (!response.ok) {
       const errorText = await response.text();
-      yield { type: "error", error: `Anthropic API error ${response.status}: ${errorText}` };
+      yield {
+        type: "error",
+        error: formatProviderHttpError("Anthropic", response.status, errorText),
+      };
       return;
     }
 

@@ -1,5 +1,6 @@
 import { LIMIT } from "@/config/limits";
 import { PROVIDER_STREAM } from "@/constants/provider-stream";
+import { formatProviderHttpError } from "./provider-error.utils";
 import type {
   ProviderAdapter,
   ProviderMessage,
@@ -93,7 +94,10 @@ export class OpenAICompatibleProvider implements ProviderAdapter {
 
     if (!response.ok) {
       const errorText = await response.text();
-      yield { type: "error", error: `${this.name} API error ${response.status}: ${errorText}` };
+      yield {
+        type: "error",
+        error: formatProviderHttpError(this.name, response.status, errorText),
+      };
       return;
     }
 
