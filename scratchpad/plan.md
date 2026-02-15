@@ -14,6 +14,15 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded server-route classifier combined-path coverage:
+  - server-route classifier unit tests now include combined
+    trailing-slash+query API path forms for:
+    - API match classification
+    - API method-not-allowed classification
+    - API-root unhandled scoping
+    - malformed API double-segment unhandled scoping.
+  - locks classifier handler ownership and route-kind decisions for those
+    combined normalized forms.
 - Expanded protected-api execute-command auth-order coverage:
   - protected API auth-before-method integration now includes
     `/api/tui/execute-command` unsupported-method variants for base, trailing,

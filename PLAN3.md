@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B135 server-route classifier combined-path coverage)
+
+- Expanded server-route classifier unit coverage for combined
+  trailing-slash+query API path variants across match, method-not-allowed,
+  API-root unhandled, and malformed double-segment unhandled classifications.
+- Updated:
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B134 protected-api execute-command auth-order coverage)
 
 - Expanded password-protected API auth-before-method integration coverage for

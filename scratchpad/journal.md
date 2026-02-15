@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B135 server-route classifier combined-path coverage)
+
+### Summary
+- Expanded server-route classifier unit coverage for combined trailing-slash +
+  query API path variants.
+- Updated:
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added classification assertions for:
+    - API match on `/api/config/?view=compact`
+    - API method-not-allowed on `/api/config/?view=compact` (wrong method)
+    - API-root unhandled on `/api/?scope=all`
+    - malformed API double-segment unhandled on `/api//config/?scope=all`
+  - each assertion locks canonical server-route classification and handler
+    ownership (`API_ROUTE_CLASSIFIER`) for combined normalized forms.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B134 protected-api execute-command auth-order coverage)
 
 ### Summary
