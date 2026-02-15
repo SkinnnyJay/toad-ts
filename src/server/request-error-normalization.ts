@@ -59,6 +59,13 @@ const resolveErrorMessage = (error: unknown): string | null => {
     if (typeof message === "string") {
       return message;
     }
+    if (
+      typeof message === "number" ||
+      typeof message === "boolean" ||
+      typeof message === "bigint"
+    ) {
+      return String(message);
+    }
   }
   return null;
 };

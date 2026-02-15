@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added request-error detail extraction hardening:
+  - parse-error detail mapping now preserves numeric/boolean/bigint `message`
+    payloads from thrown objects instead of degrading to generic object strings.
+  - expanded request-error normalization unit coverage for numeric message
+    payload handling.
 - Added request parsing-log handler normalization hardening:
   - request parse/validation log metadata now trims handler names and omits
     blank handler values from telemetry payloads.

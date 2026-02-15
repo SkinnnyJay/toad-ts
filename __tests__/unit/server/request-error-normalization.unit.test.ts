@@ -90,6 +90,17 @@ describe("request-error-normalization", () => {
     });
   });
 
+  it("returns normalized parse error details for numeric object messages", () => {
+    const error = {
+      message: 503,
+    };
+
+    expect(normalizeRequestBodyParseErrorDetails(error)).toEqual({
+      message: INVALID_MESSAGE,
+      error: "503",
+    });
+  });
+
   it("logs normalized parsing metadata with standardized keys", () => {
     const warn = vi.fn();
     const logger = { warn } as {

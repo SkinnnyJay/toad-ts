@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B75 request-error detail extraction hardening)
+
+- Added request-error normalization hardening for object-thrown numeric message
+  payloads.
+- Updated:
+  - `src/server/request-error-normalization.ts`
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B74 request parsing-log handler normalization)
 
 - Added request parsing-log normalization hardening for handler metadata.

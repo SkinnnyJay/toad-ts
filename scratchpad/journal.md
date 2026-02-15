@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B75 request-error detail extraction hardening)
+
+### Summary
+- Added post-completion hardening for parse-error detail extraction when thrown
+  payloads are objects with non-string `message` values.
+- Updated:
+  - `src/server/request-error-normalization.ts`
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - request-error message extraction now preserves numeric/boolean/bigint
+    `message` fields from object throws.
+  - normalized details now emit stable string values for these message shapes
+    instead of generic object-string fallbacks.
+  - added focused unit coverage for numeric message payload handling.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B74 request parsing-log handler normalization hardening)
 
 ### Summary
