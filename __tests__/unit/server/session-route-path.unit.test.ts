@@ -42,4 +42,15 @@ describe("parseSessionRoutePath", () => {
       action: "prompt",
     });
   });
+
+  it("parses session route paths with query or hash suffixes", () => {
+    expect(parseSessionRoutePath("/sessions/session-1/prompt?view=full")).toEqual({
+      sessionId: "session-1",
+      action: "prompt",
+    });
+    expect(parseSessionRoutePath("/sessions/session-1/messages#tail")).toEqual({
+      sessionId: "session-1",
+      action: "messages",
+    });
+  });
 });

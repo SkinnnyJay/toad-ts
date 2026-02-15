@@ -19,6 +19,13 @@ describe("classifyCoreRoute", () => {
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.HEALTH_OK });
   });
 
+  it("returns health_ok for GET /health with query/hash suffixes", () => {
+    const queryResult = classifyCoreRoute(HTTP_METHOD.GET, "/health?check=true");
+    const hashResult = classifyCoreRoute(HTTP_METHOD.GET, "/health#summary");
+    expect(queryResult).toEqual({ kind: CORE_ROUTE_DECISION.HEALTH_OK });
+    expect(hashResult).toEqual({ kind: CORE_ROUTE_DECISION.HEALTH_OK });
+  });
+
   it("returns method_not_allowed for non-GET /health", () => {
     const result = classifyCoreRoute(HTTP_METHOD.POST, SERVER_PATH.HEALTH);
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
@@ -34,9 +41,26 @@ describe("classifyCoreRoute", () => {
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
   });
 
+  it("returns method_not_allowed for non-POST prompt route with query/hash suffixes", () => {
+    const queryResult = classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1/prompt?view=full");
+    const hashResult = classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1/prompt#latest");
+    expect(queryResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(hashResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+  });
+
   it("returns method_not_allowed for non-GET /sessions/:id/messages", () => {
     const result = classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1/messages");
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+  });
+
+  it("returns method_not_allowed for non-GET messages route with query/hash suffixes", () => {
+    const queryResult = classifyCoreRoute(
+      HTTP_METHOD.POST,
+      "/sessions/session-1/messages?limit=10"
+    );
+    const hashResult = classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1/messages#tail");
+    expect(queryResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(hashResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
   });
 
   it("returns unhandled for unknown routes and malformed session paths", () => {

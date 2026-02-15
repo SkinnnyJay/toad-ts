@@ -70,6 +70,13 @@ describe("API Routes", () => {
       expect(result).not.toBeNull();
     });
 
+    it("should match routes when pathname includes query or hash suffixes", () => {
+      const queryResult = matchRoute("GET", "/api/config?view=compact");
+      const hashResult = matchRoute("GET", "/api/config#summary");
+      expect(queryResult).not.toBeNull();
+      expect(hashResult).not.toBeNull();
+    });
+
     it("should return null for unknown routes", () => {
       expect(matchRoute("GET", "/api/unknown")).toBeNull();
       expect(matchRoute("PUT", "/api/sessions")).toBeNull();
@@ -92,6 +99,13 @@ describe("API Routes", () => {
       expect(result.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
     });
 
+    it("classifies query/hash suffixed pathnames with matching routes as match", () => {
+      const queryResult = classifyApiRoute("GET", "/api/config?view=compact");
+      const hashResult = classifyApiRoute("GET", "/api/config#summary");
+      expect(queryResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(hashResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+    });
+
     it("classifies known path with unsupported method as method not allowed", () => {
       const result = classifyApiRoute("POST", "/api/config");
       expect(result).toEqual({
@@ -108,6 +122,19 @@ describe("API Routes", () => {
       });
     });
 
+    it("classifies query/hash suffixed known path with unsupported method", () => {
+      const queryResult = classifyApiRoute("POST", "/api/config?view=compact");
+      const hashResult = classifyApiRoute("POST", "/api/config#summary");
+      expect(queryResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(hashResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
     it("classifies unknown path as not found", () => {
       const result = classifyApiRoute("GET", "/api/does-not-exist");
       expect(result).toEqual({
@@ -119,6 +146,19 @@ describe("API Routes", () => {
     it("classifies padded unknown path as not found", () => {
       const result = classifyApiRoute("GET", " /api/does-not-exist ");
       expect(result).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
+    it("classifies query/hash suffixed unknown path as not found", () => {
+      const queryResult = classifyApiRoute("GET", "/api/does-not-exist?view=compact");
+      const hashResult = classifyApiRoute("GET", "/api/does-not-exist#summary");
+      expect(queryResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(hashResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });

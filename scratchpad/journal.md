@@ -1,5 +1,44 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B98 shared route-pathname normalization extraction)
+
+### Summary
+- Extracted shared route pathname normalization so classifier/parser entrypoints
+  consistently trim input and drop query/hash suffixes for direct-call
+  robustness.
+- Updated:
+  - `src/server/pathname-normalization.ts` (new)
+  - `src/server/core-route-classifier.ts`
+  - `src/server/api-routes.ts`
+  - `src/server/server-route-classifier.ts`
+  - `src/server/session-route-path.ts`
+  - `__tests__/unit/server/pathname-normalization.unit.test.ts` (new)
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added `normalizeRoutePathname(...)` helper.
+  - classifier and session-path parsing entrypoints now use shared helper.
+  - added regression coverage for query/hash suffixed route-path inputs across
+    helper/core/API/server/session route parsing behavior.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/pathname-normalization.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/unit/server/session-route-path.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B97 classifier padded-path regression coverage)
 
 ### Summary

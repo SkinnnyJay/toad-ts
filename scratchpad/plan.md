@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added shared route-pathname normalization hardening:
+  - new `normalizeRoutePathname(...)` strips query/hash suffixes and trims
+    whitespace for classifier-facing path inputs.
+  - core/API/server route classifiers and session-route parsing now reuse shared
+    pathname normalization.
+  - added focused unit coverage for helper behavior plus query/hash suffixed
+    route classification.
 - Expanded classifier padded-path test coverage:
   - added explicit method-not-allowed and not-found coverage for padded API
     pathnames in `classifyApiRoute`.

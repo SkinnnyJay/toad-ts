@@ -1,3 +1,26 @@
+## 2026-02-14 Execution Update (B98 shared route-pathname normalization)
+
+- Added shared route-pathname normalization utility that trims path input and
+  strips query/hash suffixes before route classification.
+- Updated:
+  - `src/server/pathname-normalization.ts`
+  - `src/server/core-route-classifier.ts`
+  - `src/server/api-routes.ts`
+  - `src/server/server-route-classifier.ts`
+  - `src/server/session-route-path.ts`
+  - `__tests__/unit/server/pathname-normalization.unit.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/pathname-normalization.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/unit/server/session-route-path.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B97 classifier padded-path regression coverage)
 
 - Expanded classifier regression tests to lock in padded-pathname behavior for

@@ -9,6 +9,7 @@ import {
   classifyApiRoute,
 } from "@/server/api-routes";
 import { CORE_ROUTE_DECISION, classifyCoreRoute } from "@/server/core-route-classifier";
+import { normalizeRoutePathname } from "@/server/pathname-normalization";
 
 export const SERVER_ROUTE_CLASSIFICATION = {
   HEALTH_OK: "health_ok",
@@ -59,7 +60,7 @@ export const classifyServerRoute = (
   method: string,
   pathname: string
 ): ServerRouteClassification => {
-  const normalizedPathname = pathname.trim();
+  const normalizedPathname = normalizeRoutePathname(pathname);
   const coreClassification = classifyCoreRoute(method, normalizedPathname);
   if (coreClassification.kind === CORE_ROUTE_DECISION.HEALTH_OK) {
     return { kind: SERVER_ROUTE_CLASSIFICATION.HEALTH_OK };

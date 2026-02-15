@@ -9,6 +9,7 @@ import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { normalizeHttpMethod } from "@/server/http-method-normalization";
 import { sendJsonResponse } from "@/server/http-response";
+import { normalizeRoutePathname } from "@/server/pathname-normalization";
 import { parseJsonRequestBody } from "@/server/request-body";
 import {
   REQUEST_PARSING_SOURCE,
@@ -433,7 +434,7 @@ export const API_ROUTES: Route[] = [
 
 export const matchRoute = (method: string, pathname: string): RouteMatchResult | null => {
   const normalizedMethod = normalizeHttpMethod(method);
-  const normalizedPathname = pathname.trim();
+  const normalizedPathname = normalizeRoutePathname(pathname);
   for (const route of API_ROUTES) {
     if (route.method !== normalizedMethod) continue;
     const match = normalizedPathname.match(route.pattern);
@@ -455,7 +456,7 @@ export interface RouteMatchResult {
 }
 
 export const classifyApiRoute = (method: string, pathname: string): ApiRouteClassification => {
-  const normalizedPathname = pathname.trim();
+  const normalizedPathname = normalizeRoutePathname(pathname);
   const matched = matchRoute(method, normalizedPathname);
   if (matched) {
     return {

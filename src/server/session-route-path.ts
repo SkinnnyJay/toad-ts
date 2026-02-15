@@ -1,5 +1,6 @@
 import { LIMIT } from "@/config/limits";
 import { SERVER_PATH } from "@/constants/server-paths";
+import { normalizeRoutePathname } from "@/server/pathname-normalization";
 
 export interface SessionRoutePath {
   readonly sessionId?: string;
@@ -15,7 +16,7 @@ const normalizeRouteSegment = (segment: string | undefined): string | undefined 
 };
 
 export const parseSessionRoutePath = (pathname: string): SessionRoutePath | null => {
-  const normalizedPathname = pathname.trim();
+  const normalizedPathname = normalizeRoutePathname(pathname);
   if (!normalizedPathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
     return null;
   }

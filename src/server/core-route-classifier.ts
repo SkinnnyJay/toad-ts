@@ -1,6 +1,7 @@
 import { HTTP_METHOD } from "@/constants/http-methods";
 import { SERVER_PATH } from "@/constants/server-paths";
 import { normalizeHttpMethod } from "@/server/http-method-normalization";
+import { normalizeRoutePathname } from "@/server/pathname-normalization";
 import { parseSessionRoutePath } from "@/server/session-route-path";
 
 export const CORE_ROUTE_DECISION = {
@@ -22,7 +23,7 @@ type CoreRouteDecision =
 
 export const classifyCoreRoute = (method: string, pathname: string): CoreRouteDecision => {
   const normalizedMethod = normalizeHttpMethod(method);
-  const normalizedPathname = pathname.trim();
+  const normalizedPathname = normalizeRoutePathname(pathname);
   if (normalizedPathname === SERVER_PATH.HEALTH) {
     if (normalizedMethod === HTTP_METHOD.GET) {
       return { kind: CORE_ROUTE_DECISION.HEALTH_OK };
