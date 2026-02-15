@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B89 session-messages schema non-blank id)
+
+- Hardened `sessionMessagesRequestSchema` to reject whitespace-only `sessionId`
+  values.
+- Updated:
+  - `src/server/server-types.ts`
+  - `__tests__/unit/server/server-types.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/server-types.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B88 session-route parser normalization)
 
 - Hardened `parseSessionRoutePath(...)`:

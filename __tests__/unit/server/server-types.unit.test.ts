@@ -107,6 +107,7 @@ describe("server-types schemas", () => {
 
   it("requires session id for messages requests", () => {
     expect(sessionMessagesRequestSchema.safeParse({}).success).toBe(false);
+    expect(sessionMessagesRequestSchema.safeParse({ sessionId: "   " }).success).toBe(false);
     expect(sessionMessagesRequestSchema.safeParse({ sessionId: "session-1" }).success).toBe(true);
   });
 

@@ -3,6 +3,7 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B89 session-messages schema non-blank session-id hardening
   - completed B88 session-route parser segment normalization hardening
     (blank segment rejection + pathname trim normalization)
   - completed B87 server runtime host validation hardening

@@ -39,7 +39,7 @@ export type PromptSessionRequest = z.infer<typeof promptSessionRequestSchema>;
 
 export const sessionMessagesRequestSchema = z
   .object({
-    sessionId: SessionIdSchema,
+    sessionId: SessionIdSchema.refine(isNonBlankString),
   })
   .strict();
 

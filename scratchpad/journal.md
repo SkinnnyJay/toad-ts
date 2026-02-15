@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B89 session-messages schema non-blank session id)
+
+### Summary
+- Hardened server schema validation for session-messages request payloads to
+  reject whitespace-only session ids.
+- Updated:
+  - `src/server/server-types.ts`
+  - `__tests__/unit/server/server-types.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - `sessionMessagesRequestSchema` now refines `sessionId` to require a
+    non-blank value after trim.
+  - added focused schema test coverage for whitespace-only session id
+    rejection.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/server-types.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B88 session-route parser segment normalization)
 
 ### Summary

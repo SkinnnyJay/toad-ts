@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added session-messages schema non-blank session-id hardening:
+  - `sessionMessagesRequestSchema` now rejects whitespace-only session id
+    payloads.
+  - expanded schema tests to cover blank session-id rejection.
 - Added session-route parser segment normalization hardening:
   - parser now trims incoming route path text and rejects blank/missing
     `sessionId` or blank action segments.
