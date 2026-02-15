@@ -3,6 +3,11 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B175 unknown-route double-trailing auth-order coverage hardening
+    (unknown-route auth-order integration coverage now explicitly locks
+    double-trailing core unknown path forms under password protection with
+    canonical unauthenticated `401` + challenge and authenticated `404` +
+    `NOT_FOUND` ordering)
   - completed B174 unknown-root auth-order parity coverage hardening
     (unknown-route auth-order integration coverage now explicitly locks root
     path unauthenticated/authenticated ordering across base/query/hash forms)

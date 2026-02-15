@@ -10617,6 +10617,26 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedDoubleTrailingCoreUnknown = await fetch(`${baseUrl}/unknown-endpoint//`);
+      expect(unauthenticatedDoubleTrailingCoreUnknown.status).toBe(401);
+      expect(unauthenticatedDoubleTrailingCoreUnknown.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedDoubleTrailingCoreUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedDoubleTrailingCoreUnknownWithQuery = await fetch(
+        `${baseUrl}/unknown-endpoint//?scope=all`
+      );
+      expect(unauthenticatedDoubleTrailingCoreUnknownWithQuery.status).toBe(401);
+      expect(
+        unauthenticatedDoubleTrailingCoreUnknownWithQuery.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedDoubleTrailingCoreUnknownWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedMalformedApiUnknown = await fetch(`${baseUrl}/api//config`, {
         method: "POST",
       });
@@ -11210,6 +11230,29 @@ describe("headless server", () => {
       );
       expect(authenticatedTrailingCoreUnknownWithHash.status).toBe(404);
       await expect(authenticatedTrailingCoreUnknownWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedDoubleTrailingCoreUnknown = await fetch(`${baseUrl}/unknown-endpoint//`, {
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedDoubleTrailingCoreUnknown.status).toBe(404);
+      await expect(authenticatedDoubleTrailingCoreUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedDoubleTrailingCoreUnknownWithQuery = await fetch(
+        `${baseUrl}/unknown-endpoint//?scope=all`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedDoubleTrailingCoreUnknownWithQuery.status).toBe(404);
+      await expect(authenticatedDoubleTrailingCoreUnknownWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 
