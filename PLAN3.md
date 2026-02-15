@@ -1,3 +1,20 @@
+## 2026-02-14 Execution Update (B207 root-unknown post/get parity hardening)
+
+- Expanded root-unknown coverage across integration and classifier unit suites
+  with explicit POST/GET parity for base/query/hash root paths.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Validation:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B206 unknown-endpoint trailing-variant classifier parity)
 
 - Expanded core/server classifier coverage for unknown-endpoint trailing-slash

@@ -124,6 +124,24 @@ describe("classifyCoreRoute", () => {
   });
 
   it("returns unhandled for unknown routes and malformed session paths", () => {
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/?scope=all")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/?scope=all")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/#summary")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/#summary")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/unknown")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });

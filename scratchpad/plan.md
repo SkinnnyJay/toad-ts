@@ -14,6 +14,14 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded root-unknown POST/GET parity hardening:
+  - headless-server integration suite now includes explicit unauthenticated and
+    authenticated POST assertions for root unknown variants:
+    `/`, `/?scope=all`, and `/#summary`.
+  - core-route classifier unit suite now includes explicit POST/GET assertions
+    for root unknown base/query/hash variants.
+  - server-route classifier unit suite now includes dedicated root unknown
+    POST/GET parity assertions for base/query/hash ownership semantics.
 - Expanded unknown-endpoint trailing-variant classifier parity:
   - core-route classifier unit suite now includes explicit POST/GET assertions
     for `/unknown-endpoint/`, `/unknown-endpoint/?scope=all`, and

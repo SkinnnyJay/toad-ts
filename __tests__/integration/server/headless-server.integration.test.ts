@@ -10581,6 +10581,14 @@ describe("headless server", () => {
       await expect(unauthenticatedRootUnknown.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
+      const unauthenticatedRootUnknownPost = await fetch(`${baseUrl}/`, {
+        method: "POST",
+      });
+      expect(unauthenticatedRootUnknownPost.status).toBe(401);
+      expect(unauthenticatedRootUnknownPost.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedRootUnknownPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
 
       const unauthenticatedRootUnknownWithQuery = await fetch(`${baseUrl}/?scope=all`);
       expect(unauthenticatedRootUnknownWithQuery.status).toBe(401);
@@ -10588,11 +10596,29 @@ describe("headless server", () => {
       await expect(unauthenticatedRootUnknownWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
+      const unauthenticatedRootUnknownWithQueryPost = await fetch(`${baseUrl}/?scope=all`, {
+        method: "POST",
+      });
+      expect(unauthenticatedRootUnknownWithQueryPost.status).toBe(401);
+      expect(unauthenticatedRootUnknownWithQueryPost.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedRootUnknownWithQueryPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
 
       const unauthenticatedRootUnknownWithHash = await fetch(`${baseUrl}/#summary`);
       expect(unauthenticatedRootUnknownWithHash.status).toBe(401);
       expect(unauthenticatedRootUnknownWithHash.headers.get("www-authenticate")).toBe("Bearer");
       await expect(unauthenticatedRootUnknownWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedRootUnknownWithHashPost = await fetch(`${baseUrl}/#summary`, {
+        method: "POST",
+      });
+      expect(unauthenticatedRootUnknownWithHashPost.status).toBe(401);
+      expect(unauthenticatedRootUnknownWithHashPost.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedRootUnknownWithHashPost.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -12076,6 +12102,16 @@ describe("headless server", () => {
       await expect(authenticatedRootUnknown.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
+      const authenticatedRootUnknownPost = await fetch(`${baseUrl}/`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedRootUnknownPost.status).toBe(404);
+      await expect(authenticatedRootUnknownPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
 
       const authenticatedRootUnknownWithQuery = await fetch(`${baseUrl}/?scope=all`, {
         headers: {
@@ -12086,6 +12122,16 @@ describe("headless server", () => {
       await expect(authenticatedRootUnknownWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
+      const authenticatedRootUnknownWithQueryPost = await fetch(`${baseUrl}/?scope=all`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedRootUnknownWithQueryPost.status).toBe(404);
+      await expect(authenticatedRootUnknownWithQueryPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
 
       const authenticatedRootUnknownWithHash = await fetch(`${baseUrl}/#summary`, {
         headers: {
@@ -12094,6 +12140,16 @@ describe("headless server", () => {
       });
       expect(authenticatedRootUnknownWithHash.status).toBe(404);
       await expect(authenticatedRootUnknownWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedRootUnknownWithHashPost = await fetch(`${baseUrl}/#summary`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedRootUnknownWithHashPost.status).toBe(404);
+      await expect(authenticatedRootUnknownWithHashPost.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 

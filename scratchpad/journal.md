@@ -1,5 +1,41 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B207 root-unknown post/get parity hardening)
+
+### Summary
+- Expanded root-unknown coverage across integration and classifier unit suites
+  with explicit POST/GET parity for base/query/hash root paths.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added headless-server integration unauthenticated/authenticated POST parity
+    assertions for root unknown variants:
+    - `/`
+    - `/?scope=all`
+    - `/#summary`
+  - added core-route classifier POST/GET parity assertions for the same root
+    unknown variants.
+  - added server-route classifier root unknown POST/GET parity test for
+    base/query/hash ownership semantics.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B206 unknown-endpoint trailing-variant classifier parity)
 
 ### Summary
