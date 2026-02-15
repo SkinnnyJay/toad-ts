@@ -1,5 +1,46 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B128 unknown-route query-trailing auth-order coverage)
+
+### Summary
+- Expanded password-protected unknown-route auth-order integration coverage
+  for combined trailing-slash + query path variants across API/core/session
+  unknown routes and malformed API/session paths.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in `applies auth checks before not-found semantics on unknown routes`:
+    - added unauthenticated assertions for:
+      - `/api/?scope=all`
+      - `/unknown-endpoint/?scope=all`
+      - `/api//config/?scope=all`
+      - `/api/sessions//messages/?scope=all`
+      - `/sessions/session-1/unsupported/?scope=all`
+      - `/sessions/session-1/?scope=all`
+      - `/sessions//prompt/?tail=1`
+      - `/sessions//messages/?tail=1`
+      each expecting `401` + `WWW-Authenticate: Bearer`.
+    - added authenticated assertions for the same combined variants, locking
+      canonical:
+      - `404 + NOT_FOUND` for API/core variants
+      - `404 + UNKNOWN_ENDPOINT` for session variants.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B127 unknown-route query auth-order coverage)
 
 ### Summary

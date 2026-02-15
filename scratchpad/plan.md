@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-route query+trailing auth-order coverage:
+  - unknown-route auth-order integration now includes combined
+    trailing-slash+query variants for API/core/session unknown routes and
+    malformed API/session paths.
+  - locks pre-auth `401` + challenge and authenticated `404` semantics across
+    combined normalized route forms.
 - Expanded unknown-route query auth-order coverage:
   - unknown-route auth-order integration now includes query-suffixed variants
     for API and malformed/unknown session paths.

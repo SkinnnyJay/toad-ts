@@ -9343,6 +9343,15 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedTrailingApiUnknownWithQuery = await fetch(`${baseUrl}/api/?scope=all`);
+      expect(unauthenticatedTrailingApiUnknownWithQuery.status).toBe(401);
+      expect(unauthenticatedTrailingApiUnknownWithQuery.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedTrailingApiUnknownWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedCoreUnknown = await fetch(`${baseUrl}/unknown-endpoint`);
       expect(unauthenticatedCoreUnknown.status).toBe(401);
       expect(unauthenticatedCoreUnknown.headers.get("www-authenticate")).toBe("Bearer");
@@ -9354,6 +9363,17 @@ describe("headless server", () => {
       expect(unauthenticatedTrailingCoreUnknown.status).toBe(401);
       expect(unauthenticatedTrailingCoreUnknown.headers.get("www-authenticate")).toBe("Bearer");
       await expect(unauthenticatedTrailingCoreUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedTrailingCoreUnknownWithQuery = await fetch(
+        `${baseUrl}/unknown-endpoint/?scope=all`
+      );
+      expect(unauthenticatedTrailingCoreUnknownWithQuery.status).toBe(401);
+      expect(unauthenticatedTrailingCoreUnknownWithQuery.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedTrailingCoreUnknownWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -9374,6 +9394,20 @@ describe("headless server", () => {
         "Bearer"
       );
       await expect(unauthenticatedTrailingMalformedApiUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedTrailingMalformedApiUnknownWithQuery = await fetch(
+        `${baseUrl}/api//config/?scope=all`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedTrailingMalformedApiUnknownWithQuery.status).toBe(401);
+      expect(
+        unauthenticatedTrailingMalformedApiUnknownWithQuery.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedTrailingMalformedApiUnknownWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -9405,6 +9439,22 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedTrailingMalformedApiSessionUnknownWithQuery = await fetch(
+        `${baseUrl}/api/sessions//messages/?scope=all`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedTrailingMalformedApiSessionUnknownWithQuery.status).toBe(401);
+      expect(
+        unauthenticatedTrailingMalformedApiSessionUnknownWithQuery.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(
+        unauthenticatedTrailingMalformedApiSessionUnknownWithQuery.json()
+      ).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedSessionUnknown = await fetch(
         `${baseUrl}/sessions/session-1/unsupported`
       );
@@ -9432,6 +9482,17 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedTrailingSessionUnknownWithQuery = await fetch(
+        `${baseUrl}/sessions/session-1/unsupported/?scope=all`
+      );
+      expect(unauthenticatedTrailingSessionUnknownWithQuery.status).toBe(401);
+      expect(unauthenticatedTrailingSessionUnknownWithQuery.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedTrailingSessionUnknownWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedSessionMissingAction = await fetch(`${baseUrl}/sessions/session-1`);
       expect(unauthenticatedSessionMissingAction.status).toBe(401);
       expect(unauthenticatedSessionMissingAction.headers.get("www-authenticate")).toBe("Bearer");
@@ -9447,6 +9508,17 @@ describe("headless server", () => {
         "Bearer"
       );
       await expect(unauthenticatedTrailingSessionMissingAction.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedTrailingSessionMissingActionWithQuery = await fetch(
+        `${baseUrl}/sessions/session-1/?scope=all`
+      );
+      expect(unauthenticatedTrailingSessionMissingActionWithQuery.status).toBe(401);
+      expect(
+        unauthenticatedTrailingSessionMissingActionWithQuery.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedTrailingSessionMissingActionWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -9477,6 +9549,22 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedTrailingSessionBlankPromptWithQuery = await fetch(
+        `${baseUrl}/sessions//prompt/?tail=1`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: "ignored" }),
+        }
+      );
+      expect(unauthenticatedTrailingSessionBlankPromptWithQuery.status).toBe(401);
+      expect(
+        unauthenticatedTrailingSessionBlankPromptWithQuery.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedTrailingSessionBlankPromptWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedSessionBlankMessages = await fetch(`${baseUrl}/sessions//messages`);
       expect(unauthenticatedSessionBlankMessages.status).toBe(401);
       expect(unauthenticatedSessionBlankMessages.headers.get("www-authenticate")).toBe("Bearer");
@@ -9503,6 +9591,17 @@ describe("headless server", () => {
         "Bearer"
       );
       await expect(unauthenticatedTrailingSessionBlankMessages.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedTrailingSessionBlankMessagesWithQuery = await fetch(
+        `${baseUrl}/sessions//messages/?tail=1`
+      );
+      expect(unauthenticatedTrailingSessionBlankMessagesWithQuery.status).toBe(401);
+      expect(
+        unauthenticatedTrailingSessionBlankMessagesWithQuery.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedTrailingSessionBlankMessagesWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -9536,6 +9635,16 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 
+      const authenticatedTrailingApiUnknownWithQuery = await fetch(`${baseUrl}/api/?scope=all`, {
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedTrailingApiUnknownWithQuery.status).toBe(404);
+      await expect(authenticatedTrailingApiUnknownWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
       const authenticatedCoreUnknown = await fetch(`${baseUrl}/unknown-endpoint`, {
         headers: {
           Authorization: "Bearer secret",
@@ -9553,6 +9662,19 @@ describe("headless server", () => {
       });
       expect(authenticatedTrailingCoreUnknown.status).toBe(404);
       await expect(authenticatedTrailingCoreUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedTrailingCoreUnknownWithQuery = await fetch(
+        `${baseUrl}/unknown-endpoint/?scope=all`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedTrailingCoreUnknownWithQuery.status).toBe(404);
+      await expect(authenticatedTrailingCoreUnknownWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 
@@ -9575,6 +9697,20 @@ describe("headless server", () => {
       });
       expect(authenticatedTrailingMalformedApiUnknown.status).toBe(404);
       await expect(authenticatedTrailingMalformedApiUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedTrailingMalformedApiUnknownWithQuery = await fetch(
+        `${baseUrl}/api//config/?scope=all`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedTrailingMalformedApiUnknownWithQuery.status).toBe(404);
+      await expect(authenticatedTrailingMalformedApiUnknownWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 
@@ -9603,6 +9739,22 @@ describe("headless server", () => {
       );
       expect(authenticatedTrailingMalformedApiSessionUnknown.status).toBe(404);
       await expect(authenticatedTrailingMalformedApiSessionUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedTrailingMalformedApiSessionUnknownWithQuery = await fetch(
+        `${baseUrl}/api/sessions//messages/?scope=all`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedTrailingMalformedApiSessionUnknownWithQuery.status).toBe(404);
+      await expect(
+        authenticatedTrailingMalformedApiSessionUnknownWithQuery.json()
+      ).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 
@@ -9642,6 +9794,19 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
       });
 
+      const authenticatedTrailingSessionUnknownWithQuery = await fetch(
+        `${baseUrl}/sessions/session-1/unsupported/?scope=all`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedTrailingSessionUnknownWithQuery.status).toBe(404);
+      await expect(authenticatedTrailingSessionUnknownWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
       const authenticatedSessionMissingAction = await fetch(`${baseUrl}/sessions/session-1`, {
         headers: {
           Authorization: "Bearer secret",
@@ -9662,6 +9827,19 @@ describe("headless server", () => {
       );
       expect(authenticatedTrailingSessionMissingAction.status).toBe(404);
       await expect(authenticatedTrailingSessionMissingAction.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const authenticatedTrailingSessionMissingActionWithQuery = await fetch(
+        `${baseUrl}/sessions/session-1/?scope=all`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedTrailingSessionMissingActionWithQuery.status).toBe(404);
+      await expect(authenticatedTrailingSessionMissingActionWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
       });
 
@@ -9688,6 +9866,22 @@ describe("headless server", () => {
       });
       expect(authenticatedTrailingSessionBlankPrompt.status).toBe(404);
       await expect(authenticatedTrailingSessionBlankPrompt.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const authenticatedTrailingSessionBlankPromptWithQuery = await fetch(
+        `${baseUrl}/sessions//prompt/?tail=1`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt: "ignored" }),
+        }
+      );
+      expect(authenticatedTrailingSessionBlankPromptWithQuery.status).toBe(404);
+      await expect(authenticatedTrailingSessionBlankPromptWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
       });
 
@@ -9724,6 +9918,19 @@ describe("headless server", () => {
       );
       expect(authenticatedTrailingSessionBlankMessages.status).toBe(404);
       await expect(authenticatedTrailingSessionBlankMessages.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const authenticatedTrailingSessionBlankMessagesWithQuery = await fetch(
+        `${baseUrl}/sessions//messages/?tail=1`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedTrailingSessionBlankMessagesWithQuery.status).toBe(404);
+      await expect(authenticatedTrailingSessionBlankMessagesWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
       });
     } finally {
