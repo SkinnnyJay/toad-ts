@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added Linux-specific NutJS permission smoke hardening:
+  - NutJS smoke e2e now asserts `permission_missing` outcome on Linux when
+    runtime is enabled without display backend env.
+  - preserves cross-platform smoke semantics by conditionally applying the
+    Linux-only assertion.
 - Added permission-aware NutJS execution gating hardening:
   - `runNutJsActionWithGate(...)` now enforces permission diagnostics before
     runtime action execution and emits `permission_missing` outcome when

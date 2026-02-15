@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B52 Linux-specific NutJS smoke assertion for headless
+    permission-missing runtime behavior
   - completed B51 permission-aware NutJS execution gate ordering with explicit
     `permission_missing` outcome when diagnostics report missing permissions
   - completed B50 platform fallback precedence consolidation across clipboard,

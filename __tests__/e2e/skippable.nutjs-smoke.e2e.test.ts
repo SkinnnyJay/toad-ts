@@ -59,4 +59,27 @@ describe("nutjs cross-platform smoke checks", () => {
     expect(result.executed).toBe(true);
     expect(result.result).toBe("executed");
   });
+
+  it("returns permission-missing for linux runtime without display backend", async () => {
+    if (process.platform !== PLATFORM.LINUX) {
+      return;
+    }
+
+    const result = await runNutJsActionWithGate({
+      actionId: NUTJS_SMOKE_ACTION,
+      action: async () => "executed",
+      env: {
+        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
+        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: NUTJS_SMOKE_ACTION,
+      },
+      capability: {
+        platform: process.platform,
+        hasRuntime: true,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.PERMISSION_MISSING);
+    expect(result.executed).toBe(false);
+    expect(result.result).toBeNull();
+  });
 });

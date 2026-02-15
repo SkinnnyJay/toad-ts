@@ -7533,6 +7533,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - align NutJS execution behavior with documented fallback order by
       enforcing permission diagnostics before action execution.
 
+## Execution Log Addendum — 2026-02-14 (B52 linux permission smoke assertion)
+
+- Post-completion hardening for CI-runtime permission coverage:
+  - Updated:
+    - `__tests__/e2e/skippable.nutjs-smoke.e2e.test.ts`
+  - Hardening changes:
+    - added Linux-specific smoke assertion that runtime-enabled NutJS execution
+      without display backend returns deterministic `permission_missing`.
+    - preserved cross-platform smoke behavior by conditionally applying the
+      Linux-only expectation while keeping existing no-op/executed checks.
+  - Goal:
+    - lock Linux headless permission-gate behavior at smoke-test level to
+      prevent regression in CI matrix environments.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7594,3 +7608,4 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B49 | P2 | add cross-platform NutJS smoke checks (Windows/Linux/macOS) in CI matrix.
 - [x] - B50 | P2 | document and simplify fallback precedence for platform + NutJS + clipboard + sound paths.
 - [x] - B51 | P2 | enforce permission diagnostics stage in NutJS execution gate before action execution.
+- [x] - B52 | P2 | add Linux smoke assertion for permission-missing NutJS runtime without display backend.
