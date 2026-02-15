@@ -31,9 +31,19 @@ describe("parseSessionRoutePath", () => {
     expect(parseSessionRoutePath("/sessions/   /prompt")).toBeNull();
   });
 
-  it("returns null for blank action segment", () => {
-    expect(parseSessionRoutePath("/sessions/session-1/")).toBeNull();
-    expect(parseSessionRoutePath("/sessions/session-1/   ")).toBeNull();
+  it("normalizes trailing separators on session-id routes", () => {
+    expect(parseSessionRoutePath("/sessions/session-1/")).toEqual({
+      sessionId: "session-1",
+      action: undefined,
+    });
+    expect(parseSessionRoutePath("/sessions/session-1/   ")).toEqual({
+      sessionId: "session-1",
+      action: undefined,
+    });
+  });
+
+  it("returns null for routes with explicit blank action segment in-path", () => {
+    expect(parseSessionRoutePath("/sessions/session-1//prompt")).toBeNull();
   });
 
   it("parses session route paths with surrounding whitespace", () => {
@@ -49,6 +59,17 @@ describe("parseSessionRoutePath", () => {
       action: "prompt",
     });
     expect(parseSessionRoutePath("/sessions/session-1/messages#tail")).toEqual({
+      sessionId: "session-1",
+      action: "messages",
+    });
+  });
+
+  it("parses trailing-slash prompt and messages routes", () => {
+    expect(parseSessionRoutePath("/sessions/session-1/prompt/")).toEqual({
+      sessionId: "session-1",
+      action: "prompt",
+    });
+    expect(parseSessionRoutePath("/sessions/session-1/messages/")).toEqual({
       sessionId: "session-1",
       action: "messages",
     });

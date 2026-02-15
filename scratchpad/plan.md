@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added trailing-slash route normalization hardening:
+  - `normalizeRoutePathname(...)` now strips trailing path separators for
+    non-root routes while preserving root normalization.
+  - headless-server now normalizes parsed pathnames once per request and uses
+    normalized values for auth bypass, route classification, and route dispatch.
+  - expanded unit/integration coverage for trailing-slash route semantics across
+    core/API/session/headless routing paths.
 - Added health-route auth-bypass integration coverage hardening:
   - added integration assertions under password protection proving `/health`
     remains auth-bypassed for both `GET` success and unsupported-method `405`

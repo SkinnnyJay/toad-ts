@@ -16,6 +16,7 @@ import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { createHarnessRegistry, isCursorHarnessEnabled } from "@/harness/harnessRegistryFactory";
 import { sendErrorResponse, sendJsonResponse } from "@/server/http-response";
+import { normalizeRoutePathname } from "@/server/pathname-normalization";
 import { parseJsonRequestBody } from "@/server/request-body";
 import {
   REQUEST_PARSING_SOURCE,
@@ -134,13 +135,14 @@ export const startHeadlessServer = async (
         sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
         return;
       }
+      const pathname = normalizeRoutePathname(url.pathname);
 
       // Auth check (skip for health endpoint)
-      if (url.pathname !== SERVER_PATH.HEALTH && !checkServerAuth(req, res)) {
+      if (pathname !== SERVER_PATH.HEALTH && !checkServerAuth(req, res)) {
         return;
       }
 
-      const routeClassification = classifyServerRoute(req.method, url.pathname);
+      const routeClassification = classifyServerRoute(req.method, pathname);
 
       if (routeClassification.kind === SERVER_ROUTE_CLASSIFICATION.HEALTH_OK) {
         sendJson(res, HTTP_STATUS.OK, { status: "ok" });
@@ -153,7 +155,7 @@ export const startHeadlessServer = async (
             source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
             handler: routeClassification.classifierHandler,
             method: req.method,
-            pathname: url.pathname,
+            pathname,
           },
           {
             error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
@@ -168,14 +170,12 @@ export const startHeadlessServer = async (
         return;
       }
 
-      if (req.method === HTTP_METHOD.POST && url.pathname === SERVER_PATH.SESSIONS) {
+      if (req.method === HTTP_METHOD.POST && pathname === SERVER_PATH.SESSIONS) {
         let raw: unknown;
         try {
           raw = await parseJsonRequestBody<unknown>(req, { emptyBodyValue: {} });
         } catch (error) {
-          if (
-            handleRequestParsingFailure(res, error, { method: req.method, pathname: url.pathname })
-          ) {
+          if (handleRequestParsingFailure(res, error, { method: req.method, pathname })) {
             return;
           }
           throw error;
@@ -187,7 +187,7 @@ export const startHeadlessServer = async (
           if (
             handleRequestValidationFailure(res, error, {
               method: req.method,
-              pathname: url.pathname,
+              pathname,
               handler: HEADLESS_ROUTE_HANDLER.SESSION_CREATE,
             })
           ) {
@@ -232,8 +232,8 @@ export const startHeadlessServer = async (
         return;
       }
 
-      if (req.method === HTTP_METHOD.POST && url.pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
-        const parsedRoutePath = parseSessionRoutePath(url.pathname);
+      if (req.method === HTTP_METHOD.POST && pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
+        const parsedRoutePath = parseSessionRoutePath(pathname);
         const sessionId = parsedRoutePath?.sessionId;
         const action = parsedRoutePath?.action;
         if (!sessionId || action !== SERVER_PATH.SEGMENT_PROMPT) {
@@ -254,9 +254,7 @@ export const startHeadlessServer = async (
         try {
           raw = await parseJsonRequestBody<unknown>(req);
         } catch (error) {
-          if (
-            handleRequestParsingFailure(res, error, { method: req.method, pathname: url.pathname })
-          ) {
+          if (handleRequestParsingFailure(res, error, { method: req.method, pathname })) {
             return;
           }
           throw error;
@@ -268,7 +266,7 @@ export const startHeadlessServer = async (
           if (
             handleRequestValidationFailure(res, error, {
               method: req.method,
-              pathname: url.pathname,
+              pathname,
               handler: HEADLESS_ROUTE_HANDLER.SESSION_PROMPT,
             })
           ) {
@@ -284,8 +282,8 @@ export const startHeadlessServer = async (
         return;
       }
 
-      if (req.method === HTTP_METHOD.GET && url.pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
-        const parsedRoutePath = parseSessionRoutePath(url.pathname);
+      if (req.method === HTTP_METHOD.GET && pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
+        const parsedRoutePath = parseSessionRoutePath(pathname);
         const sessionId = parsedRoutePath?.sessionId;
         const resource = parsedRoutePath?.action;
         if (!sessionId || resource !== SERVER_PATH.SEGMENT_MESSAGES) {
@@ -308,7 +306,7 @@ export const startHeadlessServer = async (
           source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
           handler: routeClassification.classifierHandler,
           method: req.method,
-          pathname: url.pathname,
+          pathname,
         },
         {
           error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,

@@ -17,4 +17,15 @@ describe("normalizeRoutePathname", () => {
   it("strips suffix from the earliest query/hash delimiter", () => {
     expect(normalizeRoutePathname("/api/config#summary?view=compact")).toBe("/api/config");
   });
+
+  it("strips trailing slashes from non-root paths", () => {
+    expect(normalizeRoutePathname("/api/config/")).toBe("/api/config");
+    expect(normalizeRoutePathname("/api/config///")).toBe("/api/config");
+  });
+
+  it("retains root path while normalizing", () => {
+    expect(normalizeRoutePathname("/")).toBe("/");
+    expect(normalizeRoutePathname("/?check=true")).toBe("/");
+    expect(normalizeRoutePathname("/#status")).toBe("/");
+  });
 });

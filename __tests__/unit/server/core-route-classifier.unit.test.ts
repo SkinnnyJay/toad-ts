@@ -26,6 +26,11 @@ describe("classifyCoreRoute", () => {
     expect(hashResult).toEqual({ kind: CORE_ROUTE_DECISION.HEALTH_OK });
   });
 
+  it("returns health_ok for GET /health with trailing slash", () => {
+    const result = classifyCoreRoute(HTTP_METHOD.GET, "/health/");
+    expect(result).toEqual({ kind: CORE_ROUTE_DECISION.HEALTH_OK });
+  });
+
   it("returns method_not_allowed for non-GET /health", () => {
     const result = classifyCoreRoute(HTTP_METHOD.POST, SERVER_PATH.HEALTH);
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
@@ -46,6 +51,11 @@ describe("classifyCoreRoute", () => {
     const hashResult = classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1/prompt#latest");
     expect(queryResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
     expect(hashResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+  });
+
+  it("returns method_not_allowed for non-POST prompt route with trailing slash", () => {
+    const result = classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1/prompt/");
+    expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
   });
 
   it("returns method_not_allowed for non-GET /sessions/:id/messages", () => {

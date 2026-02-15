@@ -1,5 +1,44 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B105 trailing-slash route normalization + dispatch alignment)
+
+### Summary
+- Normalized trailing-slash routing behavior by aligning helper + classifier +
+  headless dispatch pathname usage.
+- Updated:
+  - `src/server/pathname-normalization.ts`
+  - `src/server/headless-server.ts`
+  - `__tests__/unit/server/pathname-normalization.unit.test.ts`
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - shared pathname normalization now strips trailing slashes on non-root
+    routes.
+  - headless-server request pipeline now normalizes pathname once and reuses
+    normalized value across auth check, classifier dispatch, and route branch
+    handling.
+  - expanded route-level unit coverage for trailing-slash matching/classification.
+  - session-route parsing now accepts trailing-slash prompt/messages and
+    single-session paths after normalization.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/pathname-normalization.unit.test.ts __tests__/unit/server/session-route-path.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/unit/server/request-error-normalization.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B104 health-route auth-bypass integration coverage)
 
 ### Summary

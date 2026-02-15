@@ -47,6 +47,11 @@ describe("classifyServerRoute", () => {
     expect(hashResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
   });
 
+  it("classifies api matches when pathname includes trailing slash", () => {
+    const result = classifyServerRoute(HTTP_METHOD.GET, "/api/config/");
+    expect(result.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+  });
+
   it("classifies padded api known paths with wrong method as method_not_allowed", () => {
     const result = classifyServerRoute(HTTP_METHOD.POST, " /api/config ");
     expect(result).toEqual({
@@ -63,6 +68,14 @@ describe("classifyServerRoute", () => {
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });
     expect(hashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
+  it("classifies trailing-slash known api paths with wrong method", () => {
+    const result = classifyServerRoute(HTTP_METHOD.POST, "/api/config/");
+    expect(result).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });

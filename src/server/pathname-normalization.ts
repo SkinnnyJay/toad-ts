@@ -1,5 +1,7 @@
 const PATHNAME_QUERY_PREFIX = "?";
 const PATHNAME_HASH_PREFIX = "#";
+const PATHNAME_SEPARATOR = "/";
+const TRAILING_PATH_SEPARATOR_PATTERN = /\/+$/;
 
 const resolvePathSuffixIndex = (pathname: string): number => {
   const queryIndex = pathname.indexOf(PATHNAME_QUERY_PREFIX);
@@ -16,8 +18,10 @@ const resolvePathSuffixIndex = (pathname: string): number => {
 export const normalizeRoutePathname = (pathname: string): string => {
   const trimmedPathname = pathname.trim();
   const suffixIndex = resolvePathSuffixIndex(trimmedPathname);
-  if (suffixIndex === -1) {
-    return trimmedPathname;
+  const pathnameWithoutSuffix =
+    suffixIndex === -1 ? trimmedPathname : trimmedPathname.slice(0, suffixIndex).trim();
+  if (pathnameWithoutSuffix === PATHNAME_SEPARATOR) {
+    return PATHNAME_SEPARATOR;
   }
-  return trimmedPathname.slice(0, suffixIndex).trim();
+  return pathnameWithoutSuffix.replace(TRAILING_PATH_SEPARATOR_PATTERN, "");
 };
