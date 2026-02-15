@@ -9256,6 +9256,46 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedExecuteRouteResponse = await fetch(`${baseUrl}/api/tui/execute-command`);
+      expect(unauthenticatedExecuteRouteResponse.status).toBe(401);
+      expect(unauthenticatedExecuteRouteResponse.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedExecuteRouteResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedTrailingExecuteRouteResponse = await fetch(
+        `${baseUrl}/api/tui/execute-command/`
+      );
+      expect(unauthenticatedTrailingExecuteRouteResponse.status).toBe(401);
+      expect(unauthenticatedTrailingExecuteRouteResponse.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedTrailingExecuteRouteResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedExecuteRouteResponseWithQuery = await fetch(
+        `${baseUrl}/api/tui/execute-command?scope=all`
+      );
+      expect(unauthenticatedExecuteRouteResponseWithQuery.status).toBe(401);
+      expect(unauthenticatedExecuteRouteResponseWithQuery.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedExecuteRouteResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedTrailingExecuteRouteResponseWithQuery = await fetch(
+        `${baseUrl}/api/tui/execute-command/?scope=all`
+      );
+      expect(unauthenticatedTrailingExecuteRouteResponseWithQuery.status).toBe(401);
+      expect(
+        unauthenticatedTrailingExecuteRouteResponseWithQuery.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedTrailingExecuteRouteResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedSessionRouteResponse = await fetch(`${baseUrl}/api/sessions/session-1`, {
         method: "POST",
       });
@@ -9405,6 +9445,55 @@ describe("headless server", () => {
       );
       expect(authenticatedTrailingResponseWithQuery.status).toBe(405);
       await expect(authenticatedTrailingResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const authenticatedExecuteRouteResponse = await fetch(`${baseUrl}/api/tui/execute-command`, {
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedExecuteRouteResponse.status).toBe(405);
+      await expect(authenticatedExecuteRouteResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const authenticatedTrailingExecuteRouteResponse = await fetch(
+        `${baseUrl}/api/tui/execute-command/`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedTrailingExecuteRouteResponse.status).toBe(405);
+      await expect(authenticatedTrailingExecuteRouteResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const authenticatedExecuteRouteResponseWithQuery = await fetch(
+        `${baseUrl}/api/tui/execute-command?scope=all`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedExecuteRouteResponseWithQuery.status).toBe(405);
+      await expect(authenticatedExecuteRouteResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const authenticatedTrailingExecuteRouteResponseWithQuery = await fetch(
+        `${baseUrl}/api/tui/execute-command/?scope=all`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedTrailingExecuteRouteResponseWithQuery.status).toBe(405);
+      await expect(authenticatedTrailingExecuteRouteResponseWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 

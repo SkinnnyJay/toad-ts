@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded protected-api execute-command auth-order coverage:
+  - protected API auth-before-method integration now includes
+    `/api/tui/execute-command` unsupported-method variants for base, trailing,
+    query, and trailing+query paths.
+  - locks pre-auth `401` + challenge and authenticated `405`
+    method-not-allowed semantics for all normalized execute-command variants.
 - Expanded non-api method query+trailing coverage:
   - non-API method-not-allowed integration now includes combined
     trailing-slash+query variants for `/health`, `/sessions`,

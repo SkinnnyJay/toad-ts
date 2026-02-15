@@ -3,6 +3,10 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B134 protected-api execute-command auth-order coverage hardening
+    (password-protected API auth-before-method integration now explicitly locks
+    `/api/tui/execute-command` unsupported-method variants across base,
+    trailing, query, and trailing+query forms with `401`/`405` ordering)
   - completed B133 non-api method query-trailing coverage hardening
     (non-API method-not-allowed integration now explicitly locks combined
     trailing-slash + query variants across known unsupported-method non-API

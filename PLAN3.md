@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B134 protected-api execute-command auth-order coverage)
+
+- Expanded password-protected API auth-before-method integration coverage for
+  `/api/tui/execute-command` unsupported-method path variants (base,
+  trailing-slash, query, and trailing+query forms).
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before method-not-allowed semantics on api routes"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B133 non-api method query-trailing coverage)
 
 - Expanded non-API method-not-allowed integration coverage for combined
