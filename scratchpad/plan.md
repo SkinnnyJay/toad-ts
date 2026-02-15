@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added typed NutJS stage API hardening:
+  - introduced explicit `NutJsExecutionStage` type for fallback-stage values.
+  - updated gate fallback precedence accessor to typed stage array return.
+  - added uniqueness assertion to prevent duplicated stage entries in fallback
+    precedence constants.
 - Added wildcard allowlist normalization execution hardening:
   - unit coverage now verifies padded wildcard allowlist entries still permit
     action execution under normalized action-id casing.

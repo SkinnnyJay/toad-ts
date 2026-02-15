@@ -32,6 +32,9 @@ export const NUTJS_EXECUTION_STAGE = {
   EXECUTION: "execution",
 } as const;
 
+export type NutJsExecutionStage =
+  (typeof NUTJS_EXECUTION_STAGE)[keyof typeof NUTJS_EXECUTION_STAGE];
+
 export const NUTJS_EXECUTION_FALLBACK_PRECEDENCE = [
   NUTJS_EXECUTION_STAGE.FEATURE_FLAG,
   NUTJS_EXECUTION_STAGE.ALLOWLIST,

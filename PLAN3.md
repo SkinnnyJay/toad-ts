@@ -7622,6 +7622,24 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - prevent regressions where wildcard allowlist behavior diverges from
       normalized explicit allowlist behavior.
 
+## Execution Log Addendum — 2026-02-14 (B58 typed NutJS stage API hardening)
+
+- Post-completion hardening for typed fallback-stage contracts:
+  - Updated:
+    - `src/constants/platform-fallback-precedence.ts`
+    - `src/utils/nutjs-execution-gate.utils.ts`
+    - `__tests__/unit/constants/platform-fallback-precedence.unit.test.ts`
+  - Hardening changes:
+    - introduced explicit `NutJsExecutionStage` type derived from stage
+      constants.
+    - updated fallback precedence accessor return type to
+      `readonly NutJsExecutionStage[]` for stronger compile-time guarantees.
+    - added uniqueness assertion on stage precedence ordering to prevent
+      accidental duplicate stage entries.
+  - Goal:
+    - strengthen typed contracts for NutJS fallback stage APIs and prevent
+      precedence drift via test-enforced uniqueness.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7689,3 +7707,4 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B55 | P2 | add smoke-level cross-platform permission-missing simulations for macOS and Windows.
 - [x] - B56 | P2 | add normalization coverage for NutJS allowlist and enabled-flag env parsing.
 - [x] - B57 | P2 | add wildcard allowlist normalization execution coverage for padded env input.
+- [x] - B58 | P2 | harden NutJS fallback-stage API typing and precedence uniqueness assertions.

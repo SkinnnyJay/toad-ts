@@ -33,5 +33,8 @@ describe("platform fallback precedence constants", () => {
       NUTJS_EXECUTION_STAGE.PERMISSION_DIAGNOSTICS,
       NUTJS_EXECUTION_STAGE.EXECUTION,
     ]);
+    expect(new Set(NUTJS_EXECUTION_FALLBACK_PRECEDENCE).size).toBe(
+      NUTJS_EXECUTION_FALLBACK_PRECEDENCE.length
+    );
   });
 });

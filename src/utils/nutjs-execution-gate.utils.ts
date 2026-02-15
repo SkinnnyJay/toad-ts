@@ -7,7 +7,10 @@ import {
   type NutJsExecutionOutcome,
 } from "@/constants/nutjs-execution";
 import { NUTJS_PERMISSION_STATUS } from "@/constants/nutjs-permissions";
-import { NUTJS_EXECUTION_FALLBACK_PRECEDENCE } from "@/constants/platform-fallback-precedence";
+import {
+  NUTJS_EXECUTION_FALLBACK_PRECEDENCE,
+  type NutJsExecutionStage,
+} from "@/constants/platform-fallback-precedence";
 import { EnvManager } from "@/utils/env/env.utils";
 import {
   type NutJsCapability,
@@ -147,5 +150,5 @@ export const runNutJsActionWithGate = async <T>(
   };
 };
 
-export const getNutJsExecutionFallbackPrecedence = (): readonly string[] =>
+export const getNutJsExecutionFallbackPrecedence = (): readonly NutJsExecutionStage[] =>
   NUTJS_EXECUTION_FALLBACK_PRECEDENCE;
