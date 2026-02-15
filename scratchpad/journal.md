@@ -1,5 +1,39 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B174 unknown-root auth-order parity coverage)
+
+### Summary
+- Expanded password-protected unknown-route auth-order integration coverage for
+  root path variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in
+    `applies auth checks before not-found semantics on unknown routes`,
+    added unauthenticated/authenticated assertions for:
+    - `/`
+    - `/?scope=all`
+    - `/#summary`
+    locking canonical auth-first ordering:
+    - unauthenticated `401` + auth challenge
+    - authenticated `404` + `NOT_FOUND`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B173 parsing-log suffix-only root normalization coverage)
 
 ### Summary

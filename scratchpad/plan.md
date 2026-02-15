@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-root auth-order parity coverage:
+  - unknown-route auth-before-not-found integration test now includes root path
+    variants (`/`, `/?query`, `/#hash`) under password protection.
+  - locks canonical ordering semantics:
+    - unauthenticated `401` + challenge
+    - authenticated `404` + `NOT_FOUND`.
 - Expanded parsing-log suffix-only root normalization coverage:
   - request-error-normalization unit tests now include parsing-log assertion
     ensuring suffix-only request paths normalize to root pathname (`/`) in

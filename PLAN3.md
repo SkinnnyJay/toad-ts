@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B174 unknown-root auth-order parity coverage)
+
+- Expanded unknown-route auth-order integration coverage for root (`/`) path
+  variants under password protection.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B173 parsing-log suffix-only root normalization coverage)
 
 - Expanded request-error-normalization unit coverage for parsing-log handling of

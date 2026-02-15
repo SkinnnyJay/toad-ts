@@ -10544,6 +10544,27 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedRootUnknown = await fetch(`${baseUrl}/`);
+      expect(unauthenticatedRootUnknown.status).toBe(401);
+      expect(unauthenticatedRootUnknown.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedRootUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedRootUnknownWithQuery = await fetch(`${baseUrl}/?scope=all`);
+      expect(unauthenticatedRootUnknownWithQuery.status).toBe(401);
+      expect(unauthenticatedRootUnknownWithQuery.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedRootUnknownWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedRootUnknownWithHash = await fetch(`${baseUrl}/#summary`);
+      expect(unauthenticatedRootUnknownWithHash.status).toBe(401);
+      expect(unauthenticatedRootUnknownWithHash.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedRootUnknownWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedCoreUnknown = await fetch(`${baseUrl}/unknown-endpoint`);
       expect(unauthenticatedCoreUnknown.status).toBe(401);
       expect(unauthenticatedCoreUnknown.headers.get("www-authenticate")).toBe("Bearer");
@@ -11090,6 +11111,36 @@ describe("headless server", () => {
       });
       expect(authenticatedTrailingApiUnknownWithHash.status).toBe(404);
       await expect(authenticatedTrailingApiUnknownWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedRootUnknown = await fetch(`${baseUrl}/`, {
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedRootUnknown.status).toBe(404);
+      await expect(authenticatedRootUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedRootUnknownWithQuery = await fetch(`${baseUrl}/?scope=all`, {
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedRootUnknownWithQuery.status).toBe(404);
+      await expect(authenticatedRootUnknownWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedRootUnknownWithHash = await fetch(`${baseUrl}/#summary`, {
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedRootUnknownWithHash.status).toBe(404);
+      await expect(authenticatedRootUnknownWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 
