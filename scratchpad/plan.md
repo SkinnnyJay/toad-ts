@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded API auth-order coverage for parameterized routes:
+  - password-protected integration test now validates `401` before
+    method-semantics and authenticated `405` outcomes for:
+    `/api/sessions/:id` and `/api/sessions/:id/messages/`.
 - Expanded parameterized API method semantics coverage:
   - added unit assertions that `classifyApiRoute(...)` returns
     method-not-allowed for unsupported methods on parameterized endpoints.

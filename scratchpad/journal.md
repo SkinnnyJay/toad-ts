@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B113 API auth-order parameterized coverage)
+
+### Summary
+- Expanded password-protected API auth-order integration coverage for
+  parameterized routes under unsupported methods.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in `applies auth checks before method-not-allowed semantics on api routes`:
+    - added unauthenticated `POST` coverage for
+      `/api/sessions/session-1` and `/api/sessions/session-1/messages/`
+      asserting `401` + challenge header.
+    - added authenticated `POST` coverage for those same routes asserting
+      canonical `405` method-not-allowed responses.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before method-not-allowed semantics on api routes"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B112 parameterized API method semantics coverage)
 
 ### Summary

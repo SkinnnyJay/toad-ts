@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B113 API auth-order parameterized coverage)
+
+- Expanded password-protected API auth-order integration coverage to include
+  parameterized route variants under unsupported methods.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before method-not-allowed semantics on api routes"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B112 parameterized API method semantics)
 
 - Expanded API method-not-allowed coverage for parameterized routes, including

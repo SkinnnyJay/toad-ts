@@ -9006,6 +9006,27 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedSessionRouteResponse = await fetch(`${baseUrl}/api/sessions/session-1`, {
+        method: "POST",
+      });
+      expect(unauthenticatedSessionRouteResponse.status).toBe(401);
+      expect(unauthenticatedSessionRouteResponse.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedSessionRouteResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedMessagesRouteResponse = await fetch(
+        `${baseUrl}/api/sessions/session-1/messages/`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedMessagesRouteResponse.status).toBe(401);
+      expect(unauthenticatedMessagesRouteResponse.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedMessagesRouteResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const authenticatedResponse = await fetch(`${baseUrl}/api/config`, {
         method: "POST",
         headers: {
@@ -9014,6 +9035,31 @@ describe("headless server", () => {
       });
       expect(authenticatedResponse.status).toBe(405);
       await expect(authenticatedResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const authenticatedSessionRouteResponse = await fetch(`${baseUrl}/api/sessions/session-1`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedSessionRouteResponse.status).toBe(405);
+      await expect(authenticatedSessionRouteResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const authenticatedMessagesRouteResponse = await fetch(
+        `${baseUrl}/api/sessions/session-1/messages/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedMessagesRouteResponse.status).toBe(405);
+      await expect(authenticatedMessagesRouteResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
     } finally {
