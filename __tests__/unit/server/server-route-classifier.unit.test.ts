@@ -407,10 +407,23 @@ describe("classifyServerRoute", () => {
       HTTP_METHOD.POST,
       "/sessions//prompt/#summary"
     );
+    const promptDoubleTrailingResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions//prompt//");
+    const promptDoubleTrailingHashResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/sessions//prompt//#summary"
+    );
     const messagesHashResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions//messages#summary");
     const messagesTrailingHashResult = classifyServerRoute(
       HTTP_METHOD.GET,
       "/sessions//messages/#summary"
+    );
+    const messagesDoubleTrailingResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/sessions//messages//"
+    );
+    const messagesDoubleTrailingHashResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/sessions//messages//#summary"
     );
     const messagesTrailingQueryResult = classifyServerRoute(
       HTTP_METHOD.GET,
@@ -424,11 +437,27 @@ describe("classifyServerRoute", () => {
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
+    expect(promptDoubleTrailingResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(promptDoubleTrailingHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
     expect(messagesHashResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
     expect(messagesTrailingHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(messagesDoubleTrailingResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(messagesDoubleTrailingHashResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
