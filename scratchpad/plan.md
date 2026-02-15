@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded blank-session prompt trailing-query GET-classifier parity:
+  - core-route classifier unit suite now includes explicit GET assertion for
+    `/sessions//prompt/?tail=1` malformed prompt trailing-query form.
+  - server-route classifier unit suite now includes explicit POST/GET
+    assertions for `/sessions//prompt/?tail=1` malformed prompt
+    trailing-query ownership parity.
 - Expanded blank-session messages direct-segment parse-route parity:
   - session-route-path unit suite now includes explicit null-parse assertions
     for blank/whitespace session-id malformed messages routes:

@@ -199,6 +199,12 @@ describe("classifyCoreRoute", () => {
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions//prompt?tail=1")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions//prompt/?tail=1")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions//prompt/?tail=1")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
     expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions//prompt//#summary")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });

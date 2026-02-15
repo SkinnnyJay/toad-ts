@@ -581,6 +581,14 @@ describe("classifyServerRoute", () => {
       "/sessions//prompt/#summary"
     );
     const promptDoubleTrailingResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions//prompt//");
+    const promptTrailingQueryResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/sessions//prompt/?tail=1"
+    );
+    const promptTrailingQueryGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/sessions//prompt/?tail=1"
+    );
     const promptDoubleTrailingQueryResult = classifyServerRoute(
       HTTP_METHOD.POST,
       "/sessions//prompt//?tail=1"
@@ -668,6 +676,14 @@ describe("classifyServerRoute", () => {
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
     expect(promptDoubleTrailingResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(promptTrailingQueryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(promptTrailingQueryGetResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
