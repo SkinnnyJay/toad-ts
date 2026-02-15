@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded non-api query+trailing auth-order coverage:
+  - non-api protected-route auth-order integration now includes combined
+    trailing-slash+query variants for sessions, prompt, and messages routes.
+  - locks pre-auth `401` + challenge and authenticated `405`
+    method-not-allowed semantics across combined normalized route forms.
 - Expanded unknown-route query+trailing auth-order coverage:
   - unknown-route auth-order integration now includes combined
     trailing-slash+query variants for API/core/session unknown routes and

@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B129 non-api query-trailing auth-order coverage)
+
+- Expanded password-protected non-API auth-before-method integration coverage
+  for combined trailing-slash and query-suffixed session route variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before method semantics on non-api protected routes"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B128 unknown-route query-trailing auth-order coverage)
 
 - Expanded password-protected unknown-route auth-order integration coverage for
