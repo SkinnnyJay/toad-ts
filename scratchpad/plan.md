@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added NutJS no-op diagnostics coverage hardening:
+  - extended unsupported-platform capability-noop unit assertions to validate
+    all diagnostics statuses are `not_applicable`.
+  - added smoke-level assertion that allowlisted actions resolving `null` still
+    report `executed` outcomes.
 - Added NutJS missing-permission helper extraction:
   - added shared `hasMissingNutJsPermissions(...)` utility to centralize
     missing-permission classification from diagnostics payloads.

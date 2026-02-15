@@ -65,6 +65,22 @@ describe("nutjs cross-platform smoke checks", () => {
     expect(result.result).toBe("executed");
   });
 
+  it("keeps executed outcome when action resolves null", async () => {
+    const result = await runNutJsActionWithGate({
+      actionId: NUTJS_SMOKE_ACTION,
+      action: async (): Promise<null> => null,
+      env: createAllowlistedNutJsEnv(),
+      capability: {
+        platform: process.platform,
+        hasRuntime: true,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.EXECUTED);
+    expect(result.executed).toBe(true);
+    expect(result.result).toBeNull();
+  });
+
   it("returns permission-missing for linux runtime without display backend", async () => {
     if (process.platform !== PLATFORM.LINUX) {
       return;

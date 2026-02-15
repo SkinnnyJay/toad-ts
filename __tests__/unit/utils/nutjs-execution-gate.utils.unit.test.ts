@@ -198,6 +198,15 @@ describe("nutjs execution gate", () => {
     expect(result.executed).toBe(false);
     expect(action).not.toHaveBeenCalled();
     expect(result.diagnostics?.platform).toBe("aix");
+    expect(result.diagnostics?.macosAccessibility.status).toBe(
+      NUTJS_PERMISSION_STATUS.NOT_APPLICABLE
+    );
+    expect(result.diagnostics?.linuxDisplayBackend.status).toBe(
+      NUTJS_PERMISSION_STATUS.NOT_APPLICABLE
+    );
+    expect(result.diagnostics?.windowsIntegrityLevel.status).toBe(
+      NUTJS_PERMISSION_STATUS.NOT_APPLICABLE
+    );
   });
 
   it("returns permission-missing outcome for linux headless sessions", async () => {
