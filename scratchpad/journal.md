@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B59 allowlist deduplication hardening)
+
+### Summary
+- Added post-completion hardening for normalized allowlist output stability.
+- Updated:
+  - `src/utils/nutjs-execution-gate.utils.ts`
+  - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - allowlist normalization now deduplicates repeated entries while preserving
+    first-seen ordering.
+  - added unit coverage for deduplicating duplicate explicit entries and
+    wildcard entries under mixed-case input.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B58 typed stage API hardening)
 
 ### Summary

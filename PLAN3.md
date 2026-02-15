@@ -7640,6 +7640,21 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - strengthen typed contracts for NutJS fallback stage APIs and prevent
       precedence drift via test-enforced uniqueness.
 
+## Execution Log Addendum — 2026-02-14 (B59 allowlist deduplication hardening)
+
+- Post-completion hardening for allowlist normalization semantics:
+  - Updated:
+    - `src/utils/nutjs-execution-gate.utils.ts`
+    - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - Hardening changes:
+    - added allowlist deduplication during normalization while preserving
+      first-seen order.
+    - added focused unit coverage asserting duplicate allowlist entries (with
+      case and wildcard variants) collapse to canonical unique values.
+  - Goal:
+    - reduce redundant allowlist entries and lock deterministic normalized
+      policy output for repeated env values.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7708,3 +7723,4 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B56 | P2 | add normalization coverage for NutJS allowlist and enabled-flag env parsing.
 - [x] - B57 | P2 | add wildcard allowlist normalization execution coverage for padded env input.
 - [x] - B58 | P2 | harden NutJS fallback-stage API typing and precedence uniqueness assertions.
+- [x] - B59 | P2 | deduplicate normalized NutJS allowlist entries while preserving order.

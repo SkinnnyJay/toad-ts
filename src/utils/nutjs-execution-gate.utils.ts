@@ -60,10 +60,18 @@ const resolveNutJsAllowlist = (env: NodeJS.ProcessEnv): string[] => {
   if (!raw) {
     return [];
   }
-  return raw
+  const normalizedEntries = raw
     .split(NUTJS_ALLOWLIST_SEPARATOR)
     .map((entry) => normalizeActionId(entry))
     .filter((entry) => entry.length > 0);
+  const uniqueEntries = new Set<string>();
+  for (const entry of normalizedEntries) {
+    if (uniqueEntries.has(entry)) {
+      continue;
+    }
+    uniqueEntries.add(entry);
+  }
+  return [...uniqueEntries];
 };
 
 export const resolveNutJsExecutionPolicy = (

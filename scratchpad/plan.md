@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added allowlist deduplication hardening:
+  - NutJS allowlist normalization now deduplicates repeated entries while
+    preserving first-seen order.
+  - unit coverage added for duplicate explicit/wildcard allowlist entries with
+    mixed casing.
 - Added typed NutJS stage API hardening:
   - introduced explicit `NutJsExecutionStage` type for fallback-stage values.
   - updated gate fallback precedence accessor to typed stage array return.

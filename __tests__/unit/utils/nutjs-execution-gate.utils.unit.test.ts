@@ -44,6 +44,16 @@ describe("nutjs execution gate", () => {
     expect(policy.allowlist).toEqual(["mouse.click", "keyboard.type"]);
   });
 
+  it("deduplicates normalized allowlist entries while preserving order", () => {
+    const policy = resolveNutJsExecutionPolicy({
+      [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
+      [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]:
+        "mouse.click, MOUSE.CLICK ,*, keyboard.type, *, keyboard.type",
+    });
+
+    expect(policy.allowlist).toEqual(["mouse.click", "*", "keyboard.type"]);
+  });
+
   it("returns not allowlisted when feature is enabled without allowlist", async () => {
     const action = vi.fn(async () => "executed");
     const result = await runNutJsActionWithGate({
