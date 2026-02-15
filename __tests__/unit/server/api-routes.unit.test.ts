@@ -316,6 +316,12 @@ describe("API Routes", () => {
     it("classifies malformed double-segment api paths as not found", () => {
       const configResult = classifyApiRoute("POST", "/api//config");
       const messagesResult = classifyApiRoute("POST", "/api/sessions//messages");
+      const messagesQueryResult = classifyApiRoute("POST", "/api/sessions//messages?scope=all");
+      const messagesHashResult = classifyApiRoute("POST", "/api/sessions//messages#summary");
+      const messagesTrailingHashResult = classifyApiRoute(
+        "POST",
+        "/api/sessions//messages/#summary"
+      );
       const trailingQueryResult = classifyApiRoute("POST", "/api//config/?scope=all");
       const trailingHashResult = classifyApiRoute("POST", "/api//config/#summary");
       expect(configResult).toEqual({
@@ -323,6 +329,18 @@ describe("API Routes", () => {
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
       expect(messagesResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(messagesQueryResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(messagesHashResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(messagesTrailingHashResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });

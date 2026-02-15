@@ -325,6 +325,43 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies blank-session prompt/messages hash and trailing variants as core unhandled", () => {
+    const promptHashResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions//prompt#summary");
+    const promptTrailingHashResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/sessions//prompt/#summary"
+    );
+    const messagesHashResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions//messages#summary");
+    const messagesTrailingHashResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/sessions//messages/#summary"
+    );
+    const messagesTrailingQueryResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/sessions//messages/?tail=1"
+    );
+    expect(promptHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(promptTrailingHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(messagesHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(messagesTrailingHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(messagesTrailingQueryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies malformed api double-segment trailing-query paths as api-scoped unhandled", () => {
     const result = classifyServerRoute(HTTP_METHOD.POST, "/api//config/?scope=all");
     expect(result).toEqual({

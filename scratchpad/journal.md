@@ -1,5 +1,41 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B163 malformed-route unit suffix parity coverage)
+
+### Summary
+- Expanded malformed-route suffix parity unit coverage across API/core/server
+  route classifiers.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - `core-route-classifier`:
+    - added unhandled assertions for malformed blank-session prompt/messages
+      route variants across base/query/hash/trailing forms.
+  - `server-route-classifier`:
+    - added core-unhandled classifier-ownership assertions for blank-session
+      prompt/messages hash and trailing-query variants.
+  - `api-routes`:
+    - expanded malformed API-session not-found assertions for direct query/hash
+      and trailing-hash forms (`/api/sessions//messages...`).
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B162 server-route unknown direct-query classifier coverage)
 
 ### Summary

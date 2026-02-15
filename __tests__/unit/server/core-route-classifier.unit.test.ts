@@ -149,4 +149,25 @@ describe("classifyCoreRoute", () => {
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
   });
+
+  it("returns unhandled for blank-session prompt/messages malformed paths", () => {
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions//prompt")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions//prompt?tail=1")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions//prompt/#summary")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions//messages")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions//messages?tail=1")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions//messages#summary")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+  });
 });

@@ -14,6 +14,15 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded malformed-route unit suffix parity coverage:
+  - api/core/server-route classifier unit suites now include additional
+    malformed blank-session and malformed API-session suffix variants:
+    - `/sessions//prompt` and `/sessions//messages` (base/query/hash/trailing)
+    - `/api/sessions//messages` (query/hash/trailing-hash).
+  - locks canonical classification expectations:
+    - core malformed session forms -> `UNHANDLED` / `CORE_ROUTE_CLASSIFIER`
+    - malformed API-session forms -> `NOT_FOUND` /
+      `API_ROUTE_CLASSIFIER`.
 - Expanded server-route unknown direct-query classifier coverage:
   - server-route classifier unit tests now include direct-query unhandled
     classification assertions for:
