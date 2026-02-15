@@ -1,3 +1,16 @@
+## 2026-02-14 Execution Update (B102 API-root not-found integration coverage)
+
+- Expanded headless-server integration coverage for API-root not-found behavior.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B101 API-root route scope normalization)
 
 - Normalized server-route classification so `/api` root path is API-scoped

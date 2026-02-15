@@ -543,6 +543,24 @@ describe("headless server", () => {
       await expect(response.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
+
+      const apiRootResponse = await fetch(`${baseUrl}/api`);
+      expect(apiRootResponse.status).toBe(404);
+      await expect(apiRootResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const apiRootWithQueryResponse = await fetch(`${baseUrl}/api?scope=all`);
+      expect(apiRootWithQueryResponse.status).toBe(404);
+      await expect(apiRootWithQueryResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const apiRootWithTrailingSlashResponse = await fetch(`${baseUrl}/api/`);
+      expect(apiRootWithTrailingSlashResponse.status).toBe(404);
+      await expect(apiRootWithTrailingSlashResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
     } finally {
       await server.close();
     }

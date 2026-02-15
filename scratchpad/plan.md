@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded headless API-root not-found integration coverage:
+  - added integration assertions for `/api`, `/api?scope=all`, and `/api/`
+    returning stable `404` + `NOT_FOUND` payloads.
+  - coverage locks external behavior while classifier internals evolve.
 - Added API-root route scope classification hardening:
   - introduced `SERVER_PATH.API` constant and route-classifier helper to treat
     both `/api` and `/api/*` as API-scoped paths.

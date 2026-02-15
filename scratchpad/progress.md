@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B102 API-root not-found integration coverage expansion
+    (locks `/api` and query/trailing-slash 404 semantics)
   - completed B101 API-root route scope classifier normalization
     (`/api` now consistently API-scoped in server-route classification)
   - completed B100 server-auth health-path bypass regression coverage

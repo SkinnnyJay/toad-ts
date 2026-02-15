@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B102 API-root not-found integration coverage expansion)
+
+### Summary
+- Added integration coverage for API-root not-found semantics to lock external
+  behavior across classifier internals.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - expanded unknown top-level endpoint test to assert:
+    - `GET /api` => `404` + `NOT_FOUND`
+    - `GET /api?scope=all` => `404` + `NOT_FOUND`
+    - `GET /api/` => `404` + `NOT_FOUND`
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B101 API-root route scope classifier normalization)
 
 ### Summary
