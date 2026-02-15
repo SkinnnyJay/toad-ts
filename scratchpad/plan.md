@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded malformed-api-session double-trailing-query parity:
+  - unknown-route auth-order integration coverage now includes
+    `/api/sessions//messages//?scope=all`.
+  - api/server route classifier unit suites now include malformed API-session
+    double-trailing-query parity checks.
 - Expanded malformed-api double-trailing-query parity:
   - unknown-route auth-order integration coverage now includes
     `/api//config//?scope=all`.

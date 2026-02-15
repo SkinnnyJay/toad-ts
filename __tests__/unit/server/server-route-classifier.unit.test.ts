@@ -426,6 +426,10 @@ describe("classifyServerRoute", () => {
       HTTP_METHOD.POST,
       "/api/sessions//messages//?scope=all"
     );
+    const getDoubleTrailingQueryResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/api/sessions//messages//?scope=all"
+    );
     expect(result).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
@@ -435,6 +439,10 @@ describe("classifyServerRoute", () => {
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });
     expect(doubleTrailingQueryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(getDoubleTrailingQueryResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });
