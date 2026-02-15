@@ -3,6 +3,9 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B219 session-route whitespace-padded parity hardening
+    (session-route-path parser unit coverage now locks whitespace-padded
+    missing-action and blank-session malformed expectations)
   - completed B218 malformed-api whitespace-padded parity hardening
     (api-routes/server-route classifiers and pathname normalizer unit coverage
     now lock explicit whitespace-padded malformed API double-segment

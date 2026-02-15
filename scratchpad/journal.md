@@ -1,5 +1,40 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B219 session-route whitespace padded parity)
+
+### Summary
+- Expanded session route-path parser coverage for whitespace-padded
+  missing-action and blank-session malformed variants.
+- Updated:
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added parser assertions for whitespace-padded missing-action variants that
+    should parse successfully:
+    - ` /sessions/session-1//?scope=all `
+    - ` /sessions/session-1//#summary `
+  - added parser assertions for whitespace-padded blank-session malformed
+    variants that must return `null`:
+    - ` /sessions//prompt//?tail=1 `
+    - ` /sessions//prompt//#summary `
+    - ` /sessions//messages//?tail=1 `
+    - ` /sessions//messages//#summary `
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/session-route-path.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B218 malformed-api whitespace padded parity)
 
 ### Summary

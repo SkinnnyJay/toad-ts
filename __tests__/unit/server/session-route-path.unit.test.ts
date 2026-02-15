@@ -136,4 +136,19 @@ describe("parseSessionRoutePath", () => {
     expect(parseSessionRoutePath("/sessions//messages//?tail=1")).toBeNull();
     expect(parseSessionRoutePath("/sessions//messages//#summary")).toBeNull();
   });
+
+  it("handles whitespace-padded missing-action and blank-session malformed routes", () => {
+    expect(parseSessionRoutePath(" /sessions/session-1//?scope=all ")).toEqual({
+      sessionId: "session-1",
+      action: undefined,
+    });
+    expect(parseSessionRoutePath(" /sessions/session-1//#summary ")).toEqual({
+      sessionId: "session-1",
+      action: undefined,
+    });
+    expect(parseSessionRoutePath(" /sessions//prompt//?tail=1 ")).toBeNull();
+    expect(parseSessionRoutePath(" /sessions//prompt//#summary ")).toBeNull();
+    expect(parseSessionRoutePath(" /sessions//messages//?tail=1 ")).toBeNull();
+    expect(parseSessionRoutePath(" /sessions//messages//#summary ")).toBeNull();
+  });
 });

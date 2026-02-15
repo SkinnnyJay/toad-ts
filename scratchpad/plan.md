@@ -14,6 +14,14 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded session-route parser whitespace-padded malformed parity:
+  - session-route-path unit suite now explicitly covers whitespace-padded
+    missing-action double-trailing variants as valid:
+    ` /sessions/session-1//?scope=all `, ` /sessions/session-1//#summary `.
+  - same suite now explicitly covers whitespace-padded blank-session malformed
+    variants as invalid (`null`):
+    ` /sessions//prompt//?tail=1 `, ` /sessions//prompt//#summary `,
+    ` /sessions//messages//?tail=1 `, ` /sessions//messages//#summary `.
 - Expanded malformed API double-segment whitespace-padded parity:
   - api-routes unit suite now explicitly covers whitespace-padded malformed
     double-segment API variants with GET/POST parity:
