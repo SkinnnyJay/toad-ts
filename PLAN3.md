@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B165 request-url host candidate fallback hardening)
+
+- Expanded request-url unit coverage for host candidate fallback behavior when
+  early host entries include hash/userinfo metadata and when all candidates are
+  invalid.
+- Updated:
+  - `__tests__/unit/server/request-url.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/request-url.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B164 session-route-path malformed suffix parsing coverage)
 
 - Expanded `parseSessionRoutePath` unit coverage for missing-action direct

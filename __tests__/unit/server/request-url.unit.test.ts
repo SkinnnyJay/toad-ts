@@ -163,6 +163,27 @@ describe("parseRequestUrl", () => {
     expect(url?.host).toBe("127.0.0.1:4141");
   });
 
+  it("uses later host candidate when earlier candidate includes hash metadata", () => {
+    const url = parseRequestUrl(
+      createRequestWithHostHeader(
+        "/api/files/search?q=readme",
+        "example.com#summary, 127.0.0.1:4141"
+      )
+    );
+
+    expect(url?.pathname).toBe("/api/files/search");
+    expect(url?.host).toBe("127.0.0.1:4141");
+  });
+
+  it("uses later host candidate when earlier candidate includes userinfo", () => {
+    const url = parseRequestUrl(
+      createRequestWithHostHeader("/api/files/search?q=readme", "user@example.com, 127.0.0.1:4141")
+    );
+
+    expect(url?.pathname).toBe("/api/files/search");
+    expect(url?.host).toBe("127.0.0.1:4141");
+  });
+
   it("uses later host candidate when earlier candidate has malformed ipv6 brackets", () => {
     const url = parseRequestUrl(
       createRequestWithHostHeader("/api/files/search?q=readme", "[::1, 127.0.0.1:4141")
@@ -179,5 +200,13 @@ describe("parseRequestUrl", () => {
 
     expect(url?.pathname).toBe("/api/files/search");
     expect(url?.host).toBe("127.0.0.1:4141");
+  });
+
+  it("returns null when all host candidates are invalid", () => {
+    const url = parseRequestUrl(
+      createRequestWithHostHeader("/api/files/search?q=readme", "%, example.com#summary")
+    );
+
+    expect(url).toBeNull();
   });
 });

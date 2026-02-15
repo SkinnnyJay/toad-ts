@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded request-url host candidate fallback hardening:
+  - request-url unit tests now include candidate-list fallback assertions for
+    first-candidate invalid forms:
+    - hash metadata host candidate (`example.com#summary`)
+    - userinfo host candidate (`user@example.com`)
+    with valid-candidate recovery.
+  - added all-invalid candidate-list assertion returning `null`.
 - Expanded session-route-path malformed suffix parsing coverage:
   - `parseSessionRoutePath` unit tests now include:
     - missing-action direct suffix parsing (`/sessions/:id?query`,
