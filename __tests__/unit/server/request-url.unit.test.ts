@@ -229,4 +229,23 @@ describe("parseRequestUrl", () => {
 
     expect(url).toBeNull();
   });
+
+  it("parses comma-separated candidates inside host-header arrays", () => {
+    const url = parseRequestUrl(
+      createRequestWithHostHeader("/api/files/search?q=readme", [
+        "example.com#summary, 127.0.0.1:4141",
+      ])
+    );
+
+    expect(url?.pathname).toBe("/api/files/search");
+    expect(url?.host).toBe("127.0.0.1:4141");
+  });
+
+  it("returns null when comma-separated host-header array candidates are all invalid", () => {
+    const url = parseRequestUrl(
+      createRequestWithHostHeader("/api/files/search?q=readme", ["%, example.com#summary"])
+    );
+
+    expect(url).toBeNull();
+  });
 });

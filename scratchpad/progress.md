@@ -3,6 +3,11 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B170 request-url comma-separated array candidate coverage
+    hardening
+    (request-url unit coverage now explicitly locks comma-separated candidate
+    parsing behavior inside host-header arrays for valid fallback and
+    all-invalid rejection)
   - completed B169 request-validation malformed-path logging parity coverage
     hardening
     (request-error-normalization unit coverage now explicitly locks malformed

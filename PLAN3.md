@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B170 request-url comma-separated array candidate coverage)
+
+- Expanded request-url unit coverage for comma-separated host candidate parsing
+  within host-header array values.
+- Updated:
+  - `__tests__/unit/server/request-url.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/request-url.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B169 request-validation malformed-path logging parity coverage)
 
 - Expanded request-error-normalization unit coverage for validation logging on

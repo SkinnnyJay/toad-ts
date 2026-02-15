@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded request-url comma-separated array candidate coverage:
+  - request-url unit tests now include comma-separated host candidate parsing
+    assertions inside host-header array entries for:
+    - invalid->valid fallback selection
+    - all-invalid candidate rejection (`null`).
 - Expanded request-validation malformed-path logging parity coverage:
   - request-error-normalization unit tests now include request-validation log
     normalization assertion for malformed combined-suffix path forms,
