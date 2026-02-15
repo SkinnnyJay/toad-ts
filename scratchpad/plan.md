@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded server-route missing-action combined coverage:
+  - server-route classifier unit tests now include missing-action session
+    combined trailing-slash+query variants for both GET and POST methods.
+  - locks canonical `UNHANDLED` classification with
+    `CORE_ROUTE_CLASSIFIER` ownership for those combined normalized
+    missing-action path forms.
 - Expanded pathname-normalization combined non-root coverage:
   - pathname-normalization unit tests now include non-root combined
     trailing-slash + query/hash + whitespace forms (for example

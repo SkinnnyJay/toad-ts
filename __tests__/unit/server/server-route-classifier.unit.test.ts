@@ -152,6 +152,19 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies missing-action session routes with trailing-query suffix as core unhandled", () => {
+    const getResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1/?view=full");
+    const postResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions/session-1/?view=full");
+    expect(getResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(postResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies /api root path as api-scoped unhandled", () => {
     const result = classifyServerRoute(HTTP_METHOD.GET, "/api");
     expect(result).toEqual({

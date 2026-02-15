@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B140 server-route missing-action combined coverage)
+
+- Expanded server-route classifier unit coverage for missing-action session
+  paths with combined trailing-slash + query suffix variants.
+- Updated:
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B139 pathname-normalization combined non-root coverage)
 
 - Expanded pathname-normalization unit coverage for non-root path inputs that

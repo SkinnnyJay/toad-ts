@@ -3,6 +3,10 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B140 server-route missing-action combined coverage hardening
+    (server-route classifier unit coverage now explicitly locks combined
+    trailing-slash + query missing-action session path classification as
+    core-unhandled for both GET and POST methods)
   - completed B139 pathname-normalization combined non-root coverage hardening
     (pathname-normalization unit coverage now explicitly locks combined
     trailing-slash + query/hash + whitespace non-root path normalization to
