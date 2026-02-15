@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added request-url host-header array normalization hardening:
+  - request URL parsing now safely handles unexpected array-shaped host headers
+    and falls back to localhost for blank array entries.
+  - added focused unit coverage for array host headers (valid and blank).
 - Added request-error case-insensitive canonical matching hardening:
   - canonical parse-error classification now matches case-variant string/object
     message inputs in addition to padded variants.

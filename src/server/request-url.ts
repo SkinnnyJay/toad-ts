@@ -4,6 +4,22 @@ const REQUEST_URL_DEFAULT_HOST = "localhost";
 const REQUEST_PATH_PREFIX = "/";
 const REQUEST_NETWORK_PATH_PREFIX = "//";
 
+const normalizeHostHeader = (hostHeader: string | string[] | undefined): string | null => {
+  if (typeof hostHeader === "string") {
+    const normalizedHost = hostHeader.trim();
+    return normalizedHost.length > 0 ? normalizedHost : null;
+  }
+  if (Array.isArray(hostHeader)) {
+    for (const hostSegment of hostHeader) {
+      const normalizedHost = hostSegment.trim();
+      if (normalizedHost.length > 0) {
+        return normalizedHost;
+      }
+    }
+  }
+  return null;
+};
+
 export const parseRequestUrl = (req: IncomingMessage): URL | null => {
   const rawUrl = req.url?.trim();
   if (!rawUrl) {
@@ -15,8 +31,7 @@ export const parseRequestUrl = (req: IncomingMessage): URL | null => {
   if (rawUrl.startsWith(REQUEST_NETWORK_PATH_PREFIX)) {
     return null;
   }
-  const rawHost = req.headers.host?.trim();
-  const host = rawHost && rawHost.length > 0 ? rawHost : REQUEST_URL_DEFAULT_HOST;
+  const host = normalizeHostHeader(req.headers.host) ?? REQUEST_URL_DEFAULT_HOST;
   try {
     return new URL(rawUrl, `http://${host}`);
   } catch {

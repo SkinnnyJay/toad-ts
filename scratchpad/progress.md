@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B79 request-url host-header array normalization hardening
+    with direct unit coverage
   - completed B78 request-error case-insensitive canonical matching hardening
     for string/object message variants
   - completed B77 JSON response undefined-payload serialization hardening to

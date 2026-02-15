@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B79 request-url host-header array normalization)
+
+### Summary
+- Added defensive hardening for request URL parsing when incoming host header
+  values are unexpectedly array-shaped.
+- Updated:
+  - `src/server/request-url.ts`
+  - `__tests__/unit/server/request-url.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - introduced host header normalization that accepts string and string-array
+    forms without throwing.
+  - parser now uses first non-empty normalized host from arrays and falls back
+    to `localhost` when host array values are blank.
+  - added focused unit coverage for host array parsing and host array fallback.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-url.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B78 request-error case-insensitive canonical matching)
 
 ### Summary

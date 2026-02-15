@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B79 request-url host-header arrays)
+
+- Added defensive request-url host header normalization for string-array host
+  values to avoid parser throw paths and preserve deterministic fallback.
+- Updated:
+  - `src/server/request-url.ts`
+  - `__tests__/unit/server/request-url.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/request-url.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B78 request-error case-insensitive matching)
 
 - Added request-error normalization hardening for case-variant canonical parse

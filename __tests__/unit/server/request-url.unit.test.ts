@@ -8,6 +8,15 @@ const createRequest = (url: string | undefined, host?: string): IncomingMessage 
     headers: host ? { host } : {},
   }) as unknown as IncomingMessage;
 
+const createRequestWithHostHeader = (
+  url: string | undefined,
+  hostHeader: string | string[]
+): IncomingMessage =>
+  ({
+    url,
+    headers: { host: hostHeader },
+  }) as unknown as IncomingMessage;
+
 describe("parseRequestUrl", () => {
   it("parses request url with provided host", () => {
     const url = parseRequestUrl(createRequest("/api/files/search?q=readme", "127.0.0.1:4141"));
@@ -60,5 +69,19 @@ describe("parseRequestUrl", () => {
 
     expect(url?.pathname).toBe("/api/files/search");
     expect(url?.searchParams.get("q")).toBe("readme");
+  });
+
+  it("parses request url when host header is provided as string array", () => {
+    const url = parseRequestUrl(createRequestWithHostHeader("/health", ["127.0.0.1:4141"]));
+
+    expect(url?.pathname).toBe("/health");
+    expect(url?.host).toBe("127.0.0.1:4141");
+  });
+
+  it("falls back to localhost when host header array is blank", () => {
+    const url = parseRequestUrl(createRequestWithHostHeader("/health", [" ", ""]));
+
+    expect(url?.pathname).toBe("/health");
+    expect(url?.host).toBe("localhost");
   });
 });
