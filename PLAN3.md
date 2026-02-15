@@ -1,3 +1,19 @@
+## 2026-02-14 Execution Update (B61 capability-noop diagnostics enrichment)
+
+- Added NutJS execution-gate hardening so capability no-op outcomes now carry
+  permission diagnostics metadata.
+- Updated:
+  - `src/utils/nutjs-execution-gate.utils.ts`
+  - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - `__tests__/e2e/skippable.nutjs-smoke.e2e.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts __tests__/e2e/skippable.nutjs-smoke.e2e.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # Magic Literals Report – src/
 
 **Scope:** `src/` (folder mode)  

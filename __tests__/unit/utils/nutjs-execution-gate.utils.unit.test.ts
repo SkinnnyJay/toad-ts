@@ -176,6 +176,28 @@ describe("nutjs execution gate", () => {
     expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.CAPABILITY_NOOP);
     expect(result.executed).toBe(false);
     expect(action).not.toHaveBeenCalled();
+    expect(result.diagnostics?.linuxDisplayBackend.status).toBe(NUTJS_PERMISSION_STATUS.MISSING);
+  });
+
+  it("includes diagnostics for unsupported capability no-op paths", async () => {
+    const action = vi.fn(async () => "executed");
+    const result = await runNutJsActionWithGate({
+      actionId: ACTION_ID,
+      action,
+      env: {
+        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
+        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: ACTION_ID,
+      },
+      capability: {
+        platform: "aix",
+        hasRuntime: true,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.CAPABILITY_NOOP);
+    expect(result.executed).toBe(false);
+    expect(action).not.toHaveBeenCalled();
+    expect(result.diagnostics?.platform).toBe("aix");
   });
 
   it("returns permission-missing outcome for linux headless sessions", async () => {

@@ -46,6 +46,7 @@ describe("nutjs cross-platform smoke checks", () => {
     expect(capability.noOp).toBe(true);
     expect(diagnostics.platform).toBe(process.platform);
     expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.CAPABILITY_NOOP);
+    expect(result.diagnostics?.platform).toBe(process.platform);
   });
 
   it("runs allowlisted action when runtime simulation is enabled", async () => {

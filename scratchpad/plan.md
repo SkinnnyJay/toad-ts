@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added NutJS capability-noop diagnostics enrichment hardening:
+  - `runNutJsActionWithGate(...)` now includes permission diagnostics metadata
+    even when capability detection returns `capability_noop`.
+  - added unit coverage for Linux runtime-missing no-op diagnostics assertions
+    and unsupported-platform diagnostics presence.
+  - extended NutJS smoke coverage to assert diagnostics metadata on capability
+    no-op outcomes.
 - Added wildcard precedence canonicalization hardening:
   - normalized allowlist output now collapses to `["*"]` when wildcard is
     present.

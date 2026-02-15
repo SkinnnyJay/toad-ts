@@ -116,19 +116,20 @@ export const runNutJsActionWithGate = async <T>(
     };
   }
   const capability = detectNutJsCapability(options.capability);
+  const diagnostics = diagnoseNutJsPermissions({
+    platform: capability.platform,
+    env,
+    ...options.diagnostics,
+  });
   if (capability.noOp) {
     return {
       outcome: NUTJS_EXECUTION_OUTCOME.CAPABILITY_NOOP,
       executed: false,
       result: null,
       capability,
+      diagnostics,
     };
   }
-  const diagnostics = diagnoseNutJsPermissions({
-    platform: capability.platform,
-    env,
-    ...options.diagnostics,
-  });
   const hasMissingPermission =
     diagnostics.macosAccessibility.status === NUTJS_PERMISSION_STATUS.MISSING ||
     diagnostics.linuxDisplayBackend.status === NUTJS_PERMISSION_STATUS.MISSING ||

@@ -1,5 +1,38 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B61 capability-noop diagnostics enrichment)
+
+### Summary
+- Added post-completion hardening so NutJS capability no-op outcomes include
+  diagnostics metadata instead of returning capability-only context.
+- Updated:
+  - `src/utils/nutjs-execution-gate.utils.ts`
+  - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - `__tests__/e2e/skippable.nutjs-smoke.e2e.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - `runNutJsActionWithGate(...)` now resolves diagnostics before capability
+    no-op return paths and includes them in returned payload.
+  - expanded unit coverage for runtime-missing Linux no-op diagnostics and
+    unsupported-platform diagnostics metadata presence.
+  - expanded smoke coverage to assert diagnostics metadata in capability no-op
+    scenarios.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts __tests__/e2e/skippable.nutjs-smoke.e2e.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B60 wildcard precedence canonicalization)
 
 ### Summary
