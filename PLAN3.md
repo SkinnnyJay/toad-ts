@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B146 api-routes trailing-hash combined coverage)
+
+- Expanded api-routes matcher/classifier unit coverage for combined
+  trailing-slash + hash suffix forms across match, method-not-allowed,
+  not-found, api-root, parameterized, and malformed path classifications.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B145 server-route core trailing-hash combined coverage)
 
 - Expanded server-route classifier unit coverage for combined

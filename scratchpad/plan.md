@@ -14,6 +14,18 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded api-routes trailing-hash combined coverage:
+  - api-routes unit tests now include combined trailing-slash + hash forms for:
+    - direct route matching
+    - matching-route classification (`MATCH`)
+    - known-route unsupported-method classification (`METHOD_NOT_ALLOWED`)
+    - parameterized unsupported-method normalized form
+    - unknown-route classification (`NOT_FOUND`)
+    - api-root normalized form (`/api/#summary`) classification (`NOT_FOUND`)
+    - malformed double-segment normalized form
+      (`/api//config/#summary`) classification (`NOT_FOUND`).
+  - locks canonical `API_ROUTE_CLASSIFIER` ownership and decision behavior for
+    combined trailing-hash normalized API path variants.
 - Expanded server-route core trailing-hash combined coverage:
   - server-route classifier unit tests now include combined
     trailing-slash + hash forms for:

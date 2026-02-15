@@ -87,6 +87,11 @@ describe("API Routes", () => {
       expect(result).not.toBeNull();
     });
 
+    it("should match routes with combined trailing-slash and hash suffixes", () => {
+      const result = matchRoute("GET", "/api/config/#summary");
+      expect(result).not.toBeNull();
+    });
+
     it("should return null for unknown routes", () => {
       expect(matchRoute("GET", "/api/unknown")).toBeNull();
       expect(matchRoute("PUT", "/api/sessions")).toBeNull();
@@ -123,6 +128,11 @@ describe("API Routes", () => {
 
     it("classifies combined trailing-slash and query pathnames with matching routes as match", () => {
       const result = classifyApiRoute("GET", "/api/config/?view=compact");
+      expect(result.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+    });
+
+    it("classifies combined trailing-slash and hash pathnames with matching routes as match", () => {
+      const result = classifyApiRoute("GET", "/api/config/#summary");
       expect(result.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
     });
 
@@ -171,6 +181,14 @@ describe("API Routes", () => {
       });
     });
 
+    it("classifies combined trailing-slash and hash known path with unsupported method", () => {
+      const result = classifyApiRoute("POST", "/api/config/#summary");
+      expect(result).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
     it("classifies parameterized known paths with unsupported methods", () => {
       const sessionResult = classifyApiRoute("POST", "/api/sessions/session-123");
       const messagesResult = classifyApiRoute("POST", "/api/sessions/session-123/messages");
@@ -192,6 +210,10 @@ describe("API Routes", () => {
         "POST",
         "/api/sessions/session-123/messages/?view=compact"
       );
+      const trailingHashResult = classifyApiRoute(
+        "POST",
+        "/api/sessions/session-123/messages/#latest"
+      );
       expect(queryResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
@@ -205,6 +227,10 @@ describe("API Routes", () => {
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
       expect(trailingQueryResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(trailingHashResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
@@ -230,6 +256,7 @@ describe("API Routes", () => {
       const queryResult = classifyApiRoute("GET", "/api/does-not-exist?view=compact");
       const hashResult = classifyApiRoute("GET", "/api/does-not-exist#summary");
       const trailingQueryResult = classifyApiRoute("GET", "/api/does-not-exist/?view=compact");
+      const trailingHashResult = classifyApiRoute("GET", "/api/does-not-exist/#summary");
       expect(queryResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
@@ -239,6 +266,10 @@ describe("API Routes", () => {
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
       expect(trailingQueryResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(trailingHashResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
@@ -252,10 +283,19 @@ describe("API Routes", () => {
       });
     });
 
+    it("classifies api-root trailing-hash path as not found", () => {
+      const result = classifyApiRoute("GET", "/api/#summary");
+      expect(result).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
     it("classifies malformed double-segment api paths as not found", () => {
       const configResult = classifyApiRoute("POST", "/api//config");
       const messagesResult = classifyApiRoute("POST", "/api/sessions//messages");
       const trailingQueryResult = classifyApiRoute("POST", "/api//config/?scope=all");
+      const trailingHashResult = classifyApiRoute("POST", "/api//config/#summary");
       expect(configResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
@@ -265,6 +305,10 @@ describe("API Routes", () => {
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
       expect(trailingQueryResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(trailingHashResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });

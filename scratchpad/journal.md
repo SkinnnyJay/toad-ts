@@ -1,5 +1,44 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B146 api-routes trailing-hash combined coverage)
+
+### Summary
+- Expanded api-routes matcher/classifier unit coverage for combined
+  trailing-slash + hash route variants.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added assertions for:
+    - `matchRoute("GET", "/api/config/#summary")` -> match
+    - `classifyApiRoute("GET", "/api/config/#summary")` -> `MATCH`
+    - `classifyApiRoute("POST", "/api/config/#summary")`
+      -> `METHOD_NOT_ALLOWED` + `API_ROUTE_CLASSIFIER`
+    - parameterized combined form
+      `POST /api/sessions/session-123/messages/#latest`
+      -> `METHOD_NOT_ALLOWED` + `API_ROUTE_CLASSIFIER`
+    - unknown combined form `GET /api/does-not-exist/#summary`
+      -> `NOT_FOUND` + `API_ROUTE_CLASSIFIER`
+    - api-root combined form `GET /api/#summary`
+      -> `NOT_FOUND` + `API_ROUTE_CLASSIFIER`
+    - malformed combined form `POST /api//config/#summary`
+      -> `NOT_FOUND` + `API_ROUTE_CLASSIFIER`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B145 server-route core trailing-hash combined coverage)
 
 ### Summary
