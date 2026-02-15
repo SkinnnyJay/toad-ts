@@ -1,5 +1,38 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B206 unknown-endpoint trailing-variant classifier parity)
+
+### Summary
+- Expanded core/server classifier coverage for unknown-endpoint trailing-slash
+  variants with explicit POST/GET parity across trailing base/query/hash forms.
+- Updated:
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added core-route classifier POST/GET parity assertions for unknown-endpoint
+    trailing variants:
+    - `/unknown-endpoint/`
+    - `/unknown-endpoint/?scope=all`
+    - `/unknown-endpoint/#summary`
+  - added server-route classifier dedicated trailing-variant parity test with
+    POST/GET assertions for the same unknown-endpoint path set.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B205 unknown-core integration post parity)
 
 ### Summary

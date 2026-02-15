@@ -232,6 +232,51 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies unknown-endpoint trailing slash variants as unhandled", () => {
+    const trailingGetResult = classifyServerRoute(HTTP_METHOD.GET, "/unknown-endpoint/");
+    const trailingPostResult = classifyServerRoute(HTTP_METHOD.POST, "/unknown-endpoint/");
+    const trailingQueryGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/unknown-endpoint/?scope=all"
+    );
+    const trailingQueryPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/unknown-endpoint/?scope=all"
+    );
+    const trailingHashGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/unknown-endpoint/#summary"
+    );
+    const trailingHashPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/unknown-endpoint/#summary"
+    );
+    expect(trailingGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(trailingPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(trailingQueryGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(trailingQueryPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(trailingHashGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(trailingHashPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies unknown core routes with double-trailing slash variants as unhandled", () => {
     const baseResult = classifyServerRoute(HTTP_METHOD.GET, "/unknown-endpoint//");
     const basePostResult = classifyServerRoute(HTTP_METHOD.POST, "/unknown-endpoint//");

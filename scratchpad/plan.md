@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-endpoint trailing-variant classifier parity:
+  - core-route classifier unit suite now includes explicit POST/GET assertions
+    for `/unknown-endpoint/`, `/unknown-endpoint/?scope=all`, and
+    `/unknown-endpoint/#summary`.
+  - server-route classifier unit suite now includes a dedicated unknown-endpoint
+    trailing-variant test with explicit POST/GET parity assertions for the same
+    path set.
 - Expanded unknown-core integration POST parity:
   - headless-server integration suite now includes explicit unauthenticated and
     authenticated POST assertions for unknown non-session core route variants:
