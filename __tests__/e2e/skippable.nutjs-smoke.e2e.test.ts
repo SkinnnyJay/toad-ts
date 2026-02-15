@@ -1,6 +1,9 @@
 import { ENV_KEY } from "@/constants/env-keys";
 import { NUTJS_EXECUTION_OUTCOME } from "@/constants/nutjs-execution";
-import { NUTJS_PERMISSION_STATUS } from "@/constants/nutjs-permissions";
+import {
+  NUTJS_PERMISSION_STATUS,
+  NUTJS_WINDOWS_INTEGRITY_LEVEL,
+} from "@/constants/nutjs-permissions";
 import { PLATFORM } from "@/constants/platform";
 import { detectNutJsCapability } from "@/utils/nutjs-capability.utils";
 import { runNutJsActionWithGate } from "@/utils/nutjs-execution-gate.utils";
@@ -83,5 +86,45 @@ describe("nutjs cross-platform smoke checks", () => {
     expect(result.executed).toBe(false);
     expect(result.result).toBeNull();
     expect(result.diagnostics?.linuxDisplayBackend.status).toBe(NUTJS_PERMISSION_STATUS.MISSING);
+  });
+
+  it("returns permission-missing for macOS accessibility denial simulation", async () => {
+    const result = await runNutJsActionWithGate({
+      actionId: NUTJS_SMOKE_ACTION,
+      action: async () => "executed",
+      env: createAllowlistedNutJsEnv(),
+      capability: {
+        platform: PLATFORM.DARWIN,
+        hasRuntime: true,
+      },
+      diagnostics: {
+        macosAccessibilityGranted: false,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.PERMISSION_MISSING);
+    expect(result.executed).toBe(false);
+    expect(result.result).toBeNull();
+    expect(result.diagnostics?.macosAccessibility.status).toBe(NUTJS_PERMISSION_STATUS.MISSING);
+  });
+
+  it("returns permission-missing for windows low integrity simulation", async () => {
+    const result = await runNutJsActionWithGate({
+      actionId: NUTJS_SMOKE_ACTION,
+      action: async () => "executed",
+      env: createAllowlistedNutJsEnv(),
+      capability: {
+        platform: PLATFORM.WIN32,
+        hasRuntime: true,
+      },
+      diagnostics: {
+        windowsIntegrityLevel: NUTJS_WINDOWS_INTEGRITY_LEVEL.LOW,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.PERMISSION_MISSING);
+    expect(result.executed).toBe(false);
+    expect(result.result).toBeNull();
+    expect(result.diagnostics?.windowsIntegrityLevel.status).toBe(NUTJS_PERMISSION_STATUS.MISSING);
   });
 });

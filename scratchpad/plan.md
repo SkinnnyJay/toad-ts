@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added smoke-level cross-platform permission simulation hardening:
+  - NutJS smoke e2e now simulates macOS accessibility denial and Windows low
+    integrity diagnostics paths.
+  - both simulations assert `permission_missing` plus diagnostics status
+    metadata.
 - Added cross-platform permission diagnostics gate assertion hardening:
   - unit coverage now asserts explicit `permission_missing` outcomes for:
     - macOS accessibility denied diagnostics,

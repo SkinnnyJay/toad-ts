@@ -7578,6 +7578,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - lock cross-platform permission diagnostics enforcement semantics in the
       NutJS execution gate beyond Linux-only coverage.
 
+## Execution Log Addendum — 2026-02-14 (B55 smoke-level cross-platform permission simulations)
+
+- Post-completion hardening for NutJS smoke matrix depth:
+  - Updated:
+    - `__tests__/e2e/skippable.nutjs-smoke.e2e.test.ts`
+  - Hardening changes:
+    - added smoke-level simulation for macOS accessibility-denied diagnostics
+      path with expected `permission_missing`.
+    - added smoke-level simulation for low Windows integrity diagnostics path
+      with expected `permission_missing`.
+    - asserted diagnostics status payload fields for both simulated
+      cross-platform permission-missing paths.
+  - Goal:
+    - extend NutJS smoke coverage beyond host-platform-only checks by
+      validating cross-platform permission-failure semantics in one test suite.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7642,3 +7658,4 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B52 | P2 | add Linux smoke assertion for permission-missing NutJS runtime without display backend.
 - [x] - B53 | P2 | assert NutJS diagnostics metadata for executed and permission-missing outcomes.
 - [x] - B54 | P2 | assert macOS and Windows permission-missing diagnostics enforcement in NutJS gate.
+- [x] - B55 | P2 | add smoke-level cross-platform permission-missing simulations for macOS and Windows.
