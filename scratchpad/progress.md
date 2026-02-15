@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B73 request parsing-log method fallback hardening for blank
+    method normalization in standardized parse/validation telemetry
   - completed B72 request parsing-log pathname fallback hardening for blank
     path normalization in standardized parse-failure telemetry
   - completed B71 request-error canonical-message trimming hardening for

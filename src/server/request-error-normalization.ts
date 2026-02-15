@@ -26,6 +26,7 @@ export interface RequestParsingFailureContext {
 const REQUEST_PARSING_FAILURE_LOG_MESSAGE = "Request parsing failed";
 const REQUEST_VALIDATION_FAILURE_LOG_MESSAGE = "Request validation failed";
 const FALLBACK_REQUEST_PATHNAME = "/";
+const FALLBACK_REQUEST_METHOD = "UNKNOWN";
 
 export interface RequestValidationFailureDetails {
   readonly error: string;
@@ -35,10 +36,11 @@ export interface RequestValidationFailureDetails {
 const normalizeRequestFailureContext = (
   context: RequestParsingFailureContext
 ): Record<string, unknown> => {
+  const normalizedMethod = normalizeHttpMethod(context.method);
   const normalizedPathname = context.pathname.trim();
   return {
     source: context.source,
-    method: normalizeHttpMethod(context.method),
+    method: normalizedMethod.length > 0 ? normalizedMethod : FALLBACK_REQUEST_METHOD,
     pathname: normalizedPathname.length > 0 ? normalizedPathname : FALLBACK_REQUEST_PATHNAME,
     ...(context.handler ? { handler: context.handler } : {}),
   };

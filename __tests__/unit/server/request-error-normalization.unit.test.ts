@@ -175,4 +175,32 @@ describe("request-error-normalization", () => {
       error: UNKNOWN_ERROR_MESSAGE,
     });
   });
+
+  it("falls back to unknown method when logging blank request method", () => {
+    const warn = vi.fn();
+    const logger = { warn } as {
+      warn: (message: string, metadata?: Record<string, unknown>) => void;
+    };
+
+    logRequestValidationFailure(
+      logger,
+      {
+        source: REQUEST_PARSING_SOURCE.API_ROUTES,
+        method: "   ",
+        pathname: "/api/tui/append-prompt",
+      },
+      {
+        mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+        error: UNKNOWN_ERROR_MESSAGE,
+      }
+    );
+
+    expect(warn).toHaveBeenCalledWith("Request validation failed", {
+      source: REQUEST_PARSING_SOURCE.API_ROUTES,
+      method: "UNKNOWN",
+      pathname: "/api/tui/append-prompt",
+      mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      error: UNKNOWN_ERROR_MESSAGE,
+    });
+  });
 });

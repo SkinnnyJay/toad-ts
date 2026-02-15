@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B73 request parsing-log method fallback hardening)
+
+### Summary
+- Added post-completion hardening for standardized request parsing telemetry
+  when method input is blank/whitespace.
+- Updated:
+  - `src/server/request-error-normalization.ts`
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - parsing/validation log context normalization now falls back blank methods
+    to `UNKNOWN` for canonical telemetry payloads.
+  - added focused unit coverage asserting method fallback behavior.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B72 request parsing-log pathname fallback hardening)
 
 ### Summary
