@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B43 clipboard fallback strategy simplification)
+
+### Summary
+- Completed P2 backlog item B43 in `PLAN3.md` by simplifying clipboard command
+  fallback handling into explicit capability-ranked strategy helpers.
+- Updated:
+  - `src/utils/clipboard/clipboard.utils.ts`
+  - `src/ui/components/chat/slash-command-actions.ts`
+  - `__tests__/unit/utils/clipboard.utils.unit.test.ts`
+- Changes:
+  - introduced explicit ranked clipboard strategy constants and resolver helper
+    for platform/capability-based command selection.
+  - added `isClipboardCopySupported(...)` helper and reused it in slash command
+    copy availability checks.
+  - added focused unit coverage for ranked chain resolution and capability-based
+    support detection.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/clipboard.utils.unit.test.ts __tests__/unit/ui/slash-command-runner.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B42 shell invocation deduplication)
 
 ### Summary

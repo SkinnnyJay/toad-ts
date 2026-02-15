@@ -7358,6 +7358,24 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - reduce duplicated shell invocation setup across execution paths while
       keeping existing command behavior and env semantics stable.
 
+## Execution Log Addendum — 2026-02-14 (B43 clipboard fallback strategy simplification)
+
+- Additional P2 backlog hardening for clipboard maintainability:
+  - Updated:
+    - `src/utils/clipboard/clipboard.utils.ts`
+    - `src/ui/components/chat/slash-command-actions.ts`
+    - `__tests__/unit/utils/clipboard.utils.unit.test.ts`
+  - Hardening changes:
+    - replaced ad-hoc clipboard command assembly with explicit capability-ranked
+      command strategy constants and resolver helpers.
+    - added shared clipboard support helper reused by slash-command `/copy`
+      availability checks.
+    - added focused regression coverage for capability-ranked chain resolution
+      and support detection behavior.
+  - Goal:
+    - simplify clipboard fallback behavior into explicit ranked strategy while
+      preserving existing cross-platform copy semantics.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7410,7 +7428,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 
 - [x] - B41 | P2 | consolidate platform-specific command resolution into one shared platform adapter.
 - [x] - B42 | P2 | deduplicate shell invocation logic between shell-session, interactive-shell, and background-task-manager.
-- [ ] - B43 | P2 | simplify clipboard fallback chain into explicit capability-ranked strategy.
+- [x] - B43 | P2 | simplify clipboard fallback chain into explicit capability-ranked strategy.
 - [ ] - B44 | P2 | simplify reconnect jitter test scaffolding by generating jitter matrices from typed config.
 - [ ] - B45 | P2 | replace repeated `new Promise(setTimeout...)` blocks with shared typed delay helpers.
 - [ ] - B46 | P2 | add NutJS capability detector with explicit unsupported-platform no-op behavior.

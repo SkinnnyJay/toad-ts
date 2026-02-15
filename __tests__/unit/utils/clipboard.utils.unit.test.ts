@@ -4,7 +4,11 @@ import { PassThrough } from "node:stream";
 
 import { LIMIT } from "@/config/limits";
 import { ENV_KEY } from "@/constants/env-keys";
-import { copyToClipboard } from "@/utils/clipboard/clipboard.utils";
+import {
+  copyToClipboard,
+  isClipboardCopySupported,
+  resolveClipboardCommandChain,
+} from "@/utils/clipboard/clipboard.utils";
 import { EnvManager } from "@/utils/env/env.utils";
 import { EventEmitter } from "eventemitter3";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -156,5 +160,24 @@ describe("copyToClipboard", () => {
 
     await expect(copyPromise).resolves.toBe(false);
     expect(child.kill).toHaveBeenCalledWith("SIGTERM");
+  });
+
+  it("exposes explicit capability-ranked clipboard command chain", () => {
+    process.env[ENV_KEY.WAYLAND_DISPLAY] = "wayland-1";
+    process.env[ENV_KEY.DISPLAY] = ":0";
+    EnvManager.resetInstance();
+
+    const chain = resolveClipboardCommandChain(EnvManager.getInstance().getSnapshot(), "linux");
+
+    expect(chain.map((entry) => entry.command)).toEqual(["wl-copy", "xclip", "xsel"]);
+  });
+
+  it("reports clipboard support based on resolved command chain", () => {
+    delete process.env[ENV_KEY.WAYLAND_DISPLAY];
+    delete process.env[ENV_KEY.DISPLAY];
+    delete process.env[ENV_KEY.XDG_SESSION_TYPE];
+    EnvManager.resetInstance();
+
+    expect(isClipboardCopySupported(EnvManager.getInstance().getSnapshot(), "linux")).toBe(false);
   });
 });

@@ -15,33 +15,52 @@ const CLIPBOARD_COMMAND = {
   XSEL: "xsel",
 } as const;
 
-const buildClipboardCommands = (): Array<{ command: string; args: string[] }> => {
-  if (process.platform === PLATFORM.DARWIN) {
-    return [{ command: CLIPBOARD_COMMAND.PBCOPY, args: [] }];
+export interface ClipboardCommandSpec {
+  command: string;
+  args: string[];
+}
+
+const CLIPBOARD_COMMAND_STRATEGY = {
+  DARWIN: [{ command: CLIPBOARD_COMMAND.PBCOPY, args: [] }],
+  WINDOWS: [{ command: CLIPBOARD_COMMAND.CLIP, args: [] }],
+  LINUX_WAYLAND: [{ command: CLIPBOARD_COMMAND.WLCOPY, args: [] }],
+  LINUX_X11: [
+    { command: CLIPBOARD_COMMAND.XCLIP, args: ["-selection", "clipboard"] },
+    { command: CLIPBOARD_COMMAND.XSEL, args: ["--clipboard", "--input"] },
+  ],
+} as const satisfies Record<string, ClipboardCommandSpec[]>;
+
+export const resolveClipboardCommandChain = (
+  env: NodeJS.ProcessEnv = EnvManager.getInstance().getSnapshot(),
+  platform: NodeJS.Platform = process.platform
+): ClipboardCommandSpec[] => {
+  if (platform === PLATFORM.DARWIN) {
+    return [...CLIPBOARD_COMMAND_STRATEGY.DARWIN];
   }
-  if (process.platform === PLATFORM.WIN32) {
-    return [{ command: CLIPBOARD_COMMAND.CLIP, args: [] }];
+  if (platform === PLATFORM.WIN32) {
+    return [...CLIPBOARD_COMMAND_STRATEGY.WINDOWS];
   }
 
-  const env = EnvManager.getInstance().getSnapshot();
-  const desktop = detectLinuxDesktopCapability(env, process.platform);
+  const desktop = detectLinuxDesktopCapability(env, platform);
   if (desktop.capability === LINUX_DESKTOP_CAPABILITY.HEADLESS) {
     return [];
   }
 
-  const commands: Array<{ command: string; args: string[] }> = [];
+  const commands: ClipboardCommandSpec[] = [];
   if (desktop.hasWayland) {
-    commands.push({ command: CLIPBOARD_COMMAND.WLCOPY, args: [] });
+    commands.push(...CLIPBOARD_COMMAND_STRATEGY.LINUX_WAYLAND);
   }
   if (desktop.hasX11) {
-    commands.push(
-      { command: CLIPBOARD_COMMAND.XCLIP, args: ["-selection", "clipboard"] },
-      { command: CLIPBOARD_COMMAND.XSEL, args: ["--clipboard", "--input"] }
-    );
+    commands.push(...CLIPBOARD_COMMAND_STRATEGY.LINUX_X11);
   }
 
   return commands;
 };
+
+export const isClipboardCopySupported = (
+  env: NodeJS.ProcessEnv = EnvManager.getInstance().getSnapshot(),
+  platform: NodeJS.Platform = process.platform
+): boolean => resolveClipboardCommandChain(env, platform).length > 0;
 
 const tryClipboardCommand = async (
   command: string,
@@ -83,7 +102,7 @@ const tryClipboardCommand = async (
   });
 
 export const copyToClipboard = async (text: string): Promise<boolean> => {
-  const commands = buildClipboardCommands();
+  const commands = resolveClipboardCommandChain();
   for (const { command, args } of commands) {
     const success = await tryClipboardCommand(command, args, text);
     if (success) {

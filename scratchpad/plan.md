@@ -4011,9 +4011,16 @@
     shared invocation helper functions
   - added focused invocation coverage in
     `__tests__/unit/utils/shell-invocation.utils.unit.test.ts`
+- Completed P2 backlog item B43 clipboard fallback strategy simplification:
+  - introduced explicit capability-ranked clipboard strategy constants and
+    resolver utilities in `src/utils/clipboard/clipboard.utils.ts`
+  - reused shared clipboard support helper in `/copy` slash-command
+    availability checks
+  - added focused command-chain/support coverage in
+    `__tests__/unit/utils/clipboard.utils.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B43 by simplifying clipboard fallback logic
-    into explicit capability-ranked strategy
+  - evaluate severity backlog item B44 by simplifying reconnect jitter test
+    scaffolding via typed jitter matrix generation
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

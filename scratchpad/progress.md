@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B43 clipboard fallback simplification with explicit
+    capability-ranked command strategy and shared support checks
   - completed B42 shell invocation deduplication with shared invocation utility
     reused by shell-session, interactive-shell, and background-task-manager
   - completed B41 platform command adapter consolidation with shared shell
