@@ -28,6 +28,60 @@ describe("classifyServerRoute", () => {
     expect(result).toEqual({ kind: SERVER_ROUTE_CLASSIFICATION.HEALTH_OK });
   });
 
+  it("classifies known api/core routes with lowercase/padded methods consistently", () => {
+    const paddedHealthGetResult = classifyServerRoute(" get ", SERVER_PATH.HEALTH);
+    const lowerHealthPostResult = classifyServerRoute("post", "/health");
+    const paddedSessionsGetResult = classifyServerRoute(" get ", "/sessions");
+    const lowerSessionsPostResult = classifyServerRoute("post", "/sessions");
+    const paddedPromptPostResult = classifyServerRoute(" post ", "/sessions/session-1/prompt");
+    const lowerPromptGetResult = classifyServerRoute("get", "/sessions/session-1/prompt");
+    const paddedMessagesGetResult = classifyServerRoute(" get ", "/sessions/session-1/messages");
+    const lowerMessagesPostResult = classifyServerRoute("post", "/sessions/session-1/messages");
+    const paddedApiConfigGetResult = classifyServerRoute(" get ", "/api/config");
+    const lowerApiSubmitPostResult = classifyServerRoute("post", "/api/tui/submit-prompt");
+    const paddedApiConfigPostResult = classifyServerRoute(" post ", "/api/config");
+    const lowerApiSubmitGetResult = classifyServerRoute("get", "/api/tui/submit-prompt");
+    expect(paddedHealthGetResult).toEqual({ kind: SERVER_ROUTE_CLASSIFICATION.HEALTH_OK });
+    expect(lowerHealthPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(paddedSessionsGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(lowerSessionsPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(paddedPromptPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(lowerPromptGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(paddedMessagesGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(lowerMessagesPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(paddedApiConfigGetResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(lowerApiSubmitPostResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(paddedApiConfigPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(lowerApiSubmitGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies unsupported core methods as method_not_allowed", () => {
     const result = classifyServerRoute(HTTP_METHOD.GET, SERVER_PATH.SESSIONS);
     expect(result).toEqual({

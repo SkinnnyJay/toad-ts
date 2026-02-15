@@ -116,6 +116,25 @@ describe("API Routes", () => {
       expect(result.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
     });
 
+    it("classifies known routes with lowercase/padded methods consistently", () => {
+      const paddedConfigGetResult = classifyApiRoute(" get ", "/api/config");
+      const lowerSubmitPostResult = classifyApiRoute("post", "/api/tui/submit-prompt");
+      const paddedSessionDeleteResult = classifyApiRoute(" delete ", "/api/sessions/session-123");
+      const paddedConfigPostResult = classifyApiRoute(" post ", "/api/config");
+      const paddedSubmitGetResult = classifyApiRoute(" get ", "/api/tui/submit-prompt");
+      expect(paddedConfigGetResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(lowerSubmitPostResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(paddedSessionDeleteResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(paddedConfigPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedSubmitGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
     it("classifies padded pathnames with matching routes as match", () => {
       const result = classifyApiRoute("GET", " /api/config ");
       expect(result.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);

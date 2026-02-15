@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded known-route method normalization parity:
+  - API/core/server classifier unit suites now explicitly cover lowercase and
+    whitespace-padded HTTP methods for known routes, asserting both allowed and
+    method-not-allowed outcomes remain stable.
 - Expanded blank-session pathname normalization parity:
   - pathname-normalization unit suite now explicitly covers plain and
     whitespace-padded `/sessions//`, `/sessions//?scope=all`,

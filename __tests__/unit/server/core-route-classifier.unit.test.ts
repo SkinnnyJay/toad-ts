@@ -14,6 +14,25 @@ describe("classifyCoreRoute", () => {
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.HEALTH_OK });
   });
 
+  it("normalizes lowercase/padded methods for known core routes", () => {
+    const paddedHealthGetResult = classifyCoreRoute(" get ", SERVER_PATH.HEALTH);
+    const lowerHealthPostResult = classifyCoreRoute("post", "/health");
+    const paddedSessionsGetResult = classifyCoreRoute(" get ", SERVER_PATH.SESSIONS);
+    const lowerSessionsPostResult = classifyCoreRoute("post", "/sessions");
+    const paddedPromptPostResult = classifyCoreRoute(" post ", "/sessions/session-1/prompt");
+    const lowerPromptGetResult = classifyCoreRoute("get", "/sessions/session-1/prompt");
+    const paddedMessagesGetResult = classifyCoreRoute(" get ", "/sessions/session-1/messages");
+    const lowerMessagesPostResult = classifyCoreRoute("post", "/sessions/session-1/messages");
+    expect(paddedHealthGetResult).toEqual({ kind: CORE_ROUTE_DECISION.HEALTH_OK });
+    expect(lowerHealthPostResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(paddedSessionsGetResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(lowerSessionsPostResult).toEqual({ kind: CORE_ROUTE_DECISION.UNHANDLED });
+    expect(paddedPromptPostResult).toEqual({ kind: CORE_ROUTE_DECISION.UNHANDLED });
+    expect(lowerPromptGetResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(paddedMessagesGetResult).toEqual({ kind: CORE_ROUTE_DECISION.UNHANDLED });
+    expect(lowerMessagesPostResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+  });
+
   it("returns health_ok for padded GET /health pathname", () => {
     const result = classifyCoreRoute(HTTP_METHOD.GET, " /health ");
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.HEALTH_OK });

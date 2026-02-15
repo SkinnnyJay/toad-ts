@@ -1,5 +1,41 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B225 known-route method normalization parity)
+
+### Summary
+- Expanded known-route method normalization coverage to explicitly lock
+  lowercase and whitespace-padded method handling across API/core/server
+  classifiers.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - `api-routes` classifier: added known-route assertions proving padded/lower
+    methods keep `MATCH`/`METHOD_NOT_ALLOWED` semantics stable.
+  - `core-route` classifier: added known core-route assertions proving padded/
+    lower methods preserve `HEALTH_OK`, `METHOD_NOT_ALLOWED`, and `UNHANDLED`
+    semantics.
+  - `server-route` classifier: added top-level parity assertions proving
+    padded/lower methods preserve API/core classification outcomes and handler
+    attribution for known routes.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/unit/server/pathname-normalization.unit.test.ts __tests__/unit/server/session-route-path.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B224 blank-session pathname normalization parity)
 
 ### Summary

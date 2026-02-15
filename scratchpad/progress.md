@@ -3,6 +3,9 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B225 known-route method normalization parity hardening
+    (api/core/server classifier unit coverage now locks lowercase and
+    whitespace-padded methods for known routes)
   - completed B224 blank-session pathname normalization parity hardening
     (pathname normalization unit coverage now explicitly locks `/sessions//...`
     base normalization to `/sessions` for plain and whitespace-padded forms)
