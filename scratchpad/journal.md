@@ -1,5 +1,39 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B48 NutJS feature-flag + allowlist gate)
+
+### Summary
+- Completed P2 backlog item B48 in `PLAN3.md` by adding explicit feature-flag
+  and security allowlist gating for NutJS execution paths.
+- Updated:
+  - `src/constants/nutjs-execution.ts`
+  - `src/utils/nutjs-execution-gate.utils.ts`
+  - `src/constants/env-keys.ts`
+  - `.env.sample`
+  - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+- Changes:
+  - added typed NutJS execution outcomes and allowlist constants.
+  - added NutJS execution gate enforcing feature flag, allowlist checks, and
+    capability no-op fallback before action execution.
+  - documented optional NutJS gate env keys in `.env.sample`.
+  - added focused unit coverage for disabled/not-allowlisted/no-op/executed
+    gate outcomes.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts __tests__/unit/utils/nutjs-capability.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B47 NutJS permission diagnostics)
 
 ### Summary

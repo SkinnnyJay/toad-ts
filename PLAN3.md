@@ -7448,6 +7448,28 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - provide explicit NutJS permission diagnostics across macOS/Linux/Windows
       prerequisites for safer automation readiness checks.
 
+## Execution Log Addendum — 2026-02-14 (B48 NutJS feature-flag + allowlist gate)
+
+- Additional P2 backlog hardening for NutJS execution safety:
+  - Updated:
+    - `src/constants/nutjs-execution.ts` (new)
+    - `src/utils/nutjs-execution-gate.utils.ts` (new)
+    - `src/constants/env-keys.ts`
+    - `.env.sample`
+    - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts` (new)
+  - Hardening changes:
+    - added typed NutJS execution outcomes and allowlist constants.
+    - introduced NutJS execution gate that enforces:
+      - feature-flag enablement (`TOADSTOOL_NUTJS_ENABLED`),
+      - action allowlist checks (`TOADSTOOL_NUTJS_ALLOWLIST`),
+      - existing capability no-op safety.
+    - documented new optional env keys in `.env.sample`.
+    - added focused unit coverage for disabled, not-allowlisted, capability-noop,
+      wildcard allowlist, and successful execution flows.
+  - Goal:
+    - gate NutJS execution behind explicit feature flag + security allowlist
+      before any runtime action executes.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7505,6 +7527,6 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B45 | P2 | replace repeated `new Promise(setTimeout...)` blocks with shared typed delay helpers.
 - [x] - B46 | P2 | add NutJS capability detector with explicit unsupported-platform no-op behavior.
 - [x] - B47 | P2 | add NutJS permission diagnostics (macOS Accessibility, Linux display backend, Windows integrity level).
-- [ ] - B48 | P2 | gate NutJS execution behind feature flag and security allowlist.
+- [x] - B48 | P2 | gate NutJS execution behind feature flag and security allowlist.
 - [ ] - B49 | P2 | add cross-platform NutJS smoke checks (Windows/Linux/macOS) in CI matrix.
 - [ ] - B50 | P2 | document and simplify fallback precedence for platform + NutJS + clipboard + sound paths.
