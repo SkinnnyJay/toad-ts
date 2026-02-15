@@ -9277,6 +9277,24 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedSessionBlankPrompt = await fetch(`${baseUrl}/sessions//prompt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "ignored" }),
+      });
+      expect(unauthenticatedSessionBlankPrompt.status).toBe(401);
+      expect(unauthenticatedSessionBlankPrompt.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedSessionBlankPrompt.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedSessionBlankMessages = await fetch(`${baseUrl}/sessions//messages`);
+      expect(unauthenticatedSessionBlankMessages.status).toBe(401);
+      expect(unauthenticatedSessionBlankMessages.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedSessionBlankMessages.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const authenticatedApiUnknown = await fetch(`${baseUrl}/api`, {
         headers: {
           Authorization: "Bearer secret",
@@ -9339,6 +9357,29 @@ describe("headless server", () => {
       });
       expect(authenticatedSessionMissingAction.status).toBe(404);
       await expect(authenticatedSessionMissingAction.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const authenticatedSessionBlankPrompt = await fetch(`${baseUrl}/sessions//prompt`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt: "ignored" }),
+      });
+      expect(authenticatedSessionBlankPrompt.status).toBe(404);
+      await expect(authenticatedSessionBlankPrompt.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const authenticatedSessionBlankMessages = await fetch(`${baseUrl}/sessions//messages`, {
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedSessionBlankMessages.status).toBe(404);
+      await expect(authenticatedSessionBlankMessages.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
       });
     } finally {

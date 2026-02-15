@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-route auth-order malformed session coverage:
+  - password-protected unknown-route ordering test now includes malformed
+    session variants (`/sessions//prompt`, `/sessions//messages`) with locked
+    unauthenticated `401` challenge and authenticated `404` +
+    `UNKNOWN_ENDPOINT` semantics.
 - Expanded unknown-route auth-order malformed API coverage:
   - password-protected unknown-route ordering test now includes malformed API
     variants (`/api//config`, `/api/sessions//messages`) with explicit
