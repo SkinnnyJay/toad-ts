@@ -1,5 +1,39 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B230 protected-api double-trailing auth parity)
+
+### Summary
+- Expanded protected API auth-before-method integration coverage to include
+  double-trailing `//`, `//?query`, and `//#hash` variants for known routes.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in password-protected API method-semantics coverage, added unauthenticated
+    assertions for known-route double-trailing variants across:
+    - `/api/config`
+    - `/api/tui/execute-command`
+    - `/api/sessions/:id`
+    - `/api/sessions/:id/messages`
+    expecting `401` + `Bearer` + `AUTHORIZATION_REQUIRED`.
+  - added authenticated assertions for same variants expecting
+    `405 METHOD_NOT_ALLOWED`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/pathname-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B229 health auth-bypass double-trailing parity)
 
 ### Summary

@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded protected-api double-trailing auth parity:
+  - password-protected API method-semantics integration suite now explicitly
+    validates known-route `//`, `//?query`, and `//#hash` variants for config,
+    execute-command, session-by-id, and session-messages paths:
+    - unauthenticated => `401` + `Bearer` challenge
+    - authenticated => `405 METHOD_NOT_ALLOWED`.
 - Expanded health auth-bypass double-trailing parity:
   - headless-server integration suite now explicitly validates `/health//`,
     `/health//?probe=1`, `/health//#summary` under password protection:
