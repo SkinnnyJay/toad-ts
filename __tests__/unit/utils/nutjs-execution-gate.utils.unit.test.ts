@@ -57,6 +57,7 @@ describe("nutjs execution gate", () => {
       env: {
         [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
         [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: ACTION_ID,
+        [ENV_KEY.DISPLAY]: ":0",
       },
       capability: {
         platform: PLATFORM.LINUX,
@@ -97,5 +98,45 @@ describe("nutjs execution gate", () => {
     expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.CAPABILITY_NOOP);
     expect(result.executed).toBe(false);
     expect(action).not.toHaveBeenCalled();
+  });
+
+  it("returns permission-missing outcome for linux headless sessions", async () => {
+    const action = vi.fn(async () => "executed");
+    const result = await runNutJsActionWithGate({
+      actionId: ACTION_ID,
+      action,
+      env: {
+        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
+        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: ACTION_ID,
+      },
+      capability: {
+        platform: PLATFORM.LINUX,
+        hasRuntime: true,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.PERMISSION_MISSING);
+    expect(result.executed).toBe(false);
+    expect(action).not.toHaveBeenCalled();
+  });
+
+  it("does not block execution when permission state is unknown", async () => {
+    const action = vi.fn(async () => "executed");
+    const result = await runNutJsActionWithGate({
+      actionId: ACTION_ID,
+      action,
+      env: {
+        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
+        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: ACTION_ID,
+      },
+      capability: {
+        platform: PLATFORM.WIN32,
+        hasRuntime: true,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.EXECUTED);
+    expect(result.executed).toBe(true);
+    expect(action).toHaveBeenCalledTimes(1);
   });
 });

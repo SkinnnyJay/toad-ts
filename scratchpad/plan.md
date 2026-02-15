@@ -14,6 +14,16 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added permission-aware NutJS execution gating hardening:
+  - `runNutJsActionWithGate(...)` now enforces permission diagnostics before
+    runtime action execution and emits `permission_missing` outcome when
+    diagnostics report explicit missing permissions.
+  - unknown/not-applicable diagnostics remain non-blocking, preserving
+    deterministic execution behavior on platforms without explicit probes.
+  - expanded focused coverage in
+    `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts` and
+    `__tests__/e2e/skippable.nutjs-smoke.e2e.test.ts`.
+  - updated fallback-precedence docs to reflect permission-stage enforcement.
 - Added repeated explicit cursor connect-failure integration coverage:
   - headless integration now verifies consecutive explicit `harnessId:
     "cursor-cli"` session requests return canonical server-error responses when

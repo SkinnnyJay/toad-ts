@@ -2,6 +2,7 @@ export const NUTJS_EXECUTION_OUTCOME = {
   DISABLED: "disabled",
   NOT_ALLOWLISTED: "not_allowlisted",
   CAPABILITY_NOOP: "capability_noop",
+  PERMISSION_MISSING: "permission_missing",
   EXECUTED: "executed",
 } as const;
 

@@ -7511,6 +7511,28 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - document and simplify fallback precedence for platform + NutJS + clipboard
       + sound paths to reduce drift and improve maintainability.
 
+## Execution Log Addendum — 2026-02-14 (B51 permission-aware NutJS gate)
+
+- Post-completion hardening for NutJS execution safety:
+  - Updated:
+    - `src/constants/nutjs-execution.ts`
+    - `src/utils/nutjs-execution-gate.utils.ts`
+    - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+    - `__tests__/e2e/skippable.nutjs-smoke.e2e.test.ts`
+    - `docs/platform-fallback-precedence.md`
+  - Hardening changes:
+    - added `permission_missing` execution outcome for explicit diagnostics
+      enforcement.
+    - integrated NutJS permission diagnostics stage into gate execution order so
+      missing permissions block runtime action execution.
+    - preserved unknown/not-applicable diagnostics as non-blocking while
+      enforcing explicit missing-permission no-op behavior.
+    - added focused unit/e2e coverage for permission-missing and unknown-state
+      outcomes.
+  - Goal:
+    - align NutJS execution behavior with documented fallback order by
+      enforcing permission diagnostics before action execution.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7571,3 +7593,4 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B48 | P2 | gate NutJS execution behind feature flag and security allowlist.
 - [x] - B49 | P2 | add cross-platform NutJS smoke checks (Windows/Linux/macOS) in CI matrix.
 - [x] - B50 | P2 | document and simplify fallback precedence for platform + NutJS + clipboard + sound paths.
+- [x] - B51 | P2 | enforce permission diagnostics stage in NutJS execution gate before action execution.

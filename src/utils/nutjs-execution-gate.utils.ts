@@ -6,6 +6,7 @@ import {
   NUTJS_EXECUTION_OUTCOME,
   type NutJsExecutionOutcome,
 } from "@/constants/nutjs-execution";
+import { NUTJS_PERMISSION_STATUS } from "@/constants/nutjs-permissions";
 import { NUTJS_EXECUTION_FALLBACK_PRECEDENCE } from "@/constants/platform-fallback-precedence";
 import { EnvManager } from "@/utils/env/env.utils";
 import {
@@ -14,6 +15,11 @@ import {
   detectNutJsCapability,
   withNutJsCapabilityNoop,
 } from "@/utils/nutjs-capability.utils";
+import {
+  type NutJsPermissionDiagnostics,
+  type NutJsPermissionDiagnosticsOptions,
+  diagnoseNutJsPermissions,
+} from "@/utils/nutjs-permission-diagnostics.utils";
 
 export interface NutJsExecutionPolicy {
   enabled: boolean;
@@ -25,6 +31,7 @@ export interface NutJsExecutionResult<T> {
   executed: boolean;
   result: T | null;
   capability?: NutJsCapability;
+  diagnostics?: NutJsPermissionDiagnostics;
 }
 
 export interface RunNutJsActionOptions<T> {
@@ -32,6 +39,7 @@ export interface RunNutJsActionOptions<T> {
   action: () => Promise<T>;
   env?: NodeJS.ProcessEnv;
   capability?: NutJsCapabilityOptions;
+  diagnostics?: Omit<NutJsPermissionDiagnosticsOptions, "platform" | "env">;
 }
 
 const normalizeActionId = (actionId: string): string => actionId.trim().toLowerCase();
@@ -94,13 +102,40 @@ export const runNutJsActionWithGate = async <T>(
     };
   }
   const capability = detectNutJsCapability(options.capability);
+  if (capability.noOp) {
+    return {
+      outcome: NUTJS_EXECUTION_OUTCOME.CAPABILITY_NOOP,
+      executed: false,
+      result: null,
+      capability,
+    };
+  }
+  const diagnostics = diagnoseNutJsPermissions({
+    platform: capability.platform,
+    env,
+    ...options.diagnostics,
+  });
+  const hasMissingPermission =
+    diagnostics.macosAccessibility.status === NUTJS_PERMISSION_STATUS.MISSING ||
+    diagnostics.linuxDisplayBackend.status === NUTJS_PERMISSION_STATUS.MISSING ||
+    diagnostics.windowsIntegrityLevel.status === NUTJS_PERMISSION_STATUS.MISSING;
+  if (hasMissingPermission) {
+    return {
+      outcome: NUTJS_EXECUTION_OUTCOME.PERMISSION_MISSING,
+      executed: false,
+      result: null,
+      capability,
+      diagnostics,
+    };
+  }
   const result = await withNutJsCapabilityNoop(capability, options.action);
   if (result === null) {
     return {
       outcome: NUTJS_EXECUTION_OUTCOME.CAPABILITY_NOOP,
       executed: false,
-      result,
+      result: null,
       capability,
+      diagnostics,
     };
   }
   return {
@@ -108,6 +143,7 @@ export const runNutJsActionWithGate = async <T>(
     executed: true,
     result,
     capability,
+    diagnostics,
   };
 };
 

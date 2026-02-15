@@ -13,6 +13,8 @@ NutJS execution now follows a strict gate order:
 5. `execution`
 
 If any gate fails, execution resolves to a deterministic no-op outcome.
+Permission diagnostics failures return `permission_missing` and block execution
+before invoking NutJS actions.
 
 ## Clipboard fallback
 

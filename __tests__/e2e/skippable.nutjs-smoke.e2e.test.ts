@@ -1,11 +1,23 @@
 import { ENV_KEY } from "@/constants/env-keys";
 import { NUTJS_EXECUTION_OUTCOME } from "@/constants/nutjs-execution";
+import { PLATFORM } from "@/constants/platform";
 import { detectNutJsCapability } from "@/utils/nutjs-capability.utils";
 import { runNutJsActionWithGate } from "@/utils/nutjs-execution-gate.utils";
 import { diagnoseNutJsPermissions } from "@/utils/nutjs-permission-diagnostics.utils";
 import { describe, expect, it } from "vitest";
 
 const NUTJS_SMOKE_ACTION = "nutjs.smoke";
+
+const createAllowlistedNutJsEnv = (): NodeJS.ProcessEnv => {
+  const env: NodeJS.ProcessEnv = {
+    [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
+    [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: NUTJS_SMOKE_ACTION,
+  };
+  if (process.platform === PLATFORM.LINUX) {
+    env[ENV_KEY.DISPLAY] = ":0";
+  }
+  return env;
+};
 
 describe("nutjs cross-platform smoke checks", () => {
   it("keeps gated execution in deterministic no-op mode without runtime", async () => {
@@ -20,10 +32,7 @@ describe("nutjs cross-platform smoke checks", () => {
     const result = await runNutJsActionWithGate({
       actionId: NUTJS_SMOKE_ACTION,
       action: async () => "executed",
-      env: {
-        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
-        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: NUTJS_SMOKE_ACTION,
-      },
+      env: createAllowlistedNutJsEnv(),
       capability: {
         platform: process.platform,
         hasRuntime: false,
@@ -39,10 +48,7 @@ describe("nutjs cross-platform smoke checks", () => {
     const result = await runNutJsActionWithGate({
       actionId: NUTJS_SMOKE_ACTION,
       action: async () => "executed",
-      env: {
-        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
-        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: NUTJS_SMOKE_ACTION,
-      },
+      env: createAllowlistedNutJsEnv(),
       capability: {
         platform: process.platform,
         hasRuntime: true,
