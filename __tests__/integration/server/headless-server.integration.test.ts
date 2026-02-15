@@ -8992,12 +8992,25 @@ describe("headless server", () => {
       expect(healthOkResponse.status).toBe(200);
       await expect(healthOkResponse.json()).resolves.toEqual({ status: "ok" });
 
+      const healthTrailingSlashResponse = await fetch(`${baseUrl}/health/`);
+      expect(healthTrailingSlashResponse.status).toBe(200);
+      await expect(healthTrailingSlashResponse.json()).resolves.toEqual({ status: "ok" });
+
       const unsupportedMethodResponse = await fetch(`${baseUrl}/health`, {
         method: "POST",
       });
       expect(unsupportedMethodResponse.status).toBe(405);
       expect(unsupportedMethodResponse.headers.get("www-authenticate")).toBeNull();
       await expect(unsupportedMethodResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const unsupportedTrailingSlashResponse = await fetch(`${baseUrl}/health/`, {
+        method: "POST",
+      });
+      expect(unsupportedTrailingSlashResponse.status).toBe(405);
+      expect(unsupportedTrailingSlashResponse.headers.get("www-authenticate")).toBeNull();
+      await expect(unsupportedTrailingSlashResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
     } finally {

@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded health-route auth-bypass coverage for trailing-slash variants:
+  - password-protected integration test now asserts `/health/` retains bypass
+    semantics for both successful `GET` and unsupported-method `405` responses
+    without auth challenge headers.
 - Expanded trailing-slash known-route integration coverage:
   - added headless-server integration assertions proving trailing-slash
     variants for `/health`, `/api/config`, `/sessions`, session prompt, and

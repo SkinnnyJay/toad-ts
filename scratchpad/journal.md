@@ -1,5 +1,33 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B107 health-route trailing-slash auth bypass coverage)
+
+### Summary
+- Extended health-route auth-bypass integration coverage to include trailing
+  slash variants under password-protected server settings.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in password-enabled mode, `/health/` now has explicit assertions for:
+    - `GET` => `200` with status payload.
+    - `POST` => `405` without `WWW-Authenticate` challenge header.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B106 trailing-slash known-route integration coverage)
 
 ### Summary

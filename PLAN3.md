@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B107 health trailing-slash auth bypass)
+
+- Extended headless-server integration coverage for health-route auth-bypass
+  semantics to include trailing-slash route variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B106 trailing-slash known-route integration)
 
 - Expanded headless-server integration coverage for successful trailing-slash
