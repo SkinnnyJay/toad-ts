@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded blank-session trailing-suffix parse-route parity:
+  - session-route-path unit suite now includes explicit null-parse assertions
+    for blank-session prompt/messages malformed trailing variants:
+    `/sessions//prompt/`, `/sessions//prompt/?tail=1`,
+    `/sessions//prompt/#summary`, `/sessions//messages/`,
+    `/sessions//messages/?tail=1`, `/sessions//messages/#summary`.
 - Expanded blank-session messages malformed POST-method parity:
   - unknown-route auth-order integration coverage now includes explicit POST
     assertions for blank-session messages malformed base/query/hash/trailing/

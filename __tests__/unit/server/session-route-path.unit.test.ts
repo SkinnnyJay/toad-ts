@@ -114,13 +114,19 @@ describe("parseSessionRoutePath", () => {
   });
 
   it("returns null for blank-session malformed routes with suffixes", () => {
+    expect(parseSessionRoutePath("/sessions//prompt/")).toBeNull();
     expect(parseSessionRoutePath("/sessions//prompt?tail=1")).toBeNull();
+    expect(parseSessionRoutePath("/sessions//prompt/?tail=1")).toBeNull();
     expect(parseSessionRoutePath("/sessions//prompt#summary")).toBeNull();
+    expect(parseSessionRoutePath("/sessions//prompt/#summary")).toBeNull();
     expect(parseSessionRoutePath("/sessions//prompt//")).toBeNull();
     expect(parseSessionRoutePath("/sessions//prompt//?tail=1")).toBeNull();
     expect(parseSessionRoutePath("/sessions//prompt//#summary")).toBeNull();
+    expect(parseSessionRoutePath("/sessions//messages/")).toBeNull();
     expect(parseSessionRoutePath("/sessions//messages?tail=1")).toBeNull();
+    expect(parseSessionRoutePath("/sessions//messages/?tail=1")).toBeNull();
     expect(parseSessionRoutePath("/sessions//messages#summary")).toBeNull();
+    expect(parseSessionRoutePath("/sessions//messages/#summary")).toBeNull();
     expect(parseSessionRoutePath("/sessions//messages//")).toBeNull();
     expect(parseSessionRoutePath("/sessions//messages//?tail=1")).toBeNull();
     expect(parseSessionRoutePath("/sessions//messages//#summary")).toBeNull();
