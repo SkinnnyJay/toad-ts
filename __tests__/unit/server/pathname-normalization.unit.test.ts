@@ -43,6 +43,18 @@ describe("normalizeRoutePathname", () => {
     expect(normalizeRoutePathname("/api/unknown//#summary")).toBe("/api/unknown");
   });
 
+  it("normalizes whitespace-padded api root malformed forms", () => {
+    expect(normalizeRoutePathname(" /api ")).toBe("/api");
+    expect(normalizeRoutePathname(" /api?scope=all ")).toBe("/api");
+    expect(normalizeRoutePathname(" /api#summary ")).toBe("/api");
+    expect(normalizeRoutePathname(" /api/ ")).toBe("/api");
+    expect(normalizeRoutePathname(" /api/?scope=all ")).toBe("/api");
+    expect(normalizeRoutePathname(" /api/#summary ")).toBe("/api");
+    expect(normalizeRoutePathname(" /api// ")).toBe("/api");
+    expect(normalizeRoutePathname(" /api//?scope=all ")).toBe("/api");
+    expect(normalizeRoutePathname(" /api//#summary ")).toBe("/api");
+  });
+
   it("normalizes unknown core and missing-action session trailing forms", () => {
     expect(normalizeRoutePathname("/unknown-endpoint//?scope=all")).toBe("/unknown-endpoint");
     expect(normalizeRoutePathname("/unknown-endpoint//#summary")).toBe("/unknown-endpoint");

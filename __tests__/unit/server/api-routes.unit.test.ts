@@ -526,6 +526,99 @@ describe("API Routes", () => {
       });
     });
 
+    it("classifies whitespace-padded api-root malformed forms as not found", () => {
+      const paddedBaseGetResult = classifyApiRoute("GET", " /api ");
+      const paddedBasePostResult = classifyApiRoute("POST", " /api ");
+      const paddedQueryGetResult = classifyApiRoute("GET", " /api?scope=all ");
+      const paddedQueryPostResult = classifyApiRoute("POST", " /api?scope=all ");
+      const paddedHashGetResult = classifyApiRoute("GET", " /api#summary ");
+      const paddedHashPostResult = classifyApiRoute("POST", " /api#summary ");
+      const paddedTrailingGetResult = classifyApiRoute("GET", " /api/ ");
+      const paddedTrailingPostResult = classifyApiRoute("POST", " /api/ ");
+      const paddedTrailingQueryGetResult = classifyApiRoute("GET", " /api/?scope=all ");
+      const paddedTrailingQueryPostResult = classifyApiRoute("POST", " /api/?scope=all ");
+      const paddedTrailingHashGetResult = classifyApiRoute("GET", " /api/#summary ");
+      const paddedTrailingHashPostResult = classifyApiRoute("POST", " /api/#summary ");
+      const paddedDoubleTrailingGetResult = classifyApiRoute("GET", " /api// ");
+      const paddedDoubleTrailingPostResult = classifyApiRoute("POST", " /api// ");
+      const paddedDoubleTrailingQueryGetResult = classifyApiRoute("GET", " /api//?scope=all ");
+      const paddedDoubleTrailingQueryPostResult = classifyApiRoute("POST", " /api//?scope=all ");
+      const paddedDoubleTrailingHashGetResult = classifyApiRoute("GET", " /api//#summary ");
+      const paddedDoubleTrailingHashPostResult = classifyApiRoute("POST", " /api//#summary ");
+      expect(paddedBaseGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedBasePostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedQueryGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedQueryPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedHashGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedHashPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedTrailingGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedTrailingPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedTrailingQueryGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedTrailingQueryPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedTrailingHashGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedTrailingHashPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedDoubleTrailingGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedDoubleTrailingPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedDoubleTrailingQueryGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedDoubleTrailingQueryPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedDoubleTrailingHashGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedDoubleTrailingHashPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
     it("classifies malformed double-segment api paths as not found", () => {
       const configResult = classifyApiRoute("POST", "/api//config");
       const configGetResult = classifyApiRoute("GET", "/api//config");
