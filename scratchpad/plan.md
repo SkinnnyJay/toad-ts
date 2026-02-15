@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added server-auth health-path bypass regression coverage:
+  - added focused unit test proving `checkServerAuth(...)` does not bypass auth
+    based on `req.url` (including `/health`), preserving bypass ownership in
+    headless-server routing only.
+  - re-ran headless-server integration coverage to validate end-to-end
+    semantics remain unchanged.
 - Added request-error logging pathname normalization hardening:
   - request parse/validation log context now reuses shared route-pathname
     normalization (trim + query/hash stripping).

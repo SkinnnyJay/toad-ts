@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B100 server-auth health-path bypass coverage)
+
+- Added regression coverage to lock `checkServerAuth(...)` behavior independent
+  of route/pathname bypass policies.
+- Updated:
+  - `__tests__/unit/server/server-auth.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/server-auth.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B99 request-error log pathname normalization)
 
 - Aligned request parsing/validation logging path normalization with shared

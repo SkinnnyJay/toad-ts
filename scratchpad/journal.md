@@ -1,5 +1,33 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B100 server-auth health-path bypass regression coverage)
+
+### Summary
+- Added regression guard that locks auth-bypass ownership to headless-server
+  routing instead of `checkServerAuth(...)`.
+- Updated:
+  - `__tests__/unit/server/server-auth.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added test proving `checkServerAuth(...)` rejects missing credentials even
+    when `req.url` is `/health` and password is configured.
+  - confirms health-route bypass behavior remains router-level policy only.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/server-auth.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B99 request-error log pathname normalization alignment)
 
 ### Summary
