@@ -7608,6 +7608,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - lock normalization semantics for NutJS allowlist and enablement parsing
       to prevent regressions in permissive env-config handling.
 
+## Execution Log Addendum — 2026-02-14 (B57 wildcard normalization execution coverage)
+
+- Post-completion hardening for wildcard allowlist normalization:
+  - Updated:
+    - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - Hardening changes:
+    - added execution-path coverage proving wildcard allowlist entries remain
+      effective when configured with padded whitespace.
+    - verified normalized action-id casing still executes when wildcard
+      allowlist is used.
+  - Goal:
+    - prevent regressions where wildcard allowlist behavior diverges from
+      normalized explicit allowlist behavior.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7674,3 +7688,4 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B54 | P2 | assert macOS and Windows permission-missing diagnostics enforcement in NutJS gate.
 - [x] - B55 | P2 | add smoke-level cross-platform permission-missing simulations for macOS and Windows.
 - [x] - B56 | P2 | add normalization coverage for NutJS allowlist and enabled-flag env parsing.
+- [x] - B57 | P2 | add wildcard allowlist normalization execution coverage for padded env input.

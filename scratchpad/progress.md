@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B57 wildcard allowlist normalization execution coverage for
+    padded env inputs
   - completed B56 normalization coverage for NutJS allowlist and enabled-flag
     env parsing behavior
   - completed B55 smoke-level macOS/Windows permission-missing simulation

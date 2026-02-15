@@ -96,6 +96,28 @@ describe("nutjs execution gate", () => {
     expect(isNutJsActionAllowlisted("keyboard.type", policy)).toBe(true);
   });
 
+  it("supports wildcard allowlist entries with padding", async () => {
+    const action = vi.fn(async () => "executed");
+    const result = await runNutJsActionWithGate({
+      actionId: "KEYBOARD.TYPE",
+      action,
+      env: {
+        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
+        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: " * ",
+        [ENV_KEY.DISPLAY]: ":0",
+      },
+      capability: {
+        platform: PLATFORM.LINUX,
+        hasRuntime: true,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.EXECUTED);
+    expect(result.executed).toBe(true);
+    expect(result.result).toBe("executed");
+    expect(action).toHaveBeenCalledTimes(1);
+  });
+
   it("executes allowlisted actions with normalized casing", async () => {
     const action = vi.fn(async () => "executed");
     const result = await runNutJsActionWithGate({

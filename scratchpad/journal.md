@@ -1,5 +1,32 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B57 wildcard normalization execution coverage)
+
+### Summary
+- Added post-completion coverage hardening for wildcard allowlist normalization
+  behavior.
+- Updated:
+  - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added execution-path assertion for padded wildcard allowlist env input.
+  - verified normalized action-id casing remains executable under wildcard.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B56 allowlist normalization coverage hardening)
 
 ### Summary

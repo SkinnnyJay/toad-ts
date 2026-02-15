@@ -14,6 +14,9 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added wildcard allowlist normalization execution hardening:
+  - unit coverage now verifies padded wildcard allowlist entries still permit
+    action execution under normalized action-id casing.
 - Added NutJS allowlist normalization coverage hardening:
   - unit coverage now validates trimmed/case-folded allowlist parsing and
     padded-uppercase enabled-flag truthy parsing.
