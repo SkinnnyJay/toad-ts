@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B67 early-gate boundary coverage hardening)
+
+### Summary
+- Added post-completion coverage hardening for NutJS early gate outcomes and
+  feature-flag short-circuit behavior.
+- Updated:
+  - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - `__tests__/e2e/skippable.nutjs-smoke.e2e.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added unit assertions that `disabled` and `not_allowlisted` outcomes
+    return no capability/diagnostics metadata.
+  - added smoke test for feature-flag-off path confirming disabled outcome and
+    no action invocation.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts __tests__/e2e/skippable.nutjs-smoke.e2e.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B66 unsupported-platform diagnostics hardening)
 
 ### Summary

@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added NutJS early-gate boundary coverage hardening:
+  - added unit assertions ensuring `disabled` and `not_allowlisted` outcomes
+    do not attach capability/diagnostics metadata.
+  - added smoke-level `disabled` execution assertion confirming feature-flag-off
+    path short-circuits before action invocation.
 - Added NutJS unsupported-platform diagnostics hardening:
   - expanded permission diagnostics unit coverage to assert unsupported
     platforms do not trigger missing-permission classification.

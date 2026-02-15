@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B67 early-gate boundary coverage hardening)
+
+- Added NutJS early-gate coverage hardening for disabled/not-allowlisted
+  metadata boundaries and feature-flag disabled smoke behavior.
+- Updated:
+  - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - `__tests__/e2e/skippable.nutjs-smoke.e2e.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts __tests__/e2e/skippable.nutjs-smoke.e2e.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B66 unsupported-platform diagnostics hardening)
 
 - Added NutJS diagnostics hardening for unsupported-platform simulation paths.

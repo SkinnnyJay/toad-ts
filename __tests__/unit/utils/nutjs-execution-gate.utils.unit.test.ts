@@ -78,6 +78,8 @@ describe("nutjs execution gate", () => {
 
     expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.NOT_ALLOWLISTED);
     expect(result.executed).toBe(false);
+    expect(result.capability).toBeUndefined();
+    expect(result.diagnostics).toBeUndefined();
     expect(action).not.toHaveBeenCalled();
   });
 
@@ -177,6 +179,29 @@ describe("nutjs execution gate", () => {
     expect(result.executed).toBe(false);
     expect(action).not.toHaveBeenCalled();
     expect(result.diagnostics?.linuxDisplayBackend.status).toBe(NUTJS_PERMISSION_STATUS.MISSING);
+  });
+
+  it("returns disabled outcome without diagnostics work", async () => {
+    const action = vi.fn(async () => "executed");
+    const result = await runNutJsActionWithGate({
+      actionId: ACTION_ID,
+      action,
+      env: {
+        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "false",
+        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: ACTION_ID,
+      },
+      capability: {
+        platform: PLATFORM.LINUX,
+        hasRuntime: true,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.DISABLED);
+    expect(result.executed).toBe(false);
+    expect(result.result).toBeNull();
+    expect(result.capability).toBeUndefined();
+    expect(result.diagnostics).toBeUndefined();
+    expect(action).not.toHaveBeenCalled();
   });
 
   it("includes diagnostics for unsupported capability no-op paths", async () => {

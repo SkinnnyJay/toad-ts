@@ -24,6 +24,31 @@ const createAllowlistedNutJsEnv = (): NodeJS.ProcessEnv => {
 };
 
 describe("nutjs cross-platform smoke checks", () => {
+  it("returns disabled outcome when feature flag is off", async () => {
+    let actionInvoked = false;
+    const result = await runNutJsActionWithGate({
+      actionId: NUTJS_SMOKE_ACTION,
+      action: async () => {
+        actionInvoked = true;
+        return "executed";
+      },
+      env: {
+        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "false",
+        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: NUTJS_SMOKE_ACTION,
+      },
+      capability: {
+        platform: process.platform,
+        hasRuntime: true,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.DISABLED);
+    expect(result.executed).toBe(false);
+    expect(result.capability).toBeUndefined();
+    expect(result.diagnostics).toBeUndefined();
+    expect(actionInvoked).toBe(false);
+  });
+
   it("keeps gated execution in deterministic no-op mode without runtime", async () => {
     const capability = detectNutJsCapability({
       platform: process.platform,
