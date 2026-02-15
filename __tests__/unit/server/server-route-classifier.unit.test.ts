@@ -317,6 +317,22 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies malformed api session hash and trailing-hash paths as api-scoped unhandled", () => {
+    const hashResult = classifyServerRoute(HTTP_METHOD.POST, "/api/sessions//messages#summary");
+    const trailingHashResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/api/sessions//messages/#summary"
+    );
+    expect(hashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(trailingHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies blank-session prompt direct-query paths as core unhandled", () => {
     const result = classifyServerRoute(HTTP_METHOD.POST, "/sessions//prompt?tail=1");
     expect(result).toEqual({

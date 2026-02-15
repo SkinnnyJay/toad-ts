@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B166 unknown-route hash parity classifier coverage)
+
+- Expanded core/server route classifier unit coverage for unknown-route hash
+  and malformed API-session hash variants.
+- Updated:
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅ (passed on rerun after one transient timeout)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B165 request-url host candidate fallback hardening)
 
 - Expanded request-url unit coverage for host candidate fallback behavior when

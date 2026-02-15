@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-route hash parity classifier coverage:
+  - core-route classifier unit tests now explicitly lock unknown endpoint
+    direct query/hash unhandled behavior.
+  - server-route classifier unit tests now explicitly lock malformed
+    API-session hash/trailing-hash forms as API-scoped unhandled with correct
+    classifier ownership.
 - Expanded request-url host candidate fallback hardening:
   - request-url unit tests now include candidate-list fallback assertions for
     first-candidate invalid forms:
