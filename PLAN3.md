@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B159 unknown-route malformed/missing-action hash auth-order coverage)
+
+- Expanded password-protected unknown-route auth-before-not-found integration
+  coverage for malformed API session and missing-action session paths with
+  hash and combined trailing-slash + hash variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B158 protected-api session hash auth-order coverage)
 
 - Expanded password-protected API auth-before-method integration coverage for
