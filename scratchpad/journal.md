@@ -1,5 +1,38 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B125 non-api auth-order trailing route variants)
+
+### Summary
+- Expanded non-api protected-route auth-order integration coverage with
+  additional trailing-slash route assertions.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in `applies auth checks before method semantics on non-api protected routes`:
+    - added unauthenticated assertions for:
+      - `GET /sessions/`
+      - `GET /sessions/:id/prompt/`
+      - `POST /sessions/:id/messages/`
+      each asserting `401` + `WWW-Authenticate: Bearer`.
+    - added authenticated trailing `/sessions/` assertion for canonical
+      `405` + `METHOD_NOT_ALLOWED`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before method semantics on non-api protected routes"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B124 non-api auth-order trailing-slash coverage)
 
 ### Summary

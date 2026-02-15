@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded non-api auth-order trailing route variants coverage:
+  - non-api protected-route auth-order integration now explicitly checks
+    trailing-slash prompt/messages unauthenticated `401` behavior and trailing
+    sessions authenticated `405` behavior.
 - Expanded non-api auth-order trailing-slash coverage:
   - non-api protected-route auth-order integration now includes unauthenticated
     trailing-slash variants for `/sessions`, prompt, and messages routes.

@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B125 non-api auth-order trailing route variants)
+
+- Expanded non-API protected-route auth-order integration coverage for
+  additional trailing-slash route variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before method semantics on non-api protected routes"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B124 non-api auth-order trailing-slash coverage)
 
 - Expanded password-protected non-API auth-before-method integration coverage
