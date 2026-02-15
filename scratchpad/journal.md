@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B201 blank-session prompt trailing-path post/get parity)
+
+### Summary
+- Expanded core/server classifier coverage for blank-session prompt trailing
+  path malformed variants with explicit POST/GET method parity.
+- Updated:
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added core-route classifier POST/GET assertions for:
+    - `/sessions//prompt/`
+    locking `UNHANDLED` parity for malformed prompt trailing-path form.
+  - added server-route classifier POST assertion for:
+    - `/sessions//prompt/`
+    locking core classifier ownership parity alongside existing GET coverage.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B200 blank-session prompt trailing-query get-classifier parity)
 
 ### Summary
