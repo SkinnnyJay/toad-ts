@@ -1,5 +1,40 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B130 health query auth-bypass coverage)
+
+### Summary
+- Expanded password-protected health-route auth-bypass integration coverage
+  for query and trailing-slash + query route variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in `keeps health-route auth bypass semantics under password protection`:
+    - added GET assertions for:
+      - `/health?probe=1`
+      - `/health/?probe=1`
+      each expecting `200` + `{ status: "ok" }`.
+    - added POST assertions for:
+      - `/health?probe=1`
+      - `/health/?probe=1`
+      each expecting `405 + METHOD_NOT_ALLOWED` with
+      `www-authenticate` header remaining `null`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps health-route auth bypass semantics under password protection"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B129 non-api query-trailing auth-order coverage)
 
 ### Summary

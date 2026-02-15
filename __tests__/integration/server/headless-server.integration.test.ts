@@ -9445,6 +9445,14 @@ describe("headless server", () => {
       expect(healthTrailingSlashResponse.status).toBe(200);
       await expect(healthTrailingSlashResponse.json()).resolves.toEqual({ status: "ok" });
 
+      const healthQueryResponse = await fetch(`${baseUrl}/health?probe=1`);
+      expect(healthQueryResponse.status).toBe(200);
+      await expect(healthQueryResponse.json()).resolves.toEqual({ status: "ok" });
+
+      const healthTrailingSlashQueryResponse = await fetch(`${baseUrl}/health/?probe=1`);
+      expect(healthTrailingSlashQueryResponse.status).toBe(200);
+      await expect(healthTrailingSlashQueryResponse.json()).resolves.toEqual({ status: "ok" });
+
       const unsupportedMethodResponse = await fetch(`${baseUrl}/health`, {
         method: "POST",
       });
@@ -9460,6 +9468,24 @@ describe("headless server", () => {
       expect(unsupportedTrailingSlashResponse.status).toBe(405);
       expect(unsupportedTrailingSlashResponse.headers.get("www-authenticate")).toBeNull();
       await expect(unsupportedTrailingSlashResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const unsupportedMethodQueryResponse = await fetch(`${baseUrl}/health?probe=1`, {
+        method: "POST",
+      });
+      expect(unsupportedMethodQueryResponse.status).toBe(405);
+      expect(unsupportedMethodQueryResponse.headers.get("www-authenticate")).toBeNull();
+      await expect(unsupportedMethodQueryResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const unsupportedTrailingSlashQueryResponse = await fetch(`${baseUrl}/health/?probe=1`, {
+        method: "POST",
+      });
+      expect(unsupportedTrailingSlashQueryResponse.status).toBe(405);
+      expect(unsupportedTrailingSlashQueryResponse.headers.get("www-authenticate")).toBeNull();
+      await expect(unsupportedTrailingSlashQueryResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
     } finally {

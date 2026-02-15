@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B130 health query auth-bypass coverage)
+
+- Expanded password-protected health-route auth-bypass integration coverage for
+  query-suffixed and trailing-slash+query variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "keeps health-route auth bypass semantics under password protection"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B129 non-api query-trailing auth-order coverage)
 
 - Expanded password-protected non-API auth-before-method integration coverage

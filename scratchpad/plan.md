@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded health query auth-bypass coverage:
+  - health-route password-protection integration now includes query and
+    trailing-slash+query variants for both GET success and unsupported POST
+    method semantics.
+  - locks no-auth-challenge bypass behavior with canonical `200`/`405`
+    responses across combined normalized health route forms.
 - Expanded non-api query+trailing auth-order coverage:
   - non-api protected-route auth-order integration now includes combined
     trailing-slash+query variants for sessions, prompt, and messages routes.
