@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B150 request-url hash parsing coverage)
+
+### Summary
+- Expanded request-url unit coverage for hash-bearing request paths and
+  host-header hash metadata rejection.
+- Updated:
+  - `__tests__/unit/server/request-url.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added assertions for:
+    - `/api/files/search#latest` -> parsed pathname + hash
+    - `  /api/files/search/#latest  ` with padded host -> parsed pathname + hash
+    - host header `example.com#summary` -> `null` parse result.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-url.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B149 session-route-path combined suffix coverage)
 
 ### Summary

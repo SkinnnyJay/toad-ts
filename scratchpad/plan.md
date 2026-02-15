@@ -14,6 +14,14 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded request-url hash parsing coverage:
+  - request-url unit tests now include:
+    - request path hash parsing (`/api/files/search#latest`)
+    - whitespace-wrapped trailing-slash hash path parsing
+      (`/api/files/search/#latest`)
+    - host-header hash metadata rejection (`example.com#summary`).
+  - locks canonical request URL parsing behavior for hash-bearing paths while
+    preserving host validation strictness against hash-bearing host values.
 - Expanded session-route-path combined suffix coverage:
   - session-route-path unit tests now include combined trailing-slash suffix
     forms for:

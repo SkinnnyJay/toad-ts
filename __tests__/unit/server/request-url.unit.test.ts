@@ -32,6 +32,13 @@ describe("parseRequestUrl", () => {
     expect(url?.host).toBe("localhost");
   });
 
+  it("parses request url with hash suffix", () => {
+    const url = parseRequestUrl(createRequest("/api/files/search#latest", "127.0.0.1:4141"));
+
+    expect(url?.pathname).toBe("/api/files/search");
+    expect(url?.hash).toBe("#latest");
+  });
+
   it("returns null for invalid host header values", () => {
     const url = parseRequestUrl(createRequest("/health", "%"));
 
@@ -40,6 +47,12 @@ describe("parseRequestUrl", () => {
 
   it("returns null for host header values that include a path segment", () => {
     const url = parseRequestUrl(createRequest("/health", "example.com/path"));
+
+    expect(url).toBeNull();
+  });
+
+  it("returns null for host header values that include hash metadata", () => {
+    const url = parseRequestUrl(createRequest("/health", "example.com#summary"));
 
     expect(url).toBeNull();
   });
@@ -87,6 +100,13 @@ describe("parseRequestUrl", () => {
 
     expect(url?.pathname).toBe("/api/files/search");
     expect(url?.searchParams.get("q")).toBe("readme");
+  });
+
+  it("parses request url when url contains trailing-slash hash and surrounding whitespace", () => {
+    const url = parseRequestUrl(createRequest("  /api/files/search/#latest  ", " 127.0.0.1:4141 "));
+
+    expect(url?.pathname).toBe("/api/files/search/");
+    expect(url?.hash).toBe("#latest");
   });
 
   it("parses request url when host header is provided as string array", () => {

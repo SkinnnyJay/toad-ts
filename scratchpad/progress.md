@@ -3,6 +3,9 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B150 request-url hash parsing coverage hardening
+    (request-url unit coverage now explicitly locks hash-bearing path parsing
+    and host-header hash metadata rejection behavior)
   - completed B149 session-route-path combined suffix coverage hardening
     (session-route-path unit coverage now explicitly locks combined
     trailing-slash + query/hash parsing behavior across prompt/messages and

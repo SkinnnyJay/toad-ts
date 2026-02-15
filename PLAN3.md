@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B150 request-url hash parsing coverage)
+
+- Expanded request-url unit coverage for hash-bearing request paths and hash
+  metadata rejection in host headers.
+- Updated:
+  - `__tests__/unit/server/request-url.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/request-url.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B149 session-route-path combined suffix coverage)
 
 - Expanded session-route-path unit coverage for combined
