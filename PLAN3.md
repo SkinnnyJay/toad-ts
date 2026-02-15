@@ -7339,6 +7339,25 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - simplify platform-specific shell command resolution into one reusable
       adapter while preserving existing runtime behavior.
 
+## Execution Log Addendum — 2026-02-14 (B42 shell invocation deduplication)
+
+- Additional P2 backlog hardening for shell execution consistency:
+  - Updated:
+    - `src/utils/shell-invocation.utils.ts` (new)
+    - `src/tools/shell-session.ts`
+    - `src/tools/interactive-shell.ts`
+    - `src/tools/background-task-manager.ts`
+    - `__tests__/unit/utils/shell-invocation.utils.unit.test.ts` (new)
+  - Hardening changes:
+    - added shared shell invocation utility that centralizes runtime env
+      snapshot retrieval and platform shell spec selection.
+    - migrated shell-session, interactive-shell, and background-task-manager to
+      shared invocation helpers to remove repeated invocation setup logic.
+    - added focused invocation coverage for Windows and POSIX invocation paths.
+  - Goal:
+    - reduce duplicated shell invocation setup across execution paths while
+      keeping existing command behavior and env semantics stable.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7390,7 +7409,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 ### P2 - Simplification-first hardening, NutJS readiness, and maintainability
 
 - [x] - B41 | P2 | consolidate platform-specific command resolution into one shared platform adapter.
-- [ ] - B42 | P2 | deduplicate shell invocation logic between shell-session, interactive-shell, and background-task-manager.
+- [x] - B42 | P2 | deduplicate shell invocation logic between shell-session, interactive-shell, and background-task-manager.
 - [ ] - B43 | P2 | simplify clipboard fallback chain into explicit capability-ranked strategy.
 - [ ] - B44 | P2 | simplify reconnect jitter test scaffolding by generating jitter matrices from typed config.
 - [ ] - B45 | P2 | replace repeated `new Promise(setTimeout...)` blocks with shared typed delay helpers.

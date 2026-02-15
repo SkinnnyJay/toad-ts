@@ -4004,9 +4004,16 @@
     the shared adapter to remove duplicate Windows/POSIX command resolution
   - added focused adapter coverage in
     `__tests__/unit/utils/platform-shell.utils.unit.test.ts`
+- Completed P2 backlog item B42 shell invocation deduplication:
+  - introduced shared shell invocation utility in
+    `src/utils/shell-invocation.utils.ts`
+  - migrated shell-session, interactive-shell, and background-task-manager to
+    shared invocation helper functions
+  - added focused invocation coverage in
+    `__tests__/unit/utils/shell-invocation.utils.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B42 by deduplicating shell invocation logic
-    between shell-session, interactive-shell, and background-task-manager
+  - evaluate severity backlog item B43 by simplifying clipboard fallback logic
+    into explicit capability-ranked strategy
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

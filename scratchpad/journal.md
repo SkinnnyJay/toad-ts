@@ -1,5 +1,38 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B42 shell invocation deduplication)
+
+### Summary
+- Completed P2 backlog item B42 in `PLAN3.md` by deduplicating shell invocation
+  setup logic across shell-session, interactive-shell, and background tasks.
+- Updated:
+  - `src/utils/shell-invocation.utils.ts`
+  - `src/tools/shell-session.ts`
+  - `src/tools/interactive-shell.ts`
+  - `src/tools/background-task-manager.ts`
+  - `__tests__/unit/utils/shell-invocation.utils.unit.test.ts`
+- Changes:
+  - added shared shell invocation utility to centralize env snapshot retrieval
+    and platform shell invocation spec creation.
+  - replaced repeated invocation setup logic across the three shell execution
+    paths with shared helper usage.
+  - added focused invocation utility tests for Windows and POSIX behavior.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/shell-invocation.utils.unit.test.ts __tests__/unit/utils/platform-shell.utils.unit.test.ts __tests__/unit/tools/shell-session.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B41 platform command adapter consolidation)
 
 ### Summary

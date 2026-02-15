@@ -9,7 +9,7 @@ import { PLATFORM } from "@/constants/platform";
 import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
 import { isPathWithinBase } from "@/utils/pathContainment.utils";
-import { resolvePlatformShellSessionSpec } from "@/utils/platform-shell.utils";
+import { createShellSessionInvocation } from "@/utils/shell-invocation.utils";
 import { quoteWindowsCommandValue } from "@/utils/windows-command.utils";
 import { nanoid } from "nanoid";
 
@@ -99,14 +99,13 @@ class ShellSession {
     this.allowEscape = shouldAllowEscape(options.env, options.allowEscape);
     this.spawnFn = options.spawnFn ?? spawn;
     this.baseEnv = options.env ?? {};
-    const envSnapshot = EnvManager.getInstance().getSnapshot();
-    const shell = resolvePlatformShellSessionSpec(envSnapshot, process.platform);
-    this.command = shell.command;
-    this.args = shell.args;
-    this.usesShell = shell.usesShell;
-    this.isWindows = shell.isWindows;
+    const shellInvocation = createShellSessionInvocation(process.platform);
+    this.command = shellInvocation.command;
+    this.args = shellInvocation.args;
+    this.usesShell = shellInvocation.usesShell;
+    this.isWindows = shellInvocation.isWindows;
     this.runtimeBaseEnv = {
-      ...envSnapshot,
+      ...shellInvocation.envSnapshot,
       ...this.baseEnv,
     };
   }

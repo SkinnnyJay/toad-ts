@@ -1,8 +1,7 @@
 import { LIMIT } from "@/config/limits";
 import { BACKGROUND_TASK_STATUS } from "@/constants/background-task-status";
 import { type BackgroundTask, type BackgroundTaskId, BackgroundTaskIdSchema } from "@/types/domain";
-import { EnvManager } from "@/utils/env/env.utils";
-import { resolvePlatformShellCommandSpec } from "@/utils/platform-shell.utils";
+import { createShellCommandInvocation } from "@/utils/shell-invocation.utils";
 import { nanoid } from "nanoid";
 
 import { useBackgroundTaskStore } from "@/store/background-task-store";
@@ -32,11 +31,7 @@ export class BackgroundTaskManager {
 
   startTask(input: BackgroundTaskCommand): BackgroundTask {
     const taskId = BackgroundTaskIdSchema.parse(nanoid(LIMIT.NANOID_LENGTH));
-    const shellSpec = resolvePlatformShellCommandSpec(
-      input.command,
-      EnvManager.getInstance().getSnapshot(),
-      process.platform
-    );
+    const shellSpec = createShellCommandInvocation(input.command, process.platform);
     const terminalId = this.terminalManager.createSession({
       command: shellSpec.command,
       args: shellSpec.args,

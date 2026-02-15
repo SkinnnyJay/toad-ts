@@ -1,9 +1,8 @@
 import { type ChildProcess, spawn } from "node:child_process";
 
 import { SIGNAL } from "@/constants/signals";
-import { EnvManager } from "@/utils/env/env.utils";
-import { resolvePlatformShellCommandSpec } from "@/utils/platform-shell.utils";
 import { acquireProcessSlot, bindProcessSlotToChild } from "@/utils/process-concurrency.utils";
+import { createShellCommandInvocation } from "@/utils/shell-invocation.utils";
 import type { CliRenderer } from "@opentui/core";
 
 export interface InteractiveShellOptions {
@@ -22,9 +21,8 @@ export const runInteractiveShellCommand = async (
   options: InteractiveShellOptions
 ): Promise<InteractiveShellResult> => {
   const renderer = options.renderer;
-  const envSnapshot = EnvManager.getInstance().getSnapshot();
-  const shell = resolvePlatformShellCommandSpec(options.command, envSnapshot, process.platform);
-  const env = { ...envSnapshot, ...options.env };
+  const shellInvocation = createShellCommandInvocation(options.command, process.platform);
+  const env = { ...shellInvocation.envSnapshot, ...options.env };
 
   renderer.suspend();
 
@@ -32,7 +30,7 @@ export const runInteractiveShellCommand = async (
     const releaseSlot = acquireProcessSlot("interactive-shell");
     let child: ChildProcess;
     try {
-      child = spawn(shell.command, shell.args, {
+      child = spawn(shellInvocation.command, shellInvocation.args, {
         cwd: options.cwd,
         env,
         stdio: "inherit",
