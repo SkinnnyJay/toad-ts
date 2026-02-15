@@ -245,6 +245,52 @@ describe("headless server", () => {
     }
   });
 
+  it("supports trailing-slash variants for core, api, and session routes", async () => {
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const healthResponse = await fetch(`${baseUrl}/health/`);
+      expect(healthResponse.status).toBe(200);
+      await expect(healthResponse.json()).resolves.toEqual({ status: "ok" });
+
+      const configResponse = await fetch(`${baseUrl}/api/config/`);
+      expect(configResponse.status).toBe(200);
+      await expect(configResponse.json()).resolves.toMatchObject({
+        config: expect.any(Object),
+      });
+
+      const createResponse = await fetch(`${baseUrl}/sessions/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ harnessId: "mock" }),
+      });
+      expect(createResponse.status).toBe(200);
+      const createPayload = createSessionResponseSchema.parse(await createResponse.json());
+
+      const promptResponse = await fetch(`${baseUrl}/sessions/${createPayload.sessionId}/prompt/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "Hello trailing slash." }),
+      });
+      expect(promptResponse.status).toBe(200);
+      await expect(promptResponse.json()).resolves.toMatchObject({
+        stopReason: expect.any(String),
+      });
+
+      const messagesResponse = await fetch(
+        `${baseUrl}/sessions/${createPayload.sessionId}/messages/`
+      );
+      expect(messagesResponse.status).toBe(200);
+      await expect(messagesResponse.json()).resolves.toMatchObject({
+        messages: expect.any(Array),
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
   it("enforces auth for non-health endpoints when password is configured", async () => {
     process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD] = "secret";
     EnvManager.resetInstance();

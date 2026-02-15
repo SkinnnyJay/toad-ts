@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B106 trailing-slash known-route integration coverage
+    (core/api/session route path variants)
   - completed B105 trailing-slash route normalization + dispatch alignment
     (classifier + headless-server path semantics consistency)
   - completed B104 health-route auth-bypass integration coverage

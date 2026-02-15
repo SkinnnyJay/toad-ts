@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B106 trailing-slash known-route integration coverage)
+
+### Summary
+- Added end-to-end integration proof that trailing-slash variants of known
+  routes behave successfully after normalization hardening.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - new integration test validates successful handling of:
+    - `GET /health/`
+    - `GET /api/config/`
+    - `POST /sessions/`
+    - `POST /sessions/:id/prompt/`
+    - `GET /sessions/:id/messages/`
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B105 trailing-slash route normalization + dispatch alignment)
 
 ### Summary

@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded trailing-slash known-route integration coverage:
+  - added headless-server integration assertions proving trailing-slash
+    variants for `/health`, `/api/config`, `/sessions`, session prompt, and
+    session messages routes execute successfully.
+  - locks end-to-end behavior for newly normalized dispatch path semantics.
 - Added trailing-slash route normalization hardening:
   - `normalizeRoutePathname(...)` now strips trailing path separators for
     non-root routes while preserving root normalization.

@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B106 trailing-slash known-route integration)
+
+- Expanded headless-server integration coverage for successful trailing-slash
+  variants of known routes.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B105 trailing-slash routing normalization)
 
 - Hardened route normalization and dispatch alignment for trailing-slash inputs.
