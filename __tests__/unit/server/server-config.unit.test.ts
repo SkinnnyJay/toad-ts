@@ -148,4 +148,24 @@ describe("resolveServerConfig", () => {
 
     expect(result.host).toBe("::1");
   });
+
+  it("normalizes bracketed ipv6 host values from env", () => {
+    const env = {
+      [ENV_KEY.TOADSTOOL_SERVER_HOST]: "[::1]",
+    };
+
+    const result = resolveServerConfig({}, env);
+
+    expect(result.host).toBe("::1");
+  });
+
+  it("falls back when bracketed host is malformed", () => {
+    const env = {
+      [ENV_KEY.TOADSTOOL_SERVER_HOST]: "127.0.0.1",
+    };
+
+    const result = resolveServerConfig({ host: "[127.0.0.1]" }, env);
+
+    expect(result.host).toBe("127.0.0.1");
+  });
 });

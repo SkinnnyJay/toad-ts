@@ -1,5 +1,39 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B90 bracketed IPv6 host normalization)
+
+### Summary
+- Hardened runtime server host normalization to support bracketed IPv6 host
+  inputs while preserving strict fallback behavior for malformed bracketed
+  hosts.
+- Updated:
+  - `src/server/server-config.ts`
+  - `src/config/limits.ts`
+  - `__tests__/unit/server/server-config.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added bracketed IPv6 normalization (`[::1]` -> `::1`) in host resolver.
+  - malformed bracketed host formats now return fallback host path.
+  - extracted IPv6 protocol version magic number into shared
+    `LIMIT.SERVER_IP_VERSION_IPV6`.
+  - expanded server-config tests for bracketed IPv6 normalization and malformed
+    bracketed-host fallback behavior.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/server-config.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B89 session-messages schema non-blank session id)
 
 ### Summary

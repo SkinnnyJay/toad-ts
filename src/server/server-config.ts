@@ -16,6 +16,24 @@ export interface ServerConfigOverrides {
 
 const HOSTNAME_PATTERN =
   /^(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)(?:\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*$/;
+const IPV6_BRACKET_PREFIX = "[";
+const IPV6_BRACKET_SUFFIX = "]";
+
+const normalizeIpv6BracketHost = (host: string): string | null => {
+  const hasBracketPrefix = host.startsWith(IPV6_BRACKET_PREFIX);
+  const hasBracketSuffix = host.endsWith(IPV6_BRACKET_SUFFIX);
+  if (!hasBracketPrefix && !hasBracketSuffix) {
+    return host;
+  }
+  if (!hasBracketPrefix || !hasBracketSuffix) {
+    return null;
+  }
+  const unwrappedHost = host.slice(1, -1);
+  if (isIP(unwrappedHost) !== LIMIT.SERVER_IP_VERSION_IPV6) {
+    return null;
+  }
+  return unwrappedHost;
+};
 
 const isValidServerHost = (host: string): boolean =>
   isIP(host) !== 0 || HOSTNAME_PATTERN.test(host);
@@ -46,7 +64,11 @@ const normalizeHost = (value: string | undefined): string | null => {
   if (normalizedHost.length === 0) {
     return null;
   }
-  return isValidServerHost(normalizedHost) ? normalizedHost : null;
+  const normalizedIpv6Host = normalizeIpv6BracketHost(normalizedHost);
+  if (!normalizedIpv6Host) {
+    return null;
+  }
+  return isValidServerHost(normalizedIpv6Host) ? normalizedIpv6Host : null;
 };
 
 export const resolveServerConfig = (

@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added server runtime bracketed-IPv6 host normalization hardening:
+  - runtime host normalization now accepts bracketed IPv6 hosts (e.g. `[::1]`)
+    and canonicalizes them to plain IPv6 for server bind compatibility.
+  - malformed bracketed host values now cleanly fallback to env/default hosts.
+  - extracted IPv6 protocol version value to shared limits constants to satisfy
+    strict literal policy.
+  - expanded server-config tests for bracketed IPv6 normalization/fallback.
 - Added session-messages schema non-blank session-id hardening:
   - `sessionMessagesRequestSchema` now rejects whitespace-only session id
     payloads.

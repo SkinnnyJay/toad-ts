@@ -1,3 +1,21 @@
+## 2026-02-14 Execution Update (B90 bracketed IPv6 host normalization)
+
+- Hardened runtime server host normalization to support bracketed IPv6 host
+  values:
+  - accepts and canonicalizes bracketed IPv6 hosts (`[::1]` → `::1`)
+  - rejects malformed bracketed hosts and falls back to env/default host
+- Updated:
+  - `src/server/server-config.ts`
+  - `src/config/limits.ts`
+  - `__tests__/unit/server/server-config.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/server-config.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B89 session-messages schema non-blank id)
 
 - Hardened `sessionMessagesRequestSchema` to reject whitespace-only `sessionId`
