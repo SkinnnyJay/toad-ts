@@ -66,6 +66,11 @@ describe("classifyCoreRoute", () => {
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
   });
 
+  it("returns method_not_allowed for non-POST /sessions with trailing-hash suffix", () => {
+    const result = classifyCoreRoute(HTTP_METHOD.GET, "/sessions/#summary");
+    expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+  });
+
   it("returns method_not_allowed for non-POST /sessions/:id/prompt", () => {
     const result = classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1/prompt");
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });

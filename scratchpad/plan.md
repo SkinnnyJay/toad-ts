@@ -14,6 +14,15 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded sessions trailing-hash method-guard coverage:
+  - core-route classifier unit tests now include
+    `GET /sessions/#summary` and lock canonical `METHOD_NOT_ALLOWED`.
+  - server-route classifier unit tests now include
+    `GET /sessions/#summary` in trailing-hash core-method guard assertions and
+    lock canonical `METHOD_NOT_ALLOWED` + `CORE_ROUTE_CLASSIFIER`.
+  - closes remaining combined trailing-slash + hash method-guard gap for the
+    sessions collection route across both direct core classifier and
+    server-route wrapper classification paths.
 - Expanded api-routes trailing-hash combined coverage:
   - api-routes unit tests now include combined trailing-slash + hash forms for:
     - direct route matching

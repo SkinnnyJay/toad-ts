@@ -67,12 +67,17 @@ describe("classifyServerRoute", () => {
 
   it("classifies unsupported core methods on trailing-hash routes as method_not_allowed", () => {
     const healthResult = classifyServerRoute(HTTP_METHOD.POST, "/health/#summary");
+    const sessionsResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/#summary");
     const promptResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1/prompt/#latest");
     const messagesResult = classifyServerRoute(
       HTTP_METHOD.POST,
       "/sessions/session-1/messages/#tail"
     );
     expect(healthResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(sessionsResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
