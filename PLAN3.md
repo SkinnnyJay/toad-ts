@@ -7594,6 +7594,20 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - extend NutJS smoke coverage beyond host-platform-only checks by
       validating cross-platform permission-failure semantics in one test suite.
 
+## Execution Log Addendum — 2026-02-14 (B56 allowlist normalization coverage hardening)
+
+- Post-completion hardening for feature-flag + allowlist parsing guarantees:
+  - Updated:
+    - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - Hardening changes:
+    - added policy-level coverage for trimmed/case-folded allowlist parsing and
+      truthy feature-flag parsing with padded uppercase values.
+    - added execution-path coverage asserting allowlisted action execution still
+      succeeds when allowlist and enabled flag use mixed-case/padded inputs.
+  - Goal:
+    - lock normalization semantics for NutJS allowlist and enablement parsing
+      to prevent regressions in permissive env-config handling.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7659,3 +7673,4 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B53 | P2 | assert NutJS diagnostics metadata for executed and permission-missing outcomes.
 - [x] - B54 | P2 | assert macOS and Windows permission-missing diagnostics enforcement in NutJS gate.
 - [x] - B55 | P2 | add smoke-level cross-platform permission-missing simulations for macOS and Windows.
+- [x] - B56 | P2 | add normalization coverage for NutJS allowlist and enabled-flag env parsing.

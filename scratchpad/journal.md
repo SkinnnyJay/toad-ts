@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B56 allowlist normalization coverage hardening)
+
+### Summary
+- Added post-completion coverage hardening for NutJS enablement + allowlist
+  normalization semantics.
+- Updated:
+  - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added policy parsing assertions for padded-uppercase truthy enabled flag.
+  - added allowlist normalization assertions for trimming + case folding.
+  - added execution-path assertion proving normalized allowlist input still
+    executes allowlisted actions.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B55 smoke-level cross-platform permission simulations)
 
 ### Summary

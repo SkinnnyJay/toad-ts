@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added NutJS allowlist normalization coverage hardening:
+  - unit coverage now validates trimmed/case-folded allowlist parsing and
+    padded-uppercase enabled-flag truthy parsing.
+  - execution-path coverage now verifies allowlisted actions execute with
+    normalized env inputs.
 - Added smoke-level cross-platform permission simulation hardening:
   - NutJS smoke e2e now simulates macOS accessibility denial and Windows low
     integrity diagnostics paths.

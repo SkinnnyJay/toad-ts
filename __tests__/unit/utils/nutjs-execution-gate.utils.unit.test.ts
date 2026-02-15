@@ -34,6 +34,16 @@ describe("nutjs execution gate", () => {
     expect(policy.allowlist).toEqual([]);
   });
 
+  it("normalizes allowlist entries with trimming and case folding", () => {
+    const policy = resolveNutJsExecutionPolicy({
+      [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: " TRUE ",
+      [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: " Mouse.Click , KEYBOARD.Type ,, ",
+    });
+
+    expect(policy.enabled).toBe(true);
+    expect(policy.allowlist).toEqual(["mouse.click", "keyboard.type"]);
+  });
+
   it("returns not allowlisted when feature is enabled without allowlist", async () => {
     const action = vi.fn(async () => "executed");
     const result = await runNutJsActionWithGate({
@@ -84,6 +94,28 @@ describe("nutjs execution gate", () => {
     });
 
     expect(isNutJsActionAllowlisted("keyboard.type", policy)).toBe(true);
+  });
+
+  it("executes allowlisted actions with normalized casing", async () => {
+    const action = vi.fn(async () => "executed");
+    const result = await runNutJsActionWithGate({
+      actionId: ACTION_ID,
+      action,
+      env: {
+        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: " TRUE ",
+        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: " MOUSE.CLICK ",
+        [ENV_KEY.DISPLAY]: ":0",
+      },
+      capability: {
+        platform: PLATFORM.LINUX,
+        hasRuntime: true,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.EXECUTED);
+    expect(result.executed).toBe(true);
+    expect(result.result).toBe("executed");
+    expect(action).toHaveBeenCalledTimes(1);
   });
 
   it("returns capability no-op outcome when runtime is unavailable", async () => {
