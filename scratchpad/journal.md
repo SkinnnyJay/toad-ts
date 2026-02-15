@@ -1,5 +1,38 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B62 executed-outcome null-result hardening)
+
+### Summary
+- Added post-completion hardening to prevent false capability-noop outcomes
+  when allowlisted NutJS actions legitimately resolve to `null`.
+- Updated:
+  - `src/utils/nutjs-execution-gate.utils.ts`
+  - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - removed redundant `withNutJsCapabilityNoop(...)` invocation after explicit
+    capability-noop short-circuit checks.
+  - execution path now always returns `executed` outcome once capability and
+    permission gates pass, regardless of action result payload (including
+    `null`).
+  - added focused unit coverage asserting `executed` outcome semantics for
+    `null`-resolving actions.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B61 capability-noop diagnostics enrichment)
 
 ### Summary

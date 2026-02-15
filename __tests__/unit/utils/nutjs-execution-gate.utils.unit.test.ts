@@ -288,4 +288,25 @@ describe("nutjs execution gate", () => {
     expect(result.executed).toBe(true);
     expect(action).toHaveBeenCalledTimes(1);
   });
+
+  it("keeps executed outcome when action resolves to null", async () => {
+    const action = vi.fn(async (): Promise<null> => null);
+    const result = await runNutJsActionWithGate({
+      actionId: ACTION_ID,
+      action,
+      env: {
+        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
+        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: ACTION_ID,
+      },
+      capability: {
+        platform: PLATFORM.WIN32,
+        hasRuntime: true,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.EXECUTED);
+    expect(result.executed).toBe(true);
+    expect(result.result).toBeNull();
+    expect(action).toHaveBeenCalledTimes(1);
+  });
 });

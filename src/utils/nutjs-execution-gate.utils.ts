@@ -16,7 +16,6 @@ import {
   type NutJsCapability,
   type NutJsCapabilityOptions,
   detectNutJsCapability,
-  withNutJsCapabilityNoop,
 } from "@/utils/nutjs-capability.utils";
 import {
   type NutJsPermissionDiagnostics,
@@ -143,16 +142,7 @@ export const runNutJsActionWithGate = async <T>(
       diagnostics,
     };
   }
-  const result = await withNutJsCapabilityNoop(capability, options.action);
-  if (result === null) {
-    return {
-      outcome: NUTJS_EXECUTION_OUTCOME.CAPABILITY_NOOP,
-      executed: false,
-      result: null,
-      capability,
-      diagnostics,
-    };
-  }
+  const result = await options.action();
   return {
     outcome: NUTJS_EXECUTION_OUTCOME.EXECUTED,
     executed: true,

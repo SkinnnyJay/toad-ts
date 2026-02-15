@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added NutJS executed-outcome null-result hardening:
+  - removed redundant post-capability no-op wrapper invocation in
+    `runNutJsActionWithGate(...)` so successful action executions that resolve
+    `null` still return `executed` outcome.
+  - added focused unit coverage asserting `executed` outcome + `executed: true`
+    when allowlisted actions resolve `null`.
 - Added NutJS capability-noop diagnostics enrichment hardening:
   - `runNutJsActionWithGate(...)` now includes permission diagnostics metadata
     even when capability detection returns `capability_noop`.

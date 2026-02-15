@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B62 executed-outcome null-result hardening so NutJS gate no longer
+    misclassifies successful `null` action results as capability no-op outcomes
   - completed B61 capability-noop diagnostics enrichment so NutJS gate returns
     diagnostics metadata for no-op outcomes (runtime-missing and
     unsupported-platform paths)
