@@ -11103,6 +11103,24 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedDoubleTrailingSessionBlankPromptWithQuery = await fetch(
+        `${baseUrl}/sessions//prompt//?tail=1`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: "ignored" }),
+        }
+      );
+      expect(unauthenticatedDoubleTrailingSessionBlankPromptWithQuery.status).toBe(401);
+      expect(
+        unauthenticatedDoubleTrailingSessionBlankPromptWithQuery.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(
+        unauthenticatedDoubleTrailingSessionBlankPromptWithQuery.json()
+      ).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedDoubleTrailingSessionBlankPromptWithHash = await fetch(
         `${baseUrl}/sessions//prompt//#summary`,
         {
@@ -11191,6 +11209,19 @@ describe("headless server", () => {
         unauthenticatedDoubleTrailingSessionBlankMessages.headers.get("www-authenticate")
       ).toBe("Bearer");
       await expect(unauthenticatedDoubleTrailingSessionBlankMessages.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedDoubleTrailingSessionBlankMessagesWithQuery = await fetch(
+        `${baseUrl}/sessions//messages//?tail=1`
+      );
+      expect(unauthenticatedDoubleTrailingSessionBlankMessagesWithQuery.status).toBe(401);
+      expect(
+        unauthenticatedDoubleTrailingSessionBlankMessagesWithQuery.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(
+        unauthenticatedDoubleTrailingSessionBlankMessagesWithQuery.json()
+      ).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -11882,6 +11913,22 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
       });
 
+      const authenticatedDoubleTrailingSessionBlankPromptWithQuery = await fetch(
+        `${baseUrl}/sessions//prompt//?tail=1`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt: "ignored" }),
+        }
+      );
+      expect(authenticatedDoubleTrailingSessionBlankPromptWithQuery.status).toBe(404);
+      await expect(authenticatedDoubleTrailingSessionBlankPromptWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
       const authenticatedDoubleTrailingSessionBlankPromptWithHash = await fetch(
         `${baseUrl}/sessions//prompt//#summary`,
         {
@@ -11983,6 +12030,21 @@ describe("headless server", () => {
       );
       expect(authenticatedDoubleTrailingSessionBlankMessages.status).toBe(404);
       await expect(authenticatedDoubleTrailingSessionBlankMessages.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const authenticatedDoubleTrailingSessionBlankMessagesWithQuery = await fetch(
+        `${baseUrl}/sessions//messages//?tail=1`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedDoubleTrailingSessionBlankMessagesWithQuery.status).toBe(404);
+      await expect(
+        authenticatedDoubleTrailingSessionBlankMessagesWithQuery.json()
+      ).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
       });
 
