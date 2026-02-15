@@ -9160,12 +9160,32 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedTrailingSessionsResponse = await fetch(`${baseUrl}/sessions/`);
+      expect(unauthenticatedTrailingSessionsResponse.status).toBe(401);
+      expect(unauthenticatedTrailingSessionsResponse.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedTrailingSessionsResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedPromptRouteResponse = await fetch(
         `${baseUrl}/sessions/session-1/prompt`
       );
       expect(unauthenticatedPromptRouteResponse.status).toBe(401);
       expect(unauthenticatedPromptRouteResponse.headers.get("www-authenticate")).toBe("Bearer");
       await expect(unauthenticatedPromptRouteResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedTrailingPromptRouteResponse = await fetch(
+        `${baseUrl}/sessions/session-1/prompt/`
+      );
+      expect(unauthenticatedTrailingPromptRouteResponse.status).toBe(401);
+      expect(unauthenticatedTrailingPromptRouteResponse.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedTrailingPromptRouteResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -9183,6 +9203,22 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedTrailingMessagesRouteResponse = await fetch(
+        `${baseUrl}/sessions/session-1/messages/`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: "ignored" }),
+        }
+      );
+      expect(unauthenticatedTrailingMessagesRouteResponse.status).toBe(401);
+      expect(unauthenticatedTrailingMessagesRouteResponse.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedTrailingMessagesRouteResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const authenticatedResponse = await fetch(`${baseUrl}/sessions`, {
         headers: {
           Authorization: "Bearer secret",
@@ -9190,6 +9226,16 @@ describe("headless server", () => {
       });
       expect(authenticatedResponse.status).toBe(405);
       await expect(authenticatedResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const authenticatedTrailingSessionsResponse = await fetch(`${baseUrl}/sessions/`, {
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedTrailingSessionsResponse.status).toBe(405);
+      await expect(authenticatedTrailingSessionsResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 

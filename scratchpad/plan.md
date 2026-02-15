@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded non-api auth-order trailing-slash coverage:
+  - non-api protected-route auth-order integration now includes unauthenticated
+    trailing-slash variants for `/sessions`, prompt, and messages routes.
+  - locks consistent `401` + challenge pre-auth behavior before method
+    semantics on normalized trailing-slash paths.
 - Expanded non-api auth-order method coverage:
   - password-protected non-api auth-before-method test now covers session
     prompt/messages variants with unauthenticated `401` checks and
