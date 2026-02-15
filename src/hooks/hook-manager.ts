@@ -1,6 +1,8 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import type { HookDefinition, HookGroup, HooksConfig } from "@/config/app-config";
+import { LIMIT } from "@/config/limits";
 import type { HookEvent } from "@/constants/hook-events";
 import { HOOK_TYPE } from "@/constants/hook-types";
 import type { SessionId } from "@/types/domain";
@@ -123,6 +125,7 @@ export class HookManager {
   private readonly promptRunner?: PromptHookRunner;
   private readonly commandRunner: CommandHookRunner;
   private readonly logger = createClassLogger("HookManager");
+  private readonly runDepthStorage = new AsyncLocalStorage<number>();
 
   constructor(options: HookManagerOptions) {
     this.hooks = options.hooks;
@@ -144,30 +147,41 @@ export class HookManager {
     context: Omit<HookContext, "event" | "timestamp">,
     options: HookRunOptions = {}
   ): Promise<HookDecision> {
-    const groups = this.hooks[event] ?? [];
-    if (groups.length === 0) {
+    const currentDepth = this.runDepthStorage.getStore() ?? 0;
+    if (currentDepth >= LIMIT.HOOK_CHAIN_MAX_DEPTH) {
+      this.logger.warn("Hook chain depth cap reached; skipping nested hook execution", {
+        event,
+        depth: currentDepth,
+      });
       return { allow: true };
     }
 
-    const hookContext: HookContext = {
-      event,
-      timestamp: this.now(),
-      matcherTarget: context.matcherTarget,
-      sessionId: context.sessionId,
-      payload: context.payload,
-    };
-
-    for (const group of groups) {
-      if (!matchGroup(group, hookContext)) {
-        continue;
+    return this.runDepthStorage.run(currentDepth + 1, async () => {
+      const groups = this.hooks[event] ?? [];
+      if (groups.length === 0) {
+        return { allow: true };
       }
-      const decision = await this.runGroup(group, hookContext, options.canBlock ?? false);
-      if (!decision.allow && options.canBlock) {
-        return decision;
-      }
-    }
 
-    return { allow: true };
+      const hookContext: HookContext = {
+        event,
+        timestamp: this.now(),
+        matcherTarget: context.matcherTarget,
+        sessionId: context.sessionId,
+        payload: context.payload,
+      };
+
+      for (const group of groups) {
+        if (!matchGroup(group, hookContext)) {
+          continue;
+        }
+        const decision = await this.runGroup(group, hookContext, options.canBlock ?? false);
+        if (!decision.allow && options.canBlock) {
+          return decision;
+        }
+      }
+
+      return { allow: true };
+    });
   }
 
   private async runGroup(

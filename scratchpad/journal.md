@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B40 nested hook/prompt chain depth caps)
+
+### Summary
+- Completed P1 backlog item B40 in `PLAN3.md` by enforcing bounded nested
+  hook/prompt execution depth without coupling unrelated concurrent hook flows.
+- Updated:
+  - `src/config/limits.ts`
+  - `src/hooks/hook-manager.ts`
+  - `__tests__/unit/hooks/hook-manager.unit.test.ts`
+- Changes:
+  - replaced global hook depth counter with async-context-local depth tracking
+    to keep depth caps scoped to each hook execution chain.
+  - retained deterministic skip behavior when nested depth cap is reached.
+  - added focused regression coverage for nested depth capping and concurrent
+    root hook isolation semantics.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/hooks/hook-manager.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B39 command-palette recompute throttling hardening)
 
 ### Summary

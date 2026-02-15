@@ -3990,9 +3990,16 @@
     for filter recompute throttling under rapid input
   - added focused deferred-filter regression coverage in
     `__tests__/unit/ui/sidebar-footer-prompt-palette.unit.test.ts`
+- Completed P1 backlog item B40 nested hook/prompt chain depth caps:
+  - enforced async-context-local hook depth capping in
+    `src/hooks/hook-manager.ts`
+  - preserved concurrent root hook execution isolation while bounding nested
+    recursive hook chains
+  - added focused nested-depth + concurrent-root regression coverage in
+    `__tests__/unit/hooks/hook-manager.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B40 by introducing hard caps for nested
-    hook/prompt subprocess chains
+  - evaluate severity backlog item B41 by consolidating platform-specific
+    command resolution into one shared adapter
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

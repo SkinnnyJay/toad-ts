@@ -7301,6 +7301,24 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - reduce command-palette filter recompute pressure under rapid input while
       preserving user-visible filtering correctness.
 
+## Execution Log Addendum — 2026-02-14 (B40 nested hook/prompt chain depth caps)
+
+- Additional P1 backlog hardening for hook recursion safety:
+  - Updated:
+    - `src/config/limits.ts`
+    - `src/hooks/hook-manager.ts`
+    - `__tests__/unit/hooks/hook-manager.unit.test.ts`
+  - Hardening changes:
+    - enforced hook-chain depth limits using async-context-local depth tracking
+      so nested hook/prompt chains are bounded without cross-request coupling.
+    - preserved hook allow/deny semantics while skipping over-depth nested runs
+      with deterministic warning diagnostics.
+    - added focused regression coverage for nested recursion capping and
+      concurrent root hook isolation behavior.
+  - Goal:
+    - prevent runaway nested hook/prompt subprocess chains while preserving
+      independent concurrent hook execution paths.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7347,7 +7365,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B37 | P1 | de-correlate provider retries to avoid synchronized thundering-herd behavior.
 - [x] - B38 | P1 | bound error log payload size for provider streaming failures.
 - [x] - B39 | P1 | throttle command-palette/filter recompute path under rapid keypress input.
-- [ ] - B40 | P1 | add hard caps for nested hook/prompt subprocess chains.
+- [x] - B40 | P1 | add hard caps for nested hook/prompt subprocess chains.
 
 ### P2 - Simplification-first hardening, NutJS readiness, and maintainability
 
