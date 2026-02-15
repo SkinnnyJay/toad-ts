@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B173 parsing-log suffix-only root normalization coverage)
+
+- Expanded request-error-normalization unit coverage for parsing-log handling of
+  suffix-only request paths.
+- Updated:
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B172 suffix-only pathname root normalization coverage)
 
 - Expanded pathname/request-error normalization unit coverage for suffix-only

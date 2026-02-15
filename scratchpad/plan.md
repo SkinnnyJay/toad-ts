@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded parsing-log suffix-only root normalization coverage:
+  - request-error-normalization unit tests now include parsing-log assertion
+    ensuring suffix-only request paths normalize to root pathname (`/`) in
+    logged metadata.
 - Expanded suffix-only pathname root normalization coverage:
   - pathname-normalization unit tests now explicitly lock blank/suffix-only
     path forms (`""`, `?query`, `#hash`) to root normalization.

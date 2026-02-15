@@ -240,6 +240,36 @@ describe("request-error-normalization", () => {
     });
   });
 
+  it("normalizes suffix-only request paths to root in parsing logs", () => {
+    const warn = vi.fn();
+    const logger = { warn } as {
+      warn: (message: string, metadata?: Record<string, unknown>) => void;
+    };
+
+    logRequestParsingFailure(
+      logger,
+      {
+        source: REQUEST_PARSING_SOURCE.API_ROUTES,
+        method: "post",
+        pathname: " #summary ",
+        handler: "append_prompt",
+      },
+      {
+        message: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+        error: UNKNOWN_ERROR_MESSAGE,
+      }
+    );
+
+    expect(warn).toHaveBeenCalledWith("Request parsing failed", {
+      source: REQUEST_PARSING_SOURCE.API_ROUTES,
+      method: "POST",
+      pathname: "/",
+      handler: "append_prompt",
+      mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      error: UNKNOWN_ERROR_MESSAGE,
+    });
+  });
+
   it("normalizes suffix-only request paths to root in validation logs", () => {
     const warn = vi.fn();
     const logger = { warn } as {

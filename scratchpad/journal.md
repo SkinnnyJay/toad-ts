@@ -1,5 +1,33 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B173 parsing-log suffix-only root normalization coverage)
+
+### Summary
+- Expanded request-error-normalization unit coverage for parsing-log
+  normalization of suffix-only request paths.
+- Updated:
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added `logRequestParsingFailure` assertion for suffix-only request path
+    (`#summary`) to lock normalized logged pathname as root (`/`) while
+    preserving normalized handler/method metadata.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B172 suffix-only pathname root normalization coverage)
 
 ### Summary
