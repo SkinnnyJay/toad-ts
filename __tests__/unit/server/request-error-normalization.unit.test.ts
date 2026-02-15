@@ -16,6 +16,8 @@ const PADDED_TOO_LARGE_MESSAGE = ` ${TOO_LARGE_MESSAGE} `;
 const PADDED_INVALID_MESSAGE = ` ${INVALID_MESSAGE} `;
 const UPPERCASE_TOO_LARGE_MESSAGE = TOO_LARGE_MESSAGE.toUpperCase();
 const UPPERCASE_INVALID_MESSAGE = INVALID_MESSAGE.toUpperCase();
+const TOO_LARGE_MESSAGE_WITHOUT_PERIOD = TOO_LARGE_MESSAGE.replace(/\.$/, "");
+const INVALID_MESSAGE_WITHOUT_PERIOD = INVALID_MESSAGE.replace(/\.$/, "");
 
 describe("request-error-normalization", () => {
   it("classifies request body too large errors", () => {
@@ -34,6 +36,10 @@ describe("request-error-normalization", () => {
 
   it("classifies request body too large messages case-insensitively", () => {
     expect(classifyRequestParsingError(UPPERCASE_TOO_LARGE_MESSAGE)).toBe(TOO_LARGE_MESSAGE);
+  });
+
+  it("classifies request body too large messages without terminal punctuation", () => {
+    expect(classifyRequestParsingError(TOO_LARGE_MESSAGE_WITHOUT_PERIOD)).toBe(TOO_LARGE_MESSAGE);
   });
 
   it("classifies syntax errors as invalid requests", () => {
@@ -70,6 +76,10 @@ describe("request-error-normalization", () => {
     };
 
     expect(classifyRequestParsingError(error)).toBe(INVALID_MESSAGE);
+  });
+
+  it("classifies invalid-request message strings without terminal punctuation", () => {
+    expect(classifyRequestParsingError(INVALID_MESSAGE_WITHOUT_PERIOD)).toBe(INVALID_MESSAGE);
   });
 
   it("returns null for unrecognized errors", () => {

@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B93 parse-error punctuation-insensitive matching)
+
+### Summary
+- Hardened canonical request parse-error classification by normalizing terminal
+  punctuation in comparable error text.
+- Updated:
+  - `src/server/request-error-normalization.ts`
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - introduced comparable-message normalization that strips trailing periods
+    before canonical matching.
+  - canonical parse error classification now handles punctuated and
+    non-punctuated forms uniformly.
+  - expanded request-error normalization unit coverage for no-period canonical
+    variants.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B92 request-url host label validation)
 
 ### Summary

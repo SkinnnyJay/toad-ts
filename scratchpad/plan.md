@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added request-parse classification punctuation-insensitivity hardening:
+  - canonical parse error classification now tolerates terminal-period
+    variation in canonical messages.
+  - classification now maps both punctuated and non-punctuated canonical
+    variants to stable server error responses.
+  - expanded request-error normalization tests for no-period canonical inputs.
 - Added request-url host label validation hardening:
   - request URL host candidates now enforce valid IP/hostname label formats in
     addition to existing metadata checks.
