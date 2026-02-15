@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B162 server-route unknown direct-query classifier coverage)
+
+- Expanded server-route classifier unit coverage for unknown-route direct-query
+  variants to mirror recently hardened integration semantics.
+- Updated:
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B161 unknown-route direct-query auth-order coverage)
 
 - Expanded password-protected unknown-route auth-before-not-found integration

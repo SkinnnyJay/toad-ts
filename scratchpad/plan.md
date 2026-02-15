@@ -14,6 +14,16 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded server-route unknown direct-query classifier coverage:
+  - server-route classifier unit tests now include direct-query unhandled
+    classification assertions for:
+    - `/unknown-endpoint?scope=all`
+    - `/sessions/:id?view=full`
+    - `/api/sessions//messages?scope=all`
+    - `/sessions//prompt?tail=1`.
+  - locks classifier ownership guarantees:
+    - core unknown and malformed session paths -> `CORE_ROUTE_CLASSIFIER`
+    - malformed API session path -> `API_ROUTE_CLASSIFIER`.
 - Expanded unknown-route direct-query auth-order coverage:
   - password-protected unknown-route ordering integration test
     (`applies auth checks before not-found semantics on unknown routes`)

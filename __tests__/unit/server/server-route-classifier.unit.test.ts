@@ -196,6 +196,14 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies unknown core routes with direct-query suffix as unhandled", () => {
+    const result = classifyServerRoute(HTTP_METHOD.GET, "/unknown-endpoint?scope=all");
+    expect(result).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies unknown core routes with trailing-hash suffix as unhandled", () => {
     const result = classifyServerRoute(HTTP_METHOD.GET, "/unknown/#summary");
     expect(result).toEqual({
@@ -207,6 +215,19 @@ describe("classifyServerRoute", () => {
   it("classifies missing-action session routes with trailing-query suffix as core unhandled", () => {
     const getResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1/?view=full");
     const postResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions/session-1/?view=full");
+    expect(getResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(postResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
+  it("classifies missing-action session routes with direct-query suffix as core unhandled", () => {
+    const getResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1?view=full");
+    const postResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions/session-1?view=full");
     expect(getResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
@@ -285,6 +306,22 @@ describe("classifyServerRoute", () => {
     expect(postResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
+  it("classifies malformed api session direct-query paths as api-scoped unhandled", () => {
+    const result = classifyServerRoute(HTTP_METHOD.POST, "/api/sessions//messages?scope=all");
+    expect(result).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
+  it("classifies blank-session prompt direct-query paths as core unhandled", () => {
+    const result = classifyServerRoute(HTTP_METHOD.POST, "/sessions//prompt?tail=1");
+    expect(result).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
   });
 

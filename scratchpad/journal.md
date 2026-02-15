@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B162 server-route unknown direct-query classifier coverage)
+
+### Summary
+- Expanded server-route classifier unit coverage for unknown-route direct-query
+  variants to mirror integration hardening.
+- Updated:
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added direct-query unhandled classification assertions for:
+    - `/unknown-endpoint?scope=all` (core-unhandled)
+    - `/sessions/session-1?view=full` (missing-action core-unhandled)
+    - `/api/sessions//messages?scope=all` (api-scoped unhandled)
+    - `/sessions//prompt?tail=1` (core-unhandled)
+  - retained existing handler-ownership guarantees on each assertion.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B161 unknown-route direct-query auth-order coverage)
 
 ### Summary
