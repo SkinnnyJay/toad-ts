@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B104 health-route auth-bypass integration coverage)
+
+### Summary
+- Added integration coverage that locks health-route auth-bypass behavior under
+  password-protected server configuration.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - with `TOADSTOOL_SERVER_PASSWORD` set, `GET /health` is explicitly verified
+    as `200` without auth challenge requirements.
+  - unsupported-method `POST /health` is explicitly verified as `405` without
+    `WWW-Authenticate` challenge header.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B103 auth-before-not-found integration ordering coverage)
 
 ### Summary

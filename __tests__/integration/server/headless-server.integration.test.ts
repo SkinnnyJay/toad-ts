@@ -8934,6 +8934,33 @@ describe("headless server", () => {
     }
   });
 
+  it("keeps health-route auth bypass semantics under password protection", async () => {
+    process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD] = "secret";
+    EnvManager.resetInstance();
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const healthOkResponse = await fetch(`${baseUrl}/health`);
+      expect(healthOkResponse.status).toBe(200);
+      await expect(healthOkResponse.json()).resolves.toEqual({ status: "ok" });
+
+      const unsupportedMethodResponse = await fetch(`${baseUrl}/health`, {
+        method: "POST",
+      });
+      expect(unsupportedMethodResponse.status).toBe(405);
+      expect(unsupportedMethodResponse.headers.get("www-authenticate")).toBeNull();
+      await expect(unsupportedMethodResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+    } finally {
+      await server.close();
+      delete process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD];
+      EnvManager.resetInstance();
+    }
+  });
+
   it("applies auth checks before not-found semantics on unknown routes", async () => {
     process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD] = "secret";
     EnvManager.resetInstance();

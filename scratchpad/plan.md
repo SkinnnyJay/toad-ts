@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added health-route auth-bypass integration coverage hardening:
+  - added integration assertions under password protection proving `/health`
+    remains auth-bypassed for both `GET` success and unsupported-method `405`
+    responses (without auth challenge headers).
 - Added auth-before-not-found integration hardening:
   - expanded headless-server integration coverage asserting auth challenge
     precedes not-found semantics on unknown API + core routes when server

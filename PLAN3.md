@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B104 health-route auth bypass coverage)
+
+- Expanded headless-server integration coverage for health-route behavior under
+  password protection.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B103 auth-before-not-found ordering)
 
 - Expanded headless-server integration coverage for auth ordering on unknown
