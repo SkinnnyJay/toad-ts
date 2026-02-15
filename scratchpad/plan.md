@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded non-api method query+trailing coverage:
+  - non-API method-not-allowed integration now includes combined
+    trailing-slash+query variants for `/health`, `/sessions`,
+    `/sessions/:id/prompt`, and `/sessions/:id/messages` unsupported-method
+    paths.
+  - locks canonical `405` method-not-allowed semantics across combined
+    normalized non-API route forms.
 - Expanded API method query+trailing coverage:
   - API method-not-allowed integration now includes combined
     trailing-slash+query variants for `/api/config`,

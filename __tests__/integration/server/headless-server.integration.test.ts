@@ -9068,6 +9068,22 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
+      const healthResponseWithQuery = await fetch(`${baseUrl}/health?probe=1`, {
+        method: "POST",
+      });
+      expect(healthResponseWithQuery.status).toBe(405);
+      await expect(healthResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const trailingHealthResponseWithQuery = await fetch(`${baseUrl}/health/?probe=1`, {
+        method: "POST",
+      });
+      expect(trailingHealthResponseWithQuery.status).toBe(405);
+      await expect(trailingHealthResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
       const sessionsResponse = await fetch(`${baseUrl}/sessions`);
       expect(sessionsResponse.status).toBe(405);
       await expect(sessionsResponse.json()).resolves.toEqual({
@@ -9080,6 +9096,18 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
+      const sessionsResponseWithQuery = await fetch(`${baseUrl}/sessions?scope=all`);
+      expect(sessionsResponseWithQuery.status).toBe(405);
+      await expect(sessionsResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const trailingSessionsResponseWithQuery = await fetch(`${baseUrl}/sessions/?scope=all`);
+      expect(trailingSessionsResponseWithQuery.status).toBe(405);
+      await expect(trailingSessionsResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
       const promptResponse = await fetch(`${baseUrl}/sessions/session-1/prompt`);
       expect(promptResponse.status).toBe(405);
       await expect(promptResponse.json()).resolves.toEqual({
@@ -9089,6 +9117,20 @@ describe("headless server", () => {
       const trailingPromptResponse = await fetch(`${baseUrl}/sessions/session-1/prompt/`);
       expect(trailingPromptResponse.status).toBe(405);
       await expect(trailingPromptResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const promptResponseWithQuery = await fetch(`${baseUrl}/sessions/session-1/prompt?scope=all`);
+      expect(promptResponseWithQuery.status).toBe(405);
+      await expect(promptResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const trailingPromptResponseWithQuery = await fetch(
+        `${baseUrl}/sessions/session-1/prompt/?scope=all`
+      );
+      expect(trailingPromptResponseWithQuery.status).toBe(405);
+      await expect(trailingPromptResponseWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
@@ -9109,6 +9151,32 @@ describe("headless server", () => {
       });
       expect(trailingMessagesResponse.status).toBe(405);
       await expect(trailingMessagesResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const messagesResponseWithQuery = await fetch(
+        `${baseUrl}/sessions/session-1/messages?scope=all`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: "ignored" }),
+        }
+      );
+      expect(messagesResponseWithQuery.status).toBe(405);
+      await expect(messagesResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const trailingMessagesResponseWithQuery = await fetch(
+        `${baseUrl}/sessions/session-1/messages/?scope=all`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: "ignored" }),
+        }
+      );
+      expect(trailingMessagesResponseWithQuery.status).toBe(405);
+      await expect(trailingMessagesResponseWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
     } finally {
