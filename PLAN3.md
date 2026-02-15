@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B127 unknown-route query auth-order coverage)
+
+- Expanded password-protected unknown-route auth-order integration coverage for
+  query-suffixed unknown and malformed route variants across API/session paths.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B126 unknown-route trailing auth-order coverage)
 
 - Expanded password-protected unknown-route auth-order integration coverage for
