@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-route trailing auth-order coverage:
+  - unknown-route auth-order integration now includes trailing-slash variants
+    for API/core unknown paths plus malformed API/session unknown routes.
+  - locks pre-auth `401` + challenge and authenticated `404` semantics across
+    normalized trailing forms.
 - Expanded non-api auth-order trailing route variants coverage:
   - non-api protected-route auth-order integration now explicitly checks
     trailing-slash prompt/messages unauthenticated `401` behavior and trailing
