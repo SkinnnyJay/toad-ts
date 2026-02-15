@@ -36,8 +36,18 @@ describe("classifyCoreRoute", () => {
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
   });
 
+  it("returns method_not_allowed for non-GET /health with trailing-query suffix", () => {
+    const result = classifyCoreRoute(HTTP_METHOD.POST, "/health/?check=true");
+    expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+  });
+
   it("returns method_not_allowed for non-POST /sessions", () => {
     const result = classifyCoreRoute(HTTP_METHOD.GET, SERVER_PATH.SESSIONS);
+    expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+  });
+
+  it("returns method_not_allowed for non-POST /sessions with trailing-query suffix", () => {
+    const result = classifyCoreRoute(HTTP_METHOD.GET, "/sessions/?scope=all");
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
   });
 
@@ -58,6 +68,11 @@ describe("classifyCoreRoute", () => {
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
   });
 
+  it("returns method_not_allowed for non-POST prompt route with trailing-query suffix", () => {
+    const result = classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1/prompt/?view=full");
+    expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+  });
+
   it("returns method_not_allowed for non-GET /sessions/:id/messages", () => {
     const result = classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1/messages");
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
@@ -71,6 +86,11 @@ describe("classifyCoreRoute", () => {
     const hashResult = classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1/messages#tail");
     expect(queryResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
     expect(hashResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+  });
+
+  it("returns method_not_allowed for non-GET messages route with trailing-query suffix", () => {
+    const result = classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1/messages/?limit=10");
+    expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
   });
 
   it("returns unhandled for unknown routes and malformed session paths", () => {
@@ -87,6 +107,9 @@ describe("classifyCoreRoute", () => {
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
     expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1#latest")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1/?view=full")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
     expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1/prompt/extra")).toEqual({

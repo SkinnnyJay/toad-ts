@@ -14,6 +14,15 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded core-route classifier combined-suffix coverage:
+  - core-route classifier unit tests now include combined
+    trailing-slash+query forms for:
+    - health method guard (`POST /health/?check=true`)
+    - sessions method guard (`GET /sessions/?scope=all`)
+    - prompt/messages method guards with combined suffixes
+    - missing-action session unhandled path (`/sessions/:id/?view=full`).
+  - locks canonical method-not-allowed/unhandled decisions for these combined
+    normalized core-route forms.
 - Expanded server-route classifier combined-path coverage:
   - server-route classifier unit tests now include combined
     trailing-slash+query API path forms for:
