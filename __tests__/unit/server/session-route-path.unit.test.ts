@@ -114,6 +114,9 @@ describe("parseSessionRoutePath", () => {
   });
 
   it("returns null for blank-session malformed routes with suffixes", () => {
+    expect(parseSessionRoutePath("/sessions//")).toBeNull();
+    expect(parseSessionRoutePath("/sessions//?scope=all")).toBeNull();
+    expect(parseSessionRoutePath("/sessions//#summary")).toBeNull();
     expect(parseSessionRoutePath("/sessions//prompt/")).toBeNull();
     expect(parseSessionRoutePath("/sessions//prompt?tail=1")).toBeNull();
     expect(parseSessionRoutePath("/sessions//prompt/?tail=1")).toBeNull();

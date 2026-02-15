@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded blank-session root-segment parse-route parity:
+  - session-route-path unit suite now includes explicit null-parse assertions
+    for blank-session root-segment malformed suffix variants:
+    `/sessions//`, `/sessions//?scope=all`, `/sessions//#summary`.
 - Expanded blank-session trailing-suffix parse-route parity:
   - session-route-path unit suite now includes explicit null-parse assertions
     for blank-session prompt/messages malformed trailing variants:

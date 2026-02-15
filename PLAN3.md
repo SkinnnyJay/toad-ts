@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B198 blank-session root-segment parse-route parity)
+
+- Expanded session-route-path unit coverage for blank-session root-segment
+  malformed suffix variants to lock null parsing behavior.
+- Updated:
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+  - `PLAN3.md`
+- Validation:
+  - `npx vitest run __tests__/unit/server/session-route-path.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B197 blank-session trailing-suffix parse-route parity)
 
 - Expanded session-route-path unit coverage for blank-session malformed trailing

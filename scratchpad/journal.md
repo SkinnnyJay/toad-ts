@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B198 blank-session root-segment parse-route parity)
+
+### Summary
+- Expanded session-route-path unit coverage for blank-session root-segment
+  malformed suffix variants to lock null parsing behavior.
+- Updated:
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added explicit null-parse assertions for:
+    - `/sessions//`
+    - `/sessions//?scope=all`
+    - `/sessions//#summary`
+    alongside existing blank-session malformed suffix coverage.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/session-route-path.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B197 blank-session trailing-suffix parse-route parity)
 
 ### Summary
