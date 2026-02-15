@@ -1,3 +1,16 @@
+## 2026-02-14 Execution Update (B69 HTTP method normalization coverage)
+
+- Added direct unit coverage for server HTTP method normalization helper.
+- Updated:
+  - `__tests__/unit/server/http-method-normalization.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/http-method-normalization.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B68 allowlist-enforcement smoke coverage)
 
 - Added NutJS coverage hardening for allowlist enforcement and invalid enabled

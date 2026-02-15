@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added server HTTP method normalization direct coverage:
+  - created focused unit tests for `normalizeHttpMethod(...)` covering
+    lowercase, padded, and already-uppercase method normalization behavior.
+  - closed remaining direct unit-coverage gap for
+    `src/server/http-method-normalization.ts`.
 - Added NutJS allowlist-enforcement smoke coverage hardening:
   - added policy parsing unit coverage for unsupported enabled-flag values.
   - added smoke-level `not_allowlisted` assertion confirming excluded actions

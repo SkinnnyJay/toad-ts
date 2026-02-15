@@ -1,5 +1,32 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B69 server HTTP method normalization coverage)
+
+### Summary
+- Added direct unit coverage for the server HTTP method normalization helper.
+- Updated:
+  - `__tests__/unit/server/http-method-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added focused tests for lower-case method uppercasing.
+  - added whitespace-trimming normalization test.
+  - added identity check for already-uppercase methods.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/http-method-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B68 allowlist-enforcement smoke coverage hardening)
 
 ### Summary
