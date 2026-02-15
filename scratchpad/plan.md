@@ -14,6 +14,14 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-core whitespace-padded malformed parity:
+  - core-route classifier unit suite now explicitly covers whitespace-padded
+    unknown-core and malformed session variants with GET/POST parity:
+    ` /unknown-endpoint//?scope=all `, ` /unknown-endpoint//#summary `,
+    ` /sessions/session-1//#latest `, ` /sessions/session-1//?view=full `,
+    ` /sessions//prompt//#summary `, ` /sessions//messages//?tail=1 `.
+  - server-route classifier unit suite now explicitly ensures those same
+    whitespace-padded variants classify as core-scoped unhandled.
 - Expanded unknown-api whitespace-padded malformed parity:
   - api-routes unit suite now explicitly covers whitespace-padded trailing and
     double-trailing unknown API paths with GET/POST parity:

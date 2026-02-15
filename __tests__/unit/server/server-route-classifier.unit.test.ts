@@ -395,6 +395,57 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies whitespace-padded unknown core and malformed session variants as core unhandled", () => {
+    const unknownQueryGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /unknown-endpoint//?scope=all "
+    );
+    const unknownHashPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /unknown-endpoint//#summary "
+    );
+    const missingActionHashGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /sessions/session-1//#latest "
+    );
+    const missingActionQueryPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /sessions/session-1//?view=full "
+    );
+    const blankPromptHashGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /sessions//prompt//#summary "
+    );
+    const blankMessagesQueryPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /sessions//messages//?tail=1 "
+    );
+    expect(unknownQueryGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(unknownHashPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(missingActionHashGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(missingActionQueryPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(blankPromptHashGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(blankMessagesQueryPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies missing-action session base and direct-hash paths as core unhandled", () => {
     const baseGetResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1");
     const basePostResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions/session-1");

@@ -291,6 +291,27 @@ describe("classifyCoreRoute", () => {
     });
   });
 
+  it("returns unhandled for whitespace-padded unknown and malformed session routes", () => {
+    expect(classifyCoreRoute(HTTP_METHOD.GET, " /unknown-endpoint//?scope=all ")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, " /unknown-endpoint//#summary ")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, " /sessions/session-1//#latest ")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, " /sessions/session-1//?view=full ")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, " /sessions//prompt//#summary ")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, " /sessions//messages//?tail=1 ")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+  });
+
   it("returns unhandled for blank-session prompt/messages malformed paths", () => {
     expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions//prompt")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,

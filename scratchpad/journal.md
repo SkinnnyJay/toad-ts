@@ -1,5 +1,41 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B216 unknown-core whitespace padded parity)
+
+### Summary
+- Expanded unknown core/malformed session classifier coverage for
+  whitespace-padded trailing and double-trailing variants with explicit
+  POST/GET parity.
+- Updated:
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added core-route classifier assertions (`UNHANDLED`) for whitespace-padded:
+    - ` /unknown-endpoint//?scope=all ` (GET)
+    - ` /unknown-endpoint//#summary ` (POST)
+    - ` /sessions/session-1//#latest ` (GET)
+    - ` /sessions/session-1//?view=full ` (POST)
+    - ` /sessions//prompt//#summary ` (GET)
+    - ` /sessions//messages//?tail=1 ` (POST)
+  - added server-route classifier assertions for same whitespace-padded
+    variants to ensure `UNHANDLED` with `CORE_ROUTE_CLASSIFIER`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/pathname-normalization.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B215 unknown-api whitespace padded parity)
 
 ### Summary
