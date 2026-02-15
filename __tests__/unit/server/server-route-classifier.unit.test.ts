@@ -608,8 +608,13 @@ describe("classifyServerRoute", () => {
   });
 
   it("classifies unknown api routes as unhandled with api handler id", () => {
-    const result = classifyServerRoute(HTTP_METHOD.GET, "/api/unknown");
-    expect(result).toEqual({
+    const getResult = classifyServerRoute(HTTP_METHOD.GET, "/api/unknown");
+    const postResult = classifyServerRoute(HTTP_METHOD.POST, "/api/unknown");
+    expect(getResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(postResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });

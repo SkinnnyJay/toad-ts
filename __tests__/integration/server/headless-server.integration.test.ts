@@ -10666,6 +10666,69 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedSingleSegmentApiUnknown = await fetch(`${baseUrl}/api/unknown`);
+      expect(unauthenticatedSingleSegmentApiUnknown.status).toBe(401);
+      expect(unauthenticatedSingleSegmentApiUnknown.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedSingleSegmentApiUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedSingleSegmentApiUnknownPost = await fetch(`${baseUrl}/api/unknown`, {
+        method: "POST",
+      });
+      expect(unauthenticatedSingleSegmentApiUnknownPost.status).toBe(401);
+      expect(unauthenticatedSingleSegmentApiUnknownPost.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedSingleSegmentApiUnknownPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedSingleSegmentApiUnknownWithQuery = await fetch(
+        `${baseUrl}/api/unknown?scope=all`
+      );
+      expect(unauthenticatedSingleSegmentApiUnknownWithQuery.status).toBe(401);
+      expect(unauthenticatedSingleSegmentApiUnknownWithQuery.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedSingleSegmentApiUnknownWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedSingleSegmentApiUnknownWithQueryPost = await fetch(
+        `${baseUrl}/api/unknown?scope=all`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedSingleSegmentApiUnknownWithQueryPost.status).toBe(401);
+      expect(
+        unauthenticatedSingleSegmentApiUnknownWithQueryPost.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedSingleSegmentApiUnknownWithQueryPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedSingleSegmentApiUnknownWithHash = await fetch(
+        `${baseUrl}/api/unknown#summary`
+      );
+      expect(unauthenticatedSingleSegmentApiUnknownWithHash.status).toBe(401);
+      expect(unauthenticatedSingleSegmentApiUnknownWithHash.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedSingleSegmentApiUnknownWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedSingleSegmentApiUnknownWithHashPost = await fetch(
+        `${baseUrl}/api/unknown#summary`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedSingleSegmentApiUnknownWithHashPost.status).toBe(401);
+      expect(
+        unauthenticatedSingleSegmentApiUnknownWithHashPost.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedSingleSegmentApiUnknownWithHashPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedRootUnknown = await fetch(`${baseUrl}/`);
       expect(unauthenticatedRootUnknown.status).toBe(401);
       expect(unauthenticatedRootUnknown.headers.get("www-authenticate")).toBe("Bearer");
@@ -12486,6 +12549,76 @@ describe("headless server", () => {
       );
       expect(authenticatedDoubleTrailingApiUnknownWithHashPost.status).toBe(404);
       await expect(authenticatedDoubleTrailingApiUnknownWithHashPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedSingleSegmentApiUnknown = await fetch(`${baseUrl}/api/unknown`, {
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedSingleSegmentApiUnknown.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownPost = await fetch(`${baseUrl}/api/unknown`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedSingleSegmentApiUnknownPost.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknownPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownWithQuery = await fetch(
+        `${baseUrl}/api/unknown?scope=all`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSingleSegmentApiUnknownWithQuery.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknownWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownWithQueryPost = await fetch(
+        `${baseUrl}/api/unknown?scope=all`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSingleSegmentApiUnknownWithQueryPost.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknownWithQueryPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownWithHash = await fetch(
+        `${baseUrl}/api/unknown#summary`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSingleSegmentApiUnknownWithHash.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknownWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownWithHashPost = await fetch(
+        `${baseUrl}/api/unknown#summary`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSingleSegmentApiUnknownWithHashPost.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknownWithHashPost.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 

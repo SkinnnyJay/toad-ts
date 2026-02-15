@@ -14,6 +14,15 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded API unknown-segment parity hardening:
+  - headless-server integration suite now includes explicit unauthenticated and
+    authenticated POST assertions for `/api/unknown`, `/api/unknown?scope=all`,
+    and `/api/unknown#summary`.
+  - api-routes classifier unit suite now includes explicit POST/GET parity for
+    `/api/does-not-exist` base/padded/query/hash/trailing-query/trailing-hash
+    forms.
+  - server-route classifier unit suite now includes explicit POST/GET parity
+    for `/api/unknown` ownership semantics.
 - Expanded API-root method parity hardening:
   - headless-server integration suite now includes explicit unauthenticated and
     authenticated POST assertions for `/api` unknown variants across:

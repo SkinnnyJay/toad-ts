@@ -259,16 +259,26 @@ describe("API Routes", () => {
     });
 
     it("classifies unknown path as not found", () => {
-      const result = classifyApiRoute("GET", "/api/does-not-exist");
-      expect(result).toEqual({
+      const getResult = classifyApiRoute("GET", "/api/does-not-exist");
+      const postResult = classifyApiRoute("POST", "/api/does-not-exist");
+      expect(getResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(postResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
     });
 
     it("classifies padded unknown path as not found", () => {
-      const result = classifyApiRoute("GET", " /api/does-not-exist ");
-      expect(result).toEqual({
+      const getResult = classifyApiRoute("GET", " /api/does-not-exist ");
+      const postResult = classifyApiRoute("POST", " /api/does-not-exist ");
+      expect(getResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(postResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
@@ -276,10 +286,18 @@ describe("API Routes", () => {
 
     it("classifies query/hash suffixed unknown path as not found", () => {
       const queryResult = classifyApiRoute("GET", "/api/does-not-exist?view=compact");
+      const queryPostResult = classifyApiRoute("POST", "/api/does-not-exist?view=compact");
       const hashResult = classifyApiRoute("GET", "/api/does-not-exist#summary");
+      const hashPostResult = classifyApiRoute("POST", "/api/does-not-exist#summary");
       const trailingQueryResult = classifyApiRoute("GET", "/api/does-not-exist/?view=compact");
+      const trailingQueryPostResult = classifyApiRoute("POST", "/api/does-not-exist/?view=compact");
       const trailingHashResult = classifyApiRoute("GET", "/api/does-not-exist/#summary");
+      const trailingHashPostResult = classifyApiRoute("POST", "/api/does-not-exist/#summary");
       expect(queryResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(queryPostResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
@@ -287,11 +305,23 @@ describe("API Routes", () => {
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
+      expect(hashPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
       expect(trailingQueryResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
+      expect(trailingQueryPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
       expect(trailingHashResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(trailingHashPostResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
