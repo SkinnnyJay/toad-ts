@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded protected-api query+trailing auth-order coverage:
+  - protected API auth-before-method integration now includes combined
+    trailing-slash+query variants for `/api/config`, `/api/sessions/:id`, and
+    `/api/sessions/:id/messages` unsupported-method paths.
+  - locks pre-auth `401` + challenge and authenticated `405`
+    method-not-allowed semantics across combined normalized API route forms.
 - Expanded health query auth-bypass coverage:
   - health-route password-protection integration now includes query and
     trailing-slash+query variants for both GET success and unsupported POST
