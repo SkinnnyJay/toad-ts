@@ -1,8 +1,10 @@
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
+import { TRUTHY_STRINGS } from "@/constants/boolean-strings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { ERROR_CODE } from "@/constants/error-codes";
 import { EnvManager } from "@/utils/env/env.utils";
+import { isPathWithinBase } from "@/utils/pathContainment.utils";
 
 export interface ReadFileOptions {
   encoding?: BufferEncoding;
@@ -27,7 +29,7 @@ const shouldAllowEscape = (env?: NodeJS.ProcessEnv, override?: boolean): boolean
   const raw = source[ENV_KEY.TOADSTOOL_ALLOW_ESCAPE];
   if (!raw) return false;
   const normalized = raw.trim().toLowerCase();
-  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
+  return TRUTHY_STRINGS.has(normalized);
 };
 
 const resolveWorkSubdir = (env?: NodeJS.ProcessEnv): string | undefined => {
@@ -107,7 +109,7 @@ export class FsHandler {
     if (this.allowEscape) {
       return candidate;
     }
-    if (!candidate.startsWith(normalizedBase)) {
+    if (!isPathWithinBase(candidate, normalizedBase)) {
       throw new Error(`Path escapes base directory: ${filePath}`);
     }
     return candidate;

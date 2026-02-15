@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { unlink } from "node:fs/promises";
 import http from "node:http";
 import { tmpdir } from "node:os";
@@ -5,8 +6,20 @@ import path from "node:path";
 import { DEFAULT_HOST } from "@/config/server";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
+import { HOOK_IPC_AUTH } from "@/constants/hook-ipc-auth";
+import { HTTP_METHOD } from "@/constants/http-methods";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { PERMISSION } from "@/constants/permissions";
+import { PLATFORM } from "@/constants/platform";
+import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
+import { sendErrorResponse, sendJsonResponse } from "@/server/http-response";
+import { parseJsonRequestBody } from "@/server/request-body";
+import {
+  REQUEST_PARSING_SOURCE,
+  logRequestParsingFailure,
+  logRequestValidationFailure,
+  normalizeRequestBodyParseErrorDetails,
+} from "@/server/request-error-normalization";
 import {
   type CursorHookInput,
   CursorHookInputSchema,
@@ -15,30 +28,46 @@ import {
   CursorStopOutputSchema,
 } from "@/types/cursor-hooks.types";
 import { createClassLogger } from "@/utils/logging/logger.utils";
+import { TEMP_ARTIFACT_TYPE, registerTempArtifact } from "@/utils/temp-artifact-cleanup.utils";
 
 const HOOK_IPC_DEFAULT = {
   HOST: DEFAULT_HOST,
   PATHNAME: "/",
 } as const;
 
+const HOOK_IPC_LOCAL_HOST = {
+  LOOPBACK_IPV4: "127.0.0.1",
+  LOCALHOST: "localhost",
+  LOOPBACK_IPV6: "::1",
+  MAPPED_LOOPBACK_IPV4: "::ffff:127.0.0.1",
+} as const;
+
+const HOOK_IPC_LOCAL_HTTP_HOSTS = new Set<string>([
+  HOOK_IPC_LOCAL_HOST.LOOPBACK_IPV4,
+  HOOK_IPC_LOCAL_HOST.LOCALHOST,
+]);
+
+const HOOK_IPC_LOCAL_REMOTE_ADDRESSES = new Set<string>([
+  HOOK_IPC_LOCAL_HOST.LOOPBACK_IPV4,
+  HOOK_IPC_LOCAL_HOST.LOOPBACK_IPV6,
+  HOOK_IPC_LOCAL_HOST.MAPPED_LOOPBACK_IPV4,
+]);
+
 const HOOK_IPC_TRANSPORT = {
   UNIX_SOCKET: "unix_socket",
   HTTP: "http",
 } as const;
 
+const HOOK_IPC_HANDLER = {
+  METHOD_GUARD: "method_guard",
+  ORIGIN_GUARD: "origin_guard",
+  AUTH_GUARD: "auth_guard",
+} as const;
+
 type HookIpcTransport = (typeof HOOK_IPC_TRANSPORT)[keyof typeof HOOK_IPC_TRANSPORT];
-const METHOD_NOT_ALLOWED_STATUS = HTTP_STATUS.NOT_FOUND + 1;
 
 const defaultSocketPath = (pid: number): string => {
   return path.join(tmpdir(), `toadstool-cursor-hooks-${pid}.sock`);
-};
-
-const safeJsonParse = (raw: string): unknown => {
-  try {
-    return JSON.parse(raw);
-  } catch (_error) {
-    return null;
-  }
 };
 
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> => {
@@ -54,10 +83,23 @@ const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, fallback: 
   return result;
 };
 
+const readHeaderValue = (headers: http.IncomingHttpHeaders, key: string): string | undefined => {
+  const raw = headers[key];
+  if (typeof raw === "string") {
+    return raw;
+  }
+  if (Array.isArray(raw)) {
+    return raw[0];
+  }
+  return undefined;
+};
+
 export interface HookIpcEndpoint {
   transport: HookIpcTransport;
   socketPath?: string;
   url?: string;
+  authToken?: string;
+  authNonce?: string;
 }
 
 export interface HookIpcServerOptions {
@@ -88,21 +130,28 @@ export class HookIpcServer {
   private readonly host: string;
   private readonly port: number;
   private readonly requestTimeoutMs: number;
+  private readonly httpAuthToken: string;
+  private readonly httpAuthNonce: string;
 
   private handlers: HookIpcServerHandlers = {};
   private server: http.Server | null = null;
   private endpoint: HookIpcEndpoint | null = null;
+  private unregisterSocketArtifact: (() => void) | null = null;
 
   public constructor(options: HookIpcServerOptions = {}) {
     const transport =
       options.transport ??
-      (process.platform === "win32" ? HOOK_IPC_TRANSPORT.HTTP : HOOK_IPC_TRANSPORT.UNIX_SOCKET);
+      (process.platform === PLATFORM.WIN32
+        ? HOOK_IPC_TRANSPORT.HTTP
+        : HOOK_IPC_TRANSPORT.UNIX_SOCKET);
 
     this.transport = transport;
     this.socketPath = options.socketPath ?? defaultSocketPath(process.pid);
-    this.host = options.host ?? HOOK_IPC_DEFAULT.HOST;
+    this.host = this.resolveHttpHost(options.host ?? HOOK_IPC_DEFAULT.HOST);
     this.port = options.port ?? 0;
     this.requestTimeoutMs = options.requestTimeoutMs ?? CURSOR_LIMIT.HOOK_REQUEST_TIMEOUT_MS;
+    this.httpAuthToken = randomUUID();
+    this.httpAuthNonce = randomUUID();
   }
 
   public setHandlers(handlers: HookIpcServerHandlers): void {
@@ -122,45 +171,130 @@ export class HookIpcServer {
     }
 
     const server = http.createServer(async (req, res) => {
-      if (req.method !== "POST") {
-        res.writeHead(METHOD_NOT_ALLOWED_STATUS, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Method not allowed" }));
+      if (this.endpoint?.transport === HOOK_IPC_TRANSPORT.HTTP && !this.isLocalHttpRequest(req)) {
+        logRequestValidationFailure(
+          this.logger,
+          {
+            source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+            handler: HOOK_IPC_HANDLER.ORIGIN_GUARD,
+            method: req.method ?? "",
+            pathname: req.url ?? HOOK_IPC_DEFAULT.PATHNAME,
+          },
+          {
+            error: SERVER_RESPONSE_MESSAGE.ORIGIN_NOT_ALLOWED,
+            mappedMessage: SERVER_RESPONSE_MESSAGE.ORIGIN_NOT_ALLOWED,
+          }
+        );
+        sendErrorResponse(res, HTTP_STATUS.FORBIDDEN, SERVER_RESPONSE_MESSAGE.ORIGIN_NOT_ALLOWED);
         return;
       }
 
-      const bodyChunks: string[] = [];
-      req.on("data", (chunk: Buffer | string) => {
-        bodyChunks.push(chunk.toString());
-      });
-      req.on("end", async () => {
-        const rawBody = bodyChunks.join("");
-        const parsedBody = safeJsonParse(rawBody);
+      if (
+        this.endpoint?.transport === HOOK_IPC_TRANSPORT.HTTP &&
+        !this.isAuthorizedHttpRequest(req)
+      ) {
+        logRequestValidationFailure(
+          this.logger,
+          {
+            source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+            handler: HOOK_IPC_HANDLER.AUTH_GUARD,
+            method: req.method ?? "",
+            pathname: req.url ?? HOOK_IPC_DEFAULT.PATHNAME,
+          },
+          {
+            error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+            mappedMessage: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+          }
+        );
+        sendErrorResponse(
+          res,
+          HTTP_STATUS.UNAUTHORIZED,
+          SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED
+        );
+        return;
+      }
+
+      if (req.method !== HTTP_METHOD.POST) {
+        logRequestValidationFailure(
+          this.logger,
+          {
+            source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+            handler: HOOK_IPC_HANDLER.METHOD_GUARD,
+            method: req.method ?? "",
+            pathname: req.url ?? HOOK_IPC_DEFAULT.PATHNAME,
+          },
+          {
+            error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+            mappedMessage: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+          }
+        );
+        sendErrorResponse(
+          res,
+          HTTP_STATUS.METHOD_NOT_ALLOWED,
+          SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED
+        );
+        return;
+      }
+
+      let payload: CursorHookInput;
+      try {
+        const parsedBody = await parseJsonRequestBody<unknown>(req);
         const parsedPayload = CursorHookInputSchema.safeParse(parsedBody);
         if (!parsedPayload.success) {
-          res.writeHead(HTTP_STATUS.BAD_REQUEST, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: parsedPayload.error.message }));
+          logRequestValidationFailure(
+            this.logger,
+            {
+              source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+              method: req.method ?? "",
+              pathname: req.url ?? HOOK_IPC_DEFAULT.PATHNAME,
+            },
+            {
+              error: parsedPayload.error.message,
+              mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+            }
+          );
+          sendErrorResponse(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
           return;
         }
+        payload = parsedPayload.data;
+      } catch (error) {
+        const mappedError = normalizeRequestBodyParseErrorDetails(error);
+        logRequestParsingFailure(
+          this.logger,
+          {
+            source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+            method: req.method ?? "",
+            pathname: req.url ?? HOOK_IPC_DEFAULT.PATHNAME,
+          },
+          mappedError
+        );
+        sendErrorResponse(res, HTTP_STATUS.BAD_REQUEST, mappedError.message);
+        return;
+      }
 
-        const response = await this.handlePayload(parsedPayload.data);
-        res.writeHead(HTTP_STATUS.OK, { "Content-Type": "application/json" });
-        res.end(JSON.stringify(response));
-      });
+      try {
+        const response = await this.handlePayload(payload);
+        sendJsonResponse(res, HTTP_STATUS.OK, response);
+      } catch (error) {
+        this.logger.error("Hook IPC request failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+        sendErrorResponse(
+          res,
+          HTTP_STATUS.INTERNAL_SERVER_ERROR,
+          SERVER_RESPONSE_MESSAGE.SERVER_ERROR
+        );
+      }
     });
 
     this.server = server;
 
     if (this.transport === HOOK_IPC_TRANSPORT.UNIX_SOCKET) {
-      await unlink(this.socketPath).catch(() => undefined);
-      await new Promise<void>((resolve, reject) => {
-        server.once("error", (error) => reject(error));
-        server.listen(this.socketPath, () => resolve());
-      });
-      this.endpoint = {
-        transport: HOOK_IPC_TRANSPORT.UNIX_SOCKET,
-        socketPath: this.socketPath,
-      };
-      return this.endpoint;
+      const unixEndpoint = await this.startUnixSocketServer(server);
+      if (unixEndpoint) {
+        this.endpoint = unixEndpoint;
+        return this.endpoint;
+      }
     }
 
     await new Promise<void>((resolve, reject) => {
@@ -173,12 +307,15 @@ export class HookIpcServer {
     this.endpoint = {
       transport: HOOK_IPC_TRANSPORT.HTTP,
       url: `http://${this.host}:${resolvedPort}${HOOK_IPC_DEFAULT.PATHNAME}`,
+      authToken: this.httpAuthToken,
+      authNonce: this.httpAuthNonce,
     };
     return this.endpoint;
   }
 
   public async stop(): Promise<void> {
     const server = this.server;
+    const endpoint = this.endpoint;
     this.server = null;
     this.endpoint = null;
     if (!server) {
@@ -189,8 +326,74 @@ export class HookIpcServer {
       server.close(() => resolve());
     });
 
-    if (this.transport === HOOK_IPC_TRANSPORT.UNIX_SOCKET) {
+    if (endpoint?.transport === HOOK_IPC_TRANSPORT.UNIX_SOCKET) {
+      this.unregisterSocketArtifact?.();
+      this.unregisterSocketArtifact = null;
       await unlink(this.socketPath).catch(() => undefined);
+    }
+  }
+
+  private resolveHttpHost(host: string): string {
+    const normalizedHost = host.trim().toLowerCase();
+    if (HOOK_IPC_LOCAL_HTTP_HOSTS.has(normalizedHost)) {
+      return normalizedHost;
+    }
+    this.logger.warn("Hook IPC HTTP host must be local; falling back to loopback", {
+      requestedHost: host,
+      fallbackHost: HOOK_IPC_DEFAULT.HOST,
+    });
+    return HOOK_IPC_DEFAULT.HOST;
+  }
+
+  private isLocalHttpRequest(request: http.IncomingMessage): boolean {
+    const remoteAddress = request.socket.remoteAddress ?? "";
+    if (!HOOK_IPC_LOCAL_REMOTE_ADDRESSES.has(remoteAddress)) {
+      return false;
+    }
+    return this.isLocalHostHeader(request.headers.host);
+  }
+
+  private isLocalHostHeader(hostHeader: string | undefined): boolean {
+    if (!hostHeader) {
+      return false;
+    }
+    try {
+      const parsedHost = new URL(`http://${hostHeader}`).hostname.toLowerCase();
+      return HOOK_IPC_LOCAL_HTTP_HOSTS.has(parsedHost);
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  private isAuthorizedHttpRequest(request: http.IncomingMessage): boolean {
+    const token = readHeaderValue(request.headers, HOOK_IPC_AUTH.TOKEN_HEADER);
+    const nonce = readHeaderValue(request.headers, HOOK_IPC_AUTH.NONCE_HEADER);
+    return token === this.httpAuthToken && nonce === this.httpAuthNonce;
+  }
+
+  private async startUnixSocketServer(server: http.Server): Promise<HookIpcEndpoint | null> {
+    await unlink(this.socketPath).catch(() => undefined);
+    try {
+      await new Promise<void>((resolve, reject) => {
+        server.once("error", (error) => reject(error));
+        server.listen(this.socketPath, () => resolve());
+      });
+      this.unregisterSocketArtifact?.();
+      this.unregisterSocketArtifact = registerTempArtifact(
+        this.socketPath,
+        TEMP_ARTIFACT_TYPE.FILE
+      );
+      return {
+        transport: HOOK_IPC_TRANSPORT.UNIX_SOCKET,
+        socketPath: this.socketPath,
+      };
+    } catch (error) {
+      this.logger.warn("Unix socket startup failed; falling back to HTTP transport", {
+        platform: process.platform,
+        socketPath: this.socketPath,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
     }
   }
 

@@ -25,6 +25,14 @@ describe("FsHandler", () => {
     await expect(fsHandler.read("../evil.txt")).rejects.toThrow("escapes base directory");
   });
 
+  it("throws when absolute path is outside base despite shared prefix", async () => {
+    const base = await mkdtemp(join(tmpdir(), "fs-handler-"));
+    const fsHandler = new FsHandler({ baseDir: base });
+    await expect(fsHandler.read(`${base}-sibling/evil.txt`)).rejects.toThrow(
+      "escapes base directory"
+    );
+  });
+
   it("checks existence", async () => {
     const base = await mkdtemp(join(tmpdir(), "fs-handler-"));
     const fsHandler = new FsHandler({ baseDir: base });

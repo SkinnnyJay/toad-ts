@@ -1,15 +1,20 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { FILE_PATH } from "@/constants/file-paths";
+import {
+  formatHarnessNotFoundError,
+  formatInvalidHarnessIdError,
+} from "@/harness/harness-error-messages";
 import { CLI_AGENT_MODE } from "@/types/cli-agent.types";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { loadHarnessConfig } from "@/harness/harnessConfig";
+import { HARNESS_CONFIG_ERROR, loadHarnessConfig } from "@/harness/harnessConfig";
 
 const writeHarnessFile = async (root: string, data: unknown): Promise<string> => {
   const dir = path.join(root, ".toadstool");
   await mkdir(dir, { recursive: true });
-  const filePath = path.join(dir, "harnesses.json");
+  const filePath = path.join(dir, FILE_PATH.HARNESSES_JSON);
   await writeFile(filePath, JSON.stringify(data, null, 2));
   return filePath;
 };
@@ -102,6 +107,52 @@ describe("harnessConfig", () => {
     expect(result.harness.args).toEqual(["--token=abc123", "--path=/tmp/project"]);
     expect(result.harness.env).toEqual({ API_KEY: "abc123" });
     expect(result.harness.cwd).toBe("/tmp/project");
+  });
+
+  it("merges project and user env maps before expansion", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "claude",
+      harnesses: {
+        claude: {
+          name: "Claude",
+          command: "claude",
+          env: {
+            PROJECT_TOKEN: "$PROJECT_TOKEN",
+            SHARED: "project",
+          },
+        },
+      },
+    });
+
+    await writeHarnessFile(userRoot, {
+      harnesses: {
+        claude: {
+          env: {
+            SHARED: "$USER_SHARED",
+            USER_ONLY: "$USER_ONLY",
+          },
+        },
+      },
+    });
+
+    const result = await loadHarnessConfig({
+      projectRoot,
+      homedir: userRoot,
+      env: {
+        PROJECT_TOKEN: "project-secret",
+        USER_SHARED: "user-wins",
+        USER_ONLY: "from-user",
+      },
+    });
+
+    expect(result.harness.env).toEqual({
+      PROJECT_TOKEN: "project-secret",
+      SHARED: "user-wins",
+      USER_ONLY: "from-user",
+    });
   });
 
   it("merges permission overrides", async () => {
@@ -201,6 +252,29 @@ describe("harnessConfig", () => {
     ).rejects.toThrow();
   });
 
+  it("throws when env expansion empties required command", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "claude",
+      harnesses: {
+        claude: {
+          name: "Claude",
+          command: "$MISSING_COMMAND",
+        },
+      },
+    });
+
+    await expect(
+      loadHarnessConfig({
+        projectRoot,
+        homedir: userRoot,
+        env: {},
+      })
+    ).rejects.toThrow();
+  });
+
   it("merges cursor harness options and expands cursor model env values", async () => {
     projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
     userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
@@ -246,5 +320,232 @@ describe("harnessConfig", () => {
       force: true,
       browser: true,
     });
+  });
+
+  it("auto-selects the only configured harness when no default is provided", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      harnesses: {
+        only: {
+          name: "Only",
+          command: "only-cli",
+        },
+      },
+    });
+
+    const result = await loadHarnessConfig({ projectRoot, homedir: userRoot });
+
+    expect(result.harnessId).toBe("only");
+    expect(result.harness.command).toBe("only-cli");
+  });
+
+  it("throws when project default harness id is whitespace-only", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "   ",
+      harnesses: {
+        only: {
+          name: "Only",
+          command: "only-cli",
+        },
+      },
+    });
+
+    await expect(loadHarnessConfig({ projectRoot, homedir: userRoot })).rejects.toThrow(
+      formatInvalidHarnessIdError("   ")
+    );
+  });
+
+  it("throws when project default harness id is padded with whitespace", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: " alpha ",
+      harnesses: {
+        alpha: {
+          name: "Alpha",
+          command: "alpha-cli",
+        },
+      },
+    });
+
+    await expect(loadHarnessConfig({ projectRoot, homedir: userRoot })).rejects.toThrow(
+      formatInvalidHarnessIdError(" alpha ")
+    );
+  });
+
+  it("resolves explicit CLI harness id when value is exact", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "alpha",
+      harnesses: {
+        alpha: {
+          name: "Alpha",
+          command: "alpha-cli",
+        },
+        beta: {
+          name: "Beta",
+          command: "beta-cli",
+        },
+      },
+    });
+
+    const result = await loadHarnessConfig({
+      projectRoot,
+      homedir: userRoot,
+      harnessId: "beta",
+    });
+
+    expect(result.harnessId).toBe("beta");
+    expect(result.harness.command).toBe("beta-cli");
+  });
+
+  it("rejects explicit CLI harness id when value is padded with whitespace", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "alpha",
+      harnesses: {
+        alpha: {
+          name: "Alpha",
+          command: "alpha-cli",
+        },
+        beta: {
+          name: "Beta",
+          command: "beta-cli",
+        },
+      },
+    });
+
+    await expect(
+      loadHarnessConfig({
+        projectRoot,
+        homedir: userRoot,
+        harnessId: " beta ",
+      })
+    ).rejects.toThrow(formatInvalidHarnessIdError(" beta "));
+  });
+
+  it("rejects explicit CLI harness id when value is whitespace-only", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "alpha",
+      harnesses: {
+        alpha: {
+          name: "Alpha",
+          command: "alpha-cli",
+        },
+      },
+    });
+
+    await expect(
+      loadHarnessConfig({
+        projectRoot,
+        homedir: userRoot,
+        harnessId: "   ",
+      })
+    ).rejects.toThrow(formatInvalidHarnessIdError("   "));
+  });
+
+  it("throws when multiple harnesses exist and no default is configured", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      harnesses: {
+        alpha: {
+          name: "Alpha",
+          command: "alpha",
+        },
+        beta: {
+          name: "Beta",
+          command: "beta",
+        },
+      },
+    });
+
+    await expect(loadHarnessConfig({ projectRoot, homedir: userRoot })).rejects.toThrow(
+      HARNESS_CONFIG_ERROR.NO_DEFAULT_HARNESS_CONFIGURED
+    );
+  });
+
+  it("throws harness-not-found for unknown explicit harness id", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "alpha",
+      harnesses: {
+        alpha: {
+          name: "Alpha",
+          command: "alpha",
+        },
+      },
+    });
+
+    await expect(
+      loadHarnessConfig({
+        projectRoot,
+        homedir: userRoot,
+        harnessId: "missing",
+      })
+    ).rejects.toThrow(formatHarnessNotFoundError("missing"));
+  });
+
+  it("throws when user default harness id is whitespace-only", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "alpha",
+      harnesses: {
+        alpha: {
+          name: "Alpha",
+          command: "alpha-cli",
+        },
+      },
+    });
+
+    await writeHarnessFile(userRoot, {
+      defaultHarness: "  ",
+      harnesses: {
+        alpha: {
+          command: "alpha-user",
+        },
+      },
+    });
+
+    await expect(loadHarnessConfig({ projectRoot, homedir: userRoot })).rejects.toThrow(
+      formatInvalidHarnessIdError("  ")
+    );
+  });
+
+  it("throws when harness id contains surrounding whitespace", async () => {
+    projectRoot = await mkdtemp(path.join(tmpdir(), "toadstool-project-"));
+    userRoot = await mkdtemp(path.join(tmpdir(), "toadstool-user-"));
+
+    await writeHarnessFile(projectRoot, {
+      defaultHarness: "alpha",
+      harnesses: {
+        " alpha ": {
+          name: "Alpha",
+          command: "alpha",
+        },
+      },
+    });
+
+    await expect(loadHarnessConfig({ projectRoot, homedir: userRoot })).rejects.toThrow(
+      formatInvalidHarnessIdError(" alpha ")
+    );
   });
 });

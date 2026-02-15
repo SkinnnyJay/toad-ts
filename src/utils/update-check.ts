@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { SEMVER_COMPONENT_COUNT } from "@/config/limits";
+import { LIMIT } from "@/config/limits";
+import { BOOLEAN_STRINGS } from "@/constants/boolean-strings";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { ERROR_CODE } from "@/constants/error-codes";
@@ -13,6 +14,17 @@ import { loadPackageInfo } from "@/utils/package-info";
 import { z } from "zod";
 
 const logger = createClassLogger("UpdateCheck");
+const UPDATE_CHECK_SCHEDULER = {
+  DEFER_MS: 0,
+} as const;
+
+let scheduledTimer: NodeJS.Timeout | null = null;
+let scheduledCheck: Promise<void> | null = null;
+let runtimeCache: {
+  expiresAt: number;
+  latestVersion?: string;
+  currentVersion: string;
+} | null = null;
 
 const updateCacheSchema = z
   .object({
@@ -39,7 +51,7 @@ const parseVersion = (version: string): number[] => {
   const clean = version.split("-")[0] ?? version;
   const parts = clean.split(".");
   const numbers: number[] = [];
-  for (let i = 0; i < SEMVER_COMPONENT_COUNT; i += 1) {
+  for (let i = 0; i < LIMIT.SEMVER_COMPONENT_COUNT; i += 1) {
     const value = parts[i] ?? "0";
     numbers.push(Number.parseInt(value, 10));
   }
@@ -49,7 +61,7 @@ const parseVersion = (version: string): number[] => {
 export const isNewerVersion = (latest: string, current: string): boolean => {
   const latestParts = parseVersion(latest);
   const currentParts = parseVersion(current);
-  for (let i = 0; i < SEMVER_COMPONENT_COUNT; i += 1) {
+  for (let i = 0; i < LIMIT.SEMVER_COMPONENT_COUNT; i += 1) {
     const latestValue = latestParts[i] ?? 0;
     const currentValue = currentParts[i] ?? 0;
     if (latestValue > currentValue) return true;
@@ -101,8 +113,46 @@ const fetchLatestVersion = async (packageName: string): Promise<string | null> =
 };
 
 export const checkForUpdates = async (): Promise<void> => {
+  try {
+    await performUpdateCheck();
+  } catch (error) {
+    logger.debug("Update check pipeline failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+export const scheduleUpdateCheck = (runCheck: () => Promise<void> = checkForUpdates): void => {
+  if (scheduledTimer || scheduledCheck) {
+    return;
+  }
+  scheduledTimer = setTimeout(() => {
+    scheduledTimer = null;
+    scheduledCheck = runCheck()
+      .catch((error) => {
+        logger.debug("Scheduled update check failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      })
+      .finally(() => {
+        scheduledCheck = null;
+      });
+  }, UPDATE_CHECK_SCHEDULER.DEFER_MS);
+  scheduledTimer.unref();
+};
+
+export const resetUpdateCheckSchedulerForTests = (): void => {
+  if (scheduledTimer) {
+    clearTimeout(scheduledTimer);
+    scheduledTimer = null;
+  }
+  scheduledCheck = null;
+  runtimeCache = null;
+};
+
+const performUpdateCheck = async (): Promise<void> => {
   const env = EnvManager.getInstance().getSnapshot();
-  if (env[ENV_KEY.TOADSTOOL_DISABLE_UPDATE_CHECK]?.toLowerCase() === "true") {
+  if (env[ENV_KEY.TOADSTOOL_DISABLE_UPDATE_CHECK]?.toLowerCase() === BOOLEAN_STRINGS.TRUE) {
     return;
   }
 
@@ -111,10 +161,28 @@ export const checkForUpdates = async (): Promise<void> => {
     return;
   }
 
+  const now = Date.now();
+  if (runtimeCache && runtimeCache.expiresAt > now) {
+    if (
+      runtimeCache.latestVersion &&
+      isNewerVersion(runtimeCache.latestVersion, runtimeCache.currentVersion)
+    ) {
+      logger.info("Update available", {
+        current: runtimeCache.currentVersion,
+        latest: runtimeCache.latestVersion,
+      });
+    }
+    return;
+  }
+
   const cwd = process.cwd();
   const cache = await readCache(cwd);
-  const now = Date.now();
   if (cache && now - cache.lastChecked < CHECK_INTERVAL_MS) {
+    runtimeCache = {
+      expiresAt: now + LIMIT.UPDATE_CHECK_RUNTIME_TTL_MS,
+      latestVersion: cache.latestVersion,
+      currentVersion: info.version,
+    };
     if (cache.latestVersion && isNewerVersion(cache.latestVersion, info.version)) {
       logger.info("Update available", {
         current: info.version,
@@ -126,8 +194,17 @@ export const checkForUpdates = async (): Promise<void> => {
 
   const latest = await fetchLatestVersion(info.name);
   if (!latest) {
+    runtimeCache = {
+      expiresAt: now + LIMIT.UPDATE_CHECK_RUNTIME_TTL_MS,
+      currentVersion: info.version,
+    };
     return;
   }
+  runtimeCache = {
+    expiresAt: now + LIMIT.UPDATE_CHECK_RUNTIME_TTL_MS,
+    latestVersion: latest,
+    currentVersion: info.version,
+  };
   await writeCache(cwd, { lastChecked: now, latestVersion: latest });
   if (isNewerVersion(latest, info.version)) {
     logger.info("Update available", { current: info.version, latest });

@@ -1,5 +1,7 @@
 import { LIMIT } from "@/config/limits";
 import { HTTP_STATUS } from "@/constants/http-status";
+import { PROVIDER_STREAM } from "@/constants/provider-stream";
+import { formatProviderHttpError } from "./provider-error.utils";
 import type {
   ProviderAdapter,
   ProviderMessage,
@@ -7,6 +9,7 @@ import type {
   ProviderOptions,
   ProviderStreamChunk,
 } from "./provider-types";
+import { appendChunkToParserBuffer } from "./stream-parser-buffer";
 
 const ANTHROPIC_API_BASE = "https://api.anthropic.com";
 const ANTHROPIC_API_VERSION = "2023-06-01";
@@ -108,7 +111,10 @@ export class AnthropicProvider implements ProviderAdapter {
 
     if (!response.ok) {
       const errorText = await response.text();
-      yield { type: "error", error: `Anthropic API error ${response.status}: ${errorText}` };
+      yield {
+        type: "error",
+        error: formatProviderHttpError("Anthropic", response.status, errorText),
+      };
       return;
     }
 
@@ -120,20 +126,25 @@ export class AnthropicProvider implements ProviderAdapter {
 
     const decoder = new TextDecoder();
     let buffer = "";
+    const ssePrefixLength = PROVIDER_STREAM.SSE_DATA_PREFIX.length;
 
     try {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
+        const nextBuffer = appendChunkToParserBuffer(
+          buffer,
+          decoder.decode(value, { stream: true }),
+          LIMIT.PROVIDER_STREAM_PARSER_BUFFER_MAX_BYTES
+        );
+        buffer = nextBuffer.remainder;
+        const lines = nextBuffer.lines;
 
         for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const data = line.slice(6).trim();
-          if (data === "[DONE]") {
+          if (!line.startsWith(PROVIDER_STREAM.SSE_DATA_PREFIX)) continue;
+          const data = line.slice(ssePrefixLength).trim();
+          if (data === PROVIDER_STREAM.DONE_SENTINEL) {
             yield { type: "done" };
             return;
           }
@@ -142,14 +153,14 @@ export class AnthropicProvider implements ProviderAdapter {
             const event = JSON.parse(data) as Record<string, unknown>;
             const eventType = event.type as string;
 
-            if (eventType === "content_block_delta") {
+            if (eventType === PROVIDER_STREAM.ANTHROPIC_EVENT_CONTENT_BLOCK_DELTA) {
               const delta = event.delta as Record<string, unknown> | undefined;
-              if (delta?.type === "text_delta") {
+              if (delta?.type === PROVIDER_STREAM.ANTHROPIC_DELTA_TEXT) {
                 yield { type: "text", text: delta.text as string };
-              } else if (delta?.type === "thinking_delta") {
+              } else if (delta?.type === PROVIDER_STREAM.ANTHROPIC_DELTA_THINKING) {
                 yield { type: "thinking", text: delta.thinking as string };
               }
-            } else if (eventType === "message_stop") {
+            } else if (eventType === PROVIDER_STREAM.ANTHROPIC_EVENT_MESSAGE_STOP) {
               yield { type: "done" };
               return;
             }

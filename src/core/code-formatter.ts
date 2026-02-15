@@ -1,5 +1,6 @@
 import { extname } from "node:path";
 import type { FormatterConfig } from "@/config/app-config";
+import { TIMEOUT } from "@/config/timeouts";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { execa } from "execa";
 
@@ -31,7 +32,7 @@ export const formatFile = async (
     if (!cmd) continue;
 
     try {
-      await execa(cmd, args, { timeout: 30_000 });
+      await execa(cmd, args, { timeout: TIMEOUT.FORMATTER_COMMAND_MS });
       logger.info("Formatted file", { formatter: name, file: filePath });
       return { formatted: true };
     } catch (error) {

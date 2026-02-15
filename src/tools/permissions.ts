@@ -1,4 +1,9 @@
-import { ALLOW_ALWAYS, ALLOW_ONCE } from "@/constants/permission-option-kinds";
+import {
+  ALLOW_ALWAYS,
+  ALLOW_ONCE,
+  REJECT_ALWAYS,
+  REJECT_ONCE,
+} from "@/constants/permission-option-kinds";
 import { PERMISSION, type Permission } from "@/constants/permissions";
 import { TOOL_KIND, type ToolKind } from "@/constants/tool-kinds";
 import { getRulesState } from "@/rules/rules-service";
@@ -39,7 +44,7 @@ const selectOption = (
 
   if (permission === PERMISSION.DENY) {
     return (
-      options.find((option) => option.kind === "reject_always" || option.kind === "reject_once") ??
+      options.find((option) => option.kind === REJECT_ALWAYS || option.kind === REJECT_ONCE) ??
       options[0]
     );
   }

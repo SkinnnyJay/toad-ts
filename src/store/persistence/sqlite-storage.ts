@@ -15,8 +15,20 @@ import type { Message, Session } from "@/types/domain";
 import type { ChatQuery } from "./persistence-provider";
 
 const SQLITE_URL_PREFIX = "file:";
+const SQLITE_ERROR_MESSAGE = {
+  OPERATION_TIMED_OUT: "SQLite operation timed out",
+} as const;
+const SQLITE_MAINTENANCE_SQL = {
+  OPTIMIZE: "PRAGMA optimize",
+  CHECKPOINT_TRUNCATE: "PRAGMA wal_checkpoint(TRUNCATE)",
+  VACUUM: "VACUUM",
+} as const;
 
 export class SqliteStore {
+  private saveCount = 0;
+  private lastMaintenanceAt = Date.now();
+  private lastVacuumAt = Date.now();
+
   private constructor(private readonly prisma: PrismaClient) {}
 
   static async create(filePath: string): Promise<SqliteStore> {
@@ -42,8 +54,14 @@ export class SqliteStore {
   }
 
   async loadSnapshot(): Promise<unknown> {
-    const sessions: PrismaSession[] = await this.prisma.session.findMany();
-    const messages: PrismaMessage[] = await this.prisma.message.findMany();
+    const sessions: PrismaSession[] = await this.withStatementTimeout(
+      "load sessions",
+      async () => await this.prisma.session.findMany()
+    );
+    const messages: PrismaMessage[] = await this.withStatementTimeout(
+      "load messages",
+      async () => await this.prisma.message.findMany()
+    );
 
     const messageRecords: Message[] = messages.map((record) =>
       MessageSchema.parse({
@@ -121,37 +139,49 @@ export class SqliteStore {
       isStreaming: message.isStreaming ?? false,
     }));
 
-    const operations: Prisma.PrismaPromise<unknown>[] = [
-      this.prisma.$executeRawUnsafe("DELETE FROM messages_fts"),
-      this.prisma.message.deleteMany(),
-      this.prisma.session.deleteMany(),
-    ];
+    await this.withTransactionTimeout(
+      "save snapshot",
+      async () =>
+        await this.prisma.$transaction(
+          async (tx) => {
+            await tx.$executeRawUnsafe("DELETE FROM messages_fts");
+            await tx.message.deleteMany();
+            await tx.session.deleteMany();
 
-    if (sessions.length > 0) {
-      operations.push(this.prisma.session.createMany({ data: sessions }));
-    }
-    if (messages.length > 0) {
-      operations.push(this.prisma.message.createMany({ data: messages }));
-    }
+            if (sessions.length > 0) {
+              await tx.session.createMany({ data: sessions });
+            }
+            if (messages.length > 0) {
+              await tx.message.createMany({ data: messages });
+            }
 
-    for (const message of messageEntries) {
-      const contentText = this.extractSearchText(message.content);
-      operations.push(
-        this.prisma.$executeRaw(
-          Prisma.sql`INSERT INTO messages_fts (message_id, session_id, content) VALUES (${message.id}, ${message.sessionId}, ${contentText})`
+            for (const message of messageEntries) {
+              const contentText = this.extractSearchText(message.content);
+              await tx.$executeRaw(
+                Prisma.sql`INSERT INTO messages_fts (message_id, session_id, content) VALUES (${message.id}, ${message.sessionId}, ${contentText})`
+              );
+            }
+          },
+          {
+            maxWait: TIMEOUT.SQLITE_BUSY_MS,
+            timeout: TIMEOUT.SQLITE_TRANSACTION_TIMEOUT_MS,
+          }
         )
-      );
-    }
+    );
 
-    await this.prisma.$transaction(operations);
+    await this.maybeRunMaintenance();
   }
 
   async searchMessages(query: ChatQuery): Promise<unknown> {
     type FtsRow = { message_id: string };
     let messageIds: string[] | undefined;
     if (query.text) {
-      const rows = await this.prisma.$queryRaw<FtsRow[]>(
-        Prisma.sql`SELECT message_id FROM messages_fts WHERE messages_fts MATCH ${query.text}`
+      const rows = await this.withStatementTimeout(
+        "search fts rows",
+        async () =>
+          await this.prisma.$queryRaw<FtsRow[]>(
+            Prisma.sql`SELECT message_id FROM messages_fts WHERE messages_fts MATCH ${query.text}`
+          )
       );
       messageIds = rows.map((row) => row.message_id);
       if (messageIds.length === 0) {
@@ -176,12 +206,16 @@ export class SqliteStore {
       };
     }
 
-    const results: PrismaMessage[] = await this.prisma.message.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      take: query.limit ?? LIMIT.DEFAULT_PAGINATION_LIMIT,
-      skip: query.offset ?? 0,
-    });
+    const results: PrismaMessage[] = await this.withStatementTimeout(
+      "search messages",
+      async () =>
+        await this.prisma.message.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          take: query.limit ?? LIMIT.DEFAULT_PAGINATION_LIMIT,
+          skip: query.offset ?? 0,
+        })
+    );
 
     return results.map((record) =>
       MessageSchema.parse({
@@ -196,17 +230,25 @@ export class SqliteStore {
   }
 
   async getSessionHistory(sessionId: string): Promise<unknown> {
-    const session: PrismaSession | null = await this.prisma.session.findUnique({
-      where: { id: sessionId },
-    });
+    const session: PrismaSession | null = await this.withStatementTimeout(
+      "load session history session",
+      async () =>
+        await this.prisma.session.findUnique({
+          where: { id: sessionId },
+        })
+    );
     if (!session) {
       throw new Error(`Session ${sessionId} not found`);
     }
 
-    const messages: PrismaMessage[] = await this.prisma.message.findMany({
-      where: { sessionId },
-      orderBy: { createdAt: "asc" },
-    });
+    const messages: PrismaMessage[] = await this.withStatementTimeout(
+      "load session history messages",
+      async () =>
+        await this.prisma.message.findMany({
+          where: { sessionId },
+          orderBy: { createdAt: "asc" },
+        })
+    );
 
     const messageRecords: Message[] = messages.map((record) =>
       MessageSchema.parse({
@@ -265,6 +307,9 @@ export class SqliteStore {
     // DDL statements cannot use parameterized values, so we use $executeRawUnsafe
     await this.prisma.$executeRawUnsafe("PRAGMA journal_mode = WAL");
     await this.prisma.$executeRawUnsafe("PRAGMA synchronous = NORMAL");
+    await this.prisma.$executeRawUnsafe(
+      `PRAGMA wal_autocheckpoint = ${LIMIT.SQLITE_WAL_AUTOCHECKPOINT_PAGES}`
+    );
     await this.prisma.$executeRawUnsafe(`PRAGMA busy_timeout = ${TIMEOUT.SQLITE_BUSY_MS}`);
     await this.prisma.$executeRawUnsafe(
       `CREATE TABLE IF NOT EXISTS sessions (
@@ -296,5 +341,98 @@ export class SqliteStore {
     await this.prisma.$executeRawUnsafe(
       "CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(message_id, session_id, content)"
     );
+  }
+
+  private async withStatementTimeout<T>(
+    operationName: string,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    return await this.withTimeout(operationName, TIMEOUT.SQLITE_STATEMENT_TIMEOUT_MS, operation);
+  }
+
+  private async withTransactionTimeout<T>(
+    operationName: string,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    return await this.withTimeout(operationName, TIMEOUT.SQLITE_TRANSACTION_TIMEOUT_MS, operation);
+  }
+
+  private async withTimeout<T>(
+    operationName: string,
+    timeoutMs: number,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    return await new Promise<T>((resolve, reject) => {
+      let settled = false;
+      const timeout = setTimeout(() => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        reject(
+          new Error(
+            `${SQLITE_ERROR_MESSAGE.OPERATION_TIMED_OUT}: ${operationName} (${timeoutMs}ms)`
+          )
+        );
+      }, timeoutMs);
+
+      timeout.unref();
+      void operation()
+        .then((result) => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          clearTimeout(timeout);
+          resolve(result);
+        })
+        .catch((error) => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          clearTimeout(timeout);
+          reject(error);
+        });
+    });
+  }
+
+  private async maybeRunMaintenance(): Promise<void> {
+    this.saveCount += 1;
+    const now = Date.now();
+    const shouldRunMaintenance =
+      this.saveCount % LIMIT.SQLITE_MAINTENANCE_SAVE_INTERVAL === 0 ||
+      now - this.lastMaintenanceAt >= LIMIT.SQLITE_MAINTENANCE_MIN_INTERVAL_MS;
+    if (!shouldRunMaintenance) {
+      return;
+    }
+
+    this.lastMaintenanceAt = now;
+    const shouldRunVacuum =
+      this.saveCount % LIMIT.SQLITE_VACUUM_SAVE_INTERVAL === 0 ||
+      now - this.lastVacuumAt >= LIMIT.SQLITE_VACUUM_MIN_INTERVAL_MS;
+    if (shouldRunVacuum) {
+      this.lastVacuumAt = now;
+    }
+
+    try {
+      await this.withStatementTimeout(
+        "sqlite optimize",
+        async () => await this.prisma.$executeRawUnsafe(SQLITE_MAINTENANCE_SQL.OPTIMIZE)
+      );
+      await this.withStatementTimeout(
+        "sqlite wal checkpoint",
+        async () => await this.prisma.$executeRawUnsafe(SQLITE_MAINTENANCE_SQL.CHECKPOINT_TRUNCATE)
+      );
+      if (!shouldRunVacuum) {
+        return;
+      }
+      await this.withStatementTimeout(
+        "sqlite vacuum",
+        async () => await this.prisma.$executeRawUnsafe(SQLITE_MAINTENANCE_SQL.VACUUM)
+      );
+    } catch {
+      // Ignore best-effort maintenance failures so snapshot writes still succeed.
+    }
   }
 }

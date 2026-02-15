@@ -159,7 +159,7 @@ class FakeHooksGenerator extends HooksConfigGenerator {
     super({ projectRoot: "/workspace" });
   }
 
-  public override createHookEnv(): Record<string, string> {
+  public override createHookEnv(_endpoint: HookIpcEndpoint): Record<string, string> {
     return {
       [ENV_KEY.TOADSTOOL_HOOK_SOCKET]: "/tmp/toadstool.sock",
     };
@@ -170,6 +170,8 @@ class FakeHooksGenerator extends HooksConfigGenerator {
     return {
       hooksPath: "/workspace/.cursor/hooks.json",
       shimPath: "/workspace/.cursor/toadstool-cursor-hook-shim.mjs",
+      nodeShimPath: "/workspace/.cursor/toadstool-cursor-hook-shim.mjs",
+      bashShimPath: "/workspace/.cursor/toadstool-cursor-hook-shim.sh",
       restore: async () => {
         this.restored = true;
       },

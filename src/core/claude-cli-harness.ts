@@ -62,6 +62,11 @@ const parseArgs = (rawValue: string): string[] => {
     .filter((value) => value.length > 0);
 };
 
+const resolveCommand = (value: string | undefined, fallback: string): string => {
+  const normalizedValue = value?.trim();
+  return normalizedValue && normalizedValue.length > 0 ? normalizedValue : fallback;
+};
+
 const addLocalBinToPath = (env: NodeJS.ProcessEnv, cwd?: string): NodeJS.ProcessEnv => {
   const baseDir = cwd ?? process.cwd();
   const localBin = join(baseDir, "node_modules", ".bin");
@@ -89,7 +94,10 @@ const resolveDefaults = (
   const commandFromEnv = envDefaults[ENV_KEY.TOADSTOOL_CLAUDE_COMMAND];
   const argsFromEnv = envDefaults[ENV_KEY.TOADSTOOL_CLAUDE_ARGS];
 
-  const command = options.command ?? commandFromEnv ?? HARNESS_DEFAULT.CLAUDE_COMMAND;
+  const command = resolveCommand(
+    options.command,
+    resolveCommand(commandFromEnv, HARNESS_DEFAULT.CLAUDE_COMMAND)
+  );
   const args =
     options.args ?? (argsFromEnv !== undefined ? parseArgs(argsFromEnv) : [...DEFAULT_CLAUDE_ARGS]);
 

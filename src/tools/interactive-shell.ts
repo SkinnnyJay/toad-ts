@@ -1,9 +1,8 @@
-import { spawn } from "node:child_process";
+import { type ChildProcess, spawn } from "node:child_process";
 
-import { ENV_KEY } from "@/constants/env-keys";
-import { PLATFORM } from "@/constants/platform";
 import { SIGNAL } from "@/constants/signals";
-import { EnvManager } from "@/utils/env/env.utils";
+import { acquireProcessSlot, bindProcessSlotToChild } from "@/utils/process-concurrency.utils";
+import { createShellCommandInvocation } from "@/utils/shell-invocation.utils";
 import type { CliRenderer } from "@opentui/core";
 
 export interface InteractiveShellOptions {
@@ -18,31 +17,29 @@ export interface InteractiveShellResult {
   signal: NodeJS.Signals | null;
 }
 
-const resolveShellCommand = (command: string): { command: string; args: string[] } => {
-  if (process.platform === PLATFORM.WIN32) {
-    return { command: "cmd.exe", args: ["/D", "/Q", "/C", command] };
-  }
-
-  const envShell = EnvManager.getInstance().getSnapshot()[ENV_KEY.SHELL];
-  const shellCommand = envShell ?? "bash";
-  return { command: shellCommand, args: ["-lc", command] };
-};
-
 export const runInteractiveShellCommand = async (
   options: InteractiveShellOptions
 ): Promise<InteractiveShellResult> => {
   const renderer = options.renderer;
-  const shell = resolveShellCommand(options.command);
-  const env = { ...EnvManager.getInstance().getSnapshot(), ...options.env };
+  const shellInvocation = createShellCommandInvocation(options.command, process.platform);
+  const env = { ...shellInvocation.envSnapshot, ...options.env };
 
   renderer.suspend();
 
   try {
-    const child = spawn(shell.command, shell.args, {
-      cwd: options.cwd,
-      env,
-      stdio: "inherit",
-    });
+    const releaseSlot = acquireProcessSlot("interactive-shell");
+    let child: ChildProcess;
+    try {
+      child = spawn(shellInvocation.command, shellInvocation.args, {
+        cwd: options.cwd,
+        env,
+        stdio: "inherit",
+      });
+    } catch (error) {
+      releaseSlot();
+      throw error;
+    }
+    bindProcessSlotToChild(child, releaseSlot);
 
     return await new Promise<InteractiveShellResult>((resolvePromise) => {
       child.on("exit", (code, signal) => {

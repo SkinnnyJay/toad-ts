@@ -1,5 +1,6 @@
 import { readFile, readdir, stat } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
+import { BOOLEAN_STRINGS } from "@/constants/boolean-strings";
 import { DISCOVERY_SUBPATH } from "@/constants/discovery-subpaths";
 import { ENCODING } from "@/constants/encodings";
 import { createClassLogger } from "@/utils/logging/logger.utils";
@@ -273,7 +274,7 @@ const parseMdcFrontmatter = (
   return {
     description: descMatch?.[1]?.trim(),
     globs,
-    alwaysApply: alwaysMatch?.[1] === "true",
+    alwaysApply: alwaysMatch?.[1] === BOOLEAN_STRINGS.TRUE,
     agent: agentMatch?.[1]?.trim(),
     body,
   };

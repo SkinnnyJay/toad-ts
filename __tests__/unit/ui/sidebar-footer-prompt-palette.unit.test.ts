@@ -1,4 +1,5 @@
 import React from "react";
+import { act } from "react-test-renderer";
 import { afterEach, describe, expect, it } from "vitest";
 import { CONNECTION_STATUS } from "../../../src/constants/connection-status";
 import { SESSION_MODE } from "../../../src/constants/session-modes";
@@ -16,6 +17,7 @@ import {
   waitFor,
   waitForText,
 } from "../../utils/ink-test-helpers";
+import { keyboardRuntime } from "../../utils/opentui-test-runtime";
 
 afterEach(() => {
   cleanup();
@@ -141,5 +143,29 @@ describe("CommandPalette", () => {
     expect(frame).toContain("/help");
     expect(frame).toContain("/mode");
     expect(frame).toContain("Change mode");
+  });
+
+  it("throttles command filtering through deferred query updates", async () => {
+    const commands = [
+      { name: "/alpha", description: "Alpha command" },
+      { name: "/zebra", description: "Zebra command" },
+    ];
+
+    const { lastFrame } = renderInk(
+      React.createElement(CommandPalette, {
+        commands,
+        isOpen: true,
+        onClose: () => {},
+        onSelect: () => {},
+      })
+    );
+
+    act(() => {
+      keyboardRuntime.emit("z");
+    });
+    await waitFor(() => {
+      const frame = lastFrame();
+      return frame.includes("/zebra") && !frame.includes("/alpha");
+    }, 500);
   });
 });

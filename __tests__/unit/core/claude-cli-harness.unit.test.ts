@@ -227,6 +227,40 @@ describe("ClaudeCliHarnessAdapter", () => {
     EnvManager.resetInstance();
   });
 
+  it("falls back to default command when env command is blank", () => {
+    const originalCommand = process.env.TOADSTOOL_CLAUDE_COMMAND;
+    const originalArgs = process.env.TOADSTOOL_CLAUDE_ARGS;
+
+    process.env.TOADSTOOL_CLAUDE_COMMAND = "   ";
+    process.env.TOADSTOOL_CLAUDE_ARGS = "--experimental-acp";
+    EnvManager.resetInstance();
+
+    const captured: ACPConnectionOptions[] = [];
+    const adapter = new ClaudeCliHarnessAdapter({
+      connectionFactory: (options) => {
+        captured.push(options);
+        return new FakeConnection(createClientStream());
+      },
+    });
+
+    expect(adapter.command).toBe(HARNESS_DEFAULT.CLAUDE_COMMAND);
+    expect(adapter.args).toEqual(["--experimental-acp"]);
+    expect(captured[0]?.command).toBe(HARNESS_DEFAULT.CLAUDE_COMMAND);
+
+    if (originalCommand === undefined) {
+      Reflect.deleteProperty(process.env, "TOADSTOOL_CLAUDE_COMMAND");
+    } else {
+      process.env.TOADSTOOL_CLAUDE_COMMAND = originalCommand;
+    }
+
+    if (originalArgs === undefined) {
+      Reflect.deleteProperty(process.env, "TOADSTOOL_CLAUDE_ARGS");
+    } else {
+      process.env.TOADSTOOL_CLAUDE_ARGS = originalArgs;
+    }
+    EnvManager.resetInstance();
+  });
+
   it("retries connection with backoff before succeeding", async () => {
     vi.useFakeTimers();
     const connection = new FlakyConnection(createClientStream(), 2);

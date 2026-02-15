@@ -1,19 +1,36 @@
-import http, { type IncomingMessage, type ServerResponse } from "node:http";
+import http, { type ServerResponse } from "node:http";
 import { SERVER_CONFIG } from "@/config/server";
 import { HTTP_METHOD } from "@/constants/http-methods";
 import { HTTP_STATUS } from "@/constants/http-status";
 import { SERVER_EVENT } from "@/constants/server-events";
 import { SERVER_PATH } from "@/constants/server-paths";
+import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { SessionManager } from "@/core/session-manager";
 import { SessionStream } from "@/core/session-stream";
 import { createDefaultHarnessConfig } from "@/harness/defaultHarnessConfig";
+import {
+  formatHarnessAdapterNotRegisteredError,
+  formatHarnessNotConfiguredError,
+} from "@/harness/harness-error-messages";
 import type { HarnessRuntime } from "@/harness/harnessAdapter";
 import { loadHarnessConfig } from "@/harness/harnessConfig";
 import { createHarnessRegistry, isCursorHarnessEnabled } from "@/harness/harnessRegistryFactory";
-import { matchRoute } from "@/server/api-routes";
+import { sendErrorResponse, sendJsonResponse } from "@/server/http-response";
+import { normalizeRoutePathname } from "@/server/pathname-normalization";
+import { parseJsonRequestBody } from "@/server/request-body";
+import {
+  REQUEST_PARSING_SOURCE,
+  classifyRequestParsingError,
+  logRequestParsingFailure,
+  logRequestValidationFailure,
+  normalizeRequestBodyParseErrorDetails,
+} from "@/server/request-error-normalization";
+import { parseRequestUrl } from "@/server/request-url";
 import { checkServerAuth } from "@/server/server-auth";
 import type { ServerRuntimeConfig } from "@/server/server-config";
+import { SERVER_ROUTE_CLASSIFICATION, classifyServerRoute } from "@/server/server-route-classifier";
 import { createSessionRequestSchema, promptSessionRequestSchema } from "@/server/server-types";
+import { parseSessionRoutePath } from "@/server/session-route-path";
 import { useAppStore } from "@/store/app-store";
 import { SessionIdSchema } from "@/types/domain";
 import type { SessionId } from "@/types/domain";
@@ -30,40 +47,64 @@ export interface HeadlessServer {
 }
 
 const logger = createClassLogger("HeadlessServer");
+const HEADLESS_ROUTE_HANDLER = {
+  SESSION_CREATE: "session_create",
+  SESSION_PROMPT: "session_prompt",
+} as const;
 
-const readBody = async (req: IncomingMessage): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    let data = "";
-    req.on("data", (chunk: Buffer | string) => {
-      data += chunk.toString();
-      if (data.length > SERVER_CONFIG.MAX_BODY_BYTES) {
-        reject(new Error("Request body too large."));
-      }
-    });
-    req.on("end", () => resolve(data));
-    req.on("error", (error) => reject(error));
-  });
-};
+const sendJson = (res: ServerResponse, status: number, payload: unknown): void =>
+  sendJsonResponse(res, status, payload, { includeContentLength: true });
 
-const sendJson = (res: ServerResponse, status: number, payload: unknown): void => {
-  const body = JSON.stringify(payload);
-  res.writeHead(status, {
-    "Content-Type": "application/json",
-    "Content-Length": Buffer.byteLength(body),
-  });
-  res.end(body);
-};
+const sendError = (res: ServerResponse, status: number, message: string): void =>
+  sendErrorResponse(res, status, message, { includeContentLength: true });
 
-const sendError = (res: ServerResponse, status: number, message: string): void => {
-  sendJson(res, status, { error: message });
-};
-
-const parseJson = async (req: IncomingMessage): Promise<unknown> => {
-  const body = await readBody(req);
-  if (!body) {
-    return {};
+const handleRequestParsingFailure = (
+  res: ServerResponse,
+  error: unknown,
+  context: { method: string; pathname: string; handler?: string }
+): boolean => {
+  const parsedRequestError = classifyRequestParsingError(error);
+  if (!parsedRequestError) {
+    return false;
   }
-  return JSON.parse(body);
+  const normalizedError = normalizeRequestBodyParseErrorDetails(error);
+  logRequestParsingFailure(
+    logger,
+    {
+      source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
+      method: context.method,
+      pathname: context.pathname,
+      ...(context.handler ? { handler: context.handler } : {}),
+    },
+    normalizedError
+  );
+  sendError(res, HTTP_STATUS.BAD_REQUEST, parsedRequestError);
+  return true;
+};
+
+const handleRequestValidationFailure = (
+  res: ServerResponse,
+  error: unknown,
+  context: { method: string; pathname: string; handler?: string }
+): boolean => {
+  if (!(error instanceof ZodError)) {
+    return false;
+  }
+  logRequestValidationFailure(
+    logger,
+    {
+      source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
+      method: context.method,
+      pathname: context.pathname,
+      ...(context.handler ? { handler: context.handler } : {}),
+    },
+    {
+      error: error.message,
+      mappedMessage: error.message,
+    }
+  );
+  sendError(res, HTTP_STATUS.BAD_REQUEST, error.message);
+  return true;
 };
 
 export const startHeadlessServer = async (
@@ -85,34 +126,87 @@ export const startHeadlessServer = async (
   const server = http.createServer(async (req, res) => {
     try {
       if (!req.url || !req.method) {
-        sendError(res, HTTP_STATUS.BAD_REQUEST, "Invalid request.");
+        sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
         return;
       }
+
+      const url = parseRequestUrl(req);
+      if (!url) {
+        sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
+        return;
+      }
+      const pathname = normalizeRoutePathname(url.pathname);
 
       // Auth check (skip for health endpoint)
-      const authUrl = new URL(req.url, `http://${req.headers.host ?? "localhost"}`);
-      if (authUrl.pathname !== SERVER_PATH.HEALTH && !checkServerAuth(req, res)) {
+      if (pathname !== SERVER_PATH.HEALTH && !checkServerAuth(req, res)) {
         return;
       }
-      const url = new URL(req.url, `http://${req.headers.host ?? "localhost"}`);
 
-      if (req.method === HTTP_METHOD.GET && url.pathname === SERVER_PATH.HEALTH) {
+      const routeClassification = classifyServerRoute(req.method, pathname);
+
+      if (routeClassification.kind === SERVER_ROUTE_CLASSIFICATION.HEALTH_OK) {
         sendJson(res, HTTP_STATUS.OK, { status: "ok" });
         return;
       }
+      if (routeClassification.kind === SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED) {
+        logRequestValidationFailure(
+          logger,
+          {
+            source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
+            handler: routeClassification.classifierHandler,
+            method: req.method,
+            pathname,
+          },
+          {
+            error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+            mappedMessage: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+          }
+        );
+        sendError(res, HTTP_STATUS.METHOD_NOT_ALLOWED, SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED);
+        return;
+      }
+      if (routeClassification.kind === SERVER_ROUTE_CLASSIFICATION.API_MATCH) {
+        await routeClassification.handler(req, res, routeClassification.params);
+        return;
+      }
 
-      if (req.method === HTTP_METHOD.POST && url.pathname === SERVER_PATH.SESSIONS) {
-        const raw = await parseJson(req);
-        const payload = createSessionRequestSchema.parse(raw);
+      const isSessionResourcePath = pathname.startsWith(`${SERVER_PATH.SESSIONS}/`);
+      const parsedSessionRoutePath = isSessionResourcePath ? parseSessionRoutePath(pathname) : null;
+
+      if (req.method === HTTP_METHOD.POST && pathname === SERVER_PATH.SESSIONS) {
+        let raw: unknown;
+        try {
+          raw = await parseJsonRequestBody<unknown>(req, { emptyBodyValue: {} });
+        } catch (error) {
+          if (handleRequestParsingFailure(res, error, { method: req.method, pathname })) {
+            return;
+          }
+          throw error;
+        }
+        let payload: ReturnType<typeof createSessionRequestSchema.parse>;
+        try {
+          payload = createSessionRequestSchema.parse(raw);
+        } catch (error) {
+          if (
+            handleRequestValidationFailure(res, error, {
+              method: req.method,
+              pathname,
+              handler: HEADLESS_ROUTE_HANDLER.SESSION_CREATE,
+            })
+          ) {
+            return;
+          }
+          throw error;
+        }
         const harnessId = payload.harnessId ?? harnessConfigResult.harnessId;
         const harnessConfig = harnessConfigResult.harnesses[harnessId];
         if (!harnessConfig) {
-          sendError(res, HTTP_STATUS.NOT_FOUND, `Unknown harness: ${harnessId}`);
+          sendError(res, HTTP_STATUS.NOT_FOUND, formatHarnessNotConfiguredError(harnessId));
           return;
         }
         const adapter = harnessRegistry.get(harnessId);
         if (!adapter) {
-          sendError(res, HTTP_STATUS.NOT_FOUND, `No adapter registered for ${harnessId}`);
+          sendError(res, HTTP_STATUS.NOT_FOUND, formatHarnessAdapterNotRegisteredError(harnessId));
           return;
         }
         const runtime = adapter.createHarness(harnessConfig);
@@ -141,24 +235,47 @@ export const startHeadlessServer = async (
         return;
       }
 
-      if (req.method === HTTP_METHOD.POST && url.pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
-        const [_, __, sessionId, action] = url.pathname.split("/");
+      if (req.method === HTTP_METHOD.POST && isSessionResourcePath) {
+        const sessionId = parsedSessionRoutePath?.sessionId;
+        const action = parsedSessionRoutePath?.action;
         if (!sessionId || action !== SERVER_PATH.SEGMENT_PROMPT) {
-          sendError(res, HTTP_STATUS.NOT_FOUND, "Unknown endpoint.");
+          sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT);
           return;
         }
         const parsedSession = SessionIdSchema.safeParse(sessionId);
         if (!parsedSession.success) {
-          sendError(res, HTTP_STATUS.BAD_REQUEST, "Invalid session id.");
+          sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_SESSION_ID);
           return;
         }
         const runtime = runtimes.get(parsedSession.data);
         if (!runtime) {
-          sendError(res, HTTP_STATUS.NOT_FOUND, "Session not found.");
+          sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.SESSION_NOT_FOUND);
           return;
         }
-        const raw = await parseJson(req);
-        const payload = promptSessionRequestSchema.parse(raw);
+        let raw: unknown;
+        try {
+          raw = await parseJsonRequestBody<unknown>(req);
+        } catch (error) {
+          if (handleRequestParsingFailure(res, error, { method: req.method, pathname })) {
+            return;
+          }
+          throw error;
+        }
+        let payload: ReturnType<typeof promptSessionRequestSchema.parse>;
+        try {
+          payload = promptSessionRequestSchema.parse(raw);
+        } catch (error) {
+          if (
+            handleRequestValidationFailure(res, error, {
+              method: req.method,
+              pathname,
+              handler: HEADLESS_ROUTE_HANDLER.SESSION_PROMPT,
+            })
+          ) {
+            return;
+          }
+          throw error;
+        }
         const response = await runtime.prompt({
           sessionId: parsedSession.data,
           prompt: [{ type: "text", text: payload.prompt }],
@@ -167,15 +284,16 @@ export const startHeadlessServer = async (
         return;
       }
 
-      if (req.method === HTTP_METHOD.GET && url.pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
-        const [_, __, sessionId, resource] = url.pathname.split("/");
+      if (req.method === HTTP_METHOD.GET && isSessionResourcePath) {
+        const sessionId = parsedSessionRoutePath?.sessionId;
+        const resource = parsedSessionRoutePath?.action;
         if (!sessionId || resource !== SERVER_PATH.SEGMENT_MESSAGES) {
-          sendError(res, HTTP_STATUS.NOT_FOUND, "Unknown endpoint.");
+          sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT);
           return;
         }
         const parsedSession = SessionIdSchema.safeParse(sessionId);
         if (!parsedSession.success) {
-          sendError(res, HTTP_STATUS.BAD_REQUEST, "Invalid session id.");
+          sendError(res, HTTP_STATUS.BAD_REQUEST, SERVER_RESPONSE_MESSAGE.INVALID_SESSION_ID);
           return;
         }
         const messages = store.getState().getMessagesForSession(parsedSession.data);
@@ -183,23 +301,33 @@ export const startHeadlessServer = async (
         return;
       }
 
-      // Try API routes from api-routes.ts
-      const matched = matchRoute(req.method ?? HTTP_METHOD.GET, url.pathname);
-      if (matched) {
-        await matched.handler(req, res, matched.params);
-        return;
-      }
-
-      sendError(res, HTTP_STATUS.NOT_FOUND, "Not found.");
+      logRequestValidationFailure(
+        logger,
+        {
+          source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
+          handler: routeClassification.classifierHandler,
+          method: req.method,
+          pathname,
+        },
+        {
+          error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+          mappedMessage: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+        }
+      );
+      sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.NOT_FOUND);
     } catch (error) {
-      if (error instanceof ZodError || error instanceof SyntaxError) {
-        sendError(res, HTTP_STATUS.BAD_REQUEST, error.message);
+      if (
+        handleRequestValidationFailure(res, error, {
+          method: req.method ?? "",
+          pathname: req.url ?? "",
+        })
+      ) {
         return;
       }
       logger.error("Server request failed", {
         error: error instanceof Error ? error.message : String(error),
       });
-      sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, "Server error.");
+      sendError(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, SERVER_RESPONSE_MESSAGE.SERVER_ERROR);
     }
   });
 

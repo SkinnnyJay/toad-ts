@@ -248,7 +248,7 @@ export function Sidebar({
   useKeyboard((key) => {
     const active = focusTarget ?? FOCUS_TARGET.CHAT;
 
-    if (key.name === "]" && isSidebarSection(active)) {
+    if (key.name === KEY_NAME.RIGHT_BRACKET && isSidebarSection(active)) {
       key.preventDefault();
       key.stopPropagation();
       toggleTabViewCollapsed();

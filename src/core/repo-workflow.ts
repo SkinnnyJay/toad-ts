@@ -1,5 +1,7 @@
 import path from "node:path";
 import { GIT_STATUS_CODE_MIN_LENGTH } from "@/config/limits";
+import { TIMEOUT } from "@/config/timeouts";
+import { PR_REVIEW_STATUS } from "@/constants/pr-review-status";
 import { REPO_WORKFLOW_ACTION, type RepoWorkflowAction } from "@/constants/repo-workflow-actions";
 import { REPO_WORKFLOW_STATUS, type RepoWorkflowStatus } from "@/constants/repo-workflow-status";
 import { type PullRequestStatus, getPRStatus } from "@/core/pr-status";
@@ -35,7 +37,35 @@ export interface RepoWorkflowInfo {
   action: RepoWorkflowAction;
 }
 
+type PullRequestStatusLike = Omit<PullRequestStatus, "state" | "reviewDecision"> & {
+  state: string;
+  reviewDecision: string;
+};
+
 const GIT_REMOTE_ORIGIN_URL = "remote.origin.url";
+const GH_PR_CHECKS_JSON_FIELDS = "name,status,conclusion";
+const REMOTE_GIT_SUFFIX_PATTERN = /\.git$/i;
+const PR_STATE = {
+  MERGED: "merged",
+  CLOSED: "closed",
+  OPEN: "open",
+} as const;
+const GH_CHECK = {
+  FAILURE: "failure",
+  CANCELLED: "cancelled",
+  TIMED_OUT: "timed_out",
+  ACTION_REQUIRED: "action_required",
+  STARTUP_FAILURE: "startup_failure",
+  IN_PROGRESS: "in_progress",
+  QUEUED: "queued",
+  PENDING: "pending",
+} as const;
+
+const normalizeRepoName = (repoName: string): string =>
+  repoName.replace(REMOTE_GIT_SUFFIX_PATTERN, "");
+
+const normalizeCheckField = (value: unknown): string =>
+  typeof value === "string" ? value.trim().toLowerCase() : "";
 
 async function getRemoteOriginUrl(cwd: string): Promise<string | null> {
   try {
@@ -52,13 +82,29 @@ async function getRemoteOriginUrl(cwd: string): Promise<string | null> {
 
 function parseOwnerRepoFromUrl(url: string): { owner: string; repo: string } | null {
   const trimmed = url.trim();
-  const sshMatch = trimmed.match(/^git@[^:]+:([^/]+)\/([^/]+?)(?:\.git)?$/);
-  if (sshMatch) {
-    return { owner: sshMatch[1] ?? "", repo: (sshMatch[2] ?? "").replace(/\.git$/, "") };
+  const scpSshMatch = trimmed.match(/^(?:[^@]+@)?[^:]+:([^/]+)\/([^/]+?)(?:\.git)?\/?$/i);
+  if (scpSshMatch) {
+    return { owner: scpSshMatch[1] ?? "", repo: normalizeRepoName(scpSshMatch[2] ?? "") };
   }
-  const httpsMatch = trimmed.match(/^https?:\/\/[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/);
+  const sshProtocolMatch = trimmed.match(
+    /^(?:git\+)?ssh:\/\/(?:[^@]+@)?[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i
+  );
+  if (sshProtocolMatch) {
+    return {
+      owner: sshProtocolMatch[1] ?? "",
+      repo: normalizeRepoName(sshProtocolMatch[2] ?? ""),
+    };
+  }
+  const httpsMatch = trimmed.match(/^https?:\/\/[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i);
   if (httpsMatch) {
-    return { owner: httpsMatch[1] ?? "", repo: (httpsMatch[2] ?? "").replace(/\.git$/, "") };
+    return { owner: httpsMatch[1] ?? "", repo: normalizeRepoName(httpsMatch[2] ?? "") };
+  }
+  const gitProtocolMatch = trimmed.match(/^git:\/\/[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i);
+  if (gitProtocolMatch) {
+    return {
+      owner: gitProtocolMatch[1] ?? "",
+      repo: normalizeRepoName(gitProtocolMatch[2] ?? ""),
+    };
   }
   return null;
 }
@@ -109,16 +155,29 @@ async function getHasMergeConflicts(cwd: string): Promise<boolean> {
 
 async function getPrChecksStatus(cwd: string): Promise<"pass" | "fail" | "pending" | null> {
   try {
-    const { stdout } = await execa("gh", ["pr", "checks", "--json", "name,status,conclusion"], {
+    const { stdout } = await execa("gh", ["pr", "checks", "--json", GH_PR_CHECKS_JSON_FIELDS], {
       cwd,
       encoding: "utf8",
-      timeout: 10_000,
+      timeout: TIMEOUT.GH_CLI_MS,
     });
     const data = JSON.parse(stdout) as Array<{ status?: string; conclusion?: string }>;
     if (!Array.isArray(data) || data.length === 0) return null;
-    const hasFail = data.some((c) => (c.conclusion ?? c.status ?? "").toLowerCase() === "failure");
+    const hasFail = data.some((c) => {
+      const conclusion = normalizeCheckField(c.conclusion) || normalizeCheckField(c.status);
+      return (
+        conclusion === GH_CHECK.FAILURE ||
+        conclusion === GH_CHECK.CANCELLED ||
+        conclusion === GH_CHECK.TIMED_OUT ||
+        conclusion === GH_CHECK.ACTION_REQUIRED ||
+        conclusion === GH_CHECK.STARTUP_FAILURE
+      );
+    });
     const hasPending = data.some(
-      (c) => (c.status ?? "").toLowerCase() === "in_progress" || (c.conclusion ?? "") === ""
+      (c) =>
+        normalizeCheckField(c.status) === GH_CHECK.IN_PROGRESS ||
+        normalizeCheckField(c.status) === GH_CHECK.QUEUED ||
+        normalizeCheckField(c.status) === GH_CHECK.PENDING ||
+        normalizeCheckField(c.conclusion) === ""
     );
     if (hasFail) return "fail";
     if (hasPending) return "pending";
@@ -129,7 +188,7 @@ async function getPrChecksStatus(cwd: string): Promise<"pass" | "fail" | "pendin
 }
 
 export function deriveRepoWorkflowStatus(
-  pr: PullRequestStatus | null,
+  pr: PullRequestStatusLike | null,
   isDirty: boolean,
   isAhead: boolean,
   hasMergeConflicts: boolean,
@@ -141,21 +200,23 @@ export function deriveRepoWorkflowStatus(
     return REPO_WORKFLOW_STATUS.LOCAL_CLEAN;
   }
 
-  const state = pr.state.toLowerCase();
-  if (state === "merged") return REPO_WORKFLOW_STATUS.MERGED;
-  if (state === "closed") return REPO_WORKFLOW_STATUS.CLOSED;
+  const state = pr.state.trim().toLowerCase();
+  if (state === PR_STATE.MERGED) return REPO_WORKFLOW_STATUS.MERGED;
+  if (state === PR_STATE.CLOSED) return REPO_WORKFLOW_STATUS.CLOSED;
 
   if (pr.isDraft === true) return REPO_WORKFLOW_STATUS.DRAFT;
 
-  if (state !== "open") return REPO_WORKFLOW_STATUS.OPEN;
+  if (state !== PR_STATE.OPEN) return REPO_WORKFLOW_STATUS.OPEN;
 
   if (hasMergeConflicts) return REPO_WORKFLOW_STATUS.MERGE_CONFLICTS;
   if (checksStatus === "fail") return REPO_WORKFLOW_STATUS.CI_FAILING;
 
-  const decision = (pr.reviewDecision ?? "").toLowerCase();
-  if (decision === "approved") return REPO_WORKFLOW_STATUS.APPROVED;
-  if (decision === "changes_requested") return REPO_WORKFLOW_STATUS.CHANGES_REQUESTED;
-  if (decision === "review_required") return REPO_WORKFLOW_STATUS.REVIEW_REQUESTED;
+  const decision = (pr.reviewDecision ?? "").trim().toLowerCase();
+  if (decision === PR_REVIEW_STATUS.APPROVED) return REPO_WORKFLOW_STATUS.APPROVED;
+  if (decision === PR_REVIEW_STATUS.CHANGES_REQUESTED) {
+    return REPO_WORKFLOW_STATUS.CHANGES_REQUESTED;
+  }
+  if (decision === PR_REVIEW_STATUS.REVIEW_REQUIRED) return REPO_WORKFLOW_STATUS.REVIEW_REQUESTED;
 
   return REPO_WORKFLOW_STATUS.OPEN;
 }

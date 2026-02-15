@@ -6,12 +6,20 @@ import { ERROR_CODE } from "@/constants/error-codes";
 import { FILE_PATH } from "@/constants/file-paths";
 import { PERMISSION } from "@/constants/permissions";
 import { TOOL_KIND } from "@/constants/tool-kinds";
+import {
+  formatHarnessNotFoundError,
+  formatInvalidHarnessIdError,
+} from "@/harness/harness-error-messages";
+import { isCanonicalHarnessId, normalizeHarnessId } from "@/harness/harness-id";
 import { CLI_AGENT_MODE } from "@/types/cli-agent.types";
 import { EnvManager } from "@/utils/env/env.utils";
 import { z } from "zod";
 
 const ENV_PATTERN = /\$(\w+)|\$\{([^}]+)\}/g;
-const DEFAULT_CONFIG_FILENAME = "harnesses.json";
+export const HARNESS_CONFIG_ERROR = {
+  NO_HARNESSES_CONFIGURED: "No harnesses configured.",
+  NO_DEFAULT_HARNESS_CONFIGURED: "No default harness configured.",
+} as const;
 
 const permissionValueSchema = z.enum([PERMISSION.ALLOW, PERMISSION.DENY, PERMISSION.ASK]);
 
@@ -191,6 +199,20 @@ const resolveHarnessConfig = (
   });
 };
 
+const validateHarnessId = (id: string): string => {
+  if (!isCanonicalHarnessId(id)) {
+    throw new Error(formatInvalidHarnessIdError(id));
+  }
+  return normalizeHarnessId(id);
+};
+
+const validateConfiguredDefaultHarnessId = (harnessId: string | undefined): string | undefined => {
+  if (harnessId === undefined) {
+    return undefined;
+  }
+  return validateHarnessId(harnessId);
+};
+
 const expandEnvString = (value: string, env: NodeJS.ProcessEnv): string => {
   return value.replace(ENV_PATTERN, (_, direct, braced) => {
     const key = direct ?? braced;
@@ -204,7 +226,7 @@ const expandHarnessConfig = (config: HarnessConfig, env: NodeJS.ProcessEnv): Har
     expandedEnv[key] = expandEnvString(value, env);
   }
 
-  return {
+  return harnessConfigSchema.parse({
     ...config,
     command: expandEnvString(config.command, env),
     args: config.args.map((arg) => expandEnvString(arg, env)),
@@ -217,7 +239,7 @@ const expandHarnessConfig = (config: HarnessConfig, env: NodeJS.ProcessEnv): Har
           model: config.cursor.model ? expandEnvString(config.cursor.model, env) : undefined,
         }
       : undefined,
-  };
+  });
 };
 
 const resolveHarnessId = (
@@ -226,14 +248,19 @@ const resolveHarnessId = (
   projectDefault: string | undefined,
   availableIds: string[]
 ): string => {
-  if (cliHarnessId) {
-    return cliHarnessId;
+  const normalizedCliHarnessId =
+    cliHarnessId === undefined ? undefined : validateHarnessId(cliHarnessId);
+  const normalizedUserDefault = userDefault?.trim();
+  const normalizedProjectDefault = projectDefault?.trim();
+
+  if (normalizedCliHarnessId) {
+    return normalizedCliHarnessId;
   }
-  if (userDefault) {
-    return userDefault;
+  if (normalizedUserDefault) {
+    return normalizedUserDefault;
   }
-  if (projectDefault) {
-    return projectDefault;
+  if (normalizedProjectDefault) {
+    return normalizedProjectDefault;
   }
   if (availableIds.length === 1) {
     const [only] = availableIds;
@@ -241,7 +268,7 @@ const resolveHarnessId = (
       return only;
     }
   }
-  throw new Error("No default harness configured.");
+  throw new Error(HARNESS_CONFIG_ERROR.NO_DEFAULT_HARNESS_CONFIGURED);
 };
 
 export const loadHarnessConfig = async (
@@ -249,11 +276,11 @@ export const loadHarnessConfig = async (
 ): Promise<HarnessConfigResult> => {
   const projectRoot = options.projectRoot ?? process.cwd();
   const projectPath =
-    options.configPath ?? path.join(projectRoot, FILE_PATH.TOADSTOOL_DIR, DEFAULT_CONFIG_FILENAME);
+    options.configPath ?? path.join(projectRoot, FILE_PATH.TOADSTOOL_DIR, FILE_PATH.HARNESSES_JSON);
   const userPath = path.join(
     options.homedir ?? homedir(),
     FILE_PATH.TOADSTOOL_DIR,
-    DEFAULT_CONFIG_FILENAME
+    FILE_PATH.HARNESSES_JSON
   );
   const env = options.env ?? EnvManager.getInstance().getSnapshot();
 
@@ -266,27 +293,28 @@ export const loadHarnessConfig = async (
   const resolvedHarnesses: Record<string, HarnessConfig> = {};
 
   for (const [id, definition] of Object.entries(mergedConfig.harnesses)) {
-    resolvedHarnesses[id] = expandHarnessConfig(
-      resolveHarnessConfig(id, definition, projectRoot),
+    const harnessId = validateHarnessId(id);
+    resolvedHarnesses[harnessId] = expandHarnessConfig(
+      resolveHarnessConfig(harnessId, definition, projectRoot),
       env
     );
   }
 
   const availableIds = Object.keys(resolvedHarnesses);
   if (availableIds.length === 0) {
-    throw new Error("No harnesses configured.");
+    throw new Error(HARNESS_CONFIG_ERROR.NO_HARNESSES_CONFIGURED);
   }
 
   const selectedId = resolveHarnessId(
     options.harnessId,
-    userConfig?.defaultHarness,
-    projectConfig?.defaultHarness,
+    validateConfiguredDefaultHarnessId(userConfig?.defaultHarness),
+    validateConfiguredDefaultHarnessId(projectConfig?.defaultHarness),
     availableIds
   );
 
   const harness = resolvedHarnesses[selectedId];
   if (!harness) {
-    throw new Error(`Harness '${selectedId}' not found.`);
+    throw new Error(formatHarnessNotFoundError(selectedId));
   }
 
   return {

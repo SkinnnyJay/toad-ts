@@ -1,9 +1,11 @@
+import { CURSOR_EVENT_TYPE } from "@/constants/cursor-event-types";
 import { CURSOR_LIMIT } from "@/constants/cursor-limits";
 import { ENV_KEY } from "@/constants/env-keys";
 import { HARNESS_DEFAULT } from "@/constants/harness-defaults";
 import { CliAgentProcessRunner } from "@/core/cli-agent/cli-agent-process-runner";
 import type { CliAgentAuthStatus } from "@/types/cli-agent.types";
 import {
+  CLI_AGENT_MODE,
   type CliAgentInstallInfo,
   CliAgentInstallInfoSchema,
   type CliAgentModelsResponse,
@@ -101,6 +103,11 @@ const parseArgs = (rawValue: string): string[] => {
     .filter((value) => value.length > 0);
 };
 
+const resolveCommand = (value: string | undefined, fallback: string): string => {
+  const normalizedValue = value?.trim();
+  return normalizedValue && normalizedValue.length > 0 ? normalizedValue : fallback;
+};
+
 const toLines = (value: string): string[] => {
   return value
     .split(/\r?\n/)
@@ -124,7 +131,10 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
     const commandFromEnv = baseEnv[ENV_KEY.TOADSTOOL_CURSOR_COMMAND];
     const argsFromEnv = baseEnv[ENV_KEY.TOADSTOOL_CURSOR_ARGS];
 
-    this.command = options.command ?? commandFromEnv ?? HARNESS_DEFAULT.CURSOR_COMMAND;
+    this.command = resolveCommand(
+      options.command,
+      resolveCommand(commandFromEnv, HARNESS_DEFAULT.CURSOR_COMMAND)
+    );
     const resolvedArgs =
       options.args ?? (argsFromEnv ? parseArgs(argsFromEnv) : [...HARNESS_DEFAULT.CURSOR_ARGS]);
     this.env = baseEnv;
@@ -247,11 +257,15 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
       events.push(event);
       parser.drain(1);
       this.emit("streamEvent", event);
-      if (event.type === "system") {
+      if (event.type === CURSOR_EVENT_TYPE.SYSTEM) {
         observedSessionId = event.session_id;
         this.latestSessionId = event.session_id;
       }
-      if (event.type === "result" && "result" in event && typeof event.result === "string") {
+      if (
+        event.type === CURSOR_EVENT_TYPE.RESULT &&
+        "result" in event &&
+        typeof event.result === "string"
+      ) {
         resultText = event.result;
       }
     });
@@ -308,7 +322,7 @@ export class CursorCliConnection extends EventEmitter<CursorCliConnectionEvents>
     if (input.model) {
       args.push(CURSOR_CLI_ARG.MODEL, input.model);
     }
-    if (input.mode && input.mode !== "agent") {
+    if (input.mode && input.mode !== CLI_AGENT_MODE.AGENT) {
       args.push(CURSOR_CLI_ARG.MODE, input.mode);
     }
     if (input.workspacePath) {

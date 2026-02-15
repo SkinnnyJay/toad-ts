@@ -34,6 +34,12 @@ describe("deriveRepoWorkflowStatus", () => {
     ).toBe(REPO_WORKFLOW_STATUS.CLOSED);
   });
 
+  it("normalizes padded PR state before deriving workflow status", () => {
+    expect(
+      deriveRepoWorkflowStatus(createPr({ state: " merged " }), false, false, false, "pass")
+    ).toBe(REPO_WORKFLOW_STATUS.MERGED);
+  });
+
   it("derives draft, conflict, and ci failing statuses for open PRs", () => {
     expect(deriveRepoWorkflowStatus(createPr({ isDraft: true }), false, false, false, "pass")).toBe(
       REPO_WORKFLOW_STATUS.DRAFT
@@ -89,5 +95,17 @@ describe("deriveRepoWorkflowStatus", () => {
     expect(deriveRepoWorkflowStatus(createPr(), false, false, false, "pending")).toBe(
       REPO_WORKFLOW_STATUS.OPEN
     );
+  });
+
+  it("normalizes padded review decisions before deriving status", () => {
+    expect(
+      deriveRepoWorkflowStatus(
+        createPr({ reviewDecision: " approved " }),
+        false,
+        false,
+        false,
+        "pass"
+      )
+    ).toBe(REPO_WORKFLOW_STATUS.APPROVED);
   });
 });

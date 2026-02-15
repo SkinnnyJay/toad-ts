@@ -2,6 +2,7 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { DISCOVERY_SUBPATH } from "@/constants/discovery-subpaths";
 import { ENCODING } from "@/constants/encodings";
+import { FILE_PATH } from "@/constants/file-paths";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { TOOL_DIRS, type ToolSource } from "./discovery-paths";
 
@@ -53,8 +54,8 @@ export const loadHookScripts = async (cwd: string): Promise<LoadedHookScript[]> 
         try {
           const fileStat = await stat(filePath);
           if (!fileStat.isFile()) continue;
-          // Skip settings.json — that's hook config, not a hook script
-          if (entry === "settings.json") continue;
+          // Skip settings config — that's hook config, not a hook script
+          if (entry === FILE_PATH.SETTINGS_JSON) continue;
           scripts.push({
             name: entry,
             filePath,
@@ -75,24 +76,27 @@ export const loadHookScripts = async (cwd: string): Promise<LoadedHookScript[]> 
 };
 
 /**
- * Load hook configuration from settings.json files.
+ * Load hook configuration from settings files.
  * Scans .toadstool/settings.json and .claude/settings.json.
  */
 export const loadHookConfigs = async (cwd: string): Promise<LoadedHookConfig[]> => {
   const configFiles = [
     {
       source: "TOADSTOOL" as ToolSource,
-      filePath: join(cwd, TOOL_DIRS.TOADSTOOL.project, "settings.json"),
+      filePath: join(cwd, TOOL_DIRS.TOADSTOOL.project, FILE_PATH.SETTINGS_JSON),
     },
     {
       source: "TOADSTOOL" as ToolSource,
-      filePath: join(TOOL_DIRS.TOADSTOOL.global, "settings.json"),
+      filePath: join(TOOL_DIRS.TOADSTOOL.global, FILE_PATH.SETTINGS_JSON),
     },
     {
       source: "CLAUDE" as ToolSource,
-      filePath: join(cwd, TOOL_DIRS.CLAUDE.project, "settings.json"),
+      filePath: join(cwd, TOOL_DIRS.CLAUDE.project, FILE_PATH.SETTINGS_JSON),
     },
-    { source: "CLAUDE" as ToolSource, filePath: join(TOOL_DIRS.CLAUDE.global, "settings.json") },
+    {
+      source: "CLAUDE" as ToolSource,
+      filePath: join(TOOL_DIRS.CLAUDE.global, FILE_PATH.SETTINGS_JSON),
+    },
   ];
 
   const configs: LoadedHookConfig[] = [];

@@ -5,9 +5,12 @@ import path from "node:path";
 import { DEFAULT_COMMAND, TEMP_DIR_PREFIX, TEMP_FILE_NAME } from "@/constants/editor";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
+import { PLATFORM } from "@/constants/platform";
 import { runInteractiveShellCommand } from "@/tools/interactive-shell";
 import { EnvManager } from "@/utils/env/env.utils";
 import { createClassLogger } from "@/utils/logging/logger.utils";
+import { TEMP_ARTIFACT_TYPE, registerTempArtifact } from "@/utils/temp-artifact-cleanup.utils";
+import { quoteWindowsCommandValue } from "@/utils/windows-command.utils";
 import type { CliRenderer } from "@opentui/core";
 
 export interface ExternalEditorOptions {
@@ -28,6 +31,9 @@ export interface ExternalEditorFileOptions {
 const logger = createClassLogger("ExternalEditor");
 
 const quoteShellArg = (value: string): string => {
+  if (process.platform === PLATFORM.WIN32) {
+    return quoteWindowsCommandValue(value);
+  }
   const escaped = value.replace(/["\\$`]/g, "\\$&");
   return `"${escaped}"`;
 };
@@ -52,6 +58,7 @@ export const openExternalEditor = async (
 
   const tempDir = await mkdtemp(path.join(tmpdir(), TEMP_DIR_PREFIX));
   const filePath = path.join(tempDir, TEMP_FILE_NAME);
+  const unregisterTempDir = registerTempArtifact(tempDir, TEMP_ARTIFACT_TYPE.DIRECTORY);
 
   try {
     await writeFile(filePath, options.initialValue ?? "", ENCODING.UTF8);
@@ -71,6 +78,7 @@ export const openExternalEditor = async (
     });
     return null;
   } finally {
+    unregisterTempDir();
     await rm(tempDir, { recursive: true, force: true });
   }
 };

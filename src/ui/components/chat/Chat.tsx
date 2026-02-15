@@ -147,6 +147,12 @@ export const Chat = memo(
     );
 
     useEffect(() => {
+      return () => {
+        toolRuntime.context.shell.dispose();
+      };
+    }, [toolRuntime]);
+
+    useEffect(() => {
       if (!sessionId) return;
       void toolRuntime.context.todoStore
         .list()

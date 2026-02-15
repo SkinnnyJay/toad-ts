@@ -1,3 +1,4 @@
+import { BOOLEAN_STRINGS } from "@/constants/boolean-strings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { EnvManager } from "@/utils/env/env.utils";
 
@@ -42,6 +43,6 @@ export type UiSymbols = Record<keyof typeof UI_SYMBOLS, string>;
 export const resolveUiSymbols = (
   env: NodeJS.ProcessEnv = EnvManager.getInstance().getSnapshot()
 ): UiSymbols => {
-  const forceAscii = env[ENV_KEY.TOADSTOOL_ASCII]?.toLowerCase() === "true";
+  const forceAscii = env[ENV_KEY.TOADSTOOL_ASCII]?.toLowerCase() === BOOLEAN_STRINGS.TRUE;
   return forceAscii ? UI_SYMBOLS_ASCII : UI_SYMBOLS;
 };

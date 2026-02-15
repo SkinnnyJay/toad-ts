@@ -2,6 +2,7 @@
  * HTTP server path segments and route paths for the headless server.
  */
 export const SERVER_PATH = {
+  API: "/api",
   HEALTH: "/health",
   SESSIONS: "/sessions",
   SEGMENT_PROMPT: "prompt",
@@ -10,4 +11,4 @@ export const SERVER_PATH = {
 
 export type ServerPath = (typeof SERVER_PATH)[keyof typeof SERVER_PATH];
 
-export const { HEALTH, SESSIONS, SEGMENT_PROMPT, SEGMENT_MESSAGES } = SERVER_PATH;
+export const { API, HEALTH, SESSIONS, SEGMENT_PROMPT, SEGMENT_MESSAGES } = SERVER_PATH;

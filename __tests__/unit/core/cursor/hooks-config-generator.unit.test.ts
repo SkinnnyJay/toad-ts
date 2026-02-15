@@ -34,15 +34,22 @@ describe("HooksConfigGenerator", () => {
 
     const install = await generator.install(endpoint);
     const hooksRaw = await readFile(install.hooksPath, ENCODING.UTF8);
-    const shimRaw = await readFile(install.shimPath, ENCODING.UTF8);
+    const nodeShimRaw = await readFile(install.nodeShimPath, ENCODING.UTF8);
+    const bashShimRaw = await readFile(install.bashShimPath, ENCODING.UTF8);
 
     expect(hooksRaw).toContain("preToolUse");
     expect(hooksRaw).toContain("toadstool-cursor-hook");
-    expect(shimRaw).toContain("TOADSTOOL_HOOK_SOCKET");
+    expect(nodeShimRaw).toContain("TOADSTOOL_HOOK_SOCKET");
+    expect(nodeShimRaw).toContain("TOADSTOOL_HOOK_TOKEN");
+    expect(nodeShimRaw).toContain("TOADSTOOL_HOOK_NONCE");
+    expect(bashShimRaw).toContain("TOADSTOOL_HOOK_SOCKET");
+    expect(bashShimRaw).toContain("TOADSTOOL_HOOK_TOKEN");
+    expect(bashShimRaw).toContain("TOADSTOOL_HOOK_NONCE");
 
     await install.restore();
     await expect(readFile(install.hooksPath, ENCODING.UTF8)).rejects.toThrow();
-    await expect(readFile(install.shimPath, ENCODING.UTF8)).rejects.toThrow();
+    await expect(readFile(install.nodeShimPath, ENCODING.UTF8)).rejects.toThrow();
+    await expect(readFile(install.bashShimPath, ENCODING.UTF8)).rejects.toThrow();
   });
 
   it("merges with existing hooks config and preserves existing commands", async () => {
@@ -87,8 +94,24 @@ describe("HooksConfigGenerator", () => {
     const env = generator.createHookEnv({
       transport: "http",
       url: "http://127.0.0.1:9999/",
+      authToken: "token-1",
+      authNonce: "nonce-1",
     });
 
     expect(env[ENV_KEY.TOADSTOOL_HOOK_SOCKET]).toBe("http://127.0.0.1:9999/");
+    expect(env[ENV_KEY.TOADSTOOL_HOOK_TOKEN]).toBe("token-1");
+    expect(env[ENV_KEY.TOADSTOOL_HOOK_NONCE]).toBe("nonce-1");
+  });
+
+  it("supports installing hooks at user-level cursor directory", () => {
+    const generator = new HooksConfigGenerator({
+      projectRoot: "/workspace/project",
+      userHomeDir: "/home/dev",
+      installScope: "user",
+    });
+
+    const paths = generator.resolveInstallPaths();
+    expect(paths.cursorDir).toBe("/home/dev/.cursor");
+    expect(paths.hooksPath).toBe("/home/dev/.cursor/hooks.json");
   });
 });

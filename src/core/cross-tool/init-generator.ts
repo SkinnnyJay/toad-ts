@@ -117,7 +117,9 @@ const scanDirectoryStructure = async (
   const result: string[] = [];
   try {
     const entries = await readdir(dir);
-    const sorted = entries.filter((e) => !e.startsWith(".") || e === ".env.sample").sort();
+    const sorted = entries
+      .filter((entry) => !entry.startsWith(".") || entry === PROJECT_FILE.ENV_SAMPLE)
+      .sort();
     for (const entry of sorted) {
       if (IGNORE_DIRS.has(entry)) continue;
       const fullPath = join(dir, entry);

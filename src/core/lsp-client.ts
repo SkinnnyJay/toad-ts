@@ -1,3 +1,4 @@
+import { TIMEOUT } from "@/config/timeouts";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { execa } from "execa";
 
@@ -41,7 +42,7 @@ export const detectLanguageServers = async (): Promise<LSPServerConfig[]> => {
 
   for (const candidate of candidates) {
     try {
-      await execa("which", [candidate.command], { timeout: 3000 });
+      await execa("which", [candidate.command], { timeout: TIMEOUT.COMMAND_DISCOVERY_MS });
       servers.push(candidate);
     } catch {
       // Language server not installed

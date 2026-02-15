@@ -1,6 +1,7 @@
 import { LIMIT } from "@/config/limits";
 import { UI } from "@/config/ui";
 import type { CommandDefinition } from "@/constants/command-definitions";
+import { COMMAND_PALETTE_ROW_TYPE } from "@/constants/command-palette-row-types";
 import { KEY_NAME } from "@/constants/key-names";
 import { SEMANTIC_COLOR, getCategoryColor } from "@/constants/semantic-colors";
 import { useAppStore } from "@/store/app-store";
@@ -9,13 +10,17 @@ import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import fuzzysort from "fuzzysort";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 
 const SECTION_RECENT = "recent";
 
 type PaletteRow =
-  | { type: "section-header"; sectionKey: string; label: string }
-  | { type: "command"; cmd: CommandDefinition };
+  | {
+      type: typeof COMMAND_PALETTE_ROW_TYPE.SECTION_HEADER;
+      sectionKey: string;
+      label: string;
+    }
+  | { type: typeof COMMAND_PALETTE_ROW_TYPE.COMMAND; cmd: CommandDefinition };
 
 interface CommandPaletteProps {
   commands: CommandDefinition[];
@@ -52,6 +57,7 @@ export function CommandPalette({
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState(0);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const deferredQuery = useDeferredValue(query);
   const terminalDimensions = useTerminalDimensions();
   const recentCommandNames = useAppStore((state) => state.recentCommandNames);
   const loadRecentCommandsFromSettings = useAppStore(
@@ -98,12 +104,15 @@ export function CommandPalette({
   }, [commands]);
 
   const visibleRows = useMemo((): PaletteRow[] => {
-    if (query.trim()) {
-      const scored = fuzzysort.go(query, commands, {
+    if (deferredQuery.trim()) {
+      const scored = fuzzysort.go(deferredQuery, commands, {
         limit: LIMIT.COMMAND_PALETTE_MAX_RESULTS,
         key: "name",
       });
-      return scored.map((res) => ({ type: "command" as const, cmd: res.obj }));
+      return scored.map((res) => ({
+        type: COMMAND_PALETTE_ROW_TYPE.COMMAND,
+        cmd: res.obj,
+      }));
     }
 
     const rows: PaletteRow[] = [];
@@ -115,7 +124,7 @@ export function CommandPalette({
     if (recent.length > 0) {
       const recentRows: PaletteRow[] = [
         {
-          type: "section-header",
+          type: COMMAND_PALETTE_ROW_TYPE.SECTION_HEADER,
           sectionKey: SECTION_RECENT,
           label: "Recently used",
         },
@@ -125,12 +134,12 @@ export function CommandPalette({
           if (commandsAdded >= LIMIT.COMMAND_PALETTE_MAX_RESULTS) break;
           const cmd = commandsByName.get(name);
           if (!cmd) continue;
-          recentRows.push({ type: "command", cmd });
+          recentRows.push({ type: COMMAND_PALETTE_ROW_TYPE.COMMAND, cmd });
           commandsAdded += 1;
         }
       }
       // Only show the section if it contains at least one command row.
-      if (recentRows.some((r) => r.type === "command")) {
+      if (recentRows.some((r) => r.type === COMMAND_PALETTE_ROW_TYPE.COMMAND)) {
         rows.push(...recentRows);
       }
     }
@@ -142,7 +151,7 @@ export function CommandPalette({
 
       const sectionRows: PaletteRow[] = [
         {
-          type: "section-header",
+          type: COMMAND_PALETTE_ROW_TYPE.SECTION_HEADER,
           sectionKey: category,
           label: category,
         },
@@ -150,17 +159,17 @@ export function CommandPalette({
       if (!collapsedSections[category]) {
         for (const cmd of catCommands) {
           if (commandsAdded >= LIMIT.COMMAND_PALETTE_MAX_RESULTS) break;
-          sectionRows.push({ type: "command", cmd });
+          sectionRows.push({ type: COMMAND_PALETTE_ROW_TYPE.COMMAND, cmd });
           commandsAdded += 1;
         }
       }
       // Only show the section if it contains at least one command row.
-      if (sectionRows.some((r) => r.type === "command")) {
+      if (sectionRows.some((r) => r.type === COMMAND_PALETTE_ROW_TYPE.COMMAND)) {
         rows.push(...sectionRows);
       }
     }
     return rows;
-  }, [query, commands, commandsByName, recentCommandNames, collapsedSections]);
+  }, [deferredQuery, commands, commandsByName, recentCommandNames, collapsedSections]);
 
   const toggleSection = useCallback((sectionKey: string) => {
     setCollapsedSections((prev) => ({
@@ -202,7 +211,7 @@ export function CommandPalette({
       key.stopPropagation();
       const row = visibleRows[index];
       if (!row) return;
-      if (row.type === "section-header") {
+      if (row.type === COMMAND_PALETTE_ROW_TYPE.SECTION_HEADER) {
         toggleSection(row.sectionKey);
         return;
       }
@@ -245,7 +254,7 @@ export function CommandPalette({
         <box flexDirection="column" gap={0}>
           {visibleRows.map((row, idx) => {
             const isSelected = idx === index;
-            if (row.type === "section-header") {
+            if (row.type === COMMAND_PALETTE_ROW_TYPE.SECTION_HEADER) {
               const collapsed = collapsedSections[row.sectionKey];
               return (
                 <box

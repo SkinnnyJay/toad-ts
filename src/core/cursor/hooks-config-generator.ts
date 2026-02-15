@@ -1,18 +1,29 @@
 import { chmod, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { homedir } from "node:os";
 import path from "node:path";
 import { CURSOR_HOOK_EVENT } from "@/constants/cursor-hook-events";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
+import { HOOK_IPC_AUTH } from "@/constants/hook-ipc-auth";
 import { INDENT_SPACES } from "@/constants/json-format";
 import type { HookIpcEndpoint } from "@/core/cursor/hook-ipc-server";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 import { z } from "zod";
 
 const CURSOR_HOOKS_VERSION = 1;
-const TOADSTOOL_SHIM_FILENAME = "toadstool-cursor-hook-shim.mjs";
+const TOADSTOOL_NODE_SHIM_FILENAME = "toadstool-cursor-hook-shim.mjs";
+const TOADSTOOL_BASH_SHIM_FILENAME = "toadstool-cursor-hook-shim.sh";
 const TOADSTOOL_HOOKS_MARKER = "# toadstool-cursor-hook";
 const CURSOR_DIR_NAME = ".cursor";
 const CURSOR_HOOKS_FILE = "hooks.json";
+const SHIM_FILE_MODE = 0o755;
+
+const HOOKS_INSTALL_SCOPE = {
+  PROJECT: "project",
+  USER: "user",
+} as const;
+
+type HooksInstallScope = (typeof HOOKS_INSTALL_SCOPE)[keyof typeof HOOKS_INSTALL_SCOPE];
 
 const CursorHooksFileSchema = z
   .object({
@@ -44,7 +55,7 @@ const CURSOR_HOOK_EVENTS_TO_INSTALL = [
   CURSOR_HOOK_EVENT.AFTER_AGENT_THOUGHT,
 ] as const;
 
-const buildShimContent = (): string => {
+const buildNodeShimContent = (): string => {
   return `#!/usr/bin/env node
 import http from "node:http";
 
@@ -54,16 +65,25 @@ for await (const chunk of process.stdin) {
 }
 
 const payload = chunks.join("");
-const endpoint = process.env.TOADSTOOL_HOOK_SOCKET;
+const endpoint = process.env.${ENV_KEY.TOADSTOOL_HOOK_SOCKET};
+const hookToken = process.env.${ENV_KEY.TOADSTOOL_HOOK_TOKEN};
+const hookNonce = process.env.${ENV_KEY.TOADSTOOL_HOOK_NONCE};
 if (!endpoint || payload.length === 0) {
   process.stdout.write("{}");
   process.exit(0);
 }
 
 const postHttp = async () => {
+  const headers = { "Content-Type": "application/json" };
+  if (hookToken) {
+    headers["${HOOK_IPC_AUTH.TOKEN_HEADER}"] = hookToken;
+  }
+  if (hookNonce) {
+    headers["${HOOK_IPC_AUTH.NONCE_HEADER}"] = hookNonce;
+  }
   const response = await fetch(endpoint, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: payload,
   });
   const text = await response.text();
@@ -105,9 +125,57 @@ try {
 `;
 };
 
-const parseExistingHooks = async (hooksPath: string): Promise<CursorHooksFile | null> => {
+const buildBashShimContent = (nodeShimPath: string): string => {
+  return `#!/usr/bin/env bash
+payload="$(cat)"
+endpoint="\${${ENV_KEY.TOADSTOOL_HOOK_SOCKET}:-}"
+hook_token="\${${ENV_KEY.TOADSTOOL_HOOK_TOKEN}:-}"
+hook_nonce="\${${ENV_KEY.TOADSTOOL_HOOK_NONCE}:-}"
+
+if [ -z "$endpoint" ] || [ -z "$payload" ]; then
+  printf '{}'
+  exit 0
+fi
+
+if command -v node >/dev/null 2>&1; then
+  node_response="$(printf '%s' "$payload" | node "${nodeShimPath}" 2>/dev/null || true)"
+  if [ -n "$node_response" ]; then
+    printf '%s' "$node_response"
+    exit 0
+  fi
+fi
+
+if ! command -v curl >/dev/null 2>&1; then
+  printf '{}'
+  exit 0
+fi
+
+if [[ "$endpoint" == http://* || "$endpoint" == https://* ]]; then
+  auth_headers=()
+  if [ -n "$hook_token" ]; then
+    auth_headers+=(-H "${HOOK_IPC_AUTH.TOKEN_HEADER}: $hook_token")
+  fi
+  if [ -n "$hook_nonce" ]; then
+    auth_headers+=(-H "${HOOK_IPC_AUTH.NONCE_HEADER}: $hook_nonce")
+  fi
+  response="$(curl -sS -X POST -H "Content-Type: application/json" "\${auth_headers[@]}" --data "$payload" "$endpoint" 2>/dev/null || true)"
+else
+  response="$(curl -sS --unix-socket "$endpoint" -X POST -H "Content-Type: application/json" --data "$payload" "http://localhost/" 2>/dev/null || true)"
+fi
+
+if [ -z "$response" ]; then
+  printf '{}'
+else
+  printf '%s' "$response"
+fi
+`;
+};
+
+const parseExistingHooks = (contents: string | null): CursorHooksFile | null => {
+  if (contents === null) {
+    return null;
+  }
   try {
-    const contents = await readFile(hooksPath, ENCODING.UTF8);
     const parsed: unknown = JSON.parse(contents);
     return CursorHooksFileSchema.parse(parsed);
   } catch (_error) {
@@ -115,8 +183,8 @@ const parseExistingHooks = async (hooksPath: string): Promise<CursorHooksFile | 
   }
 };
 
-const getShimCommand = (shimPath: string): string => {
-  return `node "${shimPath}" ${TOADSTOOL_HOOKS_MARKER}`;
+const getShimCommand = (bashShimPath: string): string => {
+  return `bash "${bashShimPath}" ${TOADSTOOL_HOOKS_MARKER}`;
 };
 
 const mergeHooks = (existing: CursorHooksFile | null, shimCommand: string): CursorHooksFile => {
@@ -138,34 +206,59 @@ const mergeHooks = (existing: CursorHooksFile | null, shimCommand: string): Curs
 export interface HooksInstallResult {
   hooksPath: string;
   shimPath: string;
+  nodeShimPath: string;
+  bashShimPath: string;
   restore: () => Promise<void>;
 }
 
 export interface HooksConfigGeneratorOptions {
   projectRoot?: string;
+  userHomeDir?: string;
+  installScope?: HooksInstallScope;
 }
 
 export class HooksConfigGenerator {
   private readonly logger = createClassLogger("HooksConfigGenerator");
   private readonly projectRoot: string;
+  private readonly userHomeDir: string;
+  private readonly installScope: HooksInstallScope;
 
   public constructor(options: HooksConfigGeneratorOptions = {}) {
     this.projectRoot = options.projectRoot ?? process.cwd();
+    this.userHomeDir = options.userHomeDir ?? homedir();
+    this.installScope = options.installScope ?? HOOKS_INSTALL_SCOPE.PROJECT;
   }
 
-  public resolveInstallPaths(): { cursorDir: string; hooksPath: string; shimPath: string } {
-    const cursorDir = path.join(this.projectRoot, CURSOR_DIR_NAME);
+  public resolveInstallPaths(): {
+    cursorDir: string;
+    hooksPath: string;
+    shimPath: string;
+    nodeShimPath: string;
+    bashShimPath: string;
+  } {
+    const baseDir =
+      this.installScope === HOOKS_INSTALL_SCOPE.USER ? this.userHomeDir : this.projectRoot;
+    const cursorDir = path.join(baseDir, CURSOR_DIR_NAME);
+    const nodeShimPath = path.join(cursorDir, TOADSTOOL_NODE_SHIM_FILENAME);
+    const bashShimPath = path.join(cursorDir, TOADSTOOL_BASH_SHIM_FILENAME);
     return {
       cursorDir,
       hooksPath: path.join(cursorDir, CURSOR_HOOKS_FILE),
-      shimPath: path.join(cursorDir, TOADSTOOL_SHIM_FILENAME),
+      shimPath: nodeShimPath,
+      nodeShimPath,
+      bashShimPath,
     };
   }
 
   public createHookEnv(endpoint: HookIpcEndpoint): Record<string, string> {
-    return {
+    const env: Record<string, string> = {
       [ENV_KEY.TOADSTOOL_HOOK_SOCKET]: endpoint.socketPath ?? endpoint.url ?? "",
     };
+    if (endpoint.authToken && endpoint.authNonce) {
+      env[ENV_KEY.TOADSTOOL_HOOK_TOKEN] = endpoint.authToken;
+      env[ENV_KEY.TOADSTOOL_HOOK_NONCE] = endpoint.authNonce;
+    }
+    return env;
   }
 
   public async install(_endpoint: HookIpcEndpoint): Promise<HooksInstallResult> {
@@ -173,13 +266,17 @@ export class HooksConfigGenerator {
     await mkdir(paths.cursorDir, { recursive: true });
 
     const existingHooksRaw = await readFile(paths.hooksPath, ENCODING.UTF8).catch(() => null);
-    const existingHooks = await parseExistingHooks(paths.hooksPath);
+    const existingHooks = parseExistingHooks(existingHooksRaw);
 
-    const shimContent = buildShimContent();
-    await writeFile(paths.shimPath, shimContent, ENCODING.UTF8);
-    await chmod(paths.shimPath, 0o755);
+    const nodeShimContent = buildNodeShimContent();
+    await writeFile(paths.nodeShimPath, nodeShimContent, ENCODING.UTF8);
+    await chmod(paths.nodeShimPath, SHIM_FILE_MODE);
 
-    const shimCommand = getShimCommand(paths.shimPath);
+    const bashShimContent = buildBashShimContent(paths.nodeShimPath);
+    await writeFile(paths.bashShimPath, bashShimContent, ENCODING.UTF8);
+    await chmod(paths.bashShimPath, SHIM_FILE_MODE);
+
+    const shimCommand = getShimCommand(paths.bashShimPath);
     const mergedHooks = mergeHooks(existingHooks, shimCommand);
     await writeFile(
       paths.hooksPath,
@@ -189,21 +286,29 @@ export class HooksConfigGenerator {
 
     this.logger.info("Installed Cursor hook shim", {
       hooksPath: paths.hooksPath,
-      shimPath: paths.shimPath,
+      shimPath: paths.nodeShimPath,
+      bashShimPath: paths.bashShimPath,
+      scope: this.installScope,
     });
 
     return {
       hooksPath: paths.hooksPath,
-      shimPath: paths.shimPath,
+      shimPath: paths.nodeShimPath,
+      nodeShimPath: paths.nodeShimPath,
+      bashShimPath: paths.bashShimPath,
       restore: async () => {
         if (existingHooksRaw === null) {
           await rm(paths.hooksPath, { force: true });
         } else {
           await writeFile(paths.hooksPath, existingHooksRaw, ENCODING.UTF8);
         }
-        const shimExists = await stat(paths.shimPath).catch(() => null);
-        if (shimExists) {
-          await rm(paths.shimPath, { force: true });
+        const nodeShimExists = await stat(paths.nodeShimPath).catch(() => null);
+        if (nodeShimExists) {
+          await rm(paths.nodeShimPath, { force: true });
+        }
+        const bashShimExists = await stat(paths.bashShimPath).catch(() => null);
+        if (bashShimExists) {
+          await rm(paths.bashShimPath, { force: true });
         }
       },
     };

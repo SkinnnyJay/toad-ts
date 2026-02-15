@@ -1,3 +1,4 @@
+import { PERMISSION_PATTERN } from "@/constants/permission-patterns";
 import { createClassLogger } from "@/utils/logging/logger.utils";
 
 const logger = createClassLogger("SkillPermissions");
@@ -14,7 +15,7 @@ const DEFAULT_PERMISSION: SkillPermission = "allow";
  * Match a skill name against a glob-style permission rule.
  */
 const matchGlob = (name: string, pattern: string): boolean => {
-  if (pattern === "*") return true;
+  if (pattern === PERMISSION_PATTERN.WILDCARD) return true;
   const regex = new RegExp(`^${pattern.replace(/\*/g, ".*").replace(/\?/g, ".")}$`, "i");
   return regex.test(name);
 };

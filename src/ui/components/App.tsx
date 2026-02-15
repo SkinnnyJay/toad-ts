@@ -470,7 +470,7 @@ export function App(): ReactNode {
           <box flexDirection="column" gap={1}>
             <text fg={COLOR.RED}>Error: {loadError}</text>
             <text attributes={TextAttributes.DIM}>
-              Check that Claude CLI is installed and accessible
+              Check that the selected agent CLI is installed and accessible
             </text>
           </box>
         ) : null}

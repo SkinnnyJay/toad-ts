@@ -1,10 +1,14 @@
-import { spawn } from "node:child_process";
+import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { isAbsolute, normalize, resolve } from "node:path";
 import { TERMINAL_KILL_GRACE_MS } from "@/config/timeouts";
+import { TRUTHY_STRINGS } from "@/constants/boolean-strings";
 import { ENCODING } from "@/constants/encodings";
 import { ENV_KEY } from "@/constants/env-keys";
 import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
+import { isPathWithinBase } from "@/utils/pathContainment.utils";
+import { isPathEscape } from "@/utils/pathEscape.utils";
+import { acquireProcessSlot, bindProcessSlotToChild } from "@/utils/process-concurrency.utils";
 
 export interface ExecOptions {
   cwd?: string;
@@ -27,14 +31,7 @@ const shouldAllowEscape = (env?: NodeJS.ProcessEnv, override?: boolean): boolean
   const raw = source[ENV_KEY.TOADSTOOL_ALLOW_ESCAPE];
   if (!raw) return false;
   const normalized = raw.trim().toLowerCase();
-  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
-};
-
-const isPathEscape = (value: string): boolean => {
-  if (!value) return false;
-  return value
-    .split(/\s+/)
-    .some((part) => part.startsWith("../") || part === ".." || part.includes("/../"));
+  return TRUTHY_STRINGS.has(normalized);
 };
 
 const resolveCwd = (candidate: string, base: string, allowEscape: boolean): string => {
@@ -43,7 +40,7 @@ const resolveCwd = (candidate: string, base: string, allowEscape: boolean): stri
     ? normalize(candidate)
     : resolve(normalizedBase, candidate);
   if (allowEscape) return resolved;
-  if (!resolved.startsWith(normalizedBase)) {
+  if (!isPathWithinBase(resolved, normalizedBase)) {
     throw new Error(`Cwd escapes base directory: ${candidate}`);
   }
   return resolved;
@@ -72,7 +69,16 @@ export class TerminalHandler {
     );
     const env = { ...EnvManager.getInstance().getSnapshot(), ...options.env };
     return new Promise<ExecResult>((resolve, reject) => {
-      const child = spawn(command, args, { cwd, env });
+      const releaseSlot = acquireProcessSlot("terminal-handler");
+      let child: ChildProcessWithoutNullStreams;
+      try {
+        child = spawn(command, args, { cwd, env });
+      } catch (error) {
+        releaseSlot();
+        reject(error);
+        return;
+      }
+      bindProcessSlotToChild(child, releaseSlot);
       let stdout = "";
       let stderr = "";
       let finished = false;

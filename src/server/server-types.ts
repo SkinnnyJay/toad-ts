@@ -1,13 +1,21 @@
 import { SERVER_EVENT } from "@/constants/server-events";
+import { HARNESS_ID_VALIDATION_MESSAGE, isCanonicalHarnessId } from "@/harness/harness-id";
 import { AgentIdSchema, SessionIdSchema } from "@/types/domain";
 import { z } from "zod";
 
+const isNonBlankString = (value: string): boolean => value.trim().length > 0;
+
 export const createSessionRequestSchema = z
   .object({
-    harnessId: z.string().min(1).optional(),
+    harnessId: z
+      .string()
+      .refine(isCanonicalHarnessId, {
+        message: HARNESS_ID_VALIDATION_MESSAGE.NON_CANONICAL,
+      })
+      .optional(),
     agentId: AgentIdSchema.optional(),
-    cwd: z.string().min(1).optional(),
-    title: z.string().min(1).optional(),
+    cwd: z.string().min(1).refine(isNonBlankString).optional(),
+    title: z.string().min(1).refine(isNonBlankString).optional(),
   })
   .strict();
 
@@ -23,7 +31,7 @@ export type CreateSessionResponse = z.infer<typeof createSessionResponseSchema>;
 
 export const promptSessionRequestSchema = z
   .object({
-    prompt: z.string().min(1),
+    prompt: z.string().min(1).refine(isNonBlankString),
   })
   .strict();
 
@@ -31,7 +39,7 @@ export type PromptSessionRequest = z.infer<typeof promptSessionRequestSchema>;
 
 export const sessionMessagesRequestSchema = z
   .object({
-    sessionId: SessionIdSchema,
+    sessionId: SessionIdSchema.refine(isNonBlankString),
   })
   .strict();
 
@@ -42,6 +50,7 @@ export const serverEventSchema = z.object({
     SERVER_EVENT.SESSION_CREATED,
     SERVER_EVENT.SESSION_UPDATE,
     SERVER_EVENT.SESSION_CLOSED,
+    SERVER_EVENT.STATE_UPDATE,
   ]),
   timestamp: z.number(),
   payload: z.record(z.unknown()),

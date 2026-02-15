@@ -1,4 +1,5 @@
 import type { PermissionsConfig } from "@/config/app-config";
+import { PERMISSION_PATTERN } from "@/constants/permission-patterns";
 import { PERMISSION } from "@/constants/permissions";
 
 export const PERMISSION_MODE = {
@@ -27,7 +28,7 @@ export const cyclePermissionMode = (current: PermissionMode): PermissionMode => 
  * Supports * wildcard patterns.
  */
 const matchGlob = (toolName: string, pattern: string): boolean => {
-  if (pattern === "*") return true;
+  if (pattern === PERMISSION_PATTERN.WILDCARD) return true;
   const regex = new RegExp(`^${pattern.replace(/\*/g, ".*").replace(/\?/g, ".")}$`, "i");
   return regex.test(toolName);
 };

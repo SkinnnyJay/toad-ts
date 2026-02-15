@@ -3,7 +3,9 @@ import {
   type SpawnOptionsWithoutStdio,
   spawn,
 } from "node:child_process";
+import { PLATFORM } from "@/constants/platform";
 import { createClassLogger } from "@/utils/logging/logger.utils";
+import { acquireProcessSlot, bindProcessSlotToChild } from "@/utils/process-concurrency.utils";
 
 export interface CliAgentCommandResult {
   stdout: string;
@@ -34,6 +36,7 @@ export interface CliAgentProcessRunnerOptions {
   cwd?: string;
   env?: NodeJS.ProcessEnv;
   spawnFn?: CliAgentSpawnFunction;
+  killTreeFn?: CliAgentKillTreeFunction;
   defaultCommandTimeoutMs: number;
   forceKillTimeoutMs: number;
   loggerName: string;
@@ -45,6 +48,8 @@ type CliAgentSpawnFunction = (
   options: SpawnOptionsWithoutStdio
 ) => ChildProcessWithoutNullStreams;
 
+type CliAgentKillTreeFunction = (pid: number, signal: NodeJS.Signals) => Promise<void>;
+
 export class CliAgentProcessRunner {
   private readonly logger: ReturnType<typeof createClassLogger>;
   private readonly command: string;
@@ -52,6 +57,7 @@ export class CliAgentProcessRunner {
   private readonly cwd?: string;
   private env: NodeJS.ProcessEnv;
   private readonly spawnFn: CliAgentSpawnFunction;
+  private readonly killTreeFn: CliAgentKillTreeFunction;
   private readonly defaultCommandTimeoutMs: number;
   private readonly forceKillTimeoutMs: number;
 
@@ -64,6 +70,7 @@ export class CliAgentProcessRunner {
     this.cwd = options.cwd;
     this.env = options.env ?? {};
     this.spawnFn = options.spawnFn ?? spawn;
+    this.killTreeFn = options.killTreeFn ?? ((pid, signal) => this.killProcessTree(pid, signal));
     this.defaultCommandTimeoutMs = options.defaultCommandTimeoutMs;
     this.forceKillTimeoutMs = options.forceKillTimeoutMs;
     this.logger = createClassLogger(options.loggerName);
@@ -99,7 +106,7 @@ export class CliAgentProcessRunner {
           return;
         }
         completed = true;
-        void this.forceKillChild(child);
+        void this.killChild(child, "SIGTERM");
         reject(new Error(`CLI command timed out after ${timeoutMs}ms: ${args.join(" ")}`));
       }, timeoutMs);
 
@@ -186,13 +193,20 @@ export class CliAgentProcessRunner {
   private spawn(args: string[]): ChildProcessWithoutNullStreams {
     const commandArgs = [...this.args, ...args];
     this.logger.debug("Spawning cli command", { command: this.command, args: commandArgs });
-
-    return this.spawnFn(this.command, commandArgs, {
-      cwd: this.cwd,
-      env: this.env,
-      detached: process.platform !== "win32",
-      stdio: "pipe",
-    });
+    const releaseSlot = acquireProcessSlot("cli-agent");
+    try {
+      const child = this.spawnFn(this.command, commandArgs, {
+        cwd: this.cwd,
+        env: this.env,
+        detached: process.platform !== PLATFORM.WIN32,
+        stdio: "pipe",
+      });
+      bindProcessSlotToChild(child, releaseSlot);
+      return child;
+    } catch (error) {
+      releaseSlot();
+      throw error;
+    }
   }
 
   private async terminateActiveProcess(signal: NodeJS.Signals): Promise<void> {
@@ -204,10 +218,6 @@ export class CliAgentProcessRunner {
     await this.killChild(child, signal);
   }
 
-  private async forceKillChild(child: ChildProcessWithoutNullStreams): Promise<void> {
-    await this.killChild(child, "SIGKILL");
-  }
-
   private async killChild(
     child: ChildProcessWithoutNullStreams,
     signal: NodeJS.Signals
@@ -217,24 +227,40 @@ export class CliAgentProcessRunner {
       return;
     }
 
+    let closed = await this.sendSignalAndAwaitClose(child, pid, signal);
+    if (!closed && signal !== "SIGKILL") {
+      closed = await this.sendSignalAndAwaitClose(child, pid, "SIGKILL");
+    }
+    if (!closed) {
+      this.logger.warn("CLI process did not close after termination signals", { pid, signal });
+    }
+
+    this.cleanupChild(child);
+  }
+
+  private async sendSignalAndAwaitClose(
+    child: ChildProcessWithoutNullStreams,
+    pid: number,
+    signal: NodeJS.Signals
+  ): Promise<boolean> {
     try {
-      if (process.platform !== "win32") {
-        process.kill(-pid, signal);
-      } else {
-        child.kill(signal);
-      }
+      await this.killTreeFn(pid, signal);
     } catch (_error) {
       child.kill(signal);
     }
 
-    await new Promise<void>((resolve) => {
+    if (this.isChildClosed(child)) {
+      return true;
+    }
+
+    return await new Promise<boolean>((resolve) => {
       let settled = false;
       const timeout = setTimeout(() => {
         if (settled) {
           return;
         }
         settled = true;
-        resolve();
+        resolve(false);
       }, this.forceKillTimeoutMs);
 
       child.once("close", () => {
@@ -243,16 +269,69 @@ export class CliAgentProcessRunner {
         }
         settled = true;
         clearTimeout(timeout);
-        resolve();
+        resolve(true);
       });
     });
+  }
 
-    this.cleanupChild(child);
+  private isChildClosed(child: ChildProcessWithoutNullStreams): boolean {
+    return child.exitCode != null || child.signalCode != null;
+  }
+
+  private async killProcessTree(pid: number, signal: NodeJS.Signals): Promise<void> {
+    if (process.platform !== PLATFORM.WIN32) {
+      process.kill(-pid, signal);
+      return;
+    }
+
+    await this.killWindowsProcessTree(pid);
+  }
+
+  private async killWindowsProcessTree(pid: number): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+      const killer = spawn("taskkill", ["/PID", String(pid), "/T", "/F"], {
+        stdio: "ignore",
+      });
+
+      let settled = false;
+      const timeout = setTimeout(() => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        reject(new Error("taskkill timed out"));
+      }, this.forceKillTimeoutMs);
+
+      killer.once("error", (error) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(timeout);
+        reject(error);
+      });
+
+      killer.once("close", (exitCode) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(timeout);
+        if (exitCode === 0) {
+          resolve();
+          return;
+        }
+        reject(new Error(`taskkill exited with code ${exitCode ?? -1}`));
+      });
+    });
   }
 
   private cleanupChild(child: ChildProcessWithoutNullStreams): void {
     if (this.activeChild === child) {
       this.activeChild = null;
+    }
+    if (!this.activeChild) {
+      this.detachSignalHandlers();
     }
   }
 

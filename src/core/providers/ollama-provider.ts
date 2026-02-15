@@ -1,4 +1,5 @@
 import { LIMIT } from "@/config/limits";
+import { formatProviderHttpError } from "./provider-error.utils";
 import type {
   ProviderAdapter,
   ProviderMessage,
@@ -6,6 +7,7 @@ import type {
   ProviderOptions,
   ProviderStreamChunk,
 } from "./provider-types";
+import { appendChunkToParserBuffer } from "./stream-parser-buffer";
 
 const OLLAMA_DEFAULT_BASE = "http://localhost:11434";
 
@@ -68,7 +70,10 @@ export class OllamaProvider implements ProviderAdapter {
 
     if (!response.ok) {
       const errorText = await response.text();
-      yield { type: "error", error: `Ollama error ${response.status}: ${errorText}` };
+      yield {
+        type: "error",
+        error: formatProviderHttpError("Ollama", response.status, errorText),
+      };
       return;
     }
 
@@ -86,9 +91,13 @@ export class OllamaProvider implements ProviderAdapter {
         const { done, value } = await reader.read();
         if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
+        const nextBuffer = appendChunkToParserBuffer(
+          buffer,
+          decoder.decode(value, { stream: true }),
+          LIMIT.PROVIDER_STREAM_PARSER_BUFFER_MAX_BYTES
+        );
+        buffer = nextBuffer.remainder;
+        const lines = nextBuffer.lines;
 
         for (const line of lines) {
           if (!line.trim()) continue;

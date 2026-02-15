@@ -1,3 +1,6 @@
+import { LIMIT } from "@/config/limits";
+import { PROVIDER_STREAM } from "@/constants/provider-stream";
+import { formatProviderHttpError } from "./provider-error.utils";
 import type {
   ProviderAdapter,
   ProviderMessage,
@@ -5,6 +8,7 @@ import type {
   ProviderOptions,
   ProviderStreamChunk,
 } from "./provider-types";
+import { appendChunkToParserBuffer } from "./stream-parser-buffer";
 
 /**
  * Generic OpenAI-compatible provider adapter.
@@ -90,7 +94,10 @@ export class OpenAICompatibleProvider implements ProviderAdapter {
 
     if (!response.ok) {
       const errorText = await response.text();
-      yield { type: "error", error: `${this.name} API error ${response.status}: ${errorText}` };
+      yield {
+        type: "error",
+        error: formatProviderHttpError(this.name, response.status, errorText),
+      };
       return;
     }
 
@@ -102,20 +109,25 @@ export class OpenAICompatibleProvider implements ProviderAdapter {
 
     const decoder = new TextDecoder();
     let buffer = "";
+    const ssePrefixLength = PROVIDER_STREAM.SSE_DATA_PREFIX.length;
 
     try {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
+        const nextBuffer = appendChunkToParserBuffer(
+          buffer,
+          decoder.decode(value, { stream: true }),
+          LIMIT.PROVIDER_STREAM_PARSER_BUFFER_MAX_BYTES
+        );
+        buffer = nextBuffer.remainder;
+        const lines = nextBuffer.lines;
 
         for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const data = line.slice(6).trim();
-          if (data === "[DONE]") {
+          if (!line.startsWith(PROVIDER_STREAM.SSE_DATA_PREFIX)) continue;
+          const data = line.slice(ssePrefixLength).trim();
+          if (data === PROVIDER_STREAM.DONE_SENTINEL) {
             yield { type: "done" };
             return;
           }
@@ -126,7 +138,7 @@ export class OpenAICompatibleProvider implements ProviderAdapter {
             if (delta?.content) {
               yield { type: "text", text: delta.content as string };
             }
-            if (choices?.[0]?.finish_reason === "stop") {
+            if (choices?.[0]?.finish_reason === PROVIDER_STREAM.OPENAI_FINISH_REASON_STOP) {
               yield { type: "done" };
               return;
             }

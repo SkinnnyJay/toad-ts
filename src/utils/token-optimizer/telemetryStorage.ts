@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
+import { LIMIT } from "@/config/limits";
 import { ENCODING } from "@/constants/encodings";
 import { ERROR_CODE } from "@/constants/error-codes";
 import { INDENT_SPACES } from "@/constants/json-format";
@@ -72,17 +73,86 @@ export const createJsonTelemetryStorage = (
   rawConfig: JsonTelemetryStorageConfig
 ): TelemetryStorage => {
   const config = jsonTelemetryStorageConfigSchema.parse(rawConfig);
+  let cachedSnapshots: AnalyticsSnapshot[] | null = null;
+  let pendingSnapshots: AnalyticsSnapshot[] = [];
+  let flushTimer: NodeJS.Timeout | null = null;
+  let flushPromise: Promise<void> | null = null;
+
+  const ensureLoadedSnapshots = async (): Promise<AnalyticsSnapshot[]> => {
+    if (cachedSnapshots) {
+      return cachedSnapshots;
+    }
+    cachedSnapshots = await readSnapshots(config.filePath);
+    return cachedSnapshots;
+  };
+
+  const clearFlushTimer = (): void => {
+    if (!flushTimer) {
+      return;
+    }
+    clearTimeout(flushTimer);
+    flushTimer = null;
+  };
+
+  const flushPendingSnapshots = async (): Promise<void> => {
+    if (flushPromise) {
+      await flushPromise;
+      return;
+    }
+
+    flushPromise = (async () => {
+      clearFlushTimer();
+      if (pendingSnapshots.length === 0) {
+        return;
+      }
+      const persisted = await ensureLoadedSnapshots();
+      const batch = pendingSnapshots;
+      pendingSnapshots = [];
+      try {
+        persisted.push(...batch);
+        await writeSnapshots(config.filePath, persisted);
+      } catch (error) {
+        pendingSnapshots = [...batch, ...pendingSnapshots];
+        if (cachedSnapshots) {
+          cachedSnapshots = cachedSnapshots.slice(
+            0,
+            Math.max(0, cachedSnapshots.length - batch.length)
+          );
+        }
+        throw error;
+      }
+    })().finally(() => {
+      flushPromise = null;
+    });
+
+    await flushPromise;
+  };
+
+  const scheduleFlush = (): void => {
+    if (flushTimer) {
+      return;
+    }
+    flushTimer = setTimeout(() => {
+      flushTimer = null;
+      void flushPendingSnapshots();
+    }, LIMIT.TELEMETRY_WRITE_FLUSH_INTERVAL_MS);
+    flushTimer.unref();
+  };
 
   return {
     async persistSnapshot(snapshot) {
       const sanitized = analyticsSnapshotSchema.parse(snapshot);
-      const existing = await readSnapshots(config.filePath);
-      existing.push(sanitized);
-      await writeSnapshots(config.filePath, existing);
+      pendingSnapshots.push(sanitized);
+      if (pendingSnapshots.length >= LIMIT.TELEMETRY_WRITE_BATCH_SIZE) {
+        await flushPendingSnapshots();
+        return;
+      }
+      scheduleFlush();
     },
 
     async fetchRecent(limit) {
-      const existing = await readSnapshots(config.filePath);
+      await flushPendingSnapshots();
+      const existing = await ensureLoadedSnapshots();
       if (typeof limit === "number" && limit >= 0) {
         return existing.slice(-limit).reverse();
       }
@@ -91,6 +161,9 @@ export const createJsonTelemetryStorage = (
     },
 
     async purge() {
+      clearFlushTimer();
+      pendingSnapshots = [];
+      cachedSnapshots = [];
       await writeSnapshots(config.filePath, []);
     },
   };

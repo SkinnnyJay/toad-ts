@@ -15,6 +15,8 @@ import {
   formatUnshareMessage,
 } from "@/constants/slash-command-messages";
 import type { Message, Plan, Session, SessionId } from "@/types/domain";
+import { isClipboardCopySupported } from "@/utils/clipboard/clipboard.utils";
+import { EnvManager } from "@/utils/env/env.utils";
 import {
   exportSessionToFile,
   generateDefaultExportName,
@@ -103,6 +105,10 @@ export const runCopyCommand = async (
   }
   if (!deps.copyToClipboard) {
     deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.COPY_NOT_AVAILABLE);
+    return;
+  }
+  if (!isClipboardCopySupported(EnvManager.getInstance().getSnapshot(), process.platform)) {
+    deps.appendSystemMessage(SLASH_COMMAND_MESSAGE.COPY_UNAVAILABLE_HEADLESS_LINUX);
     return;
   }
   const messages = orderMessages(deps.getMessagesForSession(sessionId));

@@ -17,6 +17,7 @@ export const KEY_NAME = {
   END: "end",
   LEFT: "left",
   RIGHT: "right",
+  RIGHT_BRACKET: "]",
   E: "e",
   P: "p",
   S: "s",

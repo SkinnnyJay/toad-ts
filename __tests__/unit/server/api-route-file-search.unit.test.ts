@@ -1,0 +1,349 @@
+import type { IncomingMessage, ServerResponse } from "node:http";
+import { HTTP_STATUS } from "@/constants/http-status";
+import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
+import { searchFiles } from "@/server/api-routes";
+import { describe, expect, it } from "vitest";
+
+interface CapturedResponse {
+  statusCode: number;
+  body: unknown;
+}
+
+const createResponseCapture = (): {
+  response: ServerResponse;
+  getCaptured: () => CapturedResponse;
+} => {
+  let statusCode = 0;
+  let body: unknown = null;
+  const response = {
+    writeHead: (nextStatusCode: number) => {
+      statusCode = nextStatusCode;
+      return response;
+    },
+    end: (payload?: string) => {
+      body = payload ? JSON.parse(payload) : null;
+      return response;
+    },
+  } as unknown as ServerResponse;
+
+  return {
+    response,
+    getCaptured: () => ({ statusCode, body }),
+  };
+};
+
+const createRequest = (url: string, host?: string): IncomingMessage => {
+  return {
+    url,
+    headers: { host: host ?? "127.0.0.1:4141" },
+  } as unknown as IncomingMessage;
+};
+
+describe("api-routes searchFiles handler", () => {
+  it("returns bad request when query parameter is missing", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED },
+    });
+  });
+
+  it("returns placeholder search results for valid query", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=readme"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "readme", results: [] },
+    });
+  });
+
+  it("returns bad request for whitespace-only query parameter", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=%20%20"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.QUERY_PARAM_Q_REQUIRED },
+    });
+  });
+
+  it("trims surrounding whitespace from valid query parameter", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=%20readme%20"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "readme", results: [] },
+    });
+  });
+
+  it("decodes plus signs in query parameter values as spaces", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=readme+notes"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "readme notes", results: [] },
+    });
+  });
+
+  it("parses query successfully when request host header is absent", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    const request = {
+      url: "/api/files/search?q=notes",
+      headers: {},
+    } as unknown as IncomingMessage;
+
+    await searchFiles(request, response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "notes", results: [] },
+    });
+  });
+
+  it("returns bad request when request host header is malformed", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=notes", "%"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
+  it("returns bad request when request host header includes a path segment", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=notes", "example.com/path"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
+  it("returns bad request when request host header has invalid hostname label", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=notes", "exa_mple.com"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
+  it("returns bad request when request host header has malformed bracketed ipv6", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=notes", "[::1"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
+  it("parses query when request host header has surrounding whitespace", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=notes", " 127.0.0.1:4141 "), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "notes", results: [] },
+    });
+  });
+
+  it("parses query when request host header has comma-separated values", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(
+      createRequest("/api/files/search?q=notes", "127.0.0.1:4141, example.com"),
+      response,
+      {}
+    );
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "notes", results: [] },
+    });
+  });
+
+  it("parses query when request host header uses bracketed ipv6 host", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=notes", "[::1]:4141"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "notes", results: [] },
+    });
+  });
+
+  it("parses query when first host candidate has path metadata but next host is valid", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(
+      createRequest("/api/files/search?q=notes", "example.com/path, 127.0.0.1:4141"),
+      response,
+      {}
+    );
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "notes", results: [] },
+    });
+  });
+
+  it("parses query when first host candidate has invalid label but next host is valid", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(
+      createRequest("/api/files/search?q=notes", "exa_mple.com, 127.0.0.1:4141"),
+      response,
+      {}
+    );
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "notes", results: [] },
+    });
+  });
+
+  it("parses query when first host candidate has malformed ipv6 brackets but next host is valid", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(
+      createRequest("/api/files/search?q=notes", "[::1, 127.0.0.1:4141"),
+      response,
+      {}
+    );
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "notes", results: [] },
+    });
+  });
+
+  it("returns bad request when request url is missing", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest(undefined as unknown as string), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
+  it("returns bad request for absolute request urls", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("https://example.com/api/files/search?q=notes"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
+  it("returns bad request for protocol-relative request urls", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("//example.com/api/files/search?q=notes"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
+  it("returns bad request when query value has malformed encoding", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=%E0%A4%A"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
+  it("returns bad request when query parameter is duplicated", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=readme&q=notes"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
+  it("accepts percent-encoded query parameter names", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?%71=readme"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "readme", results: [] },
+    });
+  });
+
+  it("accepts uppercase query parameter names", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?Q=readme"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "readme", results: [] },
+    });
+  });
+
+  it("returns bad request when mixed-case query parameter names are duplicated", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=readme&Q=notes"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
+  it("decodes encoded separators within query values", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=readme%26notes"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "readme&notes", results: [] },
+    });
+  });
+
+  it("returns bad request when query parameter name has malformed encoding", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?%E0%A4%A=readme"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+});

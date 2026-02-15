@@ -35,13 +35,13 @@ describe("HarnessAdapter", () => {
       expect(result.harness.args).toEqual(["arg1", "arg2", "arg3"]);
     });
 
-    it("should create claude, gemini, codex, cursor, and mock harnesses", () => {
+    it("should create claude, gemini, codex, and mock harnesses by default", () => {
       const result = createDefaultHarnessConfig({});
 
       expect(result.harnesses[HARNESS_DEFAULT.CLAUDE_CLI_ID]).toBeDefined();
       expect(result.harnesses[HARNESS_DEFAULT.GEMINI_CLI_ID]).toBeDefined();
       expect(result.harnesses[HARNESS_DEFAULT.CODEX_CLI_ID]).toBeDefined();
-      expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]).toBeDefined();
+      expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]).toBeUndefined();
       expect(result.harnesses[HARNESS_DEFAULT.MOCK_ID]).toBeDefined();
     });
 
@@ -49,6 +49,7 @@ describe("HarnessAdapter", () => {
       const env = {
         [ENV_KEY.TOADSTOOL_GEMINI_COMMAND]: "custom-gemini",
         [ENV_KEY.TOADSTOOL_CODEX_COMMAND]: "custom-codex",
+        [ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]: "true",
         [ENV_KEY.TOADSTOOL_CURSOR_COMMAND]: "agent",
         [ENV_KEY.TOADSTOOL_CURSOR_ARGS]: "-p",
       };
@@ -59,6 +60,32 @@ describe("HarnessAdapter", () => {
       expect(result.harnesses[HARNESS_DEFAULT.CODEX_CLI_ID]?.command).toBe("custom-codex");
       expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]?.command).toBe("agent");
       expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]?.args).toEqual(["-p"]);
+    });
+
+    it("should include cursor harness when explicitly enabled", () => {
+      const result = createDefaultHarnessConfig({
+        [ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]: "true",
+      });
+
+      expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]).toBeDefined();
+    });
+
+    it("should include cursor harness when enabled via numeric truthy flag", () => {
+      const result = createDefaultHarnessConfig({
+        [ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]: "1",
+      });
+
+      expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]).toBeDefined();
+    });
+
+    it("should keep cursor harness disabled when command overrides exist but flag is false", () => {
+      const result = createDefaultHarnessConfig({
+        [ENV_KEY.TOADSTOOL_CURSOR_CLI_ENABLED]: "false",
+        [ENV_KEY.TOADSTOOL_CURSOR_COMMAND]: "agent",
+        [ENV_KEY.TOADSTOOL_CURSOR_ARGS]: "-p",
+      });
+
+      expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]).toBeUndefined();
     });
 
     it("should validate config with schema", () => {
@@ -72,9 +99,7 @@ describe("HarnessAdapter", () => {
       expect(() =>
         harnessConfigSchema.parse(result.harnesses[HARNESS_DEFAULT.CODEX_CLI_ID])
       ).not.toThrow();
-      expect(() =>
-        harnessConfigSchema.parse(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID])
-      ).not.toThrow();
+      expect(result.harnesses[HARNESS_DEFAULT.CURSOR_CLI_ID]).toBeUndefined();
       expect(() =>
         harnessConfigSchema.parse(result.harnesses[HARNESS_DEFAULT.MOCK_ID])
       ).not.toThrow();

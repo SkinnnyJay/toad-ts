@@ -2,7 +2,7 @@ import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { PassThrough } from "node:stream";
 import { CliAgentProcessRunner } from "@/core/cli-agent/cli-agent-process-runner";
 import { EventEmitter } from "eventemitter3";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 interface SpawnScenario {
   stdout?: string;
@@ -18,11 +18,14 @@ interface SpawnCall {
   args: string[];
   stdin: string;
   envValue?: string;
+  detached?: boolean;
+  killSignals: NodeJS.Signals[];
 }
 
 const createMockChild = (
   scenario: SpawnScenario,
-  onFinish: (stdin: string) => void
+  onFinish: (stdin: string) => void,
+  onKill: (signal: NodeJS.Signals) => void
 ): ChildProcessWithoutNullStreams => {
   const emitter = new EventEmitter();
   const stdout = new PassThrough();
@@ -39,7 +42,14 @@ const createMockChild = (
     stderr,
     stdin,
     pid: Math.floor(Math.random() * 10000) + 1,
-    kill: () => true,
+    kill: (signal?: NodeJS.Signals) => {
+      const parsedSignal = signal ?? "SIGTERM";
+      onKill(parsedSignal);
+      setTimeout(() => {
+        child.emit("close", null, parsedSignal);
+      }, 0);
+      return true;
+    },
     on: emitter.on.bind(emitter),
     once: emitter.once.bind(emitter),
     emit: emitter.emit.bind(emitter),
@@ -73,7 +83,7 @@ const createSpawnFn = (scenarios: SpawnScenario[]) => {
   const spawnFn = (
     command: string,
     args: string[],
-    options?: { env?: NodeJS.ProcessEnv }
+    options?: { env?: NodeJS.ProcessEnv; detached?: boolean }
   ): ChildProcessWithoutNullStreams => {
     const scenario = scenarios.shift();
     if (!scenario) {
@@ -84,16 +94,34 @@ const createSpawnFn = (scenarios: SpawnScenario[]) => {
       args: [...args],
       stdin: "",
       envValue: options?.env?.TEST_RUNNER_ENV,
+      detached: options?.detached,
+      killSignals: [],
     };
     calls.push(call);
-    return createMockChild(scenario, (stdin) => {
-      call.stdin = stdin;
-    });
+    return createMockChild(
+      scenario,
+      (stdin) => {
+        call.stdin = stdin;
+      },
+      (signal) => {
+        call.killSignals.push(signal);
+      }
+    );
   };
   return { spawnFn, calls };
 };
 
 describe("CliAgentProcessRunner", () => {
+  const originalPlatform = process.platform;
+
+  beforeEach(() => {
+    Object.defineProperty(process, "platform", { value: originalPlatform });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(process, "platform", { value: originalPlatform });
+  });
+
   it("runs command with timeout-safe output capture", async () => {
     const { spawnFn, calls } = createSpawnFn([{ stdout: "ok", stderr: "warn", exitCode: 0 }]);
     const runner = new CliAgentProcessRunner({
@@ -150,6 +178,26 @@ describe("CliAgentProcessRunner", () => {
     await expect(runner.runCommand(["hang"])).rejects.toThrow("timed out");
   });
 
+  it("escalates timeout termination from SIGTERM to SIGKILL when process remains alive", async () => {
+    const { spawnFn } = createSpawnFn([{ holdOpen: true }]);
+    const killTreeSignals: NodeJS.Signals[] = [];
+    const runner = new CliAgentProcessRunner({
+      command: "agent",
+      env: {},
+      spawnFn,
+      killTreeFn: async (_pid, signal) => {
+        killTreeSignals.push(signal);
+      },
+      defaultCommandTimeoutMs: 1,
+      forceKillTimeoutMs: 1,
+      loggerName: "TestCliAgentProcessRunner",
+    });
+
+    await expect(runner.runCommand(["hang"])).rejects.toThrow("timed out");
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(killTreeSignals).toEqual(["SIGTERM", "SIGKILL"]);
+  });
+
   it("applies env overrides to subsequent spawned commands", async () => {
     const { spawnFn, calls } = createSpawnFn([{ stdout: "ok", exitCode: 0 }]);
     const runner = new CliAgentProcessRunner({
@@ -164,5 +212,142 @@ describe("CliAgentProcessRunner", () => {
 
     await runner.runCommand(["status"]);
     expect(calls[0]?.envValue).toBe("on");
+  });
+
+  it("uses detached process groups on posix and disables detach on windows", async () => {
+    Object.defineProperty(process, "platform", { value: "linux" });
+    const posix = createSpawnFn([{ stdout: "ok", exitCode: 0 }]);
+    const posixRunner = new CliAgentProcessRunner({
+      command: "agent",
+      env: {},
+      spawnFn: posix.spawnFn,
+      defaultCommandTimeoutMs: 50,
+      forceKillTimeoutMs: 10,
+      loggerName: "TestCliAgentProcessRunner",
+    });
+    await posixRunner.runCommand(["status"]);
+    expect(posix.calls[0]?.detached).toBe(true);
+
+    Object.defineProperty(process, "platform", { value: "win32" });
+    const windows = createSpawnFn([{ stdout: "ok", exitCode: 0 }]);
+    const windowsRunner = new CliAgentProcessRunner({
+      command: "agent",
+      env: {},
+      spawnFn: windows.spawnFn,
+      defaultCommandTimeoutMs: 50,
+      forceKillTimeoutMs: 10,
+      loggerName: "TestCliAgentProcessRunner",
+    });
+    await windowsRunner.runCommand(["status"]);
+    expect(windows.calls[0]?.detached).toBe(false);
+  });
+
+  it("falls back to child kill when windows process-tree kill fails", async () => {
+    Object.defineProperty(process, "platform", { value: "win32" });
+    const { spawnFn, calls } = createSpawnFn([{ holdOpen: true }]);
+    const killTreeCalls: Array<{ pid: number; signal: NodeJS.Signals }> = [];
+    const runner = new CliAgentProcessRunner({
+      command: "agent",
+      env: {},
+      spawnFn,
+      killTreeFn: async (pid, signal) => {
+        killTreeCalls.push({ pid, signal });
+        throw new Error("taskkill unavailable");
+      },
+      defaultCommandTimeoutMs: 100,
+      forceKillTimeoutMs: 10,
+      loggerName: "TestCliAgentProcessRunner",
+    });
+
+    const command = runner.runStreamingCommand(["-p"]);
+    await Promise.resolve();
+    await runner.disconnect();
+    const result = await command;
+
+    expect(result.signal).toBe("SIGTERM");
+    expect(killTreeCalls.length).toBe(1);
+    expect(calls[0]?.killSignals).toEqual(["SIGTERM"]);
+  });
+
+  it("falls back to child kill when posix process-group kill fails", async () => {
+    Object.defineProperty(process, "platform", { value: "linux" });
+    const { spawnFn, calls } = createSpawnFn([{ holdOpen: true }]);
+    const killTreeCalls: Array<{ pid: number; signal: NodeJS.Signals }> = [];
+    const runner = new CliAgentProcessRunner({
+      command: "agent",
+      env: {},
+      spawnFn,
+      killTreeFn: async (pid, signal) => {
+        killTreeCalls.push({ pid, signal });
+        throw new Error("group kill denied");
+      },
+      defaultCommandTimeoutMs: 100,
+      forceKillTimeoutMs: 10,
+      loggerName: "TestCliAgentProcessRunner",
+    });
+
+    const command = runner.runStreamingCommand(["-p"]);
+    await Promise.resolve();
+    await runner.disconnect();
+    const result = await command;
+
+    expect(result.signal).toBe("SIGTERM");
+    expect(killTreeCalls.length).toBe(1);
+    expect(calls[0]?.killSignals).toEqual(["SIGTERM"]);
+  });
+
+  it("detaches signal handlers after each streaming command lifecycle", async () => {
+    const baselineSigintListeners = process.listenerCount("SIGINT");
+    const baselineSigtermListeners = process.listenerCount("SIGTERM");
+    const { spawnFn } = createSpawnFn([
+      { stdout: "chunk-one", exitCode: 0 },
+      { stdout: "chunk-two", exitCode: 0 },
+    ]);
+    const runner = new CliAgentProcessRunner({
+      command: "agent",
+      env: {},
+      spawnFn,
+      defaultCommandTimeoutMs: 50,
+      forceKillTimeoutMs: 10,
+      loggerName: "TestCliAgentProcessRunner",
+    });
+
+    await runner.runStreamingCommand(["-p"]);
+    expect(process.listenerCount("SIGINT")).toBe(baselineSigintListeners);
+    expect(process.listenerCount("SIGTERM")).toBe(baselineSigtermListeners);
+
+    await runner.runStreamingCommand(["-p"]);
+    expect(process.listenerCount("SIGINT")).toBe(baselineSigintListeners);
+    expect(process.listenerCount("SIGTERM")).toBe(baselineSigtermListeners);
+  });
+
+  it("keeps signal attach/detach idempotent across reconnect cycles", async () => {
+    const baselineSigintListeners = process.listenerCount("SIGINT");
+    const baselineSigtermListeners = process.listenerCount("SIGTERM");
+    const { spawnFn } = createSpawnFn([{ holdOpen: true }, { holdOpen: true }]);
+    const runner = new CliAgentProcessRunner({
+      command: "agent",
+      env: {},
+      spawnFn,
+      defaultCommandTimeoutMs: 100,
+      forceKillTimeoutMs: 10,
+      loggerName: "TestCliAgentProcessRunner",
+    });
+
+    const firstCommand = runner.runStreamingCommand(["-p"]);
+    await Promise.resolve();
+    await runner.disconnect();
+    await firstCommand;
+    await runner.disconnect();
+    expect(process.listenerCount("SIGINT")).toBe(baselineSigintListeners);
+    expect(process.listenerCount("SIGTERM")).toBe(baselineSigtermListeners);
+
+    const secondCommand = runner.runStreamingCommand(["-p"]);
+    await Promise.resolve();
+    await runner.disconnect();
+    await secondCommand;
+    await runner.disconnect();
+    expect(process.listenerCount("SIGINT")).toBe(baselineSigintListeners);
+    expect(process.listenerCount("SIGTERM")).toBe(baselineSigtermListeners);
   });
 });
