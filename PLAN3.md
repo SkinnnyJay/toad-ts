@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B120 core-route missing-action normalization coverage)
+
+- Expanded core-route classifier unit coverage for missing-action session route
+  variants with trailing-slash and query/hash normalization.
+- Updated:
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B119 malformed API scope classifier coverage)
 
 - Expanded server-route classifier unit coverage to lock API scoping behavior

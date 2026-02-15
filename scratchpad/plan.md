@@ -14,6 +14,9 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded core-route missing-action normalization coverage:
+  - added classifier assertions proving `/sessions/:id` missing-action routes
+    remain `UNHANDLED` across trailing-slash and query/hash normalized forms.
 - Expanded malformed API scope classifier coverage:
   - added server-route classifier unit assertions proving malformed API
     double-segment paths remain API-scoped unhandled routes

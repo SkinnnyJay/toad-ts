@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B120 core-route missing-action normalization coverage)
+
+### Summary
+- Expanded `classifyCoreRoute(...)` coverage for missing-action session route
+  variants under normalized path forms.
+- Updated:
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - augmented unhandled-route assertions for:
+    - `/sessions/session-1/`
+    - `/sessions/session-1?view=full`
+    - `/sessions/session-1#latest`
+  - each now explicitly locks `CORE_ROUTE_DECISION.UNHANDLED`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B119 malformed API scope classifier coverage)
 
 ### Summary
