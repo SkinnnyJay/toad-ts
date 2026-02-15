@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded missing-action session integration POST parity:
+  - headless-server integration suite now includes explicit unauthenticated and
+    authenticated POST assertions for missing-action session route variants:
+    base, trailing, direct query/hash, and double-trailing query/hash forms.
 - Expanded missing-action session classifier method parity:
   - core-route classifier unit suite now includes explicit missing-action
     POST/GET assertions for base, trailing, direct query/hash, and

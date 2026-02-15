@@ -1,3 +1,19 @@
+## 2026-02-14 Execution Update (B203 missing-action session integration post parity)
+
+- Expanded password-auth ordering integration coverage for missing-action
+  session routes with explicit POST-method parity across base/trailing/query/hash
+  and double-trailing suffix variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B202 missing-action session classifier method parity)
 
 - Expanded core/server classifier coverage for missing-action session routes to
