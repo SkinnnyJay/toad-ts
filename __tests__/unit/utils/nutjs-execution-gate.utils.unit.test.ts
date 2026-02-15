@@ -34,6 +34,16 @@ describe("nutjs execution gate", () => {
     expect(policy.allowlist).toEqual([]);
   });
 
+  it("treats unsupported enabled flag strings as disabled", () => {
+    const policy = resolveNutJsExecutionPolicy({
+      [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "enabled",
+      [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: ACTION_ID,
+    });
+
+    expect(policy.enabled).toBe(false);
+    expect(policy.allowlist).toEqual([ACTION_ID]);
+  });
+
   it("normalizes allowlist entries with trimming and case folding", () => {
     const policy = resolveNutJsExecutionPolicy({
       [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: " TRUE ",

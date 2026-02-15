@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added NutJS allowlist-enforcement smoke coverage hardening:
+  - added policy parsing unit coverage for unsupported enabled-flag values.
+  - added smoke-level `not_allowlisted` assertion confirming excluded actions
+    short-circuit with no capability/diagnostics metadata and no action run.
 - Added NutJS early-gate boundary coverage hardening:
   - added unit assertions ensuring `disabled` and `not_allowlisted` outcomes
     do not attach capability/diagnostics metadata.

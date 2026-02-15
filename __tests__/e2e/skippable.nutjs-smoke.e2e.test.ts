@@ -49,6 +49,31 @@ describe("nutjs cross-platform smoke checks", () => {
     expect(actionInvoked).toBe(false);
   });
 
+  it("returns not-allowlisted outcome when action is excluded", async () => {
+    let actionInvoked = false;
+    const result = await runNutJsActionWithGate({
+      actionId: NUTJS_SMOKE_ACTION,
+      action: async () => {
+        actionInvoked = true;
+        return "executed";
+      },
+      env: {
+        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
+        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: "keyboard.type",
+      },
+      capability: {
+        platform: process.platform,
+        hasRuntime: true,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.NOT_ALLOWLISTED);
+    expect(result.executed).toBe(false);
+    expect(result.capability).toBeUndefined();
+    expect(result.diagnostics).toBeUndefined();
+    expect(actionInvoked).toBe(false);
+  });
+
   it("keeps gated execution in deterministic no-op mode without runtime", async () => {
     const capability = detectNutJsCapability({
       platform: process.platform,

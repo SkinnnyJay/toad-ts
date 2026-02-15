@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B68 allowlist-enforcement smoke coverage hardening for excluded
+    action short-circuit behavior and invalid enabled-flag parsing
   - completed B67 early-gate boundary coverage hardening for disabled/not-
     allowlisted metadata behavior and disabled smoke short-circuit semantics
   - completed B66 unsupported-platform diagnostics hardening for NutJS
