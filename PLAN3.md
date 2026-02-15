@@ -7392,6 +7392,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - reduce reconnect jitter test scaffolding duplication while keeping
       integration behavior coverage unchanged.
 
+## Execution Log Addendum — 2026-02-14 (B45 typed delay helper reuse)
+
+- Additional P2 backlog hardening for timeout helper reuse:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - introduced shared typed delay helpers (`delayForMs`, `delayWithModulo`)
+      for reconnect timing scaffolding.
+    - replaced repeated inline `new Promise(setTimeout...)` wrappers in
+      reconnect integration scenarios with shared helper calls.
+    - preserved reconnect cadence behavior while reducing repeated timeout
+      boilerplate.
+  - Goal:
+    - replace repeated timeout wrappers with shared typed delay helpers to
+      improve test readability and maintainability.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7446,7 +7462,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B42 | P2 | deduplicate shell invocation logic between shell-session, interactive-shell, and background-task-manager.
 - [x] - B43 | P2 | simplify clipboard fallback chain into explicit capability-ranked strategy.
 - [x] - B44 | P2 | simplify reconnect jitter test scaffolding by generating jitter matrices from typed config.
-- [ ] - B45 | P2 | replace repeated `new Promise(setTimeout...)` blocks with shared typed delay helpers.
+- [x] - B45 | P2 | replace repeated `new Promise(setTimeout...)` blocks with shared typed delay helpers.
 - [ ] - B46 | P2 | add NutJS capability detector with explicit unsupported-platform no-op behavior.
 - [ ] - B47 | P2 | add NutJS permission diagnostics (macOS Accessibility, Linux display backend, Windows integrity level).
 - [ ] - B48 | P2 | gate NutJS execution behind feature flag and security allowlist.

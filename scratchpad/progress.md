@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B45 timeout-wrapper dedup with shared typed delay helpers in
+    reconnect integration coverage
   - completed B44 reconnect jitter scaffolding simplification with shared
     reconnect distribution helpers and typed jitter matrix generation
   - completed B43 clipboard fallback simplification with explicit

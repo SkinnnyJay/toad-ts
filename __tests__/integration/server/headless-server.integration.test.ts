@@ -160,6 +160,16 @@ const createReconnectJitterMatrix = (
   };
 };
 
+const delayForMs = (durationMs: number): Promise<void> => {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(), durationMs);
+  });
+};
+
+const delayWithModulo = (durationMs: number, modulo: number): Promise<void> => {
+  return delayForMs(durationMs % modulo);
+};
+
 const requestWithRawPath = (
   host: string,
   port: number,
@@ -4375,9 +4385,7 @@ describe("headless server", () => {
           return collectStateUpdateEvents(stateUpdateResponse, 1);
         })();
 
-        await new Promise<void>((resolve) => {
-          setTimeout(() => resolve(), cycleIndex % 2 === 0 ? 1 : 0);
-        });
+        await delayForMs(cycleIndex % 2 === 0 ? 1 : 0);
 
         const createResponse = await fetch(`${baseUrl}/sessions`, {
           method: "POST",
@@ -4579,9 +4587,7 @@ describe("headless server", () => {
           return collectStateUpdateEvents(stateUpdateResponse, 1);
         })();
 
-        await new Promise<void>((resolve) => {
-          setTimeout(() => resolve(), cycleIndex % 3);
-        });
+        await delayWithModulo(cycleIndex, 3);
 
         const createResponse = await fetch(`${baseUrl}/sessions`, {
           method: "POST",
@@ -4794,9 +4800,7 @@ describe("headless server", () => {
             return collectStateUpdateEvents(stateUpdateResponse, 1);
           })();
 
-          await new Promise<void>((resolve) => {
-            setTimeout(() => resolve(), (cycleIndex + reconnectIndex) % 3);
-          });
+          await delayWithModulo(cycleIndex + reconnectIndex, 3);
 
           const createSessionRequestBody =
             createRequestIndex % 2 === 0 ? {} : { harnessId: HARNESS_DEFAULT.MOCK_ID };
@@ -5037,12 +5041,7 @@ describe("headless server", () => {
               openSseSegment();
             }
 
-            await new Promise<void>((resolve) => {
-              setTimeout(
-                () => resolve(),
-                (cycleIndex + websocketSegmentCreateIndex + createRequestIndex) % 3
-              );
-            });
+            await delayWithModulo(cycleIndex + websocketSegmentCreateIndex + createRequestIndex, 3);
 
             const createSessionRequestBody =
               createRequestIndex % 2 === 0 ? {} : { harnessId: HARNESS_DEFAULT.MOCK_ID };
@@ -6133,12 +6132,10 @@ describe("headless server", () => {
         const openNextWebsocketSegment = async (): Promise<void> => {
           const expectedCount = websocketSegmentSizes[websocketSegmentIndex];
           websocketSegmentIndex += 1;
-          await new Promise<void>((resolve) => {
-            setTimeout(
-              () => resolve(),
-              (websocketOpenJitterByCycleMs[cycleIndex] + cycleIndex + websocketSegmentIndex) % 4
-            );
-          });
+          await delayWithModulo(
+            websocketOpenJitterByCycleMs[cycleIndex] + cycleIndex + websocketSegmentIndex,
+            4
+          );
           activeSocket = new WebSocket(`ws://${host}:${port}`);
           await waitForOpen(activeSocket);
           websocketSegmentRemaining = expectedCount;
@@ -6149,12 +6146,10 @@ describe("headless server", () => {
         const openNextSseSegment = async (): Promise<void> => {
           sseSegmentExpectedCount = sseSegmentSizes[sseSegmentIndex];
           sseSegmentIndex += 1;
-          await new Promise<void>((resolve) => {
-            setTimeout(
-              () => resolve(),
-              (sseOpenJitterByCycleMs[cycleIndex] + cycleIndex + sseSegmentIndex + 1) % 4
-            );
-          });
+          await delayWithModulo(
+            sseOpenJitterByCycleMs[cycleIndex] + cycleIndex + sseSegmentIndex + 1,
+            4
+          );
           sseSegmentRemaining = sseSegmentExpectedCount;
           stateUpdatePromise = (async (): Promise<Array<Record<string, unknown>>> => {
             const stateUpdateResponse = await fetch(`${baseUrl}/api/events`);
@@ -6305,15 +6300,11 @@ describe("headless server", () => {
           if (shouldCloseWebsocketSegment && shouldCloseSseSegment) {
             if (openSseFirstByCycle[cycleIndex]) {
               await closeSseSegment();
-              await new Promise<void>((resolve) => {
-                setTimeout(() => resolve(), closeInterleaveDelayByCycle % 3);
-              });
+              await delayWithModulo(closeInterleaveDelayByCycle, 3);
               await closeWebsocketSegment();
             } else {
               await closeWebsocketSegment();
-              await new Promise<void>((resolve) => {
-                setTimeout(() => resolve(), closeInterleaveDelayByCycle % 3);
-              });
+              await delayWithModulo(closeInterleaveDelayByCycle, 3);
               await closeSseSegment();
             }
           } else if (shouldCloseWebsocketSegment) {
@@ -6322,12 +6313,10 @@ describe("headless server", () => {
             await closeSseSegment();
           }
           if (shouldCloseWebsocketSegment || shouldCloseSseSegment) {
-            await new Promise<void>((resolve) => {
-              const postCloseCreateJitterByCycle = openSseFirstByCycle[cycleIndex]
-                ? postCloseCreateJitterSseFirstByCycleMs[cycleIndex]
-                : postCloseCreateJitterWebsocketFirstByCycleMs[cycleIndex];
-              setTimeout(() => resolve(), postCloseCreateJitterByCycle % 4);
-            });
+            const postCloseCreateJitterByCycle = openSseFirstByCycle[cycleIndex]
+              ? postCloseCreateJitterSseFirstByCycleMs[cycleIndex]
+              : postCloseCreateJitterWebsocketFirstByCycleMs[cycleIndex];
+            await delayWithModulo(postCloseCreateJitterByCycle, 4);
           }
         }
 
@@ -6372,12 +6361,7 @@ describe("headless server", () => {
             invalidAttemptIndex < invalidPromptBurstByCycle[cycleIndex];
             invalidAttemptIndex += 1
           ) {
-            await new Promise<void>((resolve) => {
-              setTimeout(
-                () => resolve(),
-                (invalidBurstSpacingByCycle + invalidAttemptIndex + cycleIndex) % 3
-              );
-            });
+            await delayWithModulo(invalidBurstSpacingByCycle + invalidAttemptIndex + cycleIndex, 3);
             const invalidPromptResponse = await fetch(`${baseUrl}/sessions/${sessionId}/prompt`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -8470,12 +8454,7 @@ describe("headless server", () => {
         const openNextWebsocketSegment = async (): Promise<void> => {
           const expectedCount = websocketSegmentSizes[websocketSegmentIndex];
           websocketSegmentIndex += 1;
-          await new Promise<void>((resolve) => {
-            setTimeout(
-              () => resolve(),
-              (openOrderJitterByCycleMs[cycleIndex] + websocketSegmentIndex) % 3
-            );
-          });
+          await delayWithModulo(openOrderJitterByCycleMs[cycleIndex] + websocketSegmentIndex, 3);
           activeSocket = new WebSocket(`ws://${host}:${port}`);
           await waitForOpen(activeSocket);
           websocketSegmentRemaining = expectedCount;
@@ -8486,12 +8465,7 @@ describe("headless server", () => {
         const openNextSseSegment = async (): Promise<void> => {
           sseSegmentExpectedCount = sseSegmentSizes[sseSegmentIndex];
           sseSegmentIndex += 1;
-          await new Promise<void>((resolve) => {
-            setTimeout(
-              () => resolve(),
-              (openOrderJitterByCycleMs[cycleIndex] + sseSegmentIndex + 1) % 3
-            );
-          });
+          await delayWithModulo(openOrderJitterByCycleMs[cycleIndex] + sseSegmentIndex + 1, 3);
           sseSegmentRemaining = sseSegmentExpectedCount;
           stateUpdatePromise = (async (): Promise<Array<Record<string, unknown>>> => {
             const stateUpdateResponse = await fetch(`${baseUrl}/api/events`);
@@ -8517,12 +8491,10 @@ describe("headless server", () => {
             await openNextSseSegment();
           }
 
-          await new Promise<void>((resolve) => {
-            setTimeout(
-              () => resolve(),
-              (createJitterByCycleMs[cycleIndex] + cycleCreateIndex + createRequestIndex) % 3
-            );
-          });
+          await delayWithModulo(
+            createJitterByCycleMs[cycleIndex] + cycleCreateIndex + createRequestIndex,
+            3
+          );
 
           const createSessionRequestBody =
             createRequestIndex % 2 === 0 ? {} : { harnessId: HARNESS_DEFAULT.MOCK_ID };

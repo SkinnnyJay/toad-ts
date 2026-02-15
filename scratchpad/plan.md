@@ -4024,9 +4024,14 @@
   - introduced typed reconnect jitter matrix helper for grouped jitter values
   - updated reconnect-order jitter integration coverage to use typed matrix
     config output
+- Completed P2 backlog item B45 typed delay helper reuse:
+  - added shared typed delay helpers in
+    `__tests__/integration/server/headless-server.integration.test.ts`
+  - replaced repeated inline timeout-promise wrappers with shared delay helpers
+    across reconnect timing paths
 - New next candidate:
-  - evaluate severity backlog item B45 by replacing repeated timeout-promise
-    blocks with shared typed delay helpers
+  - evaluate severity backlog item B46 by adding NutJS capability detection
+    with explicit unsupported-platform no-op behavior
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers
