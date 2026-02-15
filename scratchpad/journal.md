@@ -1,5 +1,39 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B82 server runtime host/port normalization)
+
+### Summary
+- Hardened server runtime config resolution for host and port normalization.
+- Updated:
+  - `src/server/server-config.ts`
+  - `src/config/limits.ts`
+  - `__tests__/unit/server/server-config.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - host resolution now trims host inputs and ignores blank override/env hosts.
+  - port parsing now requires integer-only values in bounded server port range
+    and falls back from invalid override ports to valid env ports before
+    defaulting.
+  - extracted server port bounds into shared limit constants to satisfy strict
+    literal policy.
+  - expanded unit coverage for host trimming/fallback and bounded port parsing
+    behavior.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/server-config.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B81 server-auth single-entry array support)
 
 ### Summary

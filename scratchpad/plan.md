@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added server runtime host/port resolution hardening:
+  - host values are now trimmed and blank hosts no longer override valid env or
+    default hosts.
+  - port parsing now enforces integer range bounds (1-65535), trims string
+    values, and falls back from invalid overrides to valid env ports.
+  - expanded unit coverage for host trimming/fallback and strict port
+    normalization behavior.
 - Added server-auth single-entry authorization-array support:
   - auth normalization now accepts one authorization array value (while still
     rejecting ambiguous multi-entry arrays).

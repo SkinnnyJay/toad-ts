@@ -1,3 +1,21 @@
+## 2026-02-14 Execution Update (B82 server runtime host/port normalization)
+
+- Hardened `resolveServerConfig(...)` host and port normalization:
+  - trims host values and ignores blank override/env hosts
+  - enforces bounded integer-only port parsing with fallback from invalid
+    overrides to valid env ports
+- Updated:
+  - `src/server/server-config.ts`
+  - `src/config/limits.ts`
+  - `__tests__/unit/server/server-config.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/server-config.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B81 server-auth single-entry arrays)
 
 - Hardened server auth normalization to accept single-entry authorization
