@@ -34,6 +34,17 @@ describe("normalizeRoutePathname", () => {
     expect(normalizeRoutePathname("/sessions//prompt/#summary")).toBe("/sessions//prompt");
   });
 
+  it("preserves whitespace-padded malformed api separators while normalizing suffixes", () => {
+    expect(normalizeRoutePathname(" /api//config/?scope=all ")).toBe("/api//config");
+    expect(normalizeRoutePathname(" /api//config//#summary ")).toBe("/api//config");
+    expect(normalizeRoutePathname(" /api/sessions//messages/?scope=all ")).toBe(
+      "/api/sessions//messages"
+    );
+    expect(normalizeRoutePathname(" /api/sessions//messages//#summary ")).toBe(
+      "/api/sessions//messages"
+    );
+  });
+
   it("normalizes unknown api route trailing and double-trailing forms", () => {
     expect(normalizeRoutePathname("/api/unknown/")).toBe("/api/unknown");
     expect(normalizeRoutePathname("/api/unknown/?scope=all")).toBe("/api/unknown");

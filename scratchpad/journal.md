@@ -1,5 +1,45 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B218 malformed-api whitespace padded parity)
+
+### Summary
+- Expanded malformed API double-segment classifier coverage for
+  whitespace-padded variants across API/server classifier and pathname
+  normalizer suites.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/pathname-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added api-routes classifier assertions (`NOT_FOUND`) for whitespace-padded
+    malformed API variants:
+    - ` /api//config `, ` /api//config/?scope=all `,
+      ` /api//config//#summary `
+    - ` /api/sessions//messages `, ` /api/sessions//messages/?scope=all `,
+      ` /api/sessions//messages//#summary `
+    with explicit GET/POST parity.
+  - added server-route classifier assertions (`UNHANDLED` with
+    `API_ROUTE_CLASSIFIER`) for same whitespace-padded malformed API variants.
+  - added pathname-normalization assertions confirming same forms preserve
+    malformed separators (`/api//config`, `/api/sessions//messages`) after
+    normalization.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/unit/server/pathname-normalization.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B217 api-root whitespace padded parity)
 
 ### Summary

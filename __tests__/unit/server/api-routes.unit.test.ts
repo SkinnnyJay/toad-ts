@@ -619,6 +619,81 @@ describe("API Routes", () => {
       });
     });
 
+    it("classifies whitespace-padded malformed api double-segment forms as not found", () => {
+      const paddedConfigGetResult = classifyApiRoute("GET", " /api//config ");
+      const paddedConfigPostResult = classifyApiRoute("POST", " /api//config ");
+      const paddedConfigQueryGetResult = classifyApiRoute("GET", " /api//config/?scope=all ");
+      const paddedConfigQueryPostResult = classifyApiRoute("POST", " /api//config/?scope=all ");
+      const paddedConfigHashGetResult = classifyApiRoute("GET", " /api//config//#summary ");
+      const paddedConfigHashPostResult = classifyApiRoute("POST", " /api//config//#summary ");
+      const paddedMessagesGetResult = classifyApiRoute("GET", " /api/sessions//messages ");
+      const paddedMessagesPostResult = classifyApiRoute("POST", " /api/sessions//messages ");
+      const paddedMessagesQueryGetResult = classifyApiRoute(
+        "GET",
+        " /api/sessions//messages/?scope=all "
+      );
+      const paddedMessagesQueryPostResult = classifyApiRoute(
+        "POST",
+        " /api/sessions//messages/?scope=all "
+      );
+      const paddedMessagesHashGetResult = classifyApiRoute(
+        "GET",
+        " /api/sessions//messages//#summary "
+      );
+      const paddedMessagesHashPostResult = classifyApiRoute(
+        "POST",
+        " /api/sessions//messages//#summary "
+      );
+      expect(paddedConfigGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedConfigPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedConfigQueryGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedConfigQueryPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedConfigHashGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedConfigHashPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedMessagesGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedMessagesPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedMessagesQueryGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedMessagesQueryPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedMessagesHashGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedMessagesHashPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
     it("classifies malformed double-segment api paths as not found", () => {
       const configResult = classifyApiRoute("POST", "/api//config");
       const configGetResult = classifyApiRoute("GET", "/api//config");

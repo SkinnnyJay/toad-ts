@@ -14,6 +14,17 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded malformed API double-segment whitespace-padded parity:
+  - api-routes unit suite now explicitly covers whitespace-padded malformed
+    double-segment API variants with GET/POST parity:
+    ` /api//config `, ` /api//config/?scope=all `,
+    ` /api//config//#summary `, ` /api/sessions//messages `,
+    ` /api/sessions//messages/?scope=all `,
+    ` /api/sessions//messages//#summary `.
+  - server-route classifier suite now explicitly confirms those forms are
+    API-scoped `UNHANDLED`.
+  - pathname-normalization suite now explicitly confirms those forms preserve
+    malformed inner separators while normalizing suffixes.
 - Expanded API-root whitespace-padded malformed parity:
   - api-routes unit suite now explicitly covers whitespace-padded API-root
     variants with GET/POST parity:

@@ -932,6 +932,99 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies whitespace-padded malformed api double-segment paths as api-scoped unhandled", () => {
+    const paddedConfigGetResult = classifyServerRoute(HTTP_METHOD.GET, " /api//config ");
+    const paddedConfigPostResult = classifyServerRoute(HTTP_METHOD.POST, " /api//config ");
+    const paddedConfigQueryGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /api//config/?scope=all "
+    );
+    const paddedConfigQueryPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /api//config/?scope=all "
+    );
+    const paddedConfigHashGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /api//config//#summary "
+    );
+    const paddedConfigHashPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /api//config//#summary "
+    );
+    const paddedMessagesGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /api/sessions//messages "
+    );
+    const paddedMessagesPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /api/sessions//messages "
+    );
+    const paddedMessagesQueryGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /api/sessions//messages/?scope=all "
+    );
+    const paddedMessagesQueryPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /api/sessions//messages/?scope=all "
+    );
+    const paddedMessagesHashGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /api/sessions//messages//#summary "
+    );
+    const paddedMessagesHashPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /api/sessions//messages//#summary "
+    );
+    expect(paddedConfigGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedConfigPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedConfigQueryGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedConfigQueryPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedConfigHashGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedConfigHashPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedMessagesGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedMessagesPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedMessagesQueryGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedMessagesQueryPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedMessagesHashGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedMessagesHashPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies malformed api double-segment paths as api-scoped unhandled", () => {
     const getResult = classifyServerRoute(HTTP_METHOD.GET, "/api//config");
     const trailingGetResult = classifyServerRoute(HTTP_METHOD.GET, "/api//config/");
