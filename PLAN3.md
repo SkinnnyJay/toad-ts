@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B123 non-api auth-order method coverage expansion)
+
+- Expanded password-protected non-API auth-before-method integration coverage
+  for session prompt/messages route variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before method semantics on non-api protected routes"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B122 unknown-route auth-order malformed session coverage)
 
 - Expanded password-protected unknown-route auth-order integration coverage for

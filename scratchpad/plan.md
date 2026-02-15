@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded non-api auth-order method coverage:
+  - password-protected non-api auth-before-method test now covers session
+    prompt/messages variants with unauthenticated `401` checks and
+    authenticated canonical `405` assertions.
 - Expanded unknown-route auth-order malformed session coverage:
   - password-protected unknown-route ordering test now includes malformed
     session variants (`/sessions//prompt`, `/sessions//messages`) with locked

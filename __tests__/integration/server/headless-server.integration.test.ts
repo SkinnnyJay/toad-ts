@@ -9160,6 +9160,29 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedPromptRouteResponse = await fetch(
+        `${baseUrl}/sessions/session-1/prompt`
+      );
+      expect(unauthenticatedPromptRouteResponse.status).toBe(401);
+      expect(unauthenticatedPromptRouteResponse.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedPromptRouteResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedMessagesRouteResponse = await fetch(
+        `${baseUrl}/sessions/session-1/messages`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: "ignored" }),
+        }
+      );
+      expect(unauthenticatedMessagesRouteResponse.status).toBe(401);
+      expect(unauthenticatedMessagesRouteResponse.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedMessagesRouteResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const authenticatedResponse = await fetch(`${baseUrl}/sessions`, {
         headers: {
           Authorization: "Bearer secret",
@@ -9167,6 +9190,35 @@ describe("headless server", () => {
       });
       expect(authenticatedResponse.status).toBe(405);
       await expect(authenticatedResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const authenticatedPromptRouteResponse = await fetch(
+        `${baseUrl}/sessions/session-1/prompt/`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedPromptRouteResponse.status).toBe(405);
+      await expect(authenticatedPromptRouteResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const authenticatedMessagesRouteResponse = await fetch(
+        `${baseUrl}/sessions/session-1/messages/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt: "ignored" }),
+        }
+      );
+      expect(authenticatedMessagesRouteResponse.status).toBe(405);
+      await expect(authenticatedMessagesRouteResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
     } finally {
