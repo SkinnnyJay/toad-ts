@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B118 unknown-route auth-order session coverage)
+
+### Summary
+- Expanded password-protected unknown-route auth-order integration coverage to
+  include unknown session-route variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in `applies auth checks before not-found semantics on unknown routes`:
+    - added unauthenticated assertions for:
+      - `/sessions/session-1/unsupported`
+      - `/sessions/session-1`
+      each returning `401` with `WWW-Authenticate: Bearer`.
+    - added authenticated assertions for the same routes returning:
+      - `404` + `UNKNOWN_ENDPOINT`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B117 missing-action session-subroute coverage)
 
 ### Summary

@@ -3,6 +3,10 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B118 unknown-route auth-order session coverage hardening
+    (password-protected unknown-route ordering test now includes session
+    unknown/missing-action paths for `401` pre-auth and authenticated
+    `404` + `UNKNOWN_ENDPOINT` semantics)
   - completed B117 missing-action session-subroute coverage hardening
     (unsupported session-subroute integration now explicitly locks
     `/sessions/:id` and `/sessions/:id/` unknown-endpoint behavior)

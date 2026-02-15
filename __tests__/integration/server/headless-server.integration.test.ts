@@ -9238,6 +9238,22 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedSessionUnknown = await fetch(
+        `${baseUrl}/sessions/session-1/unsupported`
+      );
+      expect(unauthenticatedSessionUnknown.status).toBe(401);
+      expect(unauthenticatedSessionUnknown.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedSessionUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedSessionMissingAction = await fetch(`${baseUrl}/sessions/session-1`);
+      expect(unauthenticatedSessionMissingAction.status).toBe(401);
+      expect(unauthenticatedSessionMissingAction.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedSessionMissingAction.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const authenticatedApiUnknown = await fetch(`${baseUrl}/api`, {
         headers: {
           Authorization: "Bearer secret",
@@ -9256,6 +9272,26 @@ describe("headless server", () => {
       expect(authenticatedCoreUnknown.status).toBe(404);
       await expect(authenticatedCoreUnknown.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedSessionUnknown = await fetch(`${baseUrl}/sessions/session-1/unsupported`, {
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedSessionUnknown.status).toBe(404);
+      await expect(authenticatedSessionUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const authenticatedSessionMissingAction = await fetch(`${baseUrl}/sessions/session-1`, {
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedSessionMissingAction.status).toBe(404);
+      await expect(authenticatedSessionMissingAction.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
       });
     } finally {
       await server.close();

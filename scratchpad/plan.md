@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-route auth-order coverage for session paths:
+  - password-protected not-found ordering test now includes session unknown
+    and missing-action route variants with explicit unauthenticated (`401`) and
+    authenticated (`404` + `UNKNOWN_ENDPOINT`) assertions.
 - Expanded missing-action session-subroute integration coverage:
   - unsupported session-subroute test now locks `/sessions/:id` and
     `/sessions/:id/` behavior (for unsupported GET/POST) to canonical
