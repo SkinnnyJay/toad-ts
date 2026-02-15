@@ -352,6 +352,7 @@ describe("API Routes", () => {
       const trailingQueryResult = classifyApiRoute("POST", "/api//config/?scope=all");
       const trailingHashResult = classifyApiRoute("POST", "/api//config/#summary");
       const doubleTrailingResult = classifyApiRoute("POST", "/api//config//");
+      const doubleTrailingQueryResult = classifyApiRoute("POST", "/api//config//?scope=all");
       const doubleTrailingHashResult = classifyApiRoute("POST", "/api//config//#summary");
       expect(configResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
@@ -394,6 +395,10 @@ describe("API Routes", () => {
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
       expect(doubleTrailingResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(doubleTrailingQueryResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
