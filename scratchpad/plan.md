@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded server-route trailing-hash combined coverage:
+  - server-route classifier unit tests now include combined
+    trailing-slash + hash forms for `/api/config` in:
+    - API match classification (`GET`)
+    - API method-not-allowed classification (`POST`).
+  - locks canonical API classifier kind and handler ownership for these
+    combined normalized hash-suffixed route variants.
 - Expanded api-route root trailing-query not-found coverage:
   - api-routes unit tests now include `classifyApiRoute("GET", "/api/?scope=all")`.
   - locks canonical `NOT_FOUND` + `API_ROUTE_CLASSIFIER` decision for direct
