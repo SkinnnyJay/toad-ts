@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded malformed session-subroute integration coverage:
+  - added blank-segment route assertions in unsupported session-subroute
+    integration tests for:
+    `/sessions//prompt`, `/sessions//messages`,
+    `/sessions/:id//prompt`, `/sessions/:id//messages`.
+  - locked canonical `404` + `UNKNOWN_ENDPOINT` semantics for these malformed
+    path shapes.
 - Refactored headless-server session route dispatch parsing:
   - session-resource path detection and `parseSessionRoutePath(...)` now run
     once per request and feed both prompt/messages route branches.

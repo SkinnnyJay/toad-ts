@@ -3,6 +3,9 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B115 malformed session-subroute coverage hardening
+    (blank-segment session subroutes now explicitly locked to
+    `404` + `UNKNOWN_ENDPOINT` in headless-server integration tests)
   - completed B114 headless session-route parse reuse hardening
     (single request-scope parse of session-resource route path reused across
     prompt/messages branch dispatch paths)

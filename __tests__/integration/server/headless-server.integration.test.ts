@@ -649,6 +649,40 @@ describe("headless server", () => {
       await expect(extraMessagesSegment.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
       });
+
+      const blankSessionPromptRoute = await fetch(`${baseUrl}/sessions//prompt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "Hello" }),
+      });
+      expect(blankSessionPromptRoute.status).toBe(404);
+      await expect(blankSessionPromptRoute.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const blankSessionMessagesRoute = await fetch(`${baseUrl}/sessions//messages`);
+      expect(blankSessionMessagesRoute.status).toBe(404);
+      await expect(blankSessionMessagesRoute.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const blankActionSegmentPromptRoute = await fetch(`${baseUrl}/sessions/session-1//prompt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "Hello" }),
+      });
+      expect(blankActionSegmentPromptRoute.status).toBe(404);
+      await expect(blankActionSegmentPromptRoute.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const blankActionSegmentMessagesRoute = await fetch(
+        `${baseUrl}/sessions/session-1//messages`
+      );
+      expect(blankActionSegmentMessagesRoute.status).toBe(404);
+      await expect(blankActionSegmentMessagesRoute.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
     } finally {
       await server.close();
     }

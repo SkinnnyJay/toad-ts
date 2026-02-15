@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B115 malformed session-subroute coverage)
+
+- Expanded headless-server integration coverage for malformed session-subroute
+  shapes that include blank path segments.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "returns unknown endpoint for unsupported session subroutes"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B114 headless session-route parse reuse)
 
 - Refactored headless-server request dispatch to parse session-resource route

@@ -1,5 +1,38 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B115 malformed session-subroute coverage)
+
+### Summary
+- Expanded headless-server integration coverage for malformed session-subroute
+  path variants with blank segments.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - extended `returns unknown endpoint for unsupported session subroutes`
+    with blank-segment path cases:
+    - `/sessions//prompt`
+    - `/sessions//messages`
+    - `/sessions/session-1//prompt`
+    - `/sessions/session-1//messages`
+  - each case now explicitly asserts canonical `404` +
+    `SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "returns unknown endpoint for unsupported session subroutes"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B114 headless session-route parse reuse)
 
 ### Summary
