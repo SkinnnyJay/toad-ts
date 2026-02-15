@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added JSON response undefined-payload serialization hardening:
+  - `sendJsonResponse(...)` now canonicalizes `JSON.stringify(undefined)` to
+    `"null"` so content-length/header emission remains safe and deterministic.
+  - added focused unit coverage for undefined payloads with
+    `includeContentLength`.
 - Added shared JSON-response header-key normalization hardening:
   - `sendJsonResponse(...)` now trims incoming custom header names before
     managed-header filtering and output emission.

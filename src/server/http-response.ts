@@ -36,7 +36,8 @@ export const sendJsonResponse = (
   payload: unknown,
   options: JsonResponseOptions = {}
 ): void => {
-  const body = JSON.stringify(payload);
+  const serializedPayload = JSON.stringify(payload);
+  const body = serializedPayload === undefined ? "null" : serializedPayload;
   const headers: OutgoingHttpHeaders = {
     ...stripManagedHeaders(options.headers),
     "Content-Type": MANAGED_HEADER.JSON_CONTENT_TYPE,

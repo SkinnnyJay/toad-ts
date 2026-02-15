@@ -143,4 +143,18 @@ describe("http-response helpers", () => {
       body: { ok: true },
     });
   });
+
+  it("normalizes undefined payloads to null json bodies", () => {
+    const { response, getCaptured } = createResponseCapture();
+    sendJsonResponse(response, 200, undefined, { includeContentLength: true });
+
+    expect(getCaptured()).toEqual({
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength("null"),
+      },
+      body: null,
+    });
+  });
 });
