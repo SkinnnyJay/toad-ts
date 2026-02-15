@@ -1,5 +1,42 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B183 api-root double-trailing unknown parity)
+
+### Summary
+- Expanded unknown-route auth-order and API-route classifier coverage for
+  API-root double-trailing unknown path variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added unauthenticated/authenticated integration assertions for:
+    - `/api//`
+    - `/api//?scope=all`
+    - `/api//#summary`
+    locking auth-first API-root unknown-route semantics under password
+    protection for double-trailing variants.
+  - added API/server classifier unit assertions for the same API-root
+    double-trailing base/query/hash variants, locking canonical
+    API-scoped not-found/unhandled ownership.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B182 missing-action double-trailing parity)
 
 ### Summary

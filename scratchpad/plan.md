@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded api-root double-trailing unknown parity:
+  - unknown-route auth-order integration coverage now includes
+    `/api//`, `/api//?scope=all`, and `/api//#summary`.
+  - api/server route classifier unit suites now include API-root
+    double-trailing base/query/hash parity checks.
 - Expanded missing-action double-trailing parity:
   - unknown-route auth-order integration coverage now includes
     `/sessions/session-1//`, `/sessions/session-1//?scope=all`, and

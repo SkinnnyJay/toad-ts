@@ -313,6 +313,24 @@ describe("API Routes", () => {
       });
     });
 
+    it("classifies api-root double-trailing forms as not found", () => {
+      const baseResult = classifyApiRoute("GET", "/api//");
+      const queryResult = classifyApiRoute("GET", "/api//?scope=all");
+      const hashResult = classifyApiRoute("GET", "/api//#summary");
+      expect(baseResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(queryResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(hashResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
     it("classifies malformed double-segment api paths as not found", () => {
       const configResult = classifyApiRoute("POST", "/api//config");
       const messagesResult = classifyApiRoute("POST", "/api/sessions//messages");

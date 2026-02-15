@@ -351,6 +351,24 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies /api double-trailing forms as api-scoped unhandled", () => {
+    const baseResult = classifyServerRoute(HTTP_METHOD.GET, "/api//");
+    const queryResult = classifyServerRoute(HTTP_METHOD.GET, "/api//?scope=all");
+    const hashResult = classifyServerRoute(HTTP_METHOD.GET, "/api//#summary");
+    expect(baseResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(queryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(hashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies unknown api routes as unhandled with api handler id", () => {
     const result = classifyServerRoute(HTTP_METHOD.GET, "/api/unknown");
     expect(result).toEqual({
