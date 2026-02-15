@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B144 core-route trailing-hash combined coverage)
+
+### Summary
+- Expanded core-route classifier unit coverage for combined
+  trailing-slash + hash route variants across health, prompt, messages, and
+  missing-action session paths.
+- Updated:
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added assertions for:
+    - `GET /health/#summary` -> `HEALTH_OK`
+    - `POST /health/#summary` -> `METHOD_NOT_ALLOWED`
+    - `GET /sessions/session-1/prompt/#latest` -> `METHOD_NOT_ALLOWED`
+    - `POST /sessions/session-1/messages/#tail` -> `METHOD_NOT_ALLOWED`
+    - `GET /sessions/session-1/#latest` -> `UNHANDLED`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B143 server-route trailing-hash combined coverage)
 
 ### Summary
