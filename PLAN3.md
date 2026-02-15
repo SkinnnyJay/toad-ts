@@ -1,3 +1,19 @@
+## 2026-02-14 Execution Update (B229 health auth-bypass double-trailing parity)
+
+- Expanded health-route auth-bypass integration coverage to include
+  double-trailing `//`, `//?query`, and `//#hash` variants under password
+  protection.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/unit/server/pathname-normalization.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B228 allowed-method double-trailing parity)
 
 - Expanded allowed-method double-trailing coverage for known routes across

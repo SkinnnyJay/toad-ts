@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded health auth-bypass double-trailing parity:
+  - headless-server integration suite now explicitly validates `/health//`,
+    `/health//?probe=1`, `/health//#summary` under password protection:
+    - GET remains `200 { status: "ok" }`
+    - POST remains `405 METHOD_NOT_ALLOWED` with no auth challenge header.
 - Expanded allowed-method double-trailing parity:
   - API classifier unit suite now explicitly proves known-route double-trailing
     variants still match under allowed methods (including padded forms).

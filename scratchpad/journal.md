@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B229 health auth-bypass double-trailing parity)
+
+### Summary
+- Expanded health-route auth-bypass integration coverage to include
+  double-trailing `//`, `//?query`, and `//#hash` variants under password
+  protection.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in password-protected health-route semantics coverage, added GET assertions
+    for `/health//`, `/health//?probe=1`, `/health//#summary` expecting
+    `200 { status: "ok" }`.
+  - added POST assertions for same variants expecting `405` with
+    `METHOD_NOT_ALLOWED` and no `www-authenticate` header.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/unit/server/pathname-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B228 allowed-method double-trailing parity)
 
 ### Summary

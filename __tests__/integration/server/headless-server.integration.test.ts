@@ -10856,6 +10856,15 @@ describe("headless server", () => {
       const healthTrailingSlashHashResponse = await fetch(`${baseUrl}/health/#summary`);
       expect(healthTrailingSlashHashResponse.status).toBe(200);
       await expect(healthTrailingSlashHashResponse.json()).resolves.toEqual({ status: "ok" });
+      const healthDoubleTrailingResponse = await fetch(`${baseUrl}/health//`);
+      expect(healthDoubleTrailingResponse.status).toBe(200);
+      await expect(healthDoubleTrailingResponse.json()).resolves.toEqual({ status: "ok" });
+      const healthDoubleTrailingQueryResponse = await fetch(`${baseUrl}/health//?probe=1`);
+      expect(healthDoubleTrailingQueryResponse.status).toBe(200);
+      await expect(healthDoubleTrailingQueryResponse.json()).resolves.toEqual({ status: "ok" });
+      const healthDoubleTrailingHashResponse = await fetch(`${baseUrl}/health//#summary`);
+      expect(healthDoubleTrailingHashResponse.status).toBe(200);
+      await expect(healthDoubleTrailingHashResponse.json()).resolves.toEqual({ status: "ok" });
 
       const unsupportedMethodResponse = await fetch(`${baseUrl}/health`, {
         method: "POST",
@@ -10908,6 +10917,30 @@ describe("headless server", () => {
       expect(unsupportedTrailingSlashHashResponse.status).toBe(405);
       expect(unsupportedTrailingSlashHashResponse.headers.get("www-authenticate")).toBeNull();
       await expect(unsupportedTrailingSlashHashResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+      const unsupportedDoubleTrailingResponse = await fetch(`${baseUrl}/health//`, {
+        method: "POST",
+      });
+      expect(unsupportedDoubleTrailingResponse.status).toBe(405);
+      expect(unsupportedDoubleTrailingResponse.headers.get("www-authenticate")).toBeNull();
+      await expect(unsupportedDoubleTrailingResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+      const unsupportedDoubleTrailingQueryResponse = await fetch(`${baseUrl}/health//?probe=1`, {
+        method: "POST",
+      });
+      expect(unsupportedDoubleTrailingQueryResponse.status).toBe(405);
+      expect(unsupportedDoubleTrailingQueryResponse.headers.get("www-authenticate")).toBeNull();
+      await expect(unsupportedDoubleTrailingQueryResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+      const unsupportedDoubleTrailingHashResponse = await fetch(`${baseUrl}/health//#summary`, {
+        method: "POST",
+      });
+      expect(unsupportedDoubleTrailingHashResponse.status).toBe(405);
+      expect(unsupportedDoubleTrailingHashResponse.headers.get("www-authenticate")).toBeNull();
+      await expect(unsupportedDoubleTrailingHashResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
     } finally {
