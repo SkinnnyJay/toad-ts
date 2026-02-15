@@ -92,6 +92,13 @@ describe("API Routes", () => {
       expect(result).not.toBeNull();
     });
 
+    it("should match execute and session-message routes with trailing-hash suffixes", () => {
+      const executeResult = matchRoute("POST", "/api/tui/execute-command/#summary");
+      const messagesResult = matchRoute("GET", "/api/sessions/session-123/messages/#latest");
+      expect(executeResult).not.toBeNull();
+      expect(messagesResult).not.toBeNull();
+    });
+
     it("should return null for unknown routes", () => {
       expect(matchRoute("GET", "/api/unknown")).toBeNull();
       expect(matchRoute("PUT", "/api/sessions")).toBeNull();
@@ -134,6 +141,13 @@ describe("API Routes", () => {
     it("classifies combined trailing-slash and hash pathnames with matching routes as match", () => {
       const result = classifyApiRoute("GET", "/api/config/#summary");
       expect(result.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+    });
+
+    it("classifies trailing-hash execute and session-message routes as match", () => {
+      const executeResult = classifyApiRoute("POST", "/api/tui/execute-command/#summary");
+      const messagesResult = classifyApiRoute("GET", "/api/sessions/session-123/messages/#latest");
+      expect(executeResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(messagesResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
     });
 
     it("classifies known path with unsupported method as method not allowed", () => {
@@ -183,6 +197,14 @@ describe("API Routes", () => {
 
     it("classifies combined trailing-slash and hash known path with unsupported method", () => {
       const result = classifyApiRoute("POST", "/api/config/#summary");
+      expect(result).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
+    it("classifies trailing-hash execute route with unsupported method", () => {
+      const result = classifyApiRoute("GET", "/api/tui/execute-command/#summary");
       expect(result).toEqual({
         kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,

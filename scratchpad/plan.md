@@ -14,6 +14,16 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded api-route execute/session hash-match coverage:
+  - api-routes unit tests now include combined trailing-slash + hash forms for:
+    - `matchRoute("POST", "/api/tui/execute-command/#summary")`
+    - `matchRoute("GET", "/api/sessions/:id/messages/#latest")`
+    - `classifyApiRoute("POST", "/api/tui/execute-command/#summary")` -> `MATCH`
+    - `classifyApiRoute("GET", "/api/sessions/:id/messages/#latest")` -> `MATCH`
+    - `classifyApiRoute("GET", "/api/tui/execute-command/#summary")`
+      -> `METHOD_NOT_ALLOWED` + `API_ROUTE_CLASSIFIER`.
+  - closes remaining trailing-hash combined coverage gap for execute-command
+    and parameterized session messages match/method semantics.
 - Expanded sessions trailing-hash method-guard coverage:
   - core-route classifier unit tests now include
     `GET /sessions/#summary` and lock canonical `METHOD_NOT_ALLOWED`.

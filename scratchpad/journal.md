@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B148 api-route execute/session hash-match coverage)
+
+### Summary
+- Expanded api-routes matcher/classifier unit coverage for combined
+  trailing-slash + hash execute-command and session-message route semantics.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added assertions for:
+    - `matchRoute("POST", "/api/tui/execute-command/#summary")` -> match
+    - `matchRoute("GET", "/api/sessions/session-123/messages/#latest")` -> match
+    - `classifyApiRoute("POST", "/api/tui/execute-command/#summary")` -> `MATCH`
+    - `classifyApiRoute("GET", "/api/sessions/session-123/messages/#latest")` -> `MATCH`
+    - `classifyApiRoute("GET", "/api/tui/execute-command/#summary")`
+      -> `METHOD_NOT_ALLOWED` + `API_ROUTE_CLASSIFIER`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B147 sessions trailing-hash method-guard coverage)
 
 ### Summary

@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B148 api-route execute/session hash-match coverage)
+
+- Expanded api-routes matcher/classifier unit coverage to lock combined
+  trailing-slash + hash handling for execute-command and session-messages
+  route matching/method semantics.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B147 sessions trailing-hash method-guard coverage)
 
 - Expanded core-route and server-route classifier unit coverage for
