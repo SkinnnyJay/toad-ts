@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded malformed API-session trailing-query classifier parity:
+  - api-routes and server-route classifier unit suites now explicitly lock
+    `/api/sessions//messages/?scope=all` malformed trailing-query behavior with
+    canonical API classifier ownership.
 - Expanded request-url comma-separated array candidate coverage:
   - request-url unit tests now include comma-separated host candidate parsing
     assertions inside host-header array entries for:

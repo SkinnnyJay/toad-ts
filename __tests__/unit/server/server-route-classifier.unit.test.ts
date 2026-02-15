@@ -317,6 +317,14 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies malformed api session trailing-query paths as api-scoped unhandled", () => {
+    const result = classifyServerRoute(HTTP_METHOD.POST, "/api/sessions//messages/?scope=all");
+    expect(result).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies malformed api session hash and trailing-hash paths as api-scoped unhandled", () => {
     const hashResult = classifyServerRoute(HTTP_METHOD.POST, "/api/sessions//messages#summary");
     const trailingHashResult = classifyServerRoute(

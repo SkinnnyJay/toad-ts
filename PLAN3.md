@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B171 malformed-api-session trailing-query classifier parity)
+
+- Expanded API and server route classifier unit coverage for malformed
+  API-session trailing-query variants.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B170 request-url comma-separated array candidate coverage)
 
 - Expanded request-url unit coverage for comma-separated host candidate parsing
