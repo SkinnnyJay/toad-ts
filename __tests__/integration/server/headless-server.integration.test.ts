@@ -8926,6 +8926,22 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
+      const configResponseWithQuery = await fetch(`${baseUrl}/api/config?scope=all`, {
+        method: "POST",
+      });
+      expect(configResponseWithQuery.status).toBe(405);
+      await expect(configResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const trailingConfigResponseWithQuery = await fetch(`${baseUrl}/api/config/?scope=all`, {
+        method: "POST",
+      });
+      expect(trailingConfigResponseWithQuery.status).toBe(405);
+      await expect(trailingConfigResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
       const executeResponse = await fetch(`${baseUrl}/api/tui/execute-command`);
       expect(executeResponse.status).toBe(405);
       await expect(executeResponse.json()).resolves.toEqual({
@@ -8935,6 +8951,20 @@ describe("headless server", () => {
       const trailingExecuteResponse = await fetch(`${baseUrl}/api/tui/execute-command/`);
       expect(trailingExecuteResponse.status).toBe(405);
       await expect(trailingExecuteResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const executeResponseWithQuery = await fetch(`${baseUrl}/api/tui/execute-command?scope=all`);
+      expect(executeResponseWithQuery.status).toBe(405);
+      await expect(executeResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const trailingExecuteResponseWithQuery = await fetch(
+        `${baseUrl}/api/tui/execute-command/?scope=all`
+      );
+      expect(trailingExecuteResponseWithQuery.status).toBe(405);
+      await expect(trailingExecuteResponseWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
@@ -8951,6 +8981,28 @@ describe("headless server", () => {
       });
       expect(trailingSessionRouteResponse.status).toBe(405);
       await expect(trailingSessionRouteResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const sessionRouteResponseWithQuery = await fetch(
+        `${baseUrl}/api/sessions/session-1?scope=all`,
+        {
+          method: "POST",
+        }
+      );
+      expect(sessionRouteResponseWithQuery.status).toBe(405);
+      await expect(sessionRouteResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const trailingSessionRouteResponseWithQuery = await fetch(
+        `${baseUrl}/api/sessions/session-1/?scope=all`,
+        {
+          method: "POST",
+        }
+      );
+      expect(trailingSessionRouteResponseWithQuery.status).toBe(405);
+      await expect(trailingSessionRouteResponseWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
@@ -8973,6 +9025,28 @@ describe("headless server", () => {
       );
       expect(trailingSessionMessagesRouteResponse.status).toBe(405);
       await expect(trailingSessionMessagesRouteResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const sessionMessagesRouteResponseWithQuery = await fetch(
+        `${baseUrl}/api/sessions/session-1/messages?scope=all`,
+        {
+          method: "POST",
+        }
+      );
+      expect(sessionMessagesRouteResponseWithQuery.status).toBe(405);
+      await expect(sessionMessagesRouteResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const trailingSessionMessagesRouteResponseWithQuery = await fetch(
+        `${baseUrl}/api/sessions/session-1/messages/?scope=all`,
+        {
+          method: "POST",
+        }
+      );
+      expect(trailingSessionMessagesRouteResponseWithQuery.status).toBe(405);
+      await expect(trailingSessionMessagesRouteResponseWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
     } finally {

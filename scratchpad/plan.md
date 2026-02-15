@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded API method query+trailing coverage:
+  - API method-not-allowed integration now includes combined
+    trailing-slash+query variants for `/api/config`,
+    `/api/tui/execute-command`, `/api/sessions/:id`, and
+    `/api/sessions/:id/messages` unsupported-method paths.
+  - locks canonical `405` method-not-allowed semantics across combined
+    normalized API route forms.
 - Expanded protected-api query+trailing auth-order coverage:
   - protected API auth-before-method integration now includes combined
     trailing-slash+query variants for `/api/config`, `/api/sessions/:id`, and

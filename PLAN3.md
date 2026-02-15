@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B132 api method query-trailing coverage)
+
+- Expanded API method-not-allowed integration coverage for combined
+  trailing-slash and query-suffixed variants across known API routes with
+  unsupported methods.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "returns method not allowed for known API routes with unsupported methods"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B131 protected-api query-trailing auth-order coverage)
 
 - Expanded password-protected API auth-before-method integration coverage for

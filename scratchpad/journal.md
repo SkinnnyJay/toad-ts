@@ -1,5 +1,42 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B132 api method query-trailing coverage)
+
+### Summary
+- Expanded API method-not-allowed integration coverage for combined
+  trailing-slash + query variants across known API routes with unsupported
+  methods.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in `returns method not allowed for known API routes with unsupported methods`:
+    - added assertions for:
+      - `/api/config?scope=all`
+      - `/api/config/?scope=all`
+      - `/api/tui/execute-command?scope=all`
+      - `/api/tui/execute-command/?scope=all`
+      - `/api/sessions/session-1?scope=all`
+      - `/api/sessions/session-1/?scope=all`
+      - `/api/sessions/session-1/messages?scope=all`
+      - `/api/sessions/session-1/messages/?scope=all`
+      each expecting canonical `405 + METHOD_NOT_ALLOWED`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "returns method not allowed for known API routes with unsupported methods"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B131 protected-api query-trailing auth-order coverage)
 
 ### Summary
