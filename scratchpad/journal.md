@@ -1,5 +1,48 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B202 missing-action session classifier method parity)
+
+### Summary
+- Expanded core/server classifier coverage for missing-action session routes to
+  lock POST/GET parity across base, trailing, direct query/hash, and
+  double-trailing suffix variants.
+- Updated:
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added missing-action POST/GET parity assertions in core-route classifier
+    for:
+    - `/sessions/session-1`
+    - `/sessions/session-1/`
+    - `/sessions/session-1?view=full`
+    - `/sessions/session-1#latest`
+    - `/sessions/session-1/?view=full`
+    - `/sessions/session-1/#latest`
+    - `/sessions/session-1//`
+    - `/sessions/session-1//?view=full`
+    - `/sessions/session-1//#latest`
+  - added server-route classifier POST/GET parity assertions for missing-action
+    base/trailing/direct-hash variants:
+    - `/sessions/session-1`
+    - `/sessions/session-1/`
+    - `/sessions/session-1#latest`
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B201 blank-session prompt trailing-path post/get parity)
 
 ### Summary

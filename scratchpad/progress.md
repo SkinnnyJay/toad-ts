@@ -3,6 +3,10 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B202 missing-action session classifier method parity hardening
+    (core/server classifier unit coverage now explicitly locks missing-action
+    route POST/GET parity across base, trailing, direct query/hash, and
+    double-trailing variants with canonical core-unhandled semantics)
   - completed B201 blank-session prompt trailing-path post/get parity hardening
     (core/server classifier unit coverage now explicitly locks POST/GET parity
     for `/sessions//prompt/` malformed trailing-path prompt form with canonical

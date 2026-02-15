@@ -230,6 +230,39 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies missing-action session base and direct-hash paths as core unhandled", () => {
+    const baseGetResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1");
+    const basePostResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions/session-1");
+    const trailingGetResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1/");
+    const trailingPostResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions/session-1/");
+    const hashGetResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1#latest");
+    const hashPostResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions/session-1#latest");
+    expect(baseGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(basePostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(trailingGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(trailingPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(hashGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(hashPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies missing-action session routes with trailing-query suffix as core unhandled", () => {
     const getResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1/?view=full");
     const postResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions/session-1/?view=full");

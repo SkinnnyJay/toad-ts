@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded missing-action session classifier method parity:
+  - core-route classifier unit suite now includes explicit missing-action
+    POST/GET assertions for base, trailing, direct query/hash, and
+    double-trailing suffix variants.
+  - server-route classifier unit suite now includes explicit base/trailing and
+    direct-hash POST/GET parity assertions for missing-action session routes.
 - Expanded blank-session prompt trailing-path POST/GET classifier parity:
   - core-route classifier unit suite now includes explicit POST/GET assertions
     for `/sessions//prompt/` malformed prompt trailing-path form.

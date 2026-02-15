@@ -145,10 +145,22 @@ describe("classifyCoreRoute", () => {
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1/")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
     expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1/")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1?view=full")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1?view=full")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1#latest")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
     expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1#latest")).toEqual({
@@ -157,16 +169,31 @@ describe("classifyCoreRoute", () => {
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1/?view=full")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1/?view=full")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1/#latest")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1/#latest")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1//")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1//")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1//?view=full")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1//?view=full")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1//#latest")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1//#latest")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
     expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1/prompt/extra")).toEqual({
