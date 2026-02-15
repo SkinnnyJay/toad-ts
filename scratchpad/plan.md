@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added NutJS unsupported-platform diagnostics hardening:
+  - expanded permission diagnostics unit coverage to assert unsupported
+    platforms do not trigger missing-permission classification.
+  - added smoke-level unsupported-platform simulation assertions ensuring
+    capability no-op outcomes carry fully non-applicable diagnostics metadata.
 - Added NutJS no-op diagnostics coverage hardening:
   - extended unsupported-platform capability-noop unit assertions to validate
     all diagnostics statuses are `not_applicable`.

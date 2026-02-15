@@ -90,4 +90,15 @@ describe("nutjs permission diagnostics", () => {
     expect(diagnostics.windowsIntegrityLevel.status).toBe(NUTJS_PERMISSION_STATUS.UNKNOWN);
     expect(hasMissingNutJsPermissions(diagnostics)).toBe(false);
   });
+
+  it("does not treat non-applicable permissions as missing", () => {
+    const diagnostics = diagnoseNutJsPermissions({
+      platform: "aix",
+    });
+
+    expect(diagnostics.macosAccessibility.status).toBe(NUTJS_PERMISSION_STATUS.NOT_APPLICABLE);
+    expect(diagnostics.linuxDisplayBackend.status).toBe(NUTJS_PERMISSION_STATUS.NOT_APPLICABLE);
+    expect(diagnostics.windowsIntegrityLevel.status).toBe(NUTJS_PERMISSION_STATUS.NOT_APPLICABLE);
+    expect(hasMissingNutJsPermissions(diagnostics)).toBe(false);
+  });
 });

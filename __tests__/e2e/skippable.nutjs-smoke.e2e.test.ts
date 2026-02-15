@@ -81,6 +81,30 @@ describe("nutjs cross-platform smoke checks", () => {
     expect(result.result).toBeNull();
   });
 
+  it("returns non-applicable diagnostics for unsupported platform simulation", async () => {
+    const result = await runNutJsActionWithGate({
+      actionId: NUTJS_SMOKE_ACTION,
+      action: async () => "executed",
+      env: createAllowlistedNutJsEnv(),
+      capability: {
+        platform: "aix",
+        hasRuntime: true,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.CAPABILITY_NOOP);
+    expect(result.executed).toBe(false);
+    expect(result.diagnostics?.macosAccessibility.status).toBe(
+      NUTJS_PERMISSION_STATUS.NOT_APPLICABLE
+    );
+    expect(result.diagnostics?.linuxDisplayBackend.status).toBe(
+      NUTJS_PERMISSION_STATUS.NOT_APPLICABLE
+    );
+    expect(result.diagnostics?.windowsIntegrityLevel.status).toBe(
+      NUTJS_PERMISSION_STATUS.NOT_APPLICABLE
+    );
+  });
+
   it("returns permission-missing for linux runtime without display backend", async () => {
     if (process.platform !== PLATFORM.LINUX) {
       return;
