@@ -1,5 +1,49 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B204 unknown-core classifier post/get parity)
+
+### Summary
+- Expanded core/server classifier coverage for unknown non-session core routes
+  with explicit POST/GET method parity across base/query/hash and
+  double-trailing suffix variants.
+- Updated:
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added core-route classifier POST parity assertions for unknown route
+    variants:
+    - `/unknown`
+    - `/unknown-endpoint?scope=all`
+    - `/unknown-endpoint#summary`
+    - `/unknown-endpoint//`
+    - `/unknown-endpoint//?scope=all`
+    - `/unknown-endpoint//#summary`
+  - expanded server-route classifier unknown-route tests with explicit POST/GET
+    parity assertions for:
+    - `/unknown`
+    - `/unknown/?scope=all`
+    - `/unknown-endpoint?scope=all`
+    - `/unknown/#summary`
+    - `/unknown-endpoint//`
+    - `/unknown-endpoint//?scope=all`
+    - `/unknown-endpoint//#summary`
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B203 missing-action session integration post parity)
 
 ### Summary

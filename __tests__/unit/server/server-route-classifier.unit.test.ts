@@ -181,32 +181,52 @@ describe("classifyServerRoute", () => {
   });
 
   it("classifies non-api/non-core routes as unhandled", () => {
-    const result = classifyServerRoute(HTTP_METHOD.GET, "/unknown");
-    expect(result).toEqual({
+    const getResult = classifyServerRoute(HTTP_METHOD.GET, "/unknown");
+    const postResult = classifyServerRoute(HTTP_METHOD.POST, "/unknown");
+    expect(getResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(postResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
   });
 
   it("classifies unknown core routes with trailing-query suffix as unhandled", () => {
-    const result = classifyServerRoute(HTTP_METHOD.GET, "/unknown/?scope=all");
-    expect(result).toEqual({
+    const getResult = classifyServerRoute(HTTP_METHOD.GET, "/unknown/?scope=all");
+    const postResult = classifyServerRoute(HTTP_METHOD.POST, "/unknown/?scope=all");
+    expect(getResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(postResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
   });
 
   it("classifies unknown core routes with direct-query suffix as unhandled", () => {
-    const result = classifyServerRoute(HTTP_METHOD.GET, "/unknown-endpoint?scope=all");
-    expect(result).toEqual({
+    const getResult = classifyServerRoute(HTTP_METHOD.GET, "/unknown-endpoint?scope=all");
+    const postResult = classifyServerRoute(HTTP_METHOD.POST, "/unknown-endpoint?scope=all");
+    expect(getResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(postResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
   });
 
   it("classifies unknown core routes with trailing-hash suffix as unhandled", () => {
-    const result = classifyServerRoute(HTTP_METHOD.GET, "/unknown/#summary");
-    expect(result).toEqual({
+    const getResult = classifyServerRoute(HTTP_METHOD.GET, "/unknown/#summary");
+    const postResult = classifyServerRoute(HTTP_METHOD.POST, "/unknown/#summary");
+    expect(getResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(postResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
@@ -214,9 +234,16 @@ describe("classifyServerRoute", () => {
 
   it("classifies unknown core routes with double-trailing slash variants as unhandled", () => {
     const baseResult = classifyServerRoute(HTTP_METHOD.GET, "/unknown-endpoint//");
+    const basePostResult = classifyServerRoute(HTTP_METHOD.POST, "/unknown-endpoint//");
     const queryResult = classifyServerRoute(HTTP_METHOD.GET, "/unknown-endpoint//?scope=all");
+    const queryPostResult = classifyServerRoute(HTTP_METHOD.POST, "/unknown-endpoint//?scope=all");
     const hashResult = classifyServerRoute(HTTP_METHOD.GET, "/unknown-endpoint//#summary");
+    const hashPostResult = classifyServerRoute(HTTP_METHOD.POST, "/unknown-endpoint//#summary");
     expect(baseResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(basePostResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
@@ -224,7 +251,15 @@ describe("classifyServerRoute", () => {
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
+    expect(queryPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
     expect(hashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(hashPostResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });

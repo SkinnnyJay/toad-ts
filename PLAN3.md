@@ -1,3 +1,20 @@
+## 2026-02-14 Execution Update (B204 unknown-core classifier post/get parity)
+
+- Expanded core/server classifier coverage for unknown non-session core routes
+  with explicit POST/GET method parity across base/query/hash and
+  double-trailing suffix variants.
+- Updated:
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Validation:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B203 missing-action session integration post parity)
 
 - Expanded password-auth ordering integration coverage for missing-action

@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-core classifier POST/GET method parity:
+  - core-route classifier unit suite now includes explicit POST parity for
+    unknown base/query/hash and double-trailing malformed variants.
+  - server-route classifier unit suite now includes explicit POST/GET parity
+    assertions for unknown base/query/hash and double-trailing variants with
+    core classifier ownership.
 - Expanded missing-action session integration POST parity:
   - headless-server integration suite now includes explicit unauthenticated and
     authenticated POST assertions for missing-action session route variants:
