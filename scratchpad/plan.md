@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added request parsing-log pathname fallback hardening:
+  - request parse/validation log metadata now falls back to `/` when pathname
+    input is blank/whitespace.
+  - added logging coverage for blank-path normalization behavior.
 - Added request-error canonical-message trimming hardening:
   - classification now matches canonical request parse-error messages even when
     surrounding whitespace is present in string/object error shapes.
