@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B138 server-route core combined-suffix coverage)
+
+- Expanded server-route classifier unit coverage for combined
+  trailing-slash+query variants across core-route health/sessions/prompt/
+  messages method-guard paths and unknown-core unhandled classification.
+- Updated:
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B137 api-routes combined-suffix unit coverage)
 
 - Expanded API route matcher/classifier unit coverage for combined

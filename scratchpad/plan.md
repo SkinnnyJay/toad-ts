@@ -14,6 +14,17 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded server-route core combined-suffix coverage:
+  - server-route classifier unit tests now include combined
+    trailing-slash+query forms for core-route method guards:
+    - `/health/?check=true` (POST)
+    - `/sessions/?scope=all` (GET)
+    - `/sessions/:id/prompt/?scope=all` (GET)
+    - `/sessions/:id/messages/?scope=all` (POST)
+    and unknown-core unhandled path:
+    - `/unknown/?scope=all`.
+  - locks canonical server-route classification kind + core classifier handler
+    ownership for these combined normalized core-route path forms.
 - Expanded api-routes combined-suffix unit coverage:
   - api-routes unit tests now include combined trailing-slash+query forms for:
     - direct matchRoute matching

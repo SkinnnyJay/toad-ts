@@ -13,6 +13,11 @@ describe("classifyServerRoute", () => {
     expect(result).toEqual({ kind: SERVER_ROUTE_CLASSIFICATION.HEALTH_OK });
   });
 
+  it("classifies GET /health with trailing-query suffix as health_ok", () => {
+    const result = classifyServerRoute(HTTP_METHOD.GET, "/health/?check=true");
+    expect(result).toEqual({ kind: SERVER_ROUTE_CLASSIFICATION.HEALTH_OK });
+  });
+
   it("classifies lowercase method core routes", () => {
     const result = classifyServerRoute("get", SERVER_PATH.HEALTH);
     expect(result).toEqual({ kind: SERVER_ROUTE_CLASSIFICATION.HEALTH_OK });
@@ -21,6 +26,35 @@ describe("classifyServerRoute", () => {
   it("classifies unsupported core methods as method_not_allowed", () => {
     const result = classifyServerRoute(HTTP_METHOD.GET, SERVER_PATH.SESSIONS);
     expect(result).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
+  it("classifies unsupported core methods on trailing-query routes as method_not_allowed", () => {
+    const healthResult = classifyServerRoute(HTTP_METHOD.POST, "/health/?check=true");
+    const sessionsResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/?scope=all");
+    const promptResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/sessions/session-1/prompt/?scope=all"
+    );
+    const messagesResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/sessions/session-1/messages/?scope=all"
+    );
+    expect(healthResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(sessionsResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(promptResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(messagesResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
@@ -104,6 +138,14 @@ describe("classifyServerRoute", () => {
 
   it("classifies non-api/non-core routes as unhandled", () => {
     const result = classifyServerRoute(HTTP_METHOD.GET, "/unknown");
+    expect(result).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
+  it("classifies unknown core routes with trailing-query suffix as unhandled", () => {
+    const result = classifyServerRoute(HTTP_METHOD.GET, "/unknown/?scope=all");
     expect(result).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
