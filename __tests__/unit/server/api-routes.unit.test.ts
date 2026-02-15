@@ -255,6 +255,39 @@ describe("API Routes", () => {
       });
     });
 
+    it("classifies whitespace-padded known paths with double-trailing suffix variants", () => {
+      const configResult = classifyApiRoute("POST", " /api/config// ");
+      const configQueryResult = classifyApiRoute("POST", " /api/config//?scope=all ");
+      const configHashResult = classifyApiRoute("POST", " /api/config//#summary ");
+      const executeResult = classifyApiRoute("GET", " /api/tui/execute-command// ");
+      const executeQueryResult = classifyApiRoute("GET", " /api/tui/execute-command//?scope=all ");
+      const executeHashResult = classifyApiRoute("GET", " /api/tui/execute-command//#summary ");
+      expect(configResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(configQueryResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(configHashResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(executeResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(executeQueryResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(executeHashResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
     it("classifies trailing-hash execute route with unsupported method", () => {
       const result = classifyApiRoute("GET", "/api/tui/execute-command/#summary");
       expect(result).toEqual({

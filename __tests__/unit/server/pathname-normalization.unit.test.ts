@@ -29,6 +29,21 @@ describe("normalizeRoutePathname", () => {
     expect(normalizeRoutePathname(" /api/config/?view=compact ")).toBe("/api/config");
   });
 
+  it("normalizes known-route double-trailing forms including whitespace-padding", () => {
+    expect(normalizeRoutePathname("/api/config//")).toBe("/api/config");
+    expect(normalizeRoutePathname("/api/config//?view=compact")).toBe("/api/config");
+    expect(normalizeRoutePathname("/api/config//#summary")).toBe("/api/config");
+    expect(normalizeRoutePathname(" /api/config// ")).toBe("/api/config");
+    expect(normalizeRoutePathname(" /api/config//?view=compact ")).toBe("/api/config");
+    expect(normalizeRoutePathname(" /api/config//#summary ")).toBe("/api/config");
+    expect(normalizeRoutePathname("/health//")).toBe("/health");
+    expect(normalizeRoutePathname("/health//?probe=1")).toBe("/health");
+    expect(normalizeRoutePathname("/health//#summary")).toBe("/health");
+    expect(normalizeRoutePathname(" /health// ")).toBe("/health");
+    expect(normalizeRoutePathname(" /health//?probe=1 ")).toBe("/health");
+    expect(normalizeRoutePathname(" /health//#summary ")).toBe("/health");
+  });
+
   it("preserves malformed inner separators while normalizing suffixes", () => {
     expect(normalizeRoutePathname("/api//config/?view=compact")).toBe("/api//config");
     expect(normalizeRoutePathname("/sessions//prompt/#summary")).toBe("/sessions//prompt");

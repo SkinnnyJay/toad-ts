@@ -1,5 +1,38 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B227 padded known-route double-trailing parity)
+
+### Summary
+- Expanded whitespace-padded known-route double-trailing coverage across
+  pathname normalization and API/core/server classifiers.
+- Updated:
+  - `__tests__/unit/server/pathname-normalization.unit.test.ts`
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added pathname-normalization assertions for whitespace-padded known-route
+    `//`, `//?query`, `//#hash` forms.
+  - added API/core/server classifier assertions proving padded known-route
+    double-trailing variants retain stable method semantics and handler
+    attribution.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/unit/server/pathname-normalization.unit.test.ts __tests__/unit/server/session-route-path.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B226 known-route double-trailing parity)
 
 ### Summary

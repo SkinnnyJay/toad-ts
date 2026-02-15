@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded padded known-route double-trailing parity:
+  - pathname-normalization unit suite now explicitly covers whitespace-padded
+    known-route double-trailing variants for API/core paths.
+  - API/core/server classifier unit suites now explicitly assert same
+    whitespace-padded known-route double-trailing method semantics.
 - Expanded known-route double-trailing parity:
   - API/core/server classifier unit suites now explicitly cover known-route
     `//`, `//?query`, and `//#hash` variants.

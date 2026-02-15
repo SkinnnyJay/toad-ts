@@ -251,6 +251,115 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies whitespace-padded known routes with double-trailing variants", () => {
+    const healthResult = classifyServerRoute(HTTP_METHOD.POST, " /health// ");
+    const healthQueryResult = classifyServerRoute(HTTP_METHOD.POST, " /health//?check=true ");
+    const healthHashResult = classifyServerRoute(HTTP_METHOD.POST, " /health//#summary ");
+    const sessionsResult = classifyServerRoute(HTTP_METHOD.GET, " /sessions// ");
+    const sessionsPostResult = classifyServerRoute(HTTP_METHOD.POST, " /sessions// ");
+    const promptResult = classifyServerRoute(HTTP_METHOD.GET, " /sessions/session-1/prompt// ");
+    const promptQueryResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /sessions/session-1/prompt//?scope=all "
+    );
+    const promptHashResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /sessions/session-1/prompt//#latest "
+    );
+    const messagesResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /sessions/session-1/messages// "
+    );
+    const messagesQueryResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /sessions/session-1/messages//?scope=all "
+    );
+    const messagesHashResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /sessions/session-1/messages//#tail "
+    );
+    const apiConfigResult = classifyServerRoute(HTTP_METHOD.POST, " /api/config// ");
+    const apiConfigQueryResult = classifyServerRoute(HTTP_METHOD.POST, " /api/config//?scope=all ");
+    const apiConfigHashResult = classifyServerRoute(HTTP_METHOD.POST, " /api/config//#summary ");
+    const apiExecuteResult = classifyServerRoute(HTTP_METHOD.GET, " /api/tui/execute-command// ");
+    const apiExecuteQueryResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /api/tui/execute-command//?scope=all "
+    );
+    const apiExecuteHashResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /api/tui/execute-command//#summary "
+    );
+    expect(healthResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(healthQueryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(healthHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(sessionsResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(sessionsPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(promptResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(promptQueryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(promptHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(messagesResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(messagesQueryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(messagesHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(apiConfigResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(apiConfigQueryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(apiConfigHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(apiExecuteResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(apiExecuteQueryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(apiExecuteHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies blank-session base variants with /sessions method semantics", () => {
     const getDoubleTrailingResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions//");
     const getDoubleTrailingQueryResult = classifyServerRoute(
