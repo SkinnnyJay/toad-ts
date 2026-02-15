@@ -10504,11 +10504,27 @@ describe("headless server", () => {
       await expect(unauthenticatedApiUnknown.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
+      const unauthenticatedApiUnknownPost = await fetch(`${baseUrl}/api`, {
+        method: "POST",
+      });
+      expect(unauthenticatedApiUnknownPost.status).toBe(401);
+      expect(unauthenticatedApiUnknownPost.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedApiUnknownPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
 
       const unauthenticatedApiUnknownWithQuery = await fetch(`${baseUrl}/api?scope=all`);
       expect(unauthenticatedApiUnknownWithQuery.status).toBe(401);
       expect(unauthenticatedApiUnknownWithQuery.headers.get("www-authenticate")).toBe("Bearer");
       await expect(unauthenticatedApiUnknownWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedApiUnknownWithQueryPost = await fetch(`${baseUrl}/api?scope=all`, {
+        method: "POST",
+      });
+      expect(unauthenticatedApiUnknownWithQueryPost.status).toBe(401);
+      expect(unauthenticatedApiUnknownWithQueryPost.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedApiUnknownWithQueryPost.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -10518,11 +10534,27 @@ describe("headless server", () => {
       await expect(unauthenticatedApiUnknownWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
+      const unauthenticatedApiUnknownWithHashPost = await fetch(`${baseUrl}/api#summary`, {
+        method: "POST",
+      });
+      expect(unauthenticatedApiUnknownWithHashPost.status).toBe(401);
+      expect(unauthenticatedApiUnknownWithHashPost.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedApiUnknownWithHashPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
 
       const unauthenticatedTrailingApiUnknown = await fetch(`${baseUrl}/api/`);
       expect(unauthenticatedTrailingApiUnknown.status).toBe(401);
       expect(unauthenticatedTrailingApiUnknown.headers.get("www-authenticate")).toBe("Bearer");
       await expect(unauthenticatedTrailingApiUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedTrailingApiUnknownPost = await fetch(`${baseUrl}/api/`, {
+        method: "POST",
+      });
+      expect(unauthenticatedTrailingApiUnknownPost.status).toBe(401);
+      expect(unauthenticatedTrailingApiUnknownPost.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedTrailingApiUnknownPost.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -10534,6 +10566,19 @@ describe("headless server", () => {
       await expect(unauthenticatedTrailingApiUnknownWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
+      const unauthenticatedTrailingApiUnknownWithQueryPost = await fetch(
+        `${baseUrl}/api/?scope=all`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedTrailingApiUnknownWithQueryPost.status).toBe(401);
+      expect(unauthenticatedTrailingApiUnknownWithQueryPost.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedTrailingApiUnknownWithQueryPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
 
       const unauthenticatedTrailingApiUnknownWithHash = await fetch(`${baseUrl}/api/#summary`);
       expect(unauthenticatedTrailingApiUnknownWithHash.status).toBe(401);
@@ -10543,6 +10588,16 @@ describe("headless server", () => {
       await expect(unauthenticatedTrailingApiUnknownWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
+      const unauthenticatedTrailingApiUnknownWithHashPost = await fetch(`${baseUrl}/api/#summary`, {
+        method: "POST",
+      });
+      expect(unauthenticatedTrailingApiUnknownWithHashPost.status).toBe(401);
+      expect(unauthenticatedTrailingApiUnknownWithHashPost.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedTrailingApiUnknownWithHashPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
 
       const unauthenticatedDoubleTrailingApiUnknown = await fetch(`${baseUrl}/api//`);
       expect(unauthenticatedDoubleTrailingApiUnknown.status).toBe(401);
@@ -10550,6 +10605,16 @@ describe("headless server", () => {
         "Bearer"
       );
       await expect(unauthenticatedDoubleTrailingApiUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedDoubleTrailingApiUnknownPost = await fetch(`${baseUrl}/api//`, {
+        method: "POST",
+      });
+      expect(unauthenticatedDoubleTrailingApiUnknownPost.status).toBe(401);
+      expect(unauthenticatedDoubleTrailingApiUnknownPost.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedDoubleTrailingApiUnknownPost.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -10563,6 +10628,19 @@ describe("headless server", () => {
       await expect(unauthenticatedDoubleTrailingApiUnknownWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
+      const unauthenticatedDoubleTrailingApiUnknownWithQueryPost = await fetch(
+        `${baseUrl}/api//?scope=all`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedDoubleTrailingApiUnknownWithQueryPost.status).toBe(401);
+      expect(
+        unauthenticatedDoubleTrailingApiUnknownWithQueryPost.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedDoubleTrailingApiUnknownWithQueryPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
 
       const unauthenticatedDoubleTrailingApiUnknownWithHash = await fetch(
         `${baseUrl}/api//#summary`
@@ -10572,6 +10650,19 @@ describe("headless server", () => {
         "Bearer"
       );
       await expect(unauthenticatedDoubleTrailingApiUnknownWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedDoubleTrailingApiUnknownWithHashPost = await fetch(
+        `${baseUrl}/api//#summary`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedDoubleTrailingApiUnknownWithHashPost.status).toBe(401);
+      expect(
+        unauthenticatedDoubleTrailingApiUnknownWithHashPost.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedDoubleTrailingApiUnknownWithHashPost.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -12212,6 +12303,16 @@ describe("headless server", () => {
       await expect(authenticatedApiUnknown.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
+      const authenticatedApiUnknownPost = await fetch(`${baseUrl}/api`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedApiUnknownPost.status).toBe(404);
+      await expect(authenticatedApiUnknownPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
 
       const authenticatedApiUnknownWithQuery = await fetch(`${baseUrl}/api?scope=all`, {
         headers: {
@@ -12220,6 +12321,16 @@ describe("headless server", () => {
       });
       expect(authenticatedApiUnknownWithQuery.status).toBe(404);
       await expect(authenticatedApiUnknownWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedApiUnknownWithQueryPost = await fetch(`${baseUrl}/api?scope=all`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedApiUnknownWithQueryPost.status).toBe(404);
+      await expect(authenticatedApiUnknownWithQueryPost.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 
@@ -12232,6 +12343,16 @@ describe("headless server", () => {
       await expect(authenticatedApiUnknownWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
+      const authenticatedApiUnknownWithHashPost = await fetch(`${baseUrl}/api#summary`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedApiUnknownWithHashPost.status).toBe(404);
+      await expect(authenticatedApiUnknownWithHashPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
 
       const authenticatedTrailingApiUnknown = await fetch(`${baseUrl}/api/`, {
         headers: {
@@ -12240,6 +12361,16 @@ describe("headless server", () => {
       });
       expect(authenticatedTrailingApiUnknown.status).toBe(404);
       await expect(authenticatedTrailingApiUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedTrailingApiUnknownPost = await fetch(`${baseUrl}/api/`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedTrailingApiUnknownPost.status).toBe(404);
+      await expect(authenticatedTrailingApiUnknownPost.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 
@@ -12252,6 +12383,19 @@ describe("headless server", () => {
       await expect(authenticatedTrailingApiUnknownWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
+      const authenticatedTrailingApiUnknownWithQueryPost = await fetch(
+        `${baseUrl}/api/?scope=all`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedTrailingApiUnknownWithQueryPost.status).toBe(404);
+      await expect(authenticatedTrailingApiUnknownWithQueryPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
 
       const authenticatedTrailingApiUnknownWithHash = await fetch(`${baseUrl}/api/#summary`, {
         headers: {
@@ -12262,6 +12406,16 @@ describe("headless server", () => {
       await expect(authenticatedTrailingApiUnknownWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
+      const authenticatedTrailingApiUnknownWithHashPost = await fetch(`${baseUrl}/api/#summary`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedTrailingApiUnknownWithHashPost.status).toBe(404);
+      await expect(authenticatedTrailingApiUnknownWithHashPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
 
       const authenticatedDoubleTrailingApiUnknown = await fetch(`${baseUrl}/api//`, {
         headers: {
@@ -12270,6 +12424,16 @@ describe("headless server", () => {
       });
       expect(authenticatedDoubleTrailingApiUnknown.status).toBe(404);
       await expect(authenticatedDoubleTrailingApiUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedDoubleTrailingApiUnknownPost = await fetch(`${baseUrl}/api//`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedDoubleTrailingApiUnknownPost.status).toBe(404);
+      await expect(authenticatedDoubleTrailingApiUnknownPost.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 
@@ -12285,6 +12449,19 @@ describe("headless server", () => {
       await expect(authenticatedDoubleTrailingApiUnknownWithQuery.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
+      const authenticatedDoubleTrailingApiUnknownWithQueryPost = await fetch(
+        `${baseUrl}/api//?scope=all`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedDoubleTrailingApiUnknownWithQueryPost.status).toBe(404);
+      await expect(authenticatedDoubleTrailingApiUnknownWithQueryPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
 
       const authenticatedDoubleTrailingApiUnknownWithHash = await fetch(
         `${baseUrl}/api//#summary`,
@@ -12296,6 +12473,19 @@ describe("headless server", () => {
       );
       expect(authenticatedDoubleTrailingApiUnknownWithHash.status).toBe(404);
       await expect(authenticatedDoubleTrailingApiUnknownWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedDoubleTrailingApiUnknownWithHashPost = await fetch(
+        `${baseUrl}/api//#summary`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedDoubleTrailingApiUnknownWithHashPost.status).toBe(404);
+      await expect(authenticatedDoubleTrailingApiUnknownWithHashPost.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 

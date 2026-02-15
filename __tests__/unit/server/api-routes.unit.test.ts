@@ -298,16 +298,59 @@ describe("API Routes", () => {
     });
 
     it("classifies api-root trailing-query path as not found", () => {
-      const result = classifyApiRoute("GET", "/api/?scope=all");
-      expect(result).toEqual({
+      const getResult = classifyApiRoute("GET", "/api/?scope=all");
+      const postResult = classifyApiRoute("POST", "/api/?scope=all");
+      expect(getResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(postResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
+    it("classifies api-root direct forms as not found", () => {
+      const baseGetResult = classifyApiRoute("GET", "/api");
+      const basePostResult = classifyApiRoute("POST", "/api");
+      const queryGetResult = classifyApiRoute("GET", "/api?scope=all");
+      const queryPostResult = classifyApiRoute("POST", "/api?scope=all");
+      const hashGetResult = classifyApiRoute("GET", "/api#summary");
+      const hashPostResult = classifyApiRoute("POST", "/api#summary");
+      expect(baseGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(basePostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(queryGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(queryPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(hashGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(hashPostResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
     });
 
     it("classifies api-root trailing-hash path as not found", () => {
-      const result = classifyApiRoute("GET", "/api/#summary");
-      expect(result).toEqual({
+      const getResult = classifyApiRoute("GET", "/api/#summary");
+      const postResult = classifyApiRoute("POST", "/api/#summary");
+      expect(getResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(postResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
@@ -315,9 +358,16 @@ describe("API Routes", () => {
 
     it("classifies api-root double-trailing forms as not found", () => {
       const baseResult = classifyApiRoute("GET", "/api//");
+      const basePostResult = classifyApiRoute("POST", "/api//");
       const queryResult = classifyApiRoute("GET", "/api//?scope=all");
+      const queryPostResult = classifyApiRoute("POST", "/api//?scope=all");
       const hashResult = classifyApiRoute("GET", "/api//#summary");
+      const hashPostResult = classifyApiRoute("POST", "/api//#summary");
       expect(baseResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(basePostResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
@@ -325,7 +375,15 @@ describe("API Routes", () => {
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
+      expect(queryPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
       expect(hashResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(hashPostResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });

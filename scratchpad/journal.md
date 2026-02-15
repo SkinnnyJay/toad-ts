@@ -1,5 +1,48 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B210 api-root method parity hardening)
+
+### Summary
+- Expanded API-root unknown coverage across integration and classifier unit
+  suites with explicit POST/GET parity for base/query/hash, trailing, and
+  double-trailing variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added headless-server integration unauthenticated/authenticated POST parity
+    assertions for API-root unknown variants:
+    - `/api`
+    - `/api?scope=all`
+    - `/api#summary`
+    - `/api/`
+    - `/api/?scope=all`
+    - `/api/#summary`
+    - `/api//`
+    - `/api//?scope=all`
+    - `/api//#summary`
+  - added api-routes classifier POST/GET parity assertions for the same API-root
+    variant set, locking consistent `NOT_FOUND` classification.
+  - added server-route classifier POST/GET parity assertions for the same
+    API-root variant set, locking consistent API classifier ownership.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B209 unknown single-segment integration parity)
 
 ### Summary

@@ -1,3 +1,21 @@
+## 2026-02-14 Execution Update (B210 api-root method parity hardening)
+
+- Expanded API-root unknown coverage across integration and classifier unit
+  suites with explicit POST/GET parity for base/query/hash, trailing, and
+  double-trailing variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Validation:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B209 unknown single-segment integration parity)
 
 - Expanded password-auth ordering integration coverage for unknown
