@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B101 API-root route scope classifier normalization)
+
+### Summary
+- Normalized API-root route scoping so `/api` is treated as API-classifier
+  space (consistent with `/api/*`) instead of core-route fallback.
+- Updated:
+  - `src/constants/server-paths.ts`
+  - `src/server/server-route-classifier.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added `SERVER_PATH.API` constant.
+  - `classifyServerRoute(...)` now treats both `/api` and `/api/*` as API
+    paths through shared helper logic.
+  - expanded unit coverage for `/api` root and query/hash-suffixed `/api`
+    behavior.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B100 server-auth health-path bypass regression coverage)
 
 ### Summary

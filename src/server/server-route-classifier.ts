@@ -1,3 +1,4 @@
+import { SERVER_PATH } from "@/constants/server-paths";
 import {
   SERVER_ROUTE_CLASSIFIER_HANDLER,
   type ServerRouteClassifierHandler,
@@ -56,6 +57,9 @@ const classifyUnhandledCoreRoute = (): UnhandledClassification => ({
   classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.CORE_ROUTE_CLASSIFIER,
 });
 
+const isApiRoutePath = (pathname: string): boolean =>
+  pathname === SERVER_PATH.API || pathname.startsWith(`${SERVER_PATH.API}/`);
+
 export const classifyServerRoute = (
   method: string,
   pathname: string
@@ -72,7 +76,7 @@ export const classifyServerRoute = (
     };
   }
 
-  const isApiPath = normalizedPathname.startsWith("/api/");
+  const isApiPath = isApiRoutePath(normalizedPathname);
   if (isApiPath) {
     const apiClassification = classifyApiRoute(method, normalizedPathname);
     if (apiClassification.kind === API_ROUTE_CLASSIFICATION.MATCH) {

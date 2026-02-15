@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added API-root route scope classification hardening:
+  - introduced `SERVER_PATH.API` constant and route-classifier helper to treat
+    both `/api` and `/api/*` as API-scoped paths.
+  - expanded server-route classifier coverage for `/api` and
+    query/hash-suffixed `/api` path handling.
+  - re-ran headless-server integration coverage to confirm end-to-end behavior.
 - Added server-auth health-path bypass regression coverage:
   - added focused unit test proving `checkServerAuth(...)` does not bypass auth
     based on `req.url` (including `/health`), preserving bypass ownership in

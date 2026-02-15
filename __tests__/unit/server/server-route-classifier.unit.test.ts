@@ -84,11 +84,24 @@ describe("classifyServerRoute", () => {
     });
   });
 
-  it("classifies /api root path as core unhandled", () => {
+  it("classifies /api root path as api-scoped unhandled", () => {
     const result = classifyServerRoute(HTTP_METHOD.GET, "/api");
     expect(result).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
-      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
+  it("classifies /api root path with query/hash suffixes as api-scoped unhandled", () => {
+    const queryResult = classifyServerRoute(HTTP_METHOD.GET, "/api?scope=all");
+    const hashResult = classifyServerRoute(HTTP_METHOD.GET, "/api#summary");
+    expect(queryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(hashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });
   });
 
