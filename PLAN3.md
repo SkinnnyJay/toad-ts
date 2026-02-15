@@ -1,3 +1,19 @@
+## 2026-02-14 Execution Update (B92 host label validation)
+
+- Hardened request-url host candidate validation to reject invalid hostname
+  labels while preserving ordered fallback to later valid host candidates.
+- Updated:
+  - `src/server/request-url.ts`
+  - `__tests__/unit/server/request-url.unit.test.ts`
+  - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/request-url.unit.test.ts __tests__/unit/server/api-route-file-search.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B91 content-encoding parameters)
 
 - Hardened request-body preflight content-encoding parsing:

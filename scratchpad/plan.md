@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added request-url host label validation hardening:
+  - request URL host candidates now enforce valid IP/hostname label formats in
+    addition to existing metadata checks.
+  - malformed host labels are rejected and, when possible, parser falls forward
+    to later valid host candidates.
+  - expanded request-url and API file-search coverage for invalid hostname label
+    rejection and candidate fallback.
 - Added content-encoding parameter normalization hardening:
   - request-body preflight now treats `identity` content-encoding values with
     RFC parameter suffixes (e.g. `identity;q=1.0`) as supported.

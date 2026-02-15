@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B92 request-url host label validation)
+
+### Summary
+- Hardened request URL host candidate validation by enforcing valid hostname/IP
+  formats in addition to metadata/path checks.
+- Updated:
+  - `src/server/request-url.ts`
+  - `__tests__/unit/server/request-url.unit.test.ts`
+  - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added parsed-hostname validation using IP + hostname rules.
+  - invalid hostname labels (e.g. underscore labels) now reject candidate.
+  - parser continues ordered fallback to later valid host candidates.
+  - expanded direct + route-level tests for invalid-label rejection/fallback.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-url.unit.test.ts __tests__/unit/server/api-route-file-search.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B91 content-encoding parameter normalization)
 
 ### Summary

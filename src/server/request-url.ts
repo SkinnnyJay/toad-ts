@@ -1,10 +1,16 @@
 import type { IncomingMessage } from "node:http";
+import { isIP } from "node:net";
+import { LIMIT } from "@/config/limits";
 
 const REQUEST_URL_DEFAULT_HOST = "localhost";
 const REQUEST_PATH_PREFIX = "/";
 const REQUEST_NETWORK_PATH_PREFIX = "//";
 const HOST_VALUE_SEPARATOR = ",";
 const HOST_PROTOCOL_PREFIX = "http://";
+const HOSTNAME_PATTERN =
+  /^(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)(?:\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*$/;
+const IPV6_BRACKET_PREFIX = "[";
+const IPV6_BRACKET_SUFFIX = "]";
 
 const toHostHeaderCandidates = (hostHeader: string | string[] | undefined): string[] => {
   if (typeof hostHeader === "string") {
@@ -37,12 +43,30 @@ const parseHostCandidate = (host: string): URL | null => {
   }
 };
 
+const normalizeParsedHostname = (hostname: string): string | null => {
+  if (hostname.startsWith(IPV6_BRACKET_PREFIX) && hostname.endsWith(IPV6_BRACKET_SUFFIX)) {
+    const unwrappedHostname = hostname.slice(1, -1);
+    return isIP(unwrappedHostname) === LIMIT.SERVER_IP_VERSION_IPV6 ? unwrappedHostname : null;
+  }
+  return hostname;
+};
+
+const isParsedHostnameValid = (hostname: string): boolean => {
+  const normalizedHostname = normalizeParsedHostname(hostname);
+  if (!normalizedHostname) {
+    return false;
+  }
+  return isIP(normalizedHostname) !== 0 || HOSTNAME_PATTERN.test(normalizedHostname);
+};
+
 const isHostCandidateValid = (host: string): boolean => {
   const parsedHost = parseHostCandidate(host);
   if (!parsedHost) {
     return false;
   }
+  const isValidHostname = isParsedHostnameValid(parsedHost.hostname);
   return (
+    isValidHostname &&
     parsedHost.username.length === 0 &&
     parsedHost.password.length === 0 &&
     parsedHost.pathname === REQUEST_PATH_PREFIX &&
