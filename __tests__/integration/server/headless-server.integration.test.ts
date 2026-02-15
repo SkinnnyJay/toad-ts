@@ -8933,4 +8933,52 @@ describe("headless server", () => {
       EnvManager.resetInstance();
     }
   });
+
+  it("applies auth checks before not-found semantics on unknown routes", async () => {
+    process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD] = "secret";
+    EnvManager.resetInstance();
+    const server = await startHeadlessServer({ host: "127.0.0.1", port: 0 });
+    const { host, port } = server.address();
+    const baseUrl = `http://${host}:${port}`;
+
+    try {
+      const unauthenticatedApiUnknown = await fetch(`${baseUrl}/api`);
+      expect(unauthenticatedApiUnknown.status).toBe(401);
+      expect(unauthenticatedApiUnknown.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedApiUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedCoreUnknown = await fetch(`${baseUrl}/unknown-endpoint`);
+      expect(unauthenticatedCoreUnknown.status).toBe(401);
+      expect(unauthenticatedCoreUnknown.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedCoreUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const authenticatedApiUnknown = await fetch(`${baseUrl}/api`, {
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedApiUnknown.status).toBe(404);
+      await expect(authenticatedApiUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedCoreUnknown = await fetch(`${baseUrl}/unknown-endpoint`, {
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedCoreUnknown.status).toBe(404);
+      await expect(authenticatedCoreUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+    } finally {
+      await server.close();
+      delete process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD];
+      EnvManager.resetInstance();
+    }
+  });
 });

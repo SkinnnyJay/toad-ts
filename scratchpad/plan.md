@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added auth-before-not-found integration hardening:
+  - expanded headless-server integration coverage asserting auth challenge
+    precedes not-found semantics on unknown API + core routes when server
+    password is enabled.
+  - verified authenticated fallback remains canonical `404` + `NOT_FOUND`.
 - Expanded headless API-root not-found integration coverage:
   - added integration assertions for `/api`, `/api?scope=all`, and `/api/`
     returning stable `404` + `NOT_FOUND` payloads.
