@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded pathname normalization malformed parity:
+  - pathname-normalization unit suite now explicitly covers trailing and
+    double-trailing normalization for:
+    `/api/unknown`, `/unknown-endpoint`, `/sessions/session-1`, and
+    malformed blank-segment `/sessions//prompt` forms with query/hash suffixes.
 - Expanded unknown-api classifier trailing parity:
   - api-routes unit suite now includes explicit POST/GET assertions for
     unknown API-path trailing and double-trailing forms:

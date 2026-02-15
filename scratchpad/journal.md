@@ -1,5 +1,39 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B214 pathname-normalization malformed parity)
+
+### Summary
+- Expanded route pathname normalization unit coverage for malformed trailing and
+  double-trailing variants that were recently hardened in route classifier and
+  integration suites.
+- Updated:
+  - `__tests__/unit/server/pathname-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added explicit normalization assertions for unknown API route variants:
+    - `/api/unknown/`, `/api/unknown/?scope=all`, `/api/unknown/#summary`
+    - `/api/unknown//`, `/api/unknown//?scope=all`, `/api/unknown//#summary`
+  - added explicit normalization assertions for unknown core/missing-action and
+    malformed session route variants:
+    - `/unknown-endpoint//?scope=all`, `/unknown-endpoint//#summary`
+    - `/sessions/session-1//?view=full`, `/sessions/session-1//#latest`
+    - `/sessions//prompt//?tail=1`, `/sessions//prompt//#latest`
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/pathname-normalization.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B213 unknown-api classifier trailing parity)
 
 ### Summary

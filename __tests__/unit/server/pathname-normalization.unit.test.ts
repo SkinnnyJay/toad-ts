@@ -34,6 +34,24 @@ describe("normalizeRoutePathname", () => {
     expect(normalizeRoutePathname("/sessions//prompt/#summary")).toBe("/sessions//prompt");
   });
 
+  it("normalizes unknown api route trailing and double-trailing forms", () => {
+    expect(normalizeRoutePathname("/api/unknown/")).toBe("/api/unknown");
+    expect(normalizeRoutePathname("/api/unknown/?scope=all")).toBe("/api/unknown");
+    expect(normalizeRoutePathname("/api/unknown/#summary")).toBe("/api/unknown");
+    expect(normalizeRoutePathname("/api/unknown//")).toBe("/api/unknown");
+    expect(normalizeRoutePathname("/api/unknown//?scope=all")).toBe("/api/unknown");
+    expect(normalizeRoutePathname("/api/unknown//#summary")).toBe("/api/unknown");
+  });
+
+  it("normalizes unknown core and missing-action session trailing forms", () => {
+    expect(normalizeRoutePathname("/unknown-endpoint//?scope=all")).toBe("/unknown-endpoint");
+    expect(normalizeRoutePathname("/unknown-endpoint//#summary")).toBe("/unknown-endpoint");
+    expect(normalizeRoutePathname("/sessions/session-1//?view=full")).toBe("/sessions/session-1");
+    expect(normalizeRoutePathname("/sessions/session-1//#latest")).toBe("/sessions/session-1");
+    expect(normalizeRoutePathname("/sessions//prompt//?tail=1")).toBe("/sessions//prompt");
+    expect(normalizeRoutePathname("/sessions//prompt//#latest")).toBe("/sessions//prompt");
+  });
+
   it("retains root path while normalizing", () => {
     expect(normalizeRoutePathname("/")).toBe("/");
     expect(normalizeRoutePathname("/?check=true")).toBe("/");
