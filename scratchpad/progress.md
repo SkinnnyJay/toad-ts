@@ -3,6 +3,10 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B188 malformed-api-session double-trailing-query get-method parity hardening
+    (unknown-route auth-order integration coverage now explicitly locks
+    GET-method parity for `/api/sessions//messages//?scope=all` with canonical
+    unauthenticated `401` and authenticated `404` semantics)
   - completed B187 malformed-api double-trailing-query get-method parity hardening
     (unknown-route auth-order integration coverage now explicitly locks
     GET-method parity for `/api//config//?scope=all` with canonical

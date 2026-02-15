@@ -10936,6 +10936,21 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedDoubleTrailingMalformedApiSessionUnknownWithQueryGet = await fetch(
+        `${baseUrl}/api/sessions//messages//?scope=all`
+      );
+      expect(unauthenticatedDoubleTrailingMalformedApiSessionUnknownWithQueryGet.status).toBe(401);
+      expect(
+        unauthenticatedDoubleTrailingMalformedApiSessionUnknownWithQueryGet.headers.get(
+          "www-authenticate"
+        )
+      ).toBe("Bearer");
+      await expect(
+        unauthenticatedDoubleTrailingMalformedApiSessionUnknownWithQueryGet.json()
+      ).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedDoubleTrailingMalformedApiSessionUnknownWithHash = await fetch(
         `${baseUrl}/api/sessions//messages//#summary`,
         {
@@ -11835,6 +11850,21 @@ describe("headless server", () => {
       expect(authenticatedDoubleTrailingMalformedApiSessionUnknownWithQuery.status).toBe(404);
       await expect(
         authenticatedDoubleTrailingMalformedApiSessionUnknownWithQuery.json()
+      ).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedDoubleTrailingMalformedApiSessionUnknownWithQueryGet = await fetch(
+        `${baseUrl}/api/sessions//messages//?scope=all`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedDoubleTrailingMalformedApiSessionUnknownWithQueryGet.status).toBe(404);
+      await expect(
+        authenticatedDoubleTrailingMalformedApiSessionUnknownWithQueryGet.json()
       ).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });

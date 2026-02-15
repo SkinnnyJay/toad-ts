@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B188 malformed-api-session double-trailing-query get-method parity)
+
+### Summary
+- Expanded unknown-route auth-order integration coverage for malformed
+  API-session double-trailing-query variant with explicit GET-method parity.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added unauthenticated/authenticated GET assertions for:
+    - `/api/sessions//messages//?scope=all`
+    alongside existing POST variant assertions, locking auth-first malformed
+    API-session unknown-route semantics under password protection.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B187 malformed-api double-trailing-query get-method parity)
 
 ### Summary
