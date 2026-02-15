@@ -335,10 +335,15 @@ describe("API Routes", () => {
       const configResult = classifyApiRoute("POST", "/api//config");
       const messagesResult = classifyApiRoute("POST", "/api/sessions//messages");
       const messagesQueryResult = classifyApiRoute("POST", "/api/sessions//messages?scope=all");
+      const messagesQueryGetResult = classifyApiRoute("GET", "/api/sessions//messages?scope=all");
       const messagesHashResult = classifyApiRoute("POST", "/api/sessions//messages#summary");
       const messagesHashGetResult = classifyApiRoute("GET", "/api/sessions//messages#summary");
       const messagesTrailingQueryResult = classifyApiRoute(
         "POST",
+        "/api/sessions//messages/?scope=all"
+      );
+      const messagesTrailingQueryGetResult = classifyApiRoute(
+        "GET",
         "/api/sessions//messages/?scope=all"
       );
       const messagesTrailingHashResult = classifyApiRoute(
@@ -358,7 +363,9 @@ describe("API Routes", () => {
         "POST",
         "/api/sessions//messages//#summary"
       );
+      const queryGetResult = classifyApiRoute("GET", "/api//config?scope=all");
       const trailingQueryResult = classifyApiRoute("POST", "/api//config/?scope=all");
+      const trailingQueryGetResult = classifyApiRoute("GET", "/api//config/?scope=all");
       const trailingHashResult = classifyApiRoute("POST", "/api//config/#summary");
       const trailingHashGetResult = classifyApiRoute("GET", "/api//config/#summary");
       const doubleTrailingResult = classifyApiRoute("POST", "/api//config//");
@@ -387,6 +394,10 @@ describe("API Routes", () => {
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
+      expect(messagesQueryGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
       expect(messagesHashResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
@@ -396,6 +407,10 @@ describe("API Routes", () => {
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
       expect(messagesTrailingQueryResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(messagesTrailingQueryGetResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
@@ -419,7 +434,15 @@ describe("API Routes", () => {
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
+      expect(queryGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
       expect(trailingQueryResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(trailingQueryGetResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });

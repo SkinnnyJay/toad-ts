@@ -14,6 +14,15 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded malformed-api and malformed-api-session query/trailing-query
+  GET-method parity:
+  - unknown-route auth-order integration coverage now includes explicit GET
+    assertions for `/api//config?scope=all`, `/api//config/?scope=all`,
+    `/api/sessions//messages?scope=all`, and
+    `/api/sessions//messages/?scope=all`.
+  - api/server route classifier unit suites now include explicit GET-method
+    assertions for the same malformed direct-query and trailing-query
+    variants.
 - Expanded malformed-api and malformed-api-session hash/trailing-hash
   GET-method parity:
   - unknown-route auth-order integration coverage now includes explicit GET

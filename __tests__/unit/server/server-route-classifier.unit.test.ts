@@ -380,6 +380,8 @@ describe("classifyServerRoute", () => {
   it("classifies malformed api double-segment paths as api-scoped unhandled", () => {
     const getResult = classifyServerRoute(HTTP_METHOD.GET, "/api//config");
     const postResult = classifyServerRoute(HTTP_METHOD.POST, "/api//config?scope=all");
+    const directQueryGetResult = classifyServerRoute(HTTP_METHOD.GET, "/api//config?scope=all");
+    const trailingQueryGetResult = classifyServerRoute(HTTP_METHOD.GET, "/api//config/?scope=all");
     const hashGetResult = classifyServerRoute(HTTP_METHOD.GET, "/api//config#summary");
     const trailingHashGetResult = classifyServerRoute(HTTP_METHOD.GET, "/api//config/#summary");
     const doubleTrailingResult = classifyServerRoute(HTTP_METHOD.POST, "/api//config//");
@@ -404,6 +406,14 @@ describe("classifyServerRoute", () => {
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });
     expect(postResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(directQueryGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(trailingQueryGetResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });
@@ -439,7 +449,12 @@ describe("classifyServerRoute", () => {
 
   it("classifies malformed api session direct-query paths as api-scoped unhandled", () => {
     const result = classifyServerRoute(HTTP_METHOD.POST, "/api/sessions//messages?scope=all");
+    const getResult = classifyServerRoute(HTTP_METHOD.GET, "/api/sessions//messages?scope=all");
     expect(result).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(getResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });
@@ -447,6 +462,7 @@ describe("classifyServerRoute", () => {
 
   it("classifies malformed api session trailing-query paths as api-scoped unhandled", () => {
     const result = classifyServerRoute(HTTP_METHOD.POST, "/api/sessions//messages/?scope=all");
+    const getResult = classifyServerRoute(HTTP_METHOD.GET, "/api/sessions//messages/?scope=all");
     const doubleTrailingResult = classifyServerRoute(HTTP_METHOD.POST, "/api/sessions//messages//");
     const doubleTrailingQueryResult = classifyServerRoute(
       HTTP_METHOD.POST,
@@ -457,6 +473,10 @@ describe("classifyServerRoute", () => {
       "/api/sessions//messages//?scope=all"
     );
     expect(result).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(getResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });

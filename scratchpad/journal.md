@@ -1,5 +1,44 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B191 malformed-api query/trailing-query get-method parity)
+
+### Summary
+- Expanded unknown-route auth-order integration plus API/server classifier
+  coverage for malformed API and API-session direct-query/trailing-query
+  variants with explicit GET-method parity.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added unauthenticated/authenticated GET assertions for:
+    - `/api//config?scope=all`
+    - `/api//config/?scope=all`
+    - `/api/sessions//messages?scope=all`
+    - `/api/sessions//messages/?scope=all`
+    alongside existing POST assertions, locking auth-first malformed API
+    unknown-route semantics under password protection.
+  - added API/server classifier GET assertions for the same malformed direct
+    query and trailing-query variants, locking canonical API-scoped
+    `NOT_FOUND`/`UNHANDLED` ownership parity.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B190 malformed-api hash/trailing-hash get-method parity)
 
 ### Summary

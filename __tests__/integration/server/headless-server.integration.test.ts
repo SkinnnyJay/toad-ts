@@ -10713,6 +10713,17 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedMalformedApiUnknownDirectQueryGet = await fetch(
+        `${baseUrl}/api//config?scope=all`
+      );
+      expect(unauthenticatedMalformedApiUnknownDirectQueryGet.status).toBe(401);
+      expect(unauthenticatedMalformedApiUnknownDirectQueryGet.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedMalformedApiUnknownDirectQueryGet.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedTrailingMalformedApiUnknownWithQuery = await fetch(
         `${baseUrl}/api//config/?scope=all`,
         {
@@ -10724,6 +10735,17 @@ describe("headless server", () => {
         unauthenticatedTrailingMalformedApiUnknownWithQuery.headers.get("www-authenticate")
       ).toBe("Bearer");
       await expect(unauthenticatedTrailingMalformedApiUnknownWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedTrailingMalformedApiUnknownWithQueryGet = await fetch(
+        `${baseUrl}/api//config/?scope=all`
+      );
+      expect(unauthenticatedTrailingMalformedApiUnknownWithQueryGet.status).toBe(401);
+      expect(
+        unauthenticatedTrailingMalformedApiUnknownWithQueryGet.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedTrailingMalformedApiUnknownWithQueryGet.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -10891,6 +10913,19 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedMalformedApiSessionUnknownDirectQueryGet = await fetch(
+        `${baseUrl}/api/sessions//messages?scope=all`
+      );
+      expect(unauthenticatedMalformedApiSessionUnknownDirectQueryGet.status).toBe(401);
+      expect(
+        unauthenticatedMalformedApiSessionUnknownDirectQueryGet.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedMalformedApiSessionUnknownDirectQueryGet.json()).resolves.toEqual(
+        {
+          error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+        }
+      );
+
       const unauthenticatedTrailingMalformedApiSessionUnknownWithQuery = await fetch(
         `${baseUrl}/api/sessions//messages/?scope=all`,
         {
@@ -10903,6 +10938,21 @@ describe("headless server", () => {
       ).toBe("Bearer");
       await expect(
         unauthenticatedTrailingMalformedApiSessionUnknownWithQuery.json()
+      ).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedTrailingMalformedApiSessionUnknownWithQueryGet = await fetch(
+        `${baseUrl}/api/sessions//messages/?scope=all`
+      );
+      expect(unauthenticatedTrailingMalformedApiSessionUnknownWithQueryGet.status).toBe(401);
+      expect(
+        unauthenticatedTrailingMalformedApiSessionUnknownWithQueryGet.headers.get(
+          "www-authenticate"
+        )
+      ).toBe("Bearer");
+      await expect(
+        unauthenticatedTrailingMalformedApiSessionUnknownWithQueryGet.json()
       ).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
@@ -11709,6 +11759,19 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 
+      const authenticatedMalformedApiUnknownDirectQueryGet = await fetch(
+        `${baseUrl}/api//config?scope=all`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedMalformedApiUnknownDirectQueryGet.status).toBe(404);
+      await expect(authenticatedMalformedApiUnknownDirectQueryGet.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
       const authenticatedTrailingMalformedApiUnknownWithQuery = await fetch(
         `${baseUrl}/api//config/?scope=all`,
         {
@@ -11720,6 +11783,19 @@ describe("headless server", () => {
       );
       expect(authenticatedTrailingMalformedApiUnknownWithQuery.status).toBe(404);
       await expect(authenticatedTrailingMalformedApiUnknownWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedTrailingMalformedApiUnknownWithQueryGet = await fetch(
+        `${baseUrl}/api//config/?scope=all`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedTrailingMalformedApiUnknownWithQueryGet.status).toBe(404);
+      await expect(authenticatedTrailingMalformedApiUnknownWithQueryGet.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 
@@ -11893,6 +11969,19 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 
+      const authenticatedMalformedApiSessionUnknownDirectQueryGet = await fetch(
+        `${baseUrl}/api/sessions//messages?scope=all`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedMalformedApiSessionUnknownDirectQueryGet.status).toBe(404);
+      await expect(authenticatedMalformedApiSessionUnknownDirectQueryGet.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
       const authenticatedTrailingMalformedApiSessionUnknownWithQuery = await fetch(
         `${baseUrl}/api/sessions//messages/?scope=all`,
         {
@@ -11905,6 +11994,21 @@ describe("headless server", () => {
       expect(authenticatedTrailingMalformedApiSessionUnknownWithQuery.status).toBe(404);
       await expect(
         authenticatedTrailingMalformedApiSessionUnknownWithQuery.json()
+      ).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedTrailingMalformedApiSessionUnknownWithQueryGet = await fetch(
+        `${baseUrl}/api/sessions//messages/?scope=all`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedTrailingMalformedApiSessionUnknownWithQueryGet.status).toBe(404);
+      await expect(
+        authenticatedTrailingMalformedApiSessionUnknownWithQueryGet.json()
       ).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
