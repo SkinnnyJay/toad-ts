@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Consolidated API route classification to single-pass resolution:
+  - introduced shared resolver in `api-routes.ts` that determines
+    method/path match and known-path status in one loop.
+  - removed duplicate route-array scans and redundant pathname normalization
+    between `matchRoute(...)` and `classifyApiRoute(...)`.
 - Hardened slash-only pathname normalization:
   - `normalizeRoutePathname(...)` now canonicalizes slash-only non-root inputs
     (for example `///`, `////?x=1`) to root `/` instead of empty path output.

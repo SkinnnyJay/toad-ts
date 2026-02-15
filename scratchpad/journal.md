@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B111 API route single-pass classification)
+
+### Summary
+- Refactored API route classification internals so route matching and
+  known-path detection are resolved in a single pass.
+- Updated:
+  - `src/server/api-routes.ts`
+  - `PLAN3.md`
+- Changes:
+  - added `resolveApiRoute(...)` to consolidate normalization and route-loop
+    handling.
+  - removed duplicate route scans previously done by `matchRoute(...)` and
+    `classifyApiRoute(...)`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B110 slash-only pathname normalization)
 
 ### Summary

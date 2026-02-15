@@ -432,41 +432,53 @@ export const API_ROUTES: Route[] = [
   },
 ];
 
-export const matchRoute = (method: string, pathname: string): RouteMatchResult | null => {
+export interface RouteMatchResult {
+  handler: RouteHandler;
+  params: Record<string, string>;
+}
+
+interface ResolvedApiRoute {
+  matchedRoute: RouteMatchResult | null;
+  hasKnownPath: boolean;
+}
+
+const resolveApiRoute = (method: string, pathname: string): ResolvedApiRoute => {
   const normalizedMethod = normalizeHttpMethod(method);
   const normalizedPathname = normalizeRoutePathname(pathname);
+  let hasKnownPath = false;
   for (const route of API_ROUTES) {
-    if (route.method !== normalizedMethod) continue;
     const match = normalizedPathname.match(route.pattern);
-    if (!match) continue;
+    if (!match) {
+      continue;
+    }
+    hasKnownPath = true;
+    if (route.method !== normalizedMethod) {
+      continue;
+    }
     const params: Record<string, string> = {};
     for (let i = 0; i < route.paramNames.length; i++) {
       const name = route.paramNames[i];
       const value = match[i + 1];
       if (name && value) params[name] = value;
     }
-    return { handler: route.handler, params };
+    return { matchedRoute: { handler: route.handler, params }, hasKnownPath };
   }
-  return null;
+  return { matchedRoute: null, hasKnownPath };
 };
 
-export interface RouteMatchResult {
-  handler: RouteHandler;
-  params: Record<string, string>;
-}
+export const matchRoute = (method: string, pathname: string): RouteMatchResult | null =>
+  resolveApiRoute(method, pathname).matchedRoute;
 
 export const classifyApiRoute = (method: string, pathname: string): ApiRouteClassification => {
-  const normalizedPathname = normalizeRoutePathname(pathname);
-  const matched = matchRoute(method, normalizedPathname);
-  if (matched) {
+  const resolvedRoute = resolveApiRoute(method, pathname);
+  if (resolvedRoute.matchedRoute) {
     return {
       kind: API_ROUTE_CLASSIFICATION.MATCH,
-      handler: matched.handler,
-      params: matched.params,
+      handler: resolvedRoute.matchedRoute.handler,
+      params: resolvedRoute.matchedRoute.params,
     };
   }
-  const knownPath = API_ROUTES.some((route) => route.pattern.test(normalizedPathname));
-  if (knownPath) {
+  if (resolvedRoute.hasKnownPath) {
     return {
       kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
       classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,

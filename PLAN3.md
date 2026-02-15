@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B111 API route single-pass classification)
+
+- Refactored API route classification to resolve route match + known-path
+  detection in a single pass.
+- Updated:
+  - `src/server/api-routes.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B110 slash-only pathname normalization)
 
 - Hardened shared pathname normalization so slash-only non-canonical paths
