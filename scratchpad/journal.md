@@ -1,5 +1,42 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B213 unknown-api classifier trailing parity)
+
+### Summary
+- Expanded unknown-api classifier coverage in unit suites with explicit
+  trailing and double-trailing POST/GET parity assertions.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added api-routes classifier assertions (`NOT_FOUND`) for:
+    - `/api/does-not-exist/` (GET/POST)
+    - `/api/does-not-exist//` (GET/POST)
+    - `/api/does-not-exist//?view=compact` (GET/POST)
+    - `/api/does-not-exist//#summary` (GET/POST)
+  - expanded server-route classifier unknown-api assertions (`UNHANDLED` with
+    `API_ROUTE_CLASSIFIER`) for:
+    - `/api/unknown` (base/query/hash)
+    - `/api/unknown/` (base/query/hash)
+    - `/api/unknown//` (base/query/hash)
+    each with explicit GET/POST parity.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B212 api-unknown trailing integration parity)
 
 ### Summary

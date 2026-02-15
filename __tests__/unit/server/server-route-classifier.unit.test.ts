@@ -610,11 +610,106 @@ describe("classifyServerRoute", () => {
   it("classifies unknown api routes as unhandled with api handler id", () => {
     const getResult = classifyServerRoute(HTTP_METHOD.GET, "/api/unknown");
     const postResult = classifyServerRoute(HTTP_METHOD.POST, "/api/unknown");
+    const queryGetResult = classifyServerRoute(HTTP_METHOD.GET, "/api/unknown?scope=all");
+    const queryPostResult = classifyServerRoute(HTTP_METHOD.POST, "/api/unknown?scope=all");
+    const hashGetResult = classifyServerRoute(HTTP_METHOD.GET, "/api/unknown#summary");
+    const hashPostResult = classifyServerRoute(HTTP_METHOD.POST, "/api/unknown#summary");
+    const trailingGetResult = classifyServerRoute(HTTP_METHOD.GET, "/api/unknown/");
+    const trailingPostResult = classifyServerRoute(HTTP_METHOD.POST, "/api/unknown/");
+    const trailingQueryGetResult = classifyServerRoute(HTTP_METHOD.GET, "/api/unknown/?scope=all");
+    const trailingQueryPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/api/unknown/?scope=all"
+    );
+    const trailingHashGetResult = classifyServerRoute(HTTP_METHOD.GET, "/api/unknown/#summary");
+    const trailingHashPostResult = classifyServerRoute(HTTP_METHOD.POST, "/api/unknown/#summary");
+    const doubleTrailingGetResult = classifyServerRoute(HTTP_METHOD.GET, "/api/unknown//");
+    const doubleTrailingPostResult = classifyServerRoute(HTTP_METHOD.POST, "/api/unknown//");
+    const doubleTrailingQueryGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/api/unknown//?scope=all"
+    );
+    const doubleTrailingQueryPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/api/unknown//?scope=all"
+    );
+    const doubleTrailingHashGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/api/unknown//#summary"
+    );
+    const doubleTrailingHashPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/api/unknown//#summary"
+    );
     expect(getResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });
     expect(postResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(queryGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(queryPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(hashGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(hashPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(trailingGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(trailingPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(trailingQueryGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(trailingQueryPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(trailingHashGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(trailingHashPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingQueryGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingQueryPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingHashGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingHashPostResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });

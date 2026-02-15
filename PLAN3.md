@@ -1,3 +1,19 @@
+## 2026-02-14 Execution Update (B213 unknown-api classifier trailing parity)
+
+- Expanded API unknown-path classifier coverage in unit suites with explicit
+  POST/GET parity for trailing and double-trailing variants.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Validation:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B212 api-unknown trailing integration parity)
 
 - Expanded password-auth ordering integration coverage for `/api/unknown`

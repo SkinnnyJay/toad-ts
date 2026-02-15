@@ -14,6 +14,17 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-api classifier trailing parity:
+  - api-routes unit suite now includes explicit POST/GET assertions for
+    unknown API-path trailing and double-trailing forms:
+    `/api/does-not-exist/`, `/api/does-not-exist//`,
+    `/api/does-not-exist//?view=compact`,
+    `/api/does-not-exist//#summary`.
+  - server-route classifier suite now includes explicit POST/GET assertions for
+    unknown API route forms:
+    `/api/unknown`, `/api/unknown?scope=all`, `/api/unknown#summary`,
+    `/api/unknown/`, `/api/unknown/?scope=all`, `/api/unknown/#summary`,
+    `/api/unknown//`, `/api/unknown//?scope=all`, `/api/unknown//#summary`.
 - Expanded `/api/unknown` trailing integration parity:
   - headless-server integration suite now includes explicit unauthenticated and
     authenticated POST assertions for:

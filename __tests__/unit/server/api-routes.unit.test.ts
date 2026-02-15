@@ -327,6 +327,58 @@ describe("API Routes", () => {
       });
     });
 
+    it("classifies unknown path trailing and double-trailing forms as not found", () => {
+      const trailingGetResult = classifyApiRoute("GET", "/api/does-not-exist/");
+      const trailingPostResult = classifyApiRoute("POST", "/api/does-not-exist/");
+      const doubleTrailingGetResult = classifyApiRoute("GET", "/api/does-not-exist//");
+      const doubleTrailingPostResult = classifyApiRoute("POST", "/api/does-not-exist//");
+      const doubleTrailingQueryGetResult = classifyApiRoute(
+        "GET",
+        "/api/does-not-exist//?view=compact"
+      );
+      const doubleTrailingQueryPostResult = classifyApiRoute(
+        "POST",
+        "/api/does-not-exist//?view=compact"
+      );
+      const doubleTrailingHashGetResult = classifyApiRoute("GET", "/api/does-not-exist//#summary");
+      const doubleTrailingHashPostResult = classifyApiRoute(
+        "POST",
+        "/api/does-not-exist//#summary"
+      );
+      expect(trailingGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(trailingPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(doubleTrailingGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(doubleTrailingPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(doubleTrailingQueryGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(doubleTrailingQueryPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(doubleTrailingHashGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(doubleTrailingHashPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
     it("classifies api-root trailing-query path as not found", () => {
       const getResult = classifyApiRoute("GET", "/api/?scope=all");
       const postResult = classifyApiRoute("POST", "/api/?scope=all");
