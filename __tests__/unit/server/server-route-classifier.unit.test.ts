@@ -563,6 +563,8 @@ describe("classifyServerRoute", () => {
   });
 
   it("classifies blank-session prompt/messages hash and trailing variants as core unhandled", () => {
+    const promptGetResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions//prompt");
+    const promptTrailingGetResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions//prompt/");
     const promptHashResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions//prompt#summary");
     const promptTrailingHashResult = classifyServerRoute(
       HTTP_METHOD.POST,
@@ -598,6 +600,14 @@ describe("classifyServerRoute", () => {
       HTTP_METHOD.GET,
       "/sessions//messages/?tail=1"
     );
+    expect(promptGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(promptTrailingGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
     expect(promptHashResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,

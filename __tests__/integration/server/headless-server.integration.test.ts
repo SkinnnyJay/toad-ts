@@ -11299,6 +11299,13 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedSessionBlankPromptGet = await fetch(`${baseUrl}/sessions//prompt`);
+      expect(unauthenticatedSessionBlankPromptGet.status).toBe(401);
+      expect(unauthenticatedSessionBlankPromptGet.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedSessionBlankPromptGet.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedTrailingSessionBlankPrompt = await fetch(
         `${baseUrl}/sessions//prompt/`,
         {
@@ -11312,6 +11319,17 @@ describe("headless server", () => {
         "Bearer"
       );
       await expect(unauthenticatedTrailingSessionBlankPrompt.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedTrailingSessionBlankPromptGet = await fetch(
+        `${baseUrl}/sessions//prompt/`
+      );
+      expect(unauthenticatedTrailingSessionBlankPromptGet.status).toBe(401);
+      expect(unauthenticatedTrailingSessionBlankPromptGet.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedTrailingSessionBlankPromptGet.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -12437,6 +12455,16 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
       });
 
+      const authenticatedSessionBlankPromptGet = await fetch(`${baseUrl}/sessions//prompt`, {
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedSessionBlankPromptGet.status).toBe(404);
+      await expect(authenticatedSessionBlankPromptGet.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
       const authenticatedTrailingSessionBlankPrompt = await fetch(`${baseUrl}/sessions//prompt/`, {
         method: "POST",
         headers: {
@@ -12447,6 +12475,19 @@ describe("headless server", () => {
       });
       expect(authenticatedTrailingSessionBlankPrompt.status).toBe(404);
       await expect(authenticatedTrailingSessionBlankPrompt.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const authenticatedTrailingSessionBlankPromptGet = await fetch(
+        `${baseUrl}/sessions//prompt/`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedTrailingSessionBlankPromptGet.status).toBe(404);
+      await expect(authenticatedTrailingSessionBlankPromptGet.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
       });
 
