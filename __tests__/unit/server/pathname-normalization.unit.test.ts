@@ -29,6 +29,11 @@ describe("normalizeRoutePathname", () => {
     expect(normalizeRoutePathname(" /api/config/?view=compact ")).toBe("/api/config");
   });
 
+  it("preserves malformed inner separators while normalizing suffixes", () => {
+    expect(normalizeRoutePathname("/api//config/?view=compact")).toBe("/api//config");
+    expect(normalizeRoutePathname("/sessions//prompt/#summary")).toBe("/sessions//prompt");
+  });
+
   it("retains root path while normalizing", () => {
     expect(normalizeRoutePathname("/")).toBe("/");
     expect(normalizeRoutePathname("/?check=true")).toBe("/");

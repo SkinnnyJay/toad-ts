@@ -1,5 +1,40 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B167 malformed-path normalization logging parity coverage)
+
+### Summary
+- Expanded pathname and request-error normalization unit coverage to preserve
+  malformed inner-separator semantics under suffix normalization and logging.
+- Updated:
+  - `__tests__/unit/server/pathname-normalization.unit.test.ts`
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - `pathname-normalization`:
+    - added assertions that malformed inner separators are preserved while
+      query/hash/trailing suffixes are stripped:
+      - `/api//config/?...` -> `/api//config`
+      - `/sessions//prompt/#...` -> `/sessions//prompt`.
+  - `request-error-normalization`:
+    - added parsing-failure logging assertion for malformed combined suffix
+      path (`/api/sessions//messages/#summary?scope=all`) preserving normalized
+      logged pathname as `/api/sessions//messages`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/pathname-normalization.unit.test.ts __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B166 unknown-route hash parity classifier coverage)
 
 ### Summary

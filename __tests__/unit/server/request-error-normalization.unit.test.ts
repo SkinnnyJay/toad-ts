@@ -325,4 +325,34 @@ describe("request-error-normalization", () => {
       error: UNKNOWN_ERROR_MESSAGE,
     });
   });
+
+  it("preserves malformed inner separators when logging parsing pathnames", () => {
+    const warn = vi.fn();
+    const logger = { warn } as {
+      warn: (message: string, metadata?: Record<string, unknown>) => void;
+    };
+
+    logRequestParsingFailure(
+      logger,
+      {
+        source: REQUEST_PARSING_SOURCE.API_ROUTES,
+        method: " post ",
+        pathname: " /api/sessions//messages/#summary?scope=all ",
+        handler: " api_route_classifier ",
+      },
+      {
+        message: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+        error: UNKNOWN_ERROR_MESSAGE,
+      }
+    );
+
+    expect(warn).toHaveBeenCalledWith("Request parsing failed", {
+      source: REQUEST_PARSING_SOURCE.API_ROUTES,
+      method: "POST",
+      pathname: "/api/sessions//messages",
+      handler: "api_route_classifier",
+      mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      error: UNKNOWN_ERROR_MESSAGE,
+    });
+  });
 });

@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded malformed-path normalization logging parity coverage:
+  - pathname-normalization unit tests now lock malformed inner-separator
+    preservation while stripping suffix/trailing segments.
+  - request-error-normalization unit tests now lock parsing-failure logged
+    path normalization for malformed combined suffix API-session paths.
 - Expanded unknown-route hash parity classifier coverage:
   - core-route classifier unit tests now explicitly lock unknown endpoint
     direct query/hash unhandled behavior.

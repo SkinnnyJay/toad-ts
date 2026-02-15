@@ -1,3 +1,19 @@
+## 2026-02-14 Execution Update (B167 malformed-path normalization logging parity coverage)
+
+- Expanded pathname/request-error normalization unit coverage to lock malformed
+  inner-separator preservation through suffix normalization and parsing-failure
+  logging metadata.
+- Updated:
+  - `__tests__/unit/server/pathname-normalization.unit.test.ts`
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/pathname-normalization.unit.test.ts __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B166 unknown-route hash parity classifier coverage)
 
 - Expanded core/server route classifier unit coverage for unknown-route hash
