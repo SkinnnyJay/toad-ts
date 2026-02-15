@@ -590,6 +590,150 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies ancillary get-only api routes with unsupported post methods", () => {
+    const agentsResult = classifyServerRoute(HTTP_METHOD.POST, "/api/agents");
+    const agentsTrailingResult = classifyServerRoute(HTTP_METHOD.POST, "/api/agents/");
+    const agentsQueryResult = classifyServerRoute(HTTP_METHOD.POST, "/api/agents?scope=all");
+    const agentsHashResult = classifyServerRoute(HTTP_METHOD.POST, "/api/agents#summary");
+    const agentsDoubleTrailingResult = classifyServerRoute(HTTP_METHOD.POST, "/api/agents//");
+    const eventsResult = classifyServerRoute(HTTP_METHOD.POST, "/api/events");
+    const eventsTrailingResult = classifyServerRoute(HTTP_METHOD.POST, "/api/events/");
+    const eventsQueryResult = classifyServerRoute(HTTP_METHOD.POST, "/api/events?scope=all");
+    const eventsHashResult = classifyServerRoute(HTTP_METHOD.POST, "/api/events#summary");
+    const eventsDoubleTrailingResult = classifyServerRoute(HTTP_METHOD.POST, "/api/events//");
+    const fileSearchResult = classifyServerRoute(HTTP_METHOD.POST, "/api/files/search?q=readme");
+    const fileSearchTrailingResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/api/files/search/?q=readme"
+    );
+    const fileSearchHashResult = classifyServerRoute(HTTP_METHOD.POST, "/api/files/search#summary");
+    const fileSearchDoubleTrailingResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/api/files/search//"
+    );
+    expect(agentsResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(agentsTrailingResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(agentsQueryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(agentsHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(agentsDoubleTrailingResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(eventsResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(eventsTrailingResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(eventsQueryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(eventsHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(eventsDoubleTrailingResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(fileSearchResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(fileSearchTrailingResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(fileSearchHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(fileSearchDoubleTrailingResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
+  it("classifies post-only tui api routes with unsupported get methods", () => {
+    const appendResult = classifyServerRoute(HTTP_METHOD.GET, "/api/tui/append-prompt");
+    const appendTrailingResult = classifyServerRoute(HTTP_METHOD.GET, "/api/tui/append-prompt/");
+    const appendQueryResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/api/tui/append-prompt?scope=all"
+    );
+    const appendHashResult = classifyServerRoute(HTTP_METHOD.GET, "/api/tui/append-prompt#summary");
+    const appendDoubleTrailingResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/api/tui/append-prompt//"
+    );
+    const submitResult = classifyServerRoute(HTTP_METHOD.GET, "/api/tui/submit-prompt");
+    const submitTrailingResult = classifyServerRoute(HTTP_METHOD.GET, "/api/tui/submit-prompt/");
+    const submitQueryResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/api/tui/submit-prompt?scope=all"
+    );
+    const submitHashResult = classifyServerRoute(HTTP_METHOD.GET, "/api/tui/submit-prompt#summary");
+    const submitDoubleTrailingResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/api/tui/submit-prompt//"
+    );
+    expect(appendResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(appendTrailingResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(appendQueryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(appendHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(appendDoubleTrailingResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(submitResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(submitTrailingResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(submitQueryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(submitHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(submitDoubleTrailingResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies session-collection api path variants with unsupported methods", () => {
     const baseResult = classifyServerRoute(HTTP_METHOD.POST, "/api/sessions");
     const queryResult = classifyServerRoute(HTTP_METHOD.POST, "/api/sessions?scope=all");

@@ -14,6 +14,22 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded ancillary-api method/auth parity:
+  - api-routes classifier unit suite now explicitly locks unsupported-method
+    semantics for additional known routes:
+    - GET-only ancillary routes with unsupported `POST`:
+      `/api/agents`, `/api/events`, `/api/files/search` (plus trailing/query/
+      hash/double-trailing variants).
+    - POST-only TUI routes with unsupported `GET`:
+      `/api/tui/append-prompt`, `/api/tui/submit-prompt` (plus trailing/query/
+      hash/double-trailing variants).
+  - server-route classifier unit suite now explicitly locks same top-level
+    method outcomes and API classifier ownership for those route families.
+  - headless-server integration suite now explicitly locks end-to-end behavior:
+    - unprotected known API semantics return `405 METHOD_NOT_ALLOWED` for those
+      unsupported methods and normalized variants.
+    - password-protected routes enforce auth-before-method ordering:
+      unauthenticated => `401` + `Bearer`, authenticated => `405`.
 - Expanded sessions-collection protected parity:
   - API and server classifier unit suites now explicitly cover `/api/sessions`
     unsupported-method semantics across base/trailing/query/hash/double forms,

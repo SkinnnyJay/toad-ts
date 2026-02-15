@@ -1,5 +1,45 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B232 ancillary-api method/auth parity)
+
+### Summary
+- Expanded ancillary known-API method/auth coverage across API/server
+  classifiers and headless-server integration flows.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added API classifier assertions for GET-only ancillary routes with
+    unsupported `POST` methods (`/api/agents`, `/api/events`,
+    `/api/files/search`) across normalized variants.
+  - added API classifier assertions for POST-only TUI routes with unsupported
+    `GET` methods (`/api/tui/append-prompt`, `/api/tui/submit-prompt`) across
+    normalized variants.
+  - added server-route classifier assertions to lock top-level
+    `METHOD_NOT_ALLOWED` semantics and API classifier ownership for the same
+    route families.
+  - expanded integration coverage to lock:
+    - unprotected unsupported methods => `405 METHOD_NOT_ALLOWED`
+    - protected auth-before-method ordering => unauthenticated `401` + Bearer,
+      authenticated `405`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/pathname-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B231 sessions-collection protected parity)
 
 ### Summary

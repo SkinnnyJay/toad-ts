@@ -1,3 +1,25 @@
+## 2026-02-14 Execution Update (B232 ancillary-api method/auth parity)
+
+- Expanded ancillary known-API route coverage to lock method and auth
+  semantics across classifier and integration layers.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Validation:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/pathname-normalization.unit.test.ts` ✅
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B231 sessions-collection protected parity)
 
 - Expanded `/api/sessions` session-collection coverage across API/server

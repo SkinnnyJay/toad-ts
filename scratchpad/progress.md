@@ -3,6 +3,11 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B232 ancillary-api method/auth parity hardening
+    (api/server classifier + integration coverage now locks unsupported-method
+    semantics for ancillary known routes: `/api/agents`, `/api/events`,
+    `/api/files/search`, `/api/tui/append-prompt`, `/api/tui/submit-prompt`,
+    including protected auth-before-method ordering)
   - completed B231 sessions-collection protected parity hardening
     (api/server classifier + integration coverage now locks `/api/sessions`
     method/auth semantics across trailing/query/hash/double variants)
