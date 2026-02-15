@@ -1,3 +1,22 @@
+## 2026-02-14 Execution Update (B195 blank-session prompt hash get-method parity)
+
+- Expanded unknown-route auth-order integration plus core/server classifier
+  coverage for blank-session prompt malformed hash variants with explicit
+  GET-method parity.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B194 blank-session prompt query get-method parity)
 
 - Expanded unknown-route auth-order integration plus core/server classifier

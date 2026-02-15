@@ -1,5 +1,43 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B195 blank-session prompt hash get-method parity)
+
+### Summary
+- Expanded unknown-route auth-order integration plus core/server classifier
+  coverage for blank-session prompt malformed hash variants with explicit
+  GET-method parity.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added unauthenticated/authenticated GET assertions for:
+    - `/sessions//prompt#summary`
+    - `/sessions//prompt/#summary`
+    - `/sessions//prompt//#summary`
+    alongside existing POST assertions, locking auth-first unknown-route
+    semantics for blank-session prompt hash malformed paths under password
+    protection.
+  - added core/server classifier GET assertions for the same malformed hash
+    variants, locking canonical core `UNHANDLED` ownership parity.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B194 blank-session prompt query get-method parity)
 
 ### Summary
