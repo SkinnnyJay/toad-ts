@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded suffix-only pathname root normalization coverage:
+  - pathname-normalization unit tests now explicitly lock blank/suffix-only
+    path forms (`""`, `?query`, `#hash`) to root normalization.
+  - request-error-normalization unit tests now explicitly lock validation-log
+    pathname normalization of suffix-only request paths to `/`.
 - Expanded malformed API-session trailing-query classifier parity:
   - api-routes and server-route classifier unit suites now explicitly lock
     `/api/sessions//messages/?scope=all` malformed trailing-query behavior with

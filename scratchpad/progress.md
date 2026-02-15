@@ -3,6 +3,10 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B172 suffix-only pathname root normalization coverage hardening
+    (pathname and request-error normalization unit coverage now explicitly
+    locks blank/suffix-only path normalization to root and validation-log root
+    pathname behavior)
   - completed B171 malformed-api-session trailing-query classifier parity
     hardening
     (api/server route classifier unit coverage now explicitly locks malformed

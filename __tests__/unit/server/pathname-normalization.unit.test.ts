@@ -45,4 +45,13 @@ describe("normalizeRoutePathname", () => {
     expect(normalizeRoutePathname("////?check=true")).toBe("/");
     expect(normalizeRoutePathname("////#status")).toBe("/");
   });
+
+  it("normalizes blank and suffix-only paths to root", () => {
+    expect(normalizeRoutePathname("")).toBe("/");
+    expect(normalizeRoutePathname("   ")).toBe("/");
+    expect(normalizeRoutePathname("?scope=all")).toBe("/");
+    expect(normalizeRoutePathname("#summary")).toBe("/");
+    expect(normalizeRoutePathname(" ?scope=all ")).toBe("/");
+    expect(normalizeRoutePathname(" #summary ")).toBe("/");
+  });
 });
