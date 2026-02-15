@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded pathname-normalization combined non-root coverage:
+  - pathname-normalization unit tests now include non-root combined
+    trailing-slash + query/hash + whitespace forms (for example
+    `/api/config/?view=...`, `/api/config/#...`, padded combined form).
+  - locks canonical normalized output (`/api/config`) for these combined
+    non-root path variants.
 - Expanded server-route core combined-suffix coverage:
   - server-route classifier unit tests now include combined
     trailing-slash+query forms for core-route method guards:

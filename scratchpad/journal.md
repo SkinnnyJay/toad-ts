@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B139 pathname-normalization combined non-root coverage)
+
+### Summary
+- Expanded pathname-normalization unit coverage for non-root combined
+  trailing-slash + query/hash + whitespace path inputs.
+- Updated:
+  - `__tests__/unit/server/pathname-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added combined normalization assertions for:
+    - `/api/config/?view=compact`
+    - `/api/config/#summary`
+    - ` /api/config/?view=compact `
+    each expected to normalize to `/api/config`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/pathname-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B138 server-route core combined-suffix coverage)
 
 ### Summary

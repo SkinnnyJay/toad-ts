@@ -23,6 +23,12 @@ describe("normalizeRoutePathname", () => {
     expect(normalizeRoutePathname("/api/config///")).toBe("/api/config");
   });
 
+  it("normalizes non-root paths with combined trailing-slash and suffix forms", () => {
+    expect(normalizeRoutePathname("/api/config/?view=compact")).toBe("/api/config");
+    expect(normalizeRoutePathname("/api/config/#summary")).toBe("/api/config");
+    expect(normalizeRoutePathname(" /api/config/?view=compact ")).toBe("/api/config");
+  });
+
   it("retains root path while normalizing", () => {
     expect(normalizeRoutePathname("/")).toBe("/");
     expect(normalizeRoutePathname("/?check=true")).toBe("/");
