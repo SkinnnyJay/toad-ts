@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import { LIMIT } from "@/config/limits";
 import { SERVER_CONFIG } from "@/config/server";
 import { ENV_KEY } from "@/constants/env-keys";
@@ -12,6 +13,12 @@ export interface ServerConfigOverrides {
   host?: string;
   port?: number;
 }
+
+const HOSTNAME_PATTERN =
+  /^(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)(?:\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*$/;
+
+const isValidServerHost = (host: string): boolean =>
+  isIP(host) !== 0 || HOSTNAME_PATTERN.test(host);
 
 const parsePort = (value: string | number | undefined): number | null => {
   if (value === undefined) {
@@ -36,7 +43,10 @@ const normalizeHost = (value: string | undefined): string | null => {
     return null;
   }
   const normalizedHost = value.trim();
-  return normalizedHost.length > 0 ? normalizedHost : null;
+  if (normalizedHost.length === 0) {
+    return null;
+  }
+  return isValidServerHost(normalizedHost) ? normalizedHost : null;
 };
 
 export const resolveServerConfig = (

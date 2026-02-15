@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B87 server runtime host validation)
+
+### Summary
+- Hardened server runtime host normalization to reject malformed host strings
+  and preserve deterministic host fallback behavior.
+- Updated:
+  - `src/server/server-config.ts`
+  - `__tests__/unit/server/server-config.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added host validation using IP + hostname checks during config resolution.
+  - invalid hosts (e.g. with scheme/path metadata) now fallback to env host or
+    default host instead of being propagated.
+  - kept valid IPv6 host values supported.
+  - expanded server-config tests for invalid-host fallback and IPv6 acceptance.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/server-config.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B86 request-body whitespace-only empty-body fallback)
 
 ### Summary

@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added server runtime host validation hardening:
+  - runtime host normalization now rejects invalid host strings (schemes,
+    malformed host metadata) and falls back to env/default hosts.
+  - valid IPv4/IPv6/hostname values remain supported.
+  - expanded server-config tests for invalid host fallback and IPv6 acceptance.
 - Added request-body whitespace-only empty-body fallback hardening:
   - JSON parse helper now treats whitespace-only bodies as empty for routes
     that provide `emptyBodyValue`.

@@ -1,3 +1,20 @@
+## 2026-02-14 Execution Update (B87 server runtime host validation)
+
+- Hardened `resolveServerConfig(...)` host validation:
+  - rejects malformed host inputs (e.g. scheme/path metadata)
+  - falls back to env/default host when override/env host is invalid
+  - preserves valid IPv6 host support
+- Updated:
+  - `src/server/server-config.ts`
+  - `__tests__/unit/server/server-config.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/server-config.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B86 request-body whitespace fallback)
 
 - Hardened `parseJsonRequestBody(...)` to treat whitespace-only payloads as

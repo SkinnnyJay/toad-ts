@@ -71,6 +71,16 @@ describe("resolveServerConfig", () => {
     expect(result.host).toBe("0.0.0.0");
   });
 
+  it("falls back to env host when override host is invalid", () => {
+    const env = {
+      [ENV_KEY.TOADSTOOL_SERVER_HOST]: "0.0.0.0",
+    };
+
+    const result = resolveServerConfig({ host: "http://127.0.0.1" }, env);
+
+    expect(result.host).toBe("0.0.0.0");
+  });
+
   it("falls back to default port when env port is invalid", () => {
     const env = {
       [ENV_KEY.TOADSTOOL_SERVER_PORT]: "not-a-number",
@@ -84,6 +94,16 @@ describe("resolveServerConfig", () => {
   it("falls back to default host when env host is blank", () => {
     const env = {
       [ENV_KEY.TOADSTOOL_SERVER_HOST]: "   ",
+    };
+
+    const result = resolveServerConfig({}, env);
+
+    expect(result.host).toBe(SERVER_CONFIG.DEFAULT_HOST);
+  });
+
+  it("falls back to default host when env host is invalid", () => {
+    const env = {
+      [ENV_KEY.TOADSTOOL_SERVER_HOST]: "http://127.0.0.1",
     };
 
     const result = resolveServerConfig({}, env);
@@ -117,5 +137,15 @@ describe("resolveServerConfig", () => {
     });
 
     expect(result.port).toBe(7777);
+  });
+
+  it("accepts ipv6 host values from env", () => {
+    const env = {
+      [ENV_KEY.TOADSTOOL_SERVER_HOST]: "::1",
+    };
+
+    const result = resolveServerConfig({}, env);
+
+    expect(result.host).toBe("::1");
   });
 });
