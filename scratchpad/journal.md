@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B114 headless session-route parse reuse)
+
+### Summary
+- Refactored headless-server dispatch internals to compute session-resource
+  route parsing once per request and reuse the parsed structure across both
+  `POST` prompt and `GET` messages route branches.
+- Updated:
+  - `src/server/headless-server.ts`
+  - `PLAN3.md`
+- Changes:
+  - introduced shared `isSessionResourcePath` + `parsedSessionRoutePath`
+    request-scope variables after route classification.
+  - removed duplicate calls to `parseSessionRoutePath(...)` in the two
+    session-resource branch handlers.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B113 API auth-order parameterized coverage)
 
 ### Summary

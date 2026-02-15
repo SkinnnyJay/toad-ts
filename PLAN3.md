@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B114 headless session-route parse reuse)
+
+- Refactored headless-server request dispatch to parse session-resource route
+  path metadata once per request and reuse it across `POST`/`GET` session
+  branches.
+- Updated:
+  - `src/server/headless-server.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B113 API auth-order parameterized coverage)
 
 - Expanded password-protected API auth-order integration coverage to include

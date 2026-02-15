@@ -170,6 +170,9 @@ export const startHeadlessServer = async (
         return;
       }
 
+      const isSessionResourcePath = pathname.startsWith(`${SERVER_PATH.SESSIONS}/`);
+      const parsedSessionRoutePath = isSessionResourcePath ? parseSessionRoutePath(pathname) : null;
+
       if (req.method === HTTP_METHOD.POST && pathname === SERVER_PATH.SESSIONS) {
         let raw: unknown;
         try {
@@ -232,10 +235,9 @@ export const startHeadlessServer = async (
         return;
       }
 
-      if (req.method === HTTP_METHOD.POST && pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
-        const parsedRoutePath = parseSessionRoutePath(pathname);
-        const sessionId = parsedRoutePath?.sessionId;
-        const action = parsedRoutePath?.action;
+      if (req.method === HTTP_METHOD.POST && isSessionResourcePath) {
+        const sessionId = parsedSessionRoutePath?.sessionId;
+        const action = parsedSessionRoutePath?.action;
         if (!sessionId || action !== SERVER_PATH.SEGMENT_PROMPT) {
           sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT);
           return;
@@ -282,10 +284,9 @@ export const startHeadlessServer = async (
         return;
       }
 
-      if (req.method === HTTP_METHOD.GET && pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
-        const parsedRoutePath = parseSessionRoutePath(pathname);
-        const sessionId = parsedRoutePath?.sessionId;
-        const resource = parsedRoutePath?.action;
+      if (req.method === HTTP_METHOD.GET && isSessionResourcePath) {
+        const sessionId = parsedSessionRoutePath?.sessionId;
+        const resource = parsedSessionRoutePath?.action;
         if (!sessionId || resource !== SERVER_PATH.SEGMENT_MESSAGES) {
           sendError(res, HTTP_STATUS.NOT_FOUND, SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT);
           return;

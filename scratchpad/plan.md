@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Refactored headless-server session route dispatch parsing:
+  - session-resource path detection and `parseSessionRoutePath(...)` now run
+    once per request and feed both prompt/messages route branches.
+  - removed duplicate per-branch session-route parsing while preserving
+    response semantics.
 - Expanded API auth-order coverage for parameterized routes:
   - password-protected integration test now validates `401` before
     method-semantics and authenticated `405` outcomes for:
