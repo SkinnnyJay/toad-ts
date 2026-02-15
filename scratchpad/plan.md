@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added request-error normalization robustness hardening:
+  - parser error classification now recognizes canonical messages from string
+    throws and message-bearing objects, not only `Error` instances.
+  - normalized parse-error detail payloads now surface message-bearing object
+    messages consistently.
+  - expanded unit coverage for string/object error inputs.
 - Added server HTTP method normalization direct coverage:
   - created focused unit tests for `normalizeHttpMethod(...)` covering
     lowercase, padded, and already-uppercase method normalization behavior.

@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B70 request-error normalization robustness hardening)
+
+### Summary
+- Added post-completion hardening for request parse-error normalization to
+  support non-`Error` throw shapes.
+- Updated:
+  - `src/server/request-error-normalization.ts`
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - classification now recognizes canonical parse-error messages from string
+    throws and objects with `message` fields.
+  - normalized details now preserve message-bearing object text instead of
+    generic object stringification.
+  - expanded unit coverage for string/object canonical classification paths and
+    details mapping.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B69 server HTTP method normalization coverage)
 
 ### Summary

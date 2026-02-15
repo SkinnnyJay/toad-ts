@@ -10,12 +10,18 @@ import {
 import { describe, expect, it, vi } from "vitest";
 
 const UNKNOWN_ERROR_MESSAGE = "unexpected failure";
+const TOO_LARGE_MESSAGE = SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE;
+const INVALID_MESSAGE = SERVER_RESPONSE_MESSAGE.INVALID_REQUEST;
 
 describe("request-error-normalization", () => {
   it("classifies request body too large errors", () => {
-    const error = new Error(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE);
+    const error = new Error(TOO_LARGE_MESSAGE);
 
-    expect(classifyRequestParsingError(error)).toBe(SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE);
+    expect(classifyRequestParsingError(error)).toBe(TOO_LARGE_MESSAGE);
+  });
+
+  it("classifies request body too large message strings", () => {
+    expect(classifyRequestParsingError(TOO_LARGE_MESSAGE)).toBe(TOO_LARGE_MESSAGE);
   });
 
   it("classifies syntax errors as invalid requests", () => {
@@ -25,9 +31,17 @@ describe("request-error-normalization", () => {
   });
 
   it("classifies canonical invalid-request errors", () => {
-    const error = new Error(SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
+    const error = new Error(INVALID_MESSAGE);
 
-    expect(classifyRequestParsingError(error)).toBe(SERVER_RESPONSE_MESSAGE.INVALID_REQUEST);
+    expect(classifyRequestParsingError(error)).toBe(INVALID_MESSAGE);
+  });
+
+  it("classifies canonical invalid-request message objects", () => {
+    const error = {
+      message: INVALID_MESSAGE,
+    };
+
+    expect(classifyRequestParsingError(error)).toBe(INVALID_MESSAGE);
   });
 
   it("returns null for unrecognized errors", () => {
@@ -47,6 +61,17 @@ describe("request-error-normalization", () => {
 
     expect(normalizeRequestBodyParseErrorDetails(error)).toEqual({
       message: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      error: UNKNOWN_ERROR_MESSAGE,
+    });
+  });
+
+  it("returns normalized parse error details for message-only objects", () => {
+    const error = {
+      message: UNKNOWN_ERROR_MESSAGE,
+    };
+
+    expect(normalizeRequestBodyParseErrorDetails(error)).toEqual({
+      message: INVALID_MESSAGE,
       error: UNKNOWN_ERROR_MESSAGE,
     });
   });

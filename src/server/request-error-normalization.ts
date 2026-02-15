@@ -40,14 +40,30 @@ const normalizeRequestFailureContext = (
   ...(context.handler ? { handler: context.handler } : {}),
 });
 
+const resolveErrorMessage = (error: unknown): string | null => {
+  if (typeof error === "string") {
+    return error;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "object" && error !== null) {
+    const message = Reflect.get(error, "message");
+    if (typeof message === "string") {
+      return message;
+    }
+  }
+  return null;
+};
+
 const isRequestBodyTooLargeError = (error: unknown): boolean =>
-  error instanceof Error && error.message === SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE;
+  resolveErrorMessage(error) === SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE;
 
 const isInvalidRequestError = (error: unknown): boolean => {
   if (error instanceof SyntaxError) {
     return true;
   }
-  return error instanceof Error && error.message === SERVER_RESPONSE_MESSAGE.INVALID_REQUEST;
+  return resolveErrorMessage(error) === SERVER_RESPONSE_MESSAGE.INVALID_REQUEST;
 };
 
 export const normalizeRequestBodyParseError = (error: unknown): string => {
@@ -61,7 +77,7 @@ export const normalizeRequestBodyParseErrorDetails = (
   error: unknown
 ): NormalizedRequestBodyParseError => ({
   message: normalizeRequestBodyParseError(error),
-  error: error instanceof Error ? error.message : String(error),
+  error: resolveErrorMessage(error) ?? String(error),
 });
 
 export const logRequestParsingFailure = (
