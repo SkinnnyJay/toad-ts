@@ -14,6 +14,19 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-route direct-query auth-order coverage:
+  - password-protected unknown-route ordering integration test
+    (`applies auth checks before not-found semantics on unknown routes`)
+    now includes direct-query non-trailing variants for:
+    - core unknown path (`/unknown-endpoint?scope=all`)
+    - malformed API path (`/api//config?scope=all`)
+    - malformed API session path (`/api/sessions//messages?scope=all`)
+    - missing-action session path (`/sessions/:id?scope=all`)
+    - blank-session prompt path (`/sessions//prompt?tail=1`).
+  - locks canonical auth-first semantics:
+    - unauthenticated `401` + challenge
+    - authenticated `404` (`NOT_FOUND` or `UNKNOWN_ENDPOINT` as appropriate)
+    across these direct-query unknown-route variants.
 - Expanded unknown-route blank-session hash auth-order coverage:
   - password-protected unknown-route ordering integration test
     (`applies auth checks before not-found semantics on unknown routes`)

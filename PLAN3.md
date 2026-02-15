@@ -1,3 +1,19 @@
+## 2026-02-14 Execution Update (B161 unknown-route direct-query auth-order coverage)
+
+- Expanded password-protected unknown-route auth-before-not-found integration
+  coverage for direct-query (non-trailing-slash) variants across core, malformed
+  API, malformed API session, missing-action session, and blank-session prompt
+  paths.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B160 unknown-route blank-session hash auth-order coverage)
 
 - Expanded password-protected unknown-route auth-before-not-found integration

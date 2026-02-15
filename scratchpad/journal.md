@@ -1,5 +1,41 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B161 unknown-route direct-query auth-order coverage)
+
+### Summary
+- Expanded password-protected unknown-route auth-before-not-found integration
+  coverage for direct-query (non-trailing) variants across core, malformed
+  API, malformed API session, missing-action session, and blank-prompt paths.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in
+    `applies auth checks before not-found semantics on unknown routes`,
+    added unauthenticated/authenticated direct-query assertions for:
+    - `/unknown-endpoint?scope=all`
+    - `/api//config?scope=all`
+    - `/api/sessions//messages?scope=all`
+    - `/sessions/session-1?scope=all`
+    - `/sessions//prompt?tail=1`
+    locking canonical auth-first `401` + challenge and authenticated `404`
+    (`NOT_FOUND`/`UNKNOWN_ENDPOINT`) semantics.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B160 unknown-route blank-session hash auth-order coverage)
 
 ### Summary
