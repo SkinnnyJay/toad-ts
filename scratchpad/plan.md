@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added server-auth bearer-token payload hardening:
+  - bearer-scheme headers without token payload now return
+    `AUTHORIZATION_REQUIRED` instead of misclassifying as invalid credentials.
+  - expanded auth tests for bare bearer scheme and whitespace-only bearer token
+    payload handling.
 - Added server request schema non-blank string hardening:
   - whitespace-only `cwd`, `title`, and `prompt` values are now rejected by
     shared server request schemas.

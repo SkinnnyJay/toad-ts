@@ -143,6 +143,48 @@ describe("checkServerAuth", () => {
     expect(getCaptured().statusCode).toBeNull();
   });
 
+  it("rejects bearer scheme without token payload", () => {
+    process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD] = "secret";
+    EnvManager.resetInstance();
+    const { response, getCaptured } = createResponseCapture();
+
+    const allowed = checkServerAuth(
+      { headers: { authorization: "Bearer" } } as IncomingMessage,
+      response as unknown as ServerResponse
+    );
+
+    expect(allowed).toBe(false);
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.UNAUTHORIZED,
+      headers: {
+        "Content-Type": "application/json",
+        "WWW-Authenticate": "Bearer",
+      },
+      body: { error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED },
+    });
+  });
+
+  it("rejects bearer scheme with whitespace-only token payload", () => {
+    process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD] = "secret";
+    EnvManager.resetInstance();
+    const { response, getCaptured } = createResponseCapture();
+
+    const allowed = checkServerAuth(
+      { headers: { authorization: "Bearer    " } } as IncomingMessage,
+      response as unknown as ServerResponse
+    );
+
+    expect(allowed).toBe(false);
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.UNAUTHORIZED,
+      headers: {
+        "Content-Type": "application/json",
+        "WWW-Authenticate": "Bearer",
+      },
+      body: { error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED },
+    });
+  });
+
   it("accepts raw authorization token that matches configured password", () => {
     process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD] = "secret";
     EnvManager.resetInstance();

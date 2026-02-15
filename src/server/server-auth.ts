@@ -10,6 +10,7 @@ const AUTH_HEADER = {
 } as const;
 
 const BEARER_TOKEN_PREFIX_PATTERN = /^Bearer\s+/i;
+const BEARER_SCHEME_PATTERN = /^Bearer\b/i;
 
 const normalizeAuthorizationHeader = (
   authorization: string | string[] | undefined
@@ -37,6 +38,17 @@ const rejectUnauthorized = (res: ServerResponse, message: string): boolean => {
   return false;
 };
 
+const extractAuthorizationToken = (authHeader: string): string | null => {
+  const usesBearerScheme = BEARER_SCHEME_PATTERN.test(authHeader);
+  const token = usesBearerScheme
+    ? authHeader.replace(BEARER_SCHEME_PATTERN, "").trim()
+    : authHeader.replace(BEARER_TOKEN_PREFIX_PATTERN, "").trim();
+  if (usesBearerScheme && token.length === 0) {
+    return null;
+  }
+  return token.length > 0 ? token : null;
+};
+
 /**
  * Basic auth middleware for the headless server.
  * Checks the TOADSTOOL_SERVER_PASSWORD environment variable.
@@ -53,8 +65,11 @@ export const checkServerAuth = (req: IncomingMessage, res: ServerResponse): bool
     return rejectUnauthorized(res, SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED);
   }
 
-  // Support "Bearer <token>" format
-  const token = authHeader.replace(BEARER_TOKEN_PREFIX_PATTERN, "").trim();
+  // Support "Bearer <token>" format while rejecting missing bearer tokens.
+  const token = extractAuthorizationToken(authHeader);
+  if (!token) {
+    return rejectUnauthorized(res, SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED);
+  }
   if (token !== password) {
     return rejectUnauthorized(res, SERVER_RESPONSE_MESSAGE.INVALID_CREDENTIALS);
   }

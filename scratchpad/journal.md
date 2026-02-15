@@ -1,5 +1,39 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B85 server-auth bearer-token payload hardening)
+
+### Summary
+- Hardened bearer authorization parsing so empty bearer tokens are treated as
+  missing auth credentials.
+- Updated:
+  - `src/server/server-auth.ts`
+  - `__tests__/unit/server/server-auth.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added explicit token extraction helper with bearer-scheme awareness.
+  - bearer scheme with no token payload now maps to
+    `AUTHORIZATION_REQUIRED` (instead of `INVALID_CREDENTIALS`).
+  - retained invalid-credential mapping for non-empty mismatched tokens.
+  - expanded unit coverage for bare bearer scheme and whitespace-only bearer
+    payload handling.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/server-auth.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+  - note: first full `npx vitest run` attempt hit a transient integration
+    timeout in `headless-server.integration`; immediate re-run passed cleanly.
+
 ## 2026-02-14 (B84 server schema non-blank string validation)
 
 ### Summary

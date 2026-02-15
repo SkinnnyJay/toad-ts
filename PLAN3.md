@@ -1,3 +1,19 @@
+## 2026-02-14 Execution Update (B85 bearer-token payload hardening)
+
+- Hardened server auth token parsing for bearer scheme payloads:
+  - bare/whitespace-only bearer payloads now map to `AUTHORIZATION_REQUIRED`
+  - non-empty mismatched credentials continue mapping to `INVALID_CREDENTIALS`
+- Updated:
+  - `src/server/server-auth.ts`
+  - `__tests__/unit/server/server-auth.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/server-auth.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅ (second run; first run hit transient integration timeout)
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B84 server schema non-blank strings)
 
 - Hardened server request schemas to reject whitespace-only semantic string
