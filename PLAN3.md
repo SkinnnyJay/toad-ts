@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B187 malformed-api double-trailing-query get-method parity)
+
+- Expanded unknown-route auth-order integration coverage for malformed API
+  double-trailing-query variant with explicit GET-method parity.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B186 malformed-api-session double-trailing-query method parity)
 
 - Expanded malformed API-session double-trailing-query classifier coverage with
