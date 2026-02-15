@@ -10,7 +10,7 @@ import { useTerminalDimensions } from "@/ui/hooks/useTerminalDimensions";
 import { TextAttributes } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 import fuzzysort from "fuzzysort";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 
 const SECTION_RECENT = "recent";
 
@@ -57,6 +57,7 @@ export function CommandPalette({
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState(0);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const deferredQuery = useDeferredValue(query);
   const terminalDimensions = useTerminalDimensions();
   const recentCommandNames = useAppStore((state) => state.recentCommandNames);
   const loadRecentCommandsFromSettings = useAppStore(
@@ -103,8 +104,8 @@ export function CommandPalette({
   }, [commands]);
 
   const visibleRows = useMemo((): PaletteRow[] => {
-    if (query.trim()) {
-      const scored = fuzzysort.go(query, commands, {
+    if (deferredQuery.trim()) {
+      const scored = fuzzysort.go(deferredQuery, commands, {
         limit: LIMIT.COMMAND_PALETTE_MAX_RESULTS,
         key: "name",
       });
@@ -168,7 +169,7 @@ export function CommandPalette({
       }
     }
     return rows;
-  }, [query, commands, commandsByName, recentCommandNames, collapsedSections]);
+  }, [deferredQuery, commands, commandsByName, recentCommandNames, collapsedSections]);
 
   const toggleSection = useCallback((sectionKey: string) => {
     setCollapsedSections((prev) => ({

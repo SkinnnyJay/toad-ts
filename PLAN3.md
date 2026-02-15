@@ -7285,6 +7285,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - cap oversized provider failure payload propagation to reduce log bloat and
       avoid memory/terminal pressure from unbounded error responses.
 
+## Execution Log Addendum — 2026-02-14 (B39 command-palette recompute throttling hardening)
+
+- Additional P1 backlog hardening for high-frequency input responsiveness:
+  - Updated:
+    - `src/ui/components/CommandPalette.tsx`
+    - `__tests__/unit/ui/sidebar-footer-prompt-palette.unit.test.ts`
+  - Hardening changes:
+    - switched command palette filtering to use deferred query value for
+      recompute throttling under rapid keypress input bursts.
+    - preserved selection and keyboard interaction semantics while reducing
+      immediate per-keystroke fuzzy recomputation pressure.
+    - added focused regression coverage validating deferred filter behavior.
+  - Goal:
+    - reduce command-palette filter recompute pressure under rapid input while
+      preserving user-visible filtering correctness.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7330,7 +7346,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B36 | P1 | cache update-check results with TTL to prevent repeated remote calls in one runtime.
 - [x] - B37 | P1 | de-correlate provider retries to avoid synchronized thundering-herd behavior.
 - [x] - B38 | P1 | bound error log payload size for provider streaming failures.
-- [ ] - B39 | P1 | throttle command-palette/filter recompute path under rapid keypress input.
+- [x] - B39 | P1 | throttle command-palette/filter recompute path under rapid keypress input.
 - [ ] - B40 | P1 | add hard caps for nested hook/prompt subprocess chains.
 
 ### P2 - Simplification-first hardening, NutJS readiness, and maintainability

@@ -3985,9 +3985,14 @@
     OpenAI-compatible, Anthropic, and Ollama adapters
   - added focused truncation coverage in
     `__tests__/unit/core/provider-error.utils.unit.test.ts`
+- Completed P1 backlog item B39 command-palette recompute throttling:
+  - updated `src/ui/components/CommandPalette.tsx` to use deferred query value
+    for filter recompute throttling under rapid input
+  - added focused deferred-filter regression coverage in
+    `__tests__/unit/ui/sidebar-footer-prompt-palette.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B39 by throttling command-palette/filter
-    recompute path under rapid keypress input
+  - evaluate severity backlog item B40 by introducing hard caps for nested
+    hook/prompt subprocess chains
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers
