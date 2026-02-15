@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B142 api-route root trailing-query not-found coverage)
+
+- Expanded api-routes unit coverage to lock `classifyApiRoute` behavior for
+  `/api/?...` trailing-query root form as API-scoped `NOT_FOUND`.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B141 core-route health combined-suffix coverage)
 
 - Expanded core-route classifier unit coverage for `GET /health` with combined

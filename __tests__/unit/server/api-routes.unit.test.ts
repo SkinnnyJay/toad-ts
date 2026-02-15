@@ -244,6 +244,14 @@ describe("API Routes", () => {
       });
     });
 
+    it("classifies api-root trailing-query path as not found", () => {
+      const result = classifyApiRoute("GET", "/api/?scope=all");
+      expect(result).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
     it("classifies malformed double-segment api paths as not found", () => {
       const configResult = classifyApiRoute("POST", "/api//config");
       const messagesResult = classifyApiRoute("POST", "/api/sessions//messages");

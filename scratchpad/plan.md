@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded api-route root trailing-query not-found coverage:
+  - api-routes unit tests now include `classifyApiRoute("GET", "/api/?scope=all")`.
+  - locks canonical `NOT_FOUND` + `API_ROUTE_CLASSIFIER` decision for direct
+    API-route classifier root trailing-query input.
 - Expanded core-route health combined-suffix coverage:
   - core-route classifier unit tests now include
     `GET /health/?check=true` combined trailing-slash + query form.
