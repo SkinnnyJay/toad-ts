@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B117 missing-action session-subroute coverage)
+
+### Summary
+- Expanded unsupported session-subroute integration coverage to lock behavior
+  for missing-action path variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - extended unsupported session-subroute test with:
+    - `GET /sessions/session-1`
+    - `POST /sessions/session-1`
+    - `POST /sessions/session-1/`
+  - all now explicitly assert canonical `404` +
+    `SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "returns unknown endpoint for unsupported session subroutes"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B116 malformed API route coverage)
 
 ### Summary

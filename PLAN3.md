@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B117 missing-action session-subroute coverage)
+
+- Expanded unsupported session-subroute integration coverage for missing-action
+  route variants (`/sessions/:id` and trailing-slash normalized forms).
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "returns unknown endpoint for unsupported session subroutes"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B116 malformed API route coverage)
 
 - Expanded API malformed-path coverage to lock not-found semantics for

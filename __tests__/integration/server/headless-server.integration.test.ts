@@ -650,6 +650,32 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
       });
 
+      const missingActionGetResponse = await fetch(`${baseUrl}/sessions/session-1`);
+      expect(missingActionGetResponse.status).toBe(404);
+      await expect(missingActionGetResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const missingActionPostResponse = await fetch(`${baseUrl}/sessions/session-1`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "Hello" }),
+      });
+      expect(missingActionPostResponse.status).toBe(404);
+      await expect(missingActionPostResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const missingActionTrailingSlashResponse = await fetch(`${baseUrl}/sessions/session-1/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "Hello" }),
+      });
+      expect(missingActionTrailingSlashResponse.status).toBe(404);
+      await expect(missingActionTrailingSlashResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
       const extraPromptSegment = await fetch(`${baseUrl}/sessions/session-1/prompt/extra`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

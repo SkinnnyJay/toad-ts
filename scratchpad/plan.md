@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded missing-action session-subroute integration coverage:
+  - unsupported session-subroute test now locks `/sessions/:id` and
+    `/sessions/:id/` behavior (for unsupported GET/POST) to canonical
+    `404` + `UNKNOWN_ENDPOINT`.
 - Expanded malformed API-route coverage:
   - added unit and integration assertions that double-segment API paths
     (for example `/api//config`, `/api/sessions//messages`) remain not-found
