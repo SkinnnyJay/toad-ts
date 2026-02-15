@@ -333,7 +333,11 @@ describe("API Routes", () => {
 
     it("classifies malformed double-segment api paths as not found", () => {
       const configResult = classifyApiRoute("POST", "/api//config");
+      const configGetResult = classifyApiRoute("GET", "/api//config");
+      const trailingConfigGetResult = classifyApiRoute("GET", "/api//config/");
       const messagesResult = classifyApiRoute("POST", "/api/sessions//messages");
+      const messagesGetResult = classifyApiRoute("GET", "/api/sessions//messages");
+      const messagesTrailingGetResult = classifyApiRoute("GET", "/api/sessions//messages/");
       const messagesQueryResult = classifyApiRoute("POST", "/api/sessions//messages?scope=all");
       const messagesQueryGetResult = classifyApiRoute("GET", "/api/sessions//messages?scope=all");
       const messagesHashResult = classifyApiRoute("POST", "/api/sessions//messages#summary");
@@ -386,7 +390,23 @@ describe("API Routes", () => {
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
+      expect(configGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(trailingConfigGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
       expect(messagesResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(messagesGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(messagesTrailingGetResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
