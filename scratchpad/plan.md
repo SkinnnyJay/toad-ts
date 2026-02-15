@@ -14,6 +14,14 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded sessions-collection protected parity:
+  - API and server classifier unit suites now explicitly cover `/api/sessions`
+    unsupported-method semantics across base/trailing/query/hash/double forms,
+    including whitespace-padded variants.
+  - protected API integration suite now explicitly covers same `/api/sessions`
+    variants with auth-before-method semantics:
+    - unauthenticated => `401` + `Bearer`
+    - authenticated => `405 METHOD_NOT_ALLOWED`.
 - Expanded protected-api double-trailing auth parity:
   - password-protected API method-semantics integration suite now explicitly
     validates known-route `//`, `//?query`, and `//#hash` variants for config,
