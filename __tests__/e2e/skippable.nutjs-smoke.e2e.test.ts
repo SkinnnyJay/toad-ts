@@ -1,0 +1,56 @@
+import { ENV_KEY } from "@/constants/env-keys";
+import { NUTJS_EXECUTION_OUTCOME } from "@/constants/nutjs-execution";
+import { detectNutJsCapability } from "@/utils/nutjs-capability.utils";
+import { runNutJsActionWithGate } from "@/utils/nutjs-execution-gate.utils";
+import { diagnoseNutJsPermissions } from "@/utils/nutjs-permission-diagnostics.utils";
+import { describe, expect, it } from "vitest";
+
+const NUTJS_SMOKE_ACTION = "nutjs.smoke";
+
+describe("nutjs cross-platform smoke checks", () => {
+  it("keeps gated execution in deterministic no-op mode without runtime", async () => {
+    const capability = detectNutJsCapability({
+      platform: process.platform,
+      hasRuntime: false,
+    });
+    const diagnostics = diagnoseNutJsPermissions({
+      platform: process.platform,
+      env: process.env,
+    });
+    const result = await runNutJsActionWithGate({
+      actionId: NUTJS_SMOKE_ACTION,
+      action: async () => "executed",
+      env: {
+        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
+        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: NUTJS_SMOKE_ACTION,
+      },
+      capability: {
+        platform: process.platform,
+        hasRuntime: false,
+      },
+    });
+
+    expect(capability.noOp).toBe(true);
+    expect(diagnostics.platform).toBe(process.platform);
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.CAPABILITY_NOOP);
+  });
+
+  it("runs allowlisted action when runtime simulation is enabled", async () => {
+    const result = await runNutJsActionWithGate({
+      actionId: NUTJS_SMOKE_ACTION,
+      action: async () => "executed",
+      env: {
+        [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
+        [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: NUTJS_SMOKE_ACTION,
+      },
+      capability: {
+        platform: process.platform,
+        hasRuntime: true,
+      },
+    });
+
+    expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.EXECUTED);
+    expect(result.executed).toBe(true);
+    expect(result.result).toBe("executed");
+  });
+});

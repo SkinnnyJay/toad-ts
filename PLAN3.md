@@ -7470,6 +7470,25 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - gate NutJS execution behind explicit feature flag + security allowlist
       before any runtime action executes.
 
+## Execution Log Addendum — 2026-02-14 (B49 NutJS CI smoke matrix)
+
+- Additional P2 backlog hardening for NutJS CI parity checks:
+  - Updated:
+    - `.github/workflows/ci.yml`
+    - `__tests__/e2e/skippable.nutjs-smoke.e2e.test.ts` (new)
+    - `__tests__/unit/scripts/ci-workflow.unit.test.ts`
+  - Hardening changes:
+    - added dedicated `nutjs-smoke` CI job with cross-platform matrix:
+      - `ubuntu-latest`,
+      - `macos-latest`,
+      - `windows-latest`.
+    - added NutJS smoke e2e coverage validating deterministic no-op mode without
+      runtime and simulated allowlisted execution behavior.
+    - extended CI workflow unit assertions to lock matrix/smoke-step presence.
+  - Goal:
+    - add cross-platform NutJS smoke checks in CI matrix to protect readiness
+      behavior across Linux/macOS/Windows runners.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7528,5 +7547,5 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B46 | P2 | add NutJS capability detector with explicit unsupported-platform no-op behavior.
 - [x] - B47 | P2 | add NutJS permission diagnostics (macOS Accessibility, Linux display backend, Windows integrity level).
 - [x] - B48 | P2 | gate NutJS execution behind feature flag and security allowlist.
-- [ ] - B49 | P2 | add cross-platform NutJS smoke checks (Windows/Linux/macOS) in CI matrix.
+- [x] - B49 | P2 | add cross-platform NutJS smoke checks (Windows/Linux/macOS) in CI matrix.
 - [ ] - B50 | P2 | document and simplify fallback precedence for platform + NutJS + clipboard + sound paths.

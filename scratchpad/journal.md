@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B49 NutJS CI smoke matrix)
+
+### Summary
+- Completed P2 backlog item B49 in `PLAN3.md` by adding cross-platform NutJS
+  smoke checks to CI workflow matrix coverage.
+- Updated:
+  - `.github/workflows/ci.yml`
+  - `__tests__/e2e/skippable.nutjs-smoke.e2e.test.ts`
+  - `__tests__/unit/scripts/ci-workflow.unit.test.ts`
+- Changes:
+  - added `nutjs-smoke` workflow job spanning Linux/macOS/Windows runners.
+  - added NutJS smoke e2e coverage for deterministic no-op and allowlisted
+    runtime-simulated execution paths.
+  - expanded CI workflow unit checks to lock NutJS smoke matrix wiring.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/scripts/ci-workflow.unit.test.ts __tests__/e2e/skippable.nutjs-smoke.e2e.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B48 NutJS feature-flag + allowlist gate)
 
 ### Summary

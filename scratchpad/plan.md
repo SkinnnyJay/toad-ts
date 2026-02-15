@@ -4051,9 +4051,15 @@
   - documented optional env keys in `.env.sample`
   - added focused gate coverage in
     `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+- Completed P2 backlog item B49 NutJS CI smoke matrix:
+  - added cross-platform `nutjs-smoke` matrix job in `.github/workflows/ci.yml`
+  - added NutJS smoke e2e coverage in
+    `__tests__/e2e/skippable.nutjs-smoke.e2e.test.ts`
+  - expanded CI workflow assertions in
+    `__tests__/unit/scripts/ci-workflow.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B49 by adding cross-platform NutJS smoke
-    checks in CI matrix
+  - evaluate severity backlog item B50 by documenting and simplifying fallback
+    precedence for platform + NutJS + clipboard + sound paths
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

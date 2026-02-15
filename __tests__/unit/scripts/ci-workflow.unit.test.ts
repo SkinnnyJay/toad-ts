@@ -23,4 +23,15 @@ describe("CI quality workflow", () => {
     expect(workflow).not.toContain("- name: Unit tests");
     expect(workflow).not.toContain("- name: Build");
   });
+
+  it("runs nutjs smoke checks across linux, macos, and windows", () => {
+    const workflow = readCiWorkflow();
+
+    expect(workflow).toContain("nutjs-smoke:");
+    expect(workflow).toContain("os: [ubuntu-latest, macos-latest, windows-latest]");
+    expect(workflow).toContain("- name: NutJS smoke checks");
+    expect(workflow).toContain(
+      "run: bunx vitest run __tests__/e2e/skippable.nutjs-smoke.e2e.test.ts"
+    );
+  });
 });
