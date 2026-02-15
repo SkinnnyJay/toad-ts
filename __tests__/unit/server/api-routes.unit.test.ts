@@ -326,6 +326,11 @@ describe("API Routes", () => {
         "POST",
         "/api/sessions//messages/#summary"
       );
+      const messagesDoubleTrailingResult = classifyApiRoute("POST", "/api/sessions//messages//");
+      const messagesDoubleTrailingHashResult = classifyApiRoute(
+        "POST",
+        "/api/sessions//messages//#summary"
+      );
       const trailingQueryResult = classifyApiRoute("POST", "/api//config/?scope=all");
       const trailingHashResult = classifyApiRoute("POST", "/api//config/#summary");
       const doubleTrailingResult = classifyApiRoute("POST", "/api//config//");
@@ -351,6 +356,14 @@ describe("API Routes", () => {
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
       expect(messagesTrailingHashResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(messagesDoubleTrailingResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(messagesDoubleTrailingHashResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
