@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added shared JSON-response header-key normalization hardening:
+  - `sendJsonResponse(...)` now trims incoming custom header names before
+    managed-header filtering and output emission.
+  - padded `content-type` / `content-length` custom headers are now stripped
+    correctly, and non-managed custom header keys are normalized without
+    surrounding whitespace.
+  - added focused unit coverage for padded managed/custom header inputs.
 - Added request-error detail extraction hardening:
   - parse-error detail mapping now preserves numeric/boolean/bigint `message`
     payloads from thrown objects instead of degrading to generic object strings.

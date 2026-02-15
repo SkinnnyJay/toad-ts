@@ -118,4 +118,29 @@ describe("http-response helpers", () => {
       body: payload,
     });
   });
+
+  it("strips managed headers with padded names and trims custom names", () => {
+    const { response, getCaptured } = createResponseCapture();
+    sendJsonResponse(
+      response,
+      200,
+      { ok: true },
+      {
+        headers: {
+          "  Content-Type  ": "text/plain",
+          "  Content-Length  ": "1",
+          "  X-Test-Header  ": "value",
+        },
+      }
+    );
+
+    expect(getCaptured()).toEqual({
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Test-Header": "value",
+      },
+      body: { ok: true },
+    });
+  });
 });

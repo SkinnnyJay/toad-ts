@@ -14,14 +14,18 @@ const MANAGED_HEADER = {
 const stripManagedHeaders = (headers: OutgoingHttpHeaders | undefined): OutgoingHttpHeaders => {
   const sanitizedHeaders: OutgoingHttpHeaders = {};
   for (const [header, value] of Object.entries(headers ?? {})) {
-    const normalized = header.toLowerCase();
+    const trimmedHeader = header.trim();
+    if (trimmedHeader.length === 0) {
+      continue;
+    }
+    const normalized = trimmedHeader.toLowerCase();
     if (
       normalized === MANAGED_HEADER.CONTENT_TYPE ||
       normalized === MANAGED_HEADER.CONTENT_LENGTH
     ) {
       continue;
     }
-    sanitizedHeaders[header] = value;
+    sanitizedHeaders[trimmedHeader] = value;
   }
   return sanitizedHeaders;
 };

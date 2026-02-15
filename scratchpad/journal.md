@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B76 HTTP response header-key normalization hardening)
+
+### Summary
+- Added post-completion hardening for shared JSON response helper header
+  normalization and managed-header filtering.
+- Updated:
+  - `src/server/http-response.ts`
+  - `__tests__/unit/server/http-response.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - custom header keys are now trimmed before managed-header checks.
+  - padded managed headers (`content-type`/`content-length`) are reliably
+    stripped from user-supplied headers.
+  - padded non-managed custom headers are emitted with normalized key names.
+  - added focused unit coverage for padded managed/custom header inputs.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/http-response.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B75 request-error detail extraction hardening)
 
 ### Summary

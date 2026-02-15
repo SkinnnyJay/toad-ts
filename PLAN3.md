@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B76 HTTP response header-key normalization)
+
+- Added shared JSON response hardening for padded managed/custom header keys.
+- Updated:
+  - `src/server/http-response.ts`
+  - `__tests__/unit/server/http-response.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/http-response.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B75 request-error detail extraction hardening)
 
 - Added request-error normalization hardening for object-thrown numeric message
