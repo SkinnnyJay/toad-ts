@@ -144,6 +144,17 @@ describe("api-routes searchFiles handler", () => {
     });
   });
 
+  it("returns bad request when request host header has malformed bracketed ipv6", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=notes", "[::1"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
   it("parses query when request host header has surrounding whitespace", async () => {
     const { response, getCaptured } = createResponseCapture();
 
@@ -163,6 +174,17 @@ describe("api-routes searchFiles handler", () => {
       response,
       {}
     );
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "notes", results: [] },
+    });
+  });
+
+  it("parses query when request host header uses bracketed ipv6 host", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=notes", "[::1]:4141"), response, {});
 
     expect(getCaptured()).toEqual({
       statusCode: HTTP_STATUS.OK,
@@ -190,6 +212,21 @@ describe("api-routes searchFiles handler", () => {
 
     await searchFiles(
       createRequest("/api/files/search?q=notes", "exa_mple.com, 127.0.0.1:4141"),
+      response,
+      {}
+    );
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "notes", results: [] },
+    });
+  });
+
+  it("parses query when first host candidate has malformed ipv6 brackets but next host is valid", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(
+      createRequest("/api/files/search?q=notes", "[::1, 127.0.0.1:4141"),
       response,
       {}
     );

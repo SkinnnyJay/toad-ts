@@ -103,6 +103,19 @@ describe("parseRequestUrl", () => {
     expect(url?.host).toBe("localhost");
   });
 
+  it("parses request url with bracketed ipv6 host and port", () => {
+    const url = parseRequestUrl(createRequest("/health", "[::1]:4141"));
+
+    expect(url?.pathname).toBe("/health");
+    expect(url?.host).toBe("[::1]:4141");
+  });
+
+  it("returns null for malformed bracketed ipv6 host values", () => {
+    const url = parseRequestUrl(createRequest("/health", "[::1"));
+
+    expect(url).toBeNull();
+  });
+
   it("uses first host value when host header contains comma-separated entries", () => {
     const url = parseRequestUrl(
       createRequestWithHostHeader("/api/files/search?q=readme", "127.0.0.1:4141, example.com")
@@ -124,6 +137,15 @@ describe("parseRequestUrl", () => {
   it("uses later host candidate when earlier candidate has path metadata", () => {
     const url = parseRequestUrl(
       createRequestWithHostHeader("/api/files/search?q=readme", "example.com/path, 127.0.0.1:4141")
+    );
+
+    expect(url?.pathname).toBe("/api/files/search");
+    expect(url?.host).toBe("127.0.0.1:4141");
+  });
+
+  it("uses later host candidate when earlier candidate has malformed ipv6 brackets", () => {
+    const url = parseRequestUrl(
+      createRequestWithHostHeader("/api/files/search?q=readme", "[::1, 127.0.0.1:4141")
     );
 
     expect(url?.pathname).toBe("/api/files/search");

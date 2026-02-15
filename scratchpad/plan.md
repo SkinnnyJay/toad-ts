@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded request-url IPv6 host handling coverage:
+  - added direct utility coverage for bracketed IPv6 host parsing and malformed
+    bracket rejection.
+  - added route-level API file-search coverage for bracketed IPv6 hosts and
+    malformed-bracket fallback behavior.
 - Added request-parse classification punctuation-insensitivity hardening:
   - canonical parse error classification now tolerates terminal-period
     variation in canonical messages.

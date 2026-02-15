@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B94 request-url IPv6 host coverage expansion)
+
+### Summary
+- Expanded request-url and API route coverage for bracketed IPv6 host handling
+  and malformed bracket fallback behaviors.
+- Updated:
+  - `__tests__/unit/server/request-url.unit.test.ts`
+  - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added utility-level tests for bracketed IPv6 host parsing and malformed
+    bracket rejection.
+  - added route-level search handler coverage for bracketed IPv6 hosts and
+    malformed bracket fallback to later valid host candidates.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-url.unit.test.ts __tests__/unit/server/api-route-file-search.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B93 parse-error punctuation-insensitive matching)
 
 ### Summary
