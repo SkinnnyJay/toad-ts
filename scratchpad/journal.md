@@ -1,5 +1,39 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B160 unknown-route blank-session hash auth-order coverage)
+
+### Summary
+- Expanded password-protected unknown-route auth-before-not-found integration
+  coverage for blank-session prompt/messages hash-bearing variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in
+    `applies auth checks before not-found semantics on unknown routes`,
+    added unauthenticated/authenticated assertions for:
+    - `/sessions//prompt#summary`
+    - `/sessions//prompt/#summary`
+    - `/sessions//messages#summary`
+    - `/sessions//messages/#summary`
+    locking canonical auth-first unauthenticated `401` + challenge and
+    authenticated `404` (`UNKNOWN_ENDPOINT`) semantics.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B159 unknown-route malformed/missing-action hash auth-order coverage)
 
 ### Summary

@@ -14,6 +14,17 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-route blank-session hash auth-order coverage:
+  - password-protected unknown-route ordering integration test
+    (`applies auth checks before not-found semantics on unknown routes`)
+    now includes hash and trailing-hash variants for:
+    - blank-session prompt path (`/sessions//prompt`, `/sessions//prompt/`)
+    - blank-session messages path (`/sessions//messages`,
+      `/sessions//messages/`).
+  - locks canonical auth-first semantics:
+    - unauthenticated `401` + challenge
+    - authenticated `404` (`UNKNOWN_ENDPOINT`)
+    across these hash-bearing unknown-route variants.
 - Expanded unknown-route malformed/missing-action hash auth-order coverage:
   - password-protected unknown-route ordering integration test
     (`applies auth checks before not-found semantics on unknown routes`)
