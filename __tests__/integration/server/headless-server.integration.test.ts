@@ -607,6 +607,22 @@ describe("headless server", () => {
       await expect(apiRootWithTrailingSlashResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
+
+      const malformedApiPathResponse = await fetch(`${baseUrl}/api//config`, {
+        method: "POST",
+      });
+      expect(malformedApiPathResponse.status).toBe(404);
+      await expect(malformedApiPathResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const malformedApiSessionPathResponse = await fetch(`${baseUrl}/api/sessions//messages`, {
+        method: "POST",
+      });
+      expect(malformedApiSessionPathResponse.status).toBe(404);
+      await expect(malformedApiSessionPathResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
     } finally {
       await server.close();
     }

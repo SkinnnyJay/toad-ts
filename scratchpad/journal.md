@@ -1,5 +1,39 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B116 malformed API route coverage)
+
+### Summary
+- Expanded malformed API path coverage to explicitly lock not-found semantics
+  for double-segment route variants.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added `classifyApiRoute(...)` unit assertions for malformed paths:
+    - `/api//config`
+    - `/api/sessions//messages`
+    ensuring they classify as `NOT_FOUND`.
+  - expanded unknown top-level endpoint integration coverage with:
+    - `POST /api//config`
+    - `POST /api/sessions//messages`
+    asserting canonical `404` + `NOT_FOUND`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts -t "returns not found for unknown top-level endpoints"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B115 malformed session-subroute coverage)
 
 ### Summary

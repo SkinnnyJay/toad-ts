@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded malformed API-route coverage:
+  - added unit and integration assertions that double-segment API paths
+    (for example `/api//config`, `/api/sessions//messages`) remain not-found
+    and do not regress into method-not-allowed semantics.
 - Expanded malformed session-subroute integration coverage:
   - added blank-segment route assertions in unsupported session-subroute
     integration tests for:

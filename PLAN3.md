@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B116 malformed API route coverage)
+
+- Expanded API malformed-path coverage to lock not-found semantics for
+  double-segment (`//`) route shapes.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts -t "returns not found for unknown top-level endpoints"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B115 malformed session-subroute coverage)
 
 - Expanded headless-server integration coverage for malformed session-subroute
