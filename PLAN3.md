@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B151 request-error pathname combined coverage)
+
+- Expanded request-error-normalization unit coverage to lock combined
+  trailing-slash + hash + query pathname normalization during parsing-failure
+  logging.
+- Updated:
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B150 request-url hash parsing coverage)
 
 - Expanded request-url unit coverage for hash-bearing request paths and hash

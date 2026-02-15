@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded request-error pathname combined coverage:
+  - request-error-normalization unit tests now include parsing-failure log
+    normalization for combined trailing-slash + hash + query pathname form
+    (`/api/config/#summary?view=compact`).
+  - locks canonical normalized pathname (`/api/config`) plus normalized
+    handler and method metadata in parsing-failure log payloads for combined
+    suffix path variants.
 - Expanded request-url hash parsing coverage:
   - request-url unit tests now include:
     - request path hash parsing (`/api/files/search#latest`)

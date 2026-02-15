@@ -1,5 +1,33 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B151 request-error pathname combined coverage)
+
+### Summary
+- Expanded request-error-normalization unit coverage for parsing-failure log
+  metadata normalization on combined trailing-slash + hash + query paths.
+- Updated:
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added assertion that `logRequestParsingFailure` with pathname
+    ` /api/config/#summary?view=compact ` emits normalized pathname
+    `/api/config` while preserving canonical normalized method/handler fields.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B150 request-url hash parsing coverage)
 
 ### Summary
