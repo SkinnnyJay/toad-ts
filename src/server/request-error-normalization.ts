@@ -1,5 +1,6 @@
 import { SERVER_RESPONSE_MESSAGE } from "@/constants/server-response-messages";
 import { normalizeHttpMethod } from "@/server/http-method-normalization";
+import { normalizeRoutePathname } from "@/server/pathname-normalization";
 import type { Logger } from "@/utils/logging/logger.utils";
 
 export interface NormalizedRequestBodyParseError {
@@ -48,7 +49,7 @@ const normalizeRequestFailureContext = (
   context: RequestParsingFailureContext
 ): Record<string, unknown> => {
   const normalizedMethod = normalizeHttpMethod(context.method);
-  const normalizedPathname = context.pathname.trim();
+  const normalizedPathname = normalizeRoutePathname(context.pathname);
   const normalizedHandler = context.handler?.trim();
   return {
     source: context.source,

@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added request-error logging pathname normalization hardening:
+  - request parse/validation log context now reuses shared route-pathname
+    normalization (trim + query/hash stripping).
+  - added focused request-error normalization tests for query/hash logging
+    normalization behavior.
 - Added shared route-pathname normalization hardening:
   - new `normalizeRoutePathname(...)` strips query/hash suffixes and trims
     whitespace for classifier-facing path inputs.

@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B99 request-error log pathname normalization)
+
+- Aligned request parsing/validation logging path normalization with shared
+  route-pathname normalization.
+- Updated:
+  - `src/server/request-error-normalization.ts`
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts __tests__/unit/server/pathname-normalization.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B98 shared route-pathname normalization)
 
 - Added shared route-pathname normalization utility that trims path input and

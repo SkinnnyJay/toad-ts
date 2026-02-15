@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B99 request-error log pathname normalization alignment
+    (reduced query/hash cardinality in parsing/validation telemetry)
   - completed B98 shared route-pathname normalization extraction
     (query/hash suffix trimming for direct route classifiers + parser)
   - completed B97 classifier padded-path method/not-found coverage expansion

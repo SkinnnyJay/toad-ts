@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B99 request-error log pathname normalization alignment)
+
+### Summary
+- Aligned request parsing/validation log-path normalization with shared route
+  pathname normalization to avoid query/hash cardinality drift in telemetry.
+- Updated:
+  - `src/server/request-error-normalization.ts`
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - `normalizeRequestFailureContext(...)` now uses
+    `normalizeRoutePathname(...)` for `context.pathname`.
+  - expanded request-error normalization tests to verify query/hash suffix
+    stripping in logging metadata.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts __tests__/unit/server/pathname-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B98 shared route-pathname normalization extraction)
 
 ### Summary

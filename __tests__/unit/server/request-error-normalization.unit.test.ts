@@ -136,7 +136,7 @@ describe("request-error-normalization", () => {
       {
         source: REQUEST_PARSING_SOURCE.API_ROUTES,
         method: " post ",
-        pathname: " /api/tui/append-prompt ",
+        pathname: " /api/tui/append-prompt?preview=true ",
         handler: " append_prompt ",
       },
       {
@@ -263,6 +263,34 @@ describe("request-error-normalization", () => {
       source: REQUEST_PARSING_SOURCE.API_ROUTES,
       method: "UNKNOWN",
       pathname: "/api/tui/append-prompt",
+      mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      error: UNKNOWN_ERROR_MESSAGE,
+    });
+  });
+
+  it("normalizes query/hash suffixes when logging validation pathnames", () => {
+    const warn = vi.fn();
+    const logger = { warn } as {
+      warn: (message: string, metadata?: Record<string, unknown>) => void;
+    };
+
+    logRequestValidationFailure(
+      logger,
+      {
+        source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+        method: "get",
+        pathname: " /api/config#summary?view=compact ",
+      },
+      {
+        mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+        error: UNKNOWN_ERROR_MESSAGE,
+      }
+    );
+
+    expect(warn).toHaveBeenCalledWith("Request validation failed", {
+      source: REQUEST_PARSING_SOURCE.HOOK_IPC,
+      method: "GET",
+      pathname: "/api/config",
       mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
       error: UNKNOWN_ERROR_MESSAGE,
     });
