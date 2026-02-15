@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded ancillary-api padded-path parity:
+  - api-routes classifier unit suite now explicitly locks ancillary known-route
+    semantics for whitespace-padded pathname variants with normalized suffixes
+    under both allowed and unsupported methods.
+  - server-route classifier unit suite now explicitly locks matching top-level
+    `API_MATCH` and API-scoped `METHOD_NOT_ALLOWED` behavior for the same
+    ancillary padded-path matrix.
 - Expanded ancillary-api allowed+method-normalization parity:
   - api-routes classifier unit suite now explicitly locks allowed-method
     `MATCH` semantics for ancillary known routes:

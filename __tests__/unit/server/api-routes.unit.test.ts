@@ -553,6 +553,56 @@ describe("API Routes", () => {
       });
     });
 
+    it("classifies ancillary known api routes with whitespace-padded path variants", () => {
+      const paddedAgentsAllowedResult = classifyApiRoute("GET", " /api/agents// ");
+      const paddedEventsAllowedResult = classifyApiRoute("GET", " /api/events/?scope=all ");
+      const paddedFileSearchAllowedResult = classifyApiRoute(
+        "GET",
+        " /api/files/search/?q=readme "
+      );
+      const paddedAppendAllowedResult = classifyApiRoute("POST", " /api/tui/append-prompt/#ok ");
+      const paddedSubmitAllowedResult = classifyApiRoute("POST", " /api/tui/submit-prompt// ");
+      const paddedAgentsUnsupportedResult = classifyApiRoute("POST", " /api/agents/?scope=all ");
+      const paddedEventsUnsupportedResult = classifyApiRoute("POST", " /api/events//#summary ");
+      const paddedFileSearchUnsupportedResult = classifyApiRoute(
+        "POST",
+        " /api/files/search//?q=readme "
+      );
+      const paddedAppendUnsupportedResult = classifyApiRoute(
+        "GET",
+        " /api/tui/append-prompt/?scope=all "
+      );
+      const paddedSubmitUnsupportedResult = classifyApiRoute(
+        "GET",
+        " /api/tui/submit-prompt//#summary "
+      );
+      expect(paddedAgentsAllowedResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(paddedEventsAllowedResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(paddedFileSearchAllowedResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(paddedAppendAllowedResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(paddedSubmitAllowedResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(paddedAgentsUnsupportedResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedEventsUnsupportedResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedFileSearchUnsupportedResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedAppendUnsupportedResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedSubmitUnsupportedResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
     it("classifies parameterized known paths with unsupported methods", () => {
       const sessionResult = classifyApiRoute("POST", "/api/sessions/session-123");
       const messagesResult = classifyApiRoute("POST", "/api/sessions/session-123/messages");
