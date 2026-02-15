@@ -1,5 +1,40 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B226 known-route double-trailing parity)
+
+### Summary
+- Expanded known-route double-trailing coverage across API/core/server
+  classifiers and headless-server integration semantics.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added API classifier unit coverage for known-route double-trailing variants
+    (`//`, `//?query`, `//#hash`) on config/execute/session/messages paths.
+  - added core/server classifier unit coverage proving known core routes keep
+    stable method semantics under double-trailing normalization.
+  - expanded integration coverage to lock end-to-end semantics for known API
+    and non-API double-trailing variants, including protected route auth-before-
+    method behavior for prompt/messages.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/pathname-normalization.unit.test.ts __tests__/unit/server/session-route-path.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B225 known-route method normalization parity)
 
 ### Summary

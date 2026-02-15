@@ -14,6 +14,15 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded known-route double-trailing parity:
+  - API/core/server classifier unit suites now explicitly cover known-route
+    `//`, `//?query`, and `//#hash` variants.
+  - headless-server integration suite now locks these double-trailing
+    semantics end-to-end for:
+    - known API routes with unsupported methods (`405`)
+    - known non-API routes with unsupported methods (`405`)
+    - protected known non-API routes (unauthenticated `401`, authenticated
+      method semantics).
 - Expanded known-route method normalization parity:
   - API/core/server classifier unit suites now explicitly cover lowercase and
     whitespace-padded HTTP methods for known routes, asserting both allowed and

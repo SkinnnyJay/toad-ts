@@ -75,6 +75,43 @@ describe("classifyCoreRoute", () => {
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
   });
 
+  it("normalizes known core routes with double-trailing suffix variants", () => {
+    const healthResult = classifyCoreRoute(HTTP_METHOD.POST, "/health//");
+    const healthQueryResult = classifyCoreRoute(HTTP_METHOD.POST, "/health//?check=true");
+    const healthHashResult = classifyCoreRoute(HTTP_METHOD.POST, "/health//#summary");
+    const sessionsResult = classifyCoreRoute(HTTP_METHOD.GET, "/sessions//");
+    const sessionsPostResult = classifyCoreRoute(HTTP_METHOD.POST, "/sessions//");
+    const promptResult = classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1/prompt//");
+    const promptQueryResult = classifyCoreRoute(
+      HTTP_METHOD.GET,
+      "/sessions/session-1/prompt//?view=full"
+    );
+    const promptHashResult = classifyCoreRoute(
+      HTTP_METHOD.GET,
+      "/sessions/session-1/prompt//#latest"
+    );
+    const messagesResult = classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1/messages//");
+    const messagesQueryResult = classifyCoreRoute(
+      HTTP_METHOD.POST,
+      "/sessions/session-1/messages//?limit=10"
+    );
+    const messagesHashResult = classifyCoreRoute(
+      HTTP_METHOD.POST,
+      "/sessions/session-1/messages//#tail"
+    );
+    expect(healthResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(healthQueryResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(healthHashResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(sessionsResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(sessionsPostResult).toEqual({ kind: CORE_ROUTE_DECISION.UNHANDLED });
+    expect(promptResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(promptQueryResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(promptHashResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(messagesResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(messagesQueryResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+    expect(messagesHashResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
+  });
+
   it("returns method_not_allowed for non-POST /sessions", () => {
     const result = classifyCoreRoute(HTTP_METHOD.GET, SERVER_PATH.SESSIONS);
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
