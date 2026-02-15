@@ -360,6 +360,60 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("keeps allowed-method semantics for known routes with double-trailing variants", () => {
+    const healthResult = classifyServerRoute(HTTP_METHOD.GET, "/health//");
+    const sessionsResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions//");
+    const promptResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions/session-1/prompt//");
+    const messagesResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1/messages//");
+    const apiConfigResult = classifyServerRoute(HTTP_METHOD.GET, "/api/config//");
+    const apiSubmitResult = classifyServerRoute(HTTP_METHOD.POST, "/api/tui/submit-prompt//");
+    const paddedHealthResult = classifyServerRoute(HTTP_METHOD.GET, " /health// ");
+    const paddedSessionsResult = classifyServerRoute(HTTP_METHOD.POST, " /sessions// ");
+    const paddedPromptResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /sessions/session-1/prompt// "
+    );
+    const paddedMessagesResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /sessions/session-1/messages// "
+    );
+    const paddedApiConfigResult = classifyServerRoute(HTTP_METHOD.GET, " /api/config// ");
+    const paddedApiSubmitResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /api/tui/submit-prompt// "
+    );
+    expect(healthResult).toEqual({ kind: SERVER_ROUTE_CLASSIFICATION.HEALTH_OK });
+    expect(sessionsResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(promptResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(messagesResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(apiConfigResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(apiSubmitResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(paddedHealthResult).toEqual({ kind: SERVER_ROUTE_CLASSIFICATION.HEALTH_OK });
+    expect(paddedSessionsResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(paddedPromptResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(paddedMessagesResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(paddedApiConfigResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+    expect(paddedApiSubmitResult.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+  });
+
   it("classifies blank-session base variants with /sessions method semantics", () => {
     const getDoubleTrailingResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions//");
     const getDoubleTrailingQueryResult = classifyServerRoute(

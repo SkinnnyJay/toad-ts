@@ -149,6 +149,31 @@ describe("classifyCoreRoute", () => {
     expect(messagesHashResult).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });
   });
 
+  it("keeps allowed-method semantics for known core routes with double-trailing variants", () => {
+    const healthResult = classifyCoreRoute(HTTP_METHOD.GET, "/health//");
+    const sessionsResult = classifyCoreRoute(HTTP_METHOD.POST, "/sessions//");
+    const promptResult = classifyCoreRoute(HTTP_METHOD.POST, "/sessions/session-1/prompt//");
+    const messagesResult = classifyCoreRoute(HTTP_METHOD.GET, "/sessions/session-1/messages//");
+    const paddedHealthResult = classifyCoreRoute(HTTP_METHOD.GET, " /health// ");
+    const paddedSessionsResult = classifyCoreRoute(HTTP_METHOD.POST, " /sessions// ");
+    const paddedPromptResult = classifyCoreRoute(
+      HTTP_METHOD.POST,
+      " /sessions/session-1/prompt// "
+    );
+    const paddedMessagesResult = classifyCoreRoute(
+      HTTP_METHOD.GET,
+      " /sessions/session-1/messages// "
+    );
+    expect(healthResult).toEqual({ kind: CORE_ROUTE_DECISION.HEALTH_OK });
+    expect(sessionsResult).toEqual({ kind: CORE_ROUTE_DECISION.UNHANDLED });
+    expect(promptResult).toEqual({ kind: CORE_ROUTE_DECISION.UNHANDLED });
+    expect(messagesResult).toEqual({ kind: CORE_ROUTE_DECISION.UNHANDLED });
+    expect(paddedHealthResult).toEqual({ kind: CORE_ROUTE_DECISION.HEALTH_OK });
+    expect(paddedSessionsResult).toEqual({ kind: CORE_ROUTE_DECISION.UNHANDLED });
+    expect(paddedPromptResult).toEqual({ kind: CORE_ROUTE_DECISION.UNHANDLED });
+    expect(paddedMessagesResult).toEqual({ kind: CORE_ROUTE_DECISION.UNHANDLED });
+  });
+
   it("returns method_not_allowed for non-POST /sessions", () => {
     const result = classifyCoreRoute(HTTP_METHOD.GET, SERVER_PATH.SESSIONS);
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });

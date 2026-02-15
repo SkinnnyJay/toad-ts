@@ -1,5 +1,38 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B228 allowed-method double-trailing parity)
+
+### Summary
+- Expanded allowed-method double-trailing coverage for known routes across
+  API/core/server classifiers.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added API `matchRoute` and classifier assertions proving known-route
+    double-trailing variants still `MATCH` under allowed methods (plain+padded).
+  - added core classifier assertions proving known-route double-trailing
+    variants preserve allowed-method outcomes (`HEALTH_OK`/`UNHANDLED`).
+  - added server classifier assertions proving same allowed-method outcomes and
+    API-match/core-handler attribution remain stable.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/unit/server/pathname-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B227 padded known-route double-trailing parity)
 
 ### Summary

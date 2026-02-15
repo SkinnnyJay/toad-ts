@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded allowed-method double-trailing parity:
+  - API classifier unit suite now explicitly proves known-route double-trailing
+    variants still match under allowed methods (including padded forms).
+  - core/server classifier unit suites now explicitly prove known-route
+    double-trailing variants preserve allowed-method semantics (`HEALTH_OK`,
+    core `UNHANDLED`, API `API_MATCH`) for plain and padded forms.
 - Expanded padded known-route double-trailing parity:
   - pathname-normalization unit suite now explicitly covers whitespace-padded
     known-route double-trailing variants for API/core paths.

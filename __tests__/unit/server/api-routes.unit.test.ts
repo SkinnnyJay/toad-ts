@@ -92,6 +92,26 @@ describe("API Routes", () => {
       expect(result).not.toBeNull();
     });
 
+    it("should match known routes with double-trailing suffix variants", () => {
+      const configResult = matchRoute("GET", "/api/config//");
+      const executeResult = matchRoute("POST", "/api/tui/submit-prompt//");
+      const sessionMessagesResult = matchRoute("GET", "/api/sessions/session-123/messages//");
+      expect(configResult).not.toBeNull();
+      expect(executeResult).not.toBeNull();
+      expect(sessionMessagesResult).not.toBeNull();
+      expect(sessionMessagesResult?.params.id).toBe("session-123");
+    });
+
+    it("should match whitespace-padded known routes with double-trailing variants", () => {
+      const configResult = matchRoute("GET", " /api/config// ");
+      const executeResult = matchRoute("POST", " /api/tui/submit-prompt// ");
+      const sessionMessagesResult = matchRoute("GET", " /api/sessions/session-123/messages// ");
+      expect(configResult).not.toBeNull();
+      expect(executeResult).not.toBeNull();
+      expect(sessionMessagesResult).not.toBeNull();
+      expect(sessionMessagesResult?.params.id).toBe("session-123");
+    });
+
     it("should match execute and session-message routes with trailing-hash suffixes", () => {
       const executeResult = matchRoute("POST", "/api/tui/execute-command/#summary");
       const messagesResult = matchRoute("GET", "/api/sessions/session-123/messages/#latest");
@@ -253,6 +273,28 @@ describe("API Routes", () => {
         kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
+    });
+
+    it("classifies known routes with allowed methods under double-trailing variants as match", () => {
+      const configResult = classifyApiRoute("GET", "/api/config//");
+      const submitResult = classifyApiRoute("POST", "/api/tui/submit-prompt//");
+      const sessionsResult = classifyApiRoute("GET", "/api/sessions//");
+      const messagesResult = classifyApiRoute("GET", "/api/sessions/session-123/messages//");
+      expect(configResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(submitResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(sessionsResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(messagesResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+    });
+
+    it("classifies padded known routes with allowed methods under double-trailing variants as match", () => {
+      const configResult = classifyApiRoute("GET", " /api/config// ");
+      const submitResult = classifyApiRoute("POST", " /api/tui/submit-prompt// ");
+      const sessionsResult = classifyApiRoute("GET", " /api/sessions// ");
+      const messagesResult = classifyApiRoute("GET", " /api/sessions/session-123/messages// ");
+      expect(configResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(submitResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(sessionsResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+      expect(messagesResult.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
     });
 
     it("classifies whitespace-padded known paths with double-trailing suffix variants", () => {
