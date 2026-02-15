@@ -1,3 +1,19 @@
+## 2026-02-14 Execution Update (B64 missing-permission helper extraction)
+
+- Added NutJS diagnostics helper extraction to centralize
+  missing-permission classification logic.
+- Updated:
+  - `src/utils/nutjs-permission-diagnostics.utils.ts`
+  - `src/utils/nutjs-execution-gate.utils.ts`
+  - `__tests__/unit/utils/nutjs-permission-diagnostics.utils.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/utils/nutjs-permission-diagnostics.utils.unit.test.ts __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B63 capability helper dead-code cleanup)
 
 - Added NutJS simplification hardening by removing obsolete capability noop

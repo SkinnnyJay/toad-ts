@@ -164,3 +164,8 @@ export const diagnoseNutJsPermissions = (
     windowsIntegrityLevel,
   };
 };
+
+export const hasMissingNutJsPermissions = (diagnostics: NutJsPermissionDiagnostics): boolean =>
+  diagnostics.macosAccessibility.status === NUTJS_PERMISSION_STATUS.MISSING ||
+  diagnostics.linuxDisplayBackend.status === NUTJS_PERMISSION_STATUS.MISSING ||
+  diagnostics.windowsIntegrityLevel.status === NUTJS_PERMISSION_STATUS.MISSING;

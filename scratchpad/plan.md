@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added NutJS missing-permission helper extraction:
+  - added shared `hasMissingNutJsPermissions(...)` utility to centralize
+    missing-permission classification from diagnostics payloads.
+  - execution gate now reuses the shared helper instead of duplicating status
+    comparisons inline.
+  - added diagnostics unit coverage for helper semantics across missing and
+    unknown states.
 - Added NutJS capability helper dead-code cleanup:
   - removed unused `withNutJsCapabilityNoop(...)` wrapper from
     `nutjs-capability.utils.ts` after gate-level short-circuit hardening made

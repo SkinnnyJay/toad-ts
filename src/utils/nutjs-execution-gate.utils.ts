@@ -6,7 +6,6 @@ import {
   NUTJS_EXECUTION_OUTCOME,
   type NutJsExecutionOutcome,
 } from "@/constants/nutjs-execution";
-import { NUTJS_PERMISSION_STATUS } from "@/constants/nutjs-permissions";
 import {
   NUTJS_EXECUTION_FALLBACK_PRECEDENCE,
   type NutJsExecutionStage,
@@ -21,6 +20,7 @@ import {
   type NutJsPermissionDiagnostics,
   type NutJsPermissionDiagnosticsOptions,
   diagnoseNutJsPermissions,
+  hasMissingNutJsPermissions,
 } from "@/utils/nutjs-permission-diagnostics.utils";
 
 export interface NutJsExecutionPolicy {
@@ -129,10 +129,7 @@ export const runNutJsActionWithGate = async <T>(
       diagnostics,
     };
   }
-  const hasMissingPermission =
-    diagnostics.macosAccessibility.status === NUTJS_PERMISSION_STATUS.MISSING ||
-    diagnostics.linuxDisplayBackend.status === NUTJS_PERMISSION_STATUS.MISSING ||
-    diagnostics.windowsIntegrityLevel.status === NUTJS_PERMISSION_STATUS.MISSING;
+  const hasMissingPermission = hasMissingNutJsPermissions(diagnostics);
   if (hasMissingPermission) {
     return {
       outcome: NUTJS_EXECUTION_OUTCOME.PERMISSION_MISSING,

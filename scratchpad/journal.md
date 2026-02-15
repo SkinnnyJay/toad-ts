@@ -1,5 +1,38 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B64 missing-permission helper extraction)
+
+### Summary
+- Added post-completion simplification hardening by centralizing NutJS
+  missing-permission status checks behind one diagnostics helper.
+- Updated:
+  - `src/utils/nutjs-permission-diagnostics.utils.ts`
+  - `src/utils/nutjs-execution-gate.utils.ts`
+  - `__tests__/unit/utils/nutjs-permission-diagnostics.utils.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - introduced `hasMissingNutJsPermissions(...)` helper in permission
+    diagnostics utilities.
+  - replaced duplicated missing-status checks in execution gate with the shared
+    helper.
+  - expanded diagnostics unit coverage for helper behavior across explicit
+    missing and unknown permission states.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/nutjs-permission-diagnostics.utils.unit.test.ts __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B63 capability helper dead-code cleanup)
 
 ### Summary

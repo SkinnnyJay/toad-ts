@@ -5,7 +5,10 @@ import {
   NUTJS_WINDOWS_INTEGRITY_LEVEL,
 } from "@/constants/nutjs-permissions";
 import { PLATFORM } from "@/constants/platform";
-import { diagnoseNutJsPermissions } from "@/utils/nutjs-permission-diagnostics.utils";
+import {
+  diagnoseNutJsPermissions,
+  hasMissingNutJsPermissions,
+} from "@/utils/nutjs-permission-diagnostics.utils";
 import { describe, expect, it } from "vitest";
 
 describe("nutjs permission diagnostics", () => {
@@ -68,5 +71,23 @@ describe("nutjs permission diagnostics", () => {
 
     expect(diagnostics.ready).toBe(true);
     expect(diagnostics.windowsIntegrityLevel.status).toBe(NUTJS_PERMISSION_STATUS.GRANTED);
+  });
+
+  it("detects explicit missing permissions in diagnostics", () => {
+    const diagnostics = diagnoseNutJsPermissions({
+      platform: PLATFORM.LINUX,
+      env: {},
+    });
+
+    expect(hasMissingNutJsPermissions(diagnostics)).toBe(true);
+  });
+
+  it("does not treat unknown permissions as missing", () => {
+    const diagnostics = diagnoseNutJsPermissions({
+      platform: PLATFORM.WIN32,
+    });
+
+    expect(diagnostics.windowsIntegrityLevel.status).toBe(NUTJS_PERMISSION_STATUS.UNKNOWN);
+    expect(hasMissingNutJsPermissions(diagnostics)).toBe(false);
   });
 });
