@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added server request schema non-blank string hardening:
+  - whitespace-only `cwd`, `title`, and `prompt` values are now rejected by
+    shared server request schemas.
+  - non-blank padded values remain valid without lossy trimming.
+  - expanded server-type schema tests for blank-only rejection behavior.
 - Added request-url host metadata validation hardening:
   - host candidates containing path/query/fragment/userinfo metadata are now
     rejected instead of being silently coerced by URL base parsing.

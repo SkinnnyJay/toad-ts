@@ -26,6 +26,30 @@ describe("server-types schemas", () => {
     });
   });
 
+  it("rejects blank-only cwd and title values in create session requests", () => {
+    const blankCwd = createSessionRequestSchema.safeParse({
+      cwd: "   ",
+    });
+    const blankTitle = createSessionRequestSchema.safeParse({
+      title: "\n\t",
+    });
+
+    expect(blankCwd.success).toBe(false);
+    expect(blankTitle.success).toBe(false);
+  });
+
+  it("accepts padded but non-blank cwd and title values", () => {
+    const parsed = createSessionRequestSchema.parse({
+      cwd: "  /workspace/project  ",
+      title: "  My Session  ",
+    });
+
+    expect(parsed).toEqual({
+      cwd: "  /workspace/project  ",
+      title: "  My Session  ",
+    });
+  });
+
   it("rejects unknown keys in create session request payload", () => {
     const result = createSessionRequestSchema.safeParse({
       harnessId: "mock",
@@ -77,6 +101,7 @@ describe("server-types schemas", () => {
 
   it("requires non-empty prompt for prompt requests", () => {
     expect(promptSessionRequestSchema.safeParse({ prompt: "" }).success).toBe(false);
+    expect(promptSessionRequestSchema.safeParse({ prompt: "   " }).success).toBe(false);
     expect(promptSessionRequestSchema.safeParse({ prompt: "hello" }).success).toBe(true);
   });
 

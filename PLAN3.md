@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B84 server schema non-blank strings)
+
+- Hardened server request schemas to reject whitespace-only semantic string
+  inputs (`cwd`, `title`, `prompt`) while preserving non-blank padded inputs.
+- Updated:
+  - `src/server/server-types.ts`
+  - `__tests__/unit/server/server-types.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/server-types.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B83 request-url host metadata validation)
 
 - Hardened request-url host candidate validation:

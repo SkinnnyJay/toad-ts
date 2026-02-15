@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B84 server schema non-blank string validation)
+
+### Summary
+- Hardened server-side request schemas to reject whitespace-only string payloads
+  for required semantic fields.
+- Updated:
+  - `src/server/server-types.ts`
+  - `__tests__/unit/server/server-types.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added shared non-blank string predicate for schema validation.
+  - `createSessionRequestSchema` now rejects blank-only `cwd` and `title`.
+  - `promptSessionRequestSchema` now rejects blank-only `prompt`.
+  - non-blank padded values remain accepted unchanged (no trimming side effect).
+  - expanded schema tests for blank-only rejection and padded-value acceptance.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/server-types.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B83 request-url host metadata validation)
 
 ### Summary

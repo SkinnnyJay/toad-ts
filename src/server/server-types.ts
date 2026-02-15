@@ -3,6 +3,8 @@ import { HARNESS_ID_VALIDATION_MESSAGE, isCanonicalHarnessId } from "@/harness/h
 import { AgentIdSchema, SessionIdSchema } from "@/types/domain";
 import { z } from "zod";
 
+const isNonBlankString = (value: string): boolean => value.trim().length > 0;
+
 export const createSessionRequestSchema = z
   .object({
     harnessId: z
@@ -12,8 +14,8 @@ export const createSessionRequestSchema = z
       })
       .optional(),
     agentId: AgentIdSchema.optional(),
-    cwd: z.string().min(1).optional(),
-    title: z.string().min(1).optional(),
+    cwd: z.string().min(1).refine(isNonBlankString).optional(),
+    title: z.string().min(1).refine(isNonBlankString).optional(),
   })
   .strict();
 
@@ -29,7 +31,7 @@ export type CreateSessionResponse = z.infer<typeof createSessionResponseSchema>;
 
 export const promptSessionRequestSchema = z
   .object({
-    prompt: z.string().min(1),
+    prompt: z.string().min(1).refine(isNonBlankString),
   })
   .strict();
 
