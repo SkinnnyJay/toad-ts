@@ -28,7 +28,9 @@ describe("parseSessionRoutePath", () => {
 
   it("returns null for missing or blank session id segment", () => {
     expect(parseSessionRoutePath("/sessions//prompt")).toBeNull();
+    expect(parseSessionRoutePath("/sessions//messages")).toBeNull();
     expect(parseSessionRoutePath("/sessions/   /prompt")).toBeNull();
+    expect(parseSessionRoutePath("/sessions/   /messages")).toBeNull();
   });
 
   it("normalizes trailing separators on session-id routes", () => {

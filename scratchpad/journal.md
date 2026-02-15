@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B199 blank-session messages direct-segment parse parity)
+
+### Summary
+- Expanded session-route-path unit coverage for blank/whitespace session-id
+  malformed messages routes to lock null parsing behavior.
+- Updated:
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added explicit null-parse assertions for:
+    - `/sessions//messages`
+    - `/sessions/   /messages`
+    alongside existing blank-session malformed prompt coverage.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/session-route-path.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B198 blank-session root-segment parse-route parity)
 
 ### Summary

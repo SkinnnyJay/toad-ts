@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded blank-session messages direct-segment parse-route parity:
+  - session-route-path unit suite now includes explicit null-parse assertions
+    for blank/whitespace session-id malformed messages routes:
+    `/sessions//messages` and `/sessions/   /messages`.
 - Expanded blank-session root-segment parse-route parity:
   - session-route-path unit suite now includes explicit null-parse assertions
     for blank-session root-segment malformed suffix variants:
