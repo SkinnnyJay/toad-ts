@@ -65,6 +65,11 @@ describe("API Routes", () => {
       expect(padded).not.toBeNull();
     });
 
+    it("should match routes when pathname has surrounding whitespace", () => {
+      const result = matchRoute("GET", " /api/config ");
+      expect(result).not.toBeNull();
+    });
+
     it("should return null for unknown routes", () => {
       expect(matchRoute("GET", "/api/unknown")).toBeNull();
       expect(matchRoute("PUT", "/api/sessions")).toBeNull();
@@ -79,6 +84,11 @@ describe("API Routes", () => {
 
     it("classifies lowercase methods with matching routes as match", () => {
       const result = classifyApiRoute("get", "/api/config");
+      expect(result.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
+    });
+
+    it("classifies padded pathnames with matching routes as match", () => {
+      const result = classifyApiRoute("GET", " /api/config ");
       expect(result.kind).toBe(API_ROUTE_CLASSIFICATION.MATCH);
     });
 

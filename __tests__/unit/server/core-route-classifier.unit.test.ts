@@ -14,6 +14,11 @@ describe("classifyCoreRoute", () => {
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.HEALTH_OK });
   });
 
+  it("returns health_ok for padded GET /health pathname", () => {
+    const result = classifyCoreRoute(HTTP_METHOD.GET, " /health ");
+    expect(result).toEqual({ kind: CORE_ROUTE_DECISION.HEALTH_OK });
+  });
+
   it("returns method_not_allowed for non-GET /health", () => {
     const result = classifyCoreRoute(HTTP_METHOD.POST, SERVER_PATH.HEALTH);
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });

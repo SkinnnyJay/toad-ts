@@ -1,3 +1,22 @@
+## 2026-02-14 Execution Update (B96 core/API classifier pathname trim)
+
+- Hardened direct classifier calls by trimming pathnames inside:
+  - `classifyCoreRoute(...)`
+  - `matchRoute(...)`
+  - `classifyApiRoute(...)`
+- Updated:
+  - `src/server/core-route-classifier.ts`
+  - `src/server/api-routes.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B95 route-classifier pathname trim)
 
 - Hardened `classifyServerRoute(...)` pathname normalization to trim surrounding

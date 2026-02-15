@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added core/api classifier pathname trim normalization:
+  - `classifyCoreRoute`, `matchRoute`, and `classifyApiRoute` now normalize
+    surrounding pathname whitespace before route matching.
+  - added unit coverage in core and API classifier tests for padded pathnames.
 - Added server-route classifier pathname trim hardening:
   - classifier now trims incoming pathname text before core/api route
     classification.

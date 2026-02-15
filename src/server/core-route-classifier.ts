@@ -22,23 +22,24 @@ type CoreRouteDecision =
 
 export const classifyCoreRoute = (method: string, pathname: string): CoreRouteDecision => {
   const normalizedMethod = normalizeHttpMethod(method);
-  if (pathname === SERVER_PATH.HEALTH) {
+  const normalizedPathname = pathname.trim();
+  if (normalizedPathname === SERVER_PATH.HEALTH) {
     if (normalizedMethod === HTTP_METHOD.GET) {
       return { kind: CORE_ROUTE_DECISION.HEALTH_OK };
     }
     return { kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED };
   }
-  if (pathname === SERVER_PATH.SESSIONS) {
+  if (normalizedPathname === SERVER_PATH.SESSIONS) {
     if (normalizedMethod === HTTP_METHOD.POST) {
       return { kind: CORE_ROUTE_DECISION.UNHANDLED };
     }
     return { kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED };
   }
-  if (!pathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
+  if (!normalizedPathname.startsWith(`${SERVER_PATH.SESSIONS}/`)) {
     return { kind: CORE_ROUTE_DECISION.UNHANDLED };
   }
 
-  const parsedPath = parseSessionRoutePath(pathname);
+  const parsedPath = parseSessionRoutePath(normalizedPathname);
   if (!parsedPath) {
     return { kind: CORE_ROUTE_DECISION.UNHANDLED };
   }

@@ -433,9 +433,10 @@ export const API_ROUTES: Route[] = [
 
 export const matchRoute = (method: string, pathname: string): RouteMatchResult | null => {
   const normalizedMethod = normalizeHttpMethod(method);
+  const normalizedPathname = pathname.trim();
   for (const route of API_ROUTES) {
     if (route.method !== normalizedMethod) continue;
-    const match = pathname.match(route.pattern);
+    const match = normalizedPathname.match(route.pattern);
     if (!match) continue;
     const params: Record<string, string> = {};
     for (let i = 0; i < route.paramNames.length; i++) {
@@ -454,7 +455,8 @@ export interface RouteMatchResult {
 }
 
 export const classifyApiRoute = (method: string, pathname: string): ApiRouteClassification => {
-  const matched = matchRoute(normalizeHttpMethod(method), pathname);
+  const normalizedPathname = pathname.trim();
+  const matched = matchRoute(method, normalizedPathname);
   if (matched) {
     return {
       kind: API_ROUTE_CLASSIFICATION.MATCH,
@@ -462,7 +464,7 @@ export const classifyApiRoute = (method: string, pathname: string): ApiRouteClas
       params: matched.params,
     };
   }
-  const knownPath = API_ROUTES.some((route) => route.pattern.test(pathname));
+  const knownPath = API_ROUTES.some((route) => route.pattern.test(normalizedPathname));
   if (knownPath) {
     return {
       kind: API_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
