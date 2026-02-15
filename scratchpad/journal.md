@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B168 request-url host-array fallback coverage)
+
+### Summary
+- Expanded `parseRequestUrl` unit coverage for host-header array fallback
+  semantics.
+- Updated:
+  - `__tests__/unit/server/request-url.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added host-array fallback assertion where first candidate is invalid
+    (`example.com#summary`) and second candidate is valid
+    (`127.0.0.1:4141`).
+  - added all-invalid host-array assertion (`["%", "example.com#summary"]`)
+    returning `null`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-url.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B167 malformed-path normalization logging parity coverage)
 
 ### Summary

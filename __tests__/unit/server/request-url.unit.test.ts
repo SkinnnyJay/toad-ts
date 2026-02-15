@@ -209,4 +209,24 @@ describe("parseRequestUrl", () => {
 
     expect(url).toBeNull();
   });
+
+  it("uses later array host candidate when earlier array candidate is invalid", () => {
+    const url = parseRequestUrl(
+      createRequestWithHostHeader("/api/files/search?q=readme", [
+        "example.com#summary",
+        "127.0.0.1:4141",
+      ])
+    );
+
+    expect(url?.pathname).toBe("/api/files/search");
+    expect(url?.host).toBe("127.0.0.1:4141");
+  });
+
+  it("returns null when all array host candidates are invalid", () => {
+    const url = parseRequestUrl(
+      createRequestWithHostHeader("/api/files/search?q=readme", ["%", "example.com#summary"])
+    );
+
+    expect(url).toBeNull();
+  });
 });

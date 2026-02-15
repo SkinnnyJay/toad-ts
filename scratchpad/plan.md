@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded request-url host-array fallback coverage:
+  - request-url unit tests now include host-header array fallback assertions
+    for:
+    - mixed invalid/valid candidates (invalid hash metadata candidate followed
+      by valid host)
+    - all-invalid array candidates returning `null`.
 - Expanded malformed-path normalization logging parity coverage:
   - pathname-normalization unit tests now lock malformed inner-separator
     preservation while stripping suffix/trailing segments.
