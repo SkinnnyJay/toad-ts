@@ -12,6 +12,8 @@ import { describe, expect, it, vi } from "vitest";
 const UNKNOWN_ERROR_MESSAGE = "unexpected failure";
 const TOO_LARGE_MESSAGE = SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE;
 const INVALID_MESSAGE = SERVER_RESPONSE_MESSAGE.INVALID_REQUEST;
+const PADDED_TOO_LARGE_MESSAGE = ` ${TOO_LARGE_MESSAGE} `;
+const PADDED_INVALID_MESSAGE = ` ${INVALID_MESSAGE} `;
 
 describe("request-error-normalization", () => {
   it("classifies request body too large errors", () => {
@@ -22,6 +24,10 @@ describe("request-error-normalization", () => {
 
   it("classifies request body too large message strings", () => {
     expect(classifyRequestParsingError(TOO_LARGE_MESSAGE)).toBe(TOO_LARGE_MESSAGE);
+  });
+
+  it("classifies request body too large message strings with padding", () => {
+    expect(classifyRequestParsingError(PADDED_TOO_LARGE_MESSAGE)).toBe(TOO_LARGE_MESSAGE);
   });
 
   it("classifies syntax errors as invalid requests", () => {
@@ -39,6 +45,14 @@ describe("request-error-normalization", () => {
   it("classifies canonical invalid-request message objects", () => {
     const error = {
       message: INVALID_MESSAGE,
+    };
+
+    expect(classifyRequestParsingError(error)).toBe(INVALID_MESSAGE);
+  });
+
+  it("classifies padded invalid-request message objects", () => {
+    const error = {
+      message: PADDED_INVALID_MESSAGE,
     };
 
     expect(classifyRequestParsingError(error)).toBe(INVALID_MESSAGE);

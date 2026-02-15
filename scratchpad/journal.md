@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B71 request-error canonical-message trimming hardening)
+
+### Summary
+- Added post-completion hardening to classify canonical request parse errors
+  when message values include surrounding whitespace.
+- Updated:
+  - `src/server/request-error-normalization.ts`
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - introduced comparable error-message trimming for classification checks.
+  - preserved original message text in details payloads while using trimmed
+    values for canonical matching.
+  - added unit coverage for padded string/object canonical message inputs.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B70 request-error normalization robustness hardening)
 
 ### Summary

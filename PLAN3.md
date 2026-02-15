@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B71 request-error canonical-message trimming)
+
+- Added request-error classification hardening for whitespace-padded canonical
+  parse-error messages.
+- Updated:
+  - `src/server/request-error-normalization.ts`
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B70 request-error normalization robustness)
 
 - Added server request-error normalization hardening for string/object parse

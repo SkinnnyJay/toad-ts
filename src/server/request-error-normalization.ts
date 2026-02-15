@@ -56,14 +56,22 @@ const resolveErrorMessage = (error: unknown): string | null => {
   return null;
 };
 
+const resolveComparableErrorMessage = (error: unknown): string | null => {
+  const message = resolveErrorMessage(error);
+  if (message === null) {
+    return null;
+  }
+  return message.trim();
+};
+
 const isRequestBodyTooLargeError = (error: unknown): boolean =>
-  resolveErrorMessage(error) === SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE;
+  resolveComparableErrorMessage(error) === SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE;
 
 const isInvalidRequestError = (error: unknown): boolean => {
   if (error instanceof SyntaxError) {
     return true;
   }
-  return resolveErrorMessage(error) === SERVER_RESPONSE_MESSAGE.INVALID_REQUEST;
+  return resolveComparableErrorMessage(error) === SERVER_RESPONSE_MESSAGE.INVALID_REQUEST;
 };
 
 export const normalizeRequestBodyParseError = (error: unknown): string => {

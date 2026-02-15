@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added request-error canonical-message trimming hardening:
+  - classification now matches canonical request parse-error messages even when
+    surrounding whitespace is present in string/object error shapes.
+  - expanded request-error normalization coverage for padded canonical message
+    inputs.
 - Added request-error normalization robustness hardening:
   - parser error classification now recognizes canonical messages from string
     throws and message-bearing objects, not only `Error` instances.
