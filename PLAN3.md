@@ -1,3 +1,23 @@
+## 2026-02-14 Execution Update (B235 ancillary-api protected-variant parity)
+
+- Expanded protected ancillary known-API integration coverage for trailing,
+  query, and hash variants under auth-before-method semantics.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/pathname-normalization.unit.test.ts` ✅
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B234 ancillary-api padded-path parity)
 
 - Expanded ancillary known-API classifier coverage for whitespace-padded

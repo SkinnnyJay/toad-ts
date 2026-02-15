@@ -14,6 +14,16 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded ancillary-api protected-variant parity:
+  - headless-server integration suite now explicitly locks protected
+    auth-before-method ordering for ancillary known API routes across added
+    trailing/query/hash variants.
+  - under password protection, ancillary unsupported methods now have explicit
+    parity assertions:
+    - unauthenticated => `401` + `Bearer`
+    - authenticated => `405 METHOD_NOT_ALLOWED`
+    for `/api/agents`, `/api/events`, `/api/files/search`,
+    `/api/tui/append-prompt`, `/api/tui/submit-prompt`.
 - Expanded ancillary-api padded-path parity:
   - api-routes classifier unit suite now explicitly locks ancillary known-route
     semantics for whitespace-padded pathname variants with normalized suffixes
