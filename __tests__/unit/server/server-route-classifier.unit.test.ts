@@ -133,6 +133,51 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies whitespace-padded blank-session base variants with /sessions method semantics", () => {
+    const getDoubleTrailingResult = classifyServerRoute(HTTP_METHOD.GET, " /sessions// ");
+    const getDoubleTrailingQueryResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /sessions//?scope=all "
+    );
+    const getDoubleTrailingHashResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /sessions//#summary "
+    );
+    const postDoubleTrailingResult = classifyServerRoute(HTTP_METHOD.POST, " /sessions// ");
+    const postDoubleTrailingQueryResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /sessions//?scope=all "
+    );
+    const postDoubleTrailingHashResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /sessions//#summary "
+    );
+    expect(getDoubleTrailingResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(getDoubleTrailingQueryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(getDoubleTrailingHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(postDoubleTrailingResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(postDoubleTrailingQueryResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(postDoubleTrailingHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies api matches with handler + params", () => {
     const result = classifyServerRoute(HTTP_METHOD.GET, "/api/config");
     expect(result.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);

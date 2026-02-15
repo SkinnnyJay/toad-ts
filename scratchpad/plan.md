@@ -14,6 +14,14 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded padded blank-session base method parity:
+  - core-route classifier unit suite now explicitly covers whitespace-padded
+    `/sessions//`, `/sessions//?scope=all`, `/sessions//#summary` variants with
+    normalized method semantics:
+    - GET => `METHOD_NOT_ALLOWED`
+    - POST => `UNHANDLED`
+  - server-route classifier unit suite now explicitly confirms same semantics
+    with `CORE_ROUTE_CLASSIFIER` attribution.
 - Expanded blank-session double-trailing integration parity:
   - headless-server integration suite now explicitly covers `/sessions//`,
     `/sessions//?scope=all`, and `/sessions//#summary` for:
