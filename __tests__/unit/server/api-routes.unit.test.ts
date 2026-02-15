@@ -284,6 +284,34 @@ describe("API Routes", () => {
       });
     });
 
+    it("classifies unknown and malformed paths with lowercase/padded methods as not found", () => {
+      const paddedGetResult = classifyApiRoute(" get ", "/api/does-not-exist");
+      const lowerPostResult = classifyApiRoute("post", "/api/does-not-exist");
+      const paddedDeleteResult = classifyApiRoute(" delete ", "/api/does-not-exist");
+      const paddedMalformedGetResult = classifyApiRoute(" get ", "/api//config");
+      const lowerMalformedPostResult = classifyApiRoute("post", "/api/sessions//messages");
+      expect(paddedGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(lowerPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedDeleteResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(paddedMalformedGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(lowerMalformedPostResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+    });
+
     it("classifies query/hash suffixed unknown path as not found", () => {
       const queryResult = classifyApiRoute("GET", "/api/does-not-exist?view=compact");
       const queryPostResult = classifyApiRoute("POST", "/api/does-not-exist?view=compact");

@@ -14,6 +14,15 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown/malformed route method-normalization parity:
+  - api-routes unit suite now explicitly verifies lowercase/whitespace-padded
+    methods classify unknown/malformed API paths as `NOT_FOUND`.
+  - core-route classifier unit suite now explicitly verifies
+    lowercase/whitespace-padded methods classify unknown/malformed core/session
+    paths as `UNHANDLED`.
+  - server-route classifier unit suite now explicitly verifies
+    lowercase/whitespace-padded methods preserve API vs core unhandled scope
+    decisions for unknown/malformed paths.
 - Expanded session-route parser whitespace-padded malformed parity:
   - session-route-path unit suite now explicitly covers whitespace-padded
     missing-action double-trailing variants as valid:

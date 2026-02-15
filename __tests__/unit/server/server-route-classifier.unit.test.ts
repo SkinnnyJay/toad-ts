@@ -874,6 +874,42 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies unknown api/core routes with lowercase/padded methods by scope", () => {
+    const apiUnknownGetResult = classifyServerRoute(" get ", "/api/does-not-exist");
+    const apiMalformedPostResult = classifyServerRoute("post", "/api//config");
+    const apiMalformedDeleteResult = classifyServerRoute(" delete ", "/api/sessions//messages");
+    const coreUnknownGetResult = classifyServerRoute(" get ", "/unknown-endpoint//#summary");
+    const coreMalformedPostResult = classifyServerRoute("post", "/sessions//prompt//#summary");
+    const coreMissingActionGetResult = classifyServerRoute(
+      " get ",
+      "/sessions/session-1//?view=full"
+    );
+    expect(apiUnknownGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(apiMalformedPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(apiMalformedDeleteResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(coreUnknownGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(coreMalformedPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(coreMissingActionGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies whitespace-padded unknown api route variants as api-scoped unhandled", () => {
     const paddedTrailingGetResult = classifyServerRoute(HTTP_METHOD.GET, " /api/unknown/ ");
     const paddedTrailingPostResult = classifyServerRoute(HTTP_METHOD.POST, " /api/unknown/ ");

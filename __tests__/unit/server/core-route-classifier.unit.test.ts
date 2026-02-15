@@ -312,6 +312,21 @@ describe("classifyCoreRoute", () => {
     });
   });
 
+  it("returns unhandled for unknown and malformed routes with lowercase/padded methods", () => {
+    expect(classifyCoreRoute(" get ", "/unknown-endpoint")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute("post", "/unknown-endpoint//#summary")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(" get ", "/sessions/session-1//?view=full")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute("post", "/sessions//prompt//#summary")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+  });
+
   it("returns unhandled for blank-session prompt/messages malformed paths", () => {
     expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions//prompt")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
