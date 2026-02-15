@@ -14,6 +14,17 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded integration non-API hash method coverage:
+  - headless-server integration test
+    `returns method not allowed for known non-api routes with unsupported methods`
+    now includes hash and trailing-hash variants for:
+    - `/health`
+    - `/sessions`
+    - `/sessions/:id/prompt`
+    - `/sessions/:id/messages`.
+  - locks canonical `405` + `METHOD_NOT_ALLOWED` semantics across hash-bearing
+    and combined trailing-slash+hash forms for known non-API method-guard
+    routes.
 - Expanded health hash auth-bypass coverage:
   - password-protected health-route integration test
     (`keeps health-route auth bypass semantics under password protection`)

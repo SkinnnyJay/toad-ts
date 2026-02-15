@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B155 integration non-api hash method coverage)
+
+- Expanded headless-server integration coverage for known non-API
+  unsupported-method semantics on hash and combined trailing-slash + hash
+  path variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "returns method not allowed for known non-api routes with unsupported methods"` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B154 health hash auth-bypass coverage)
 
 - Expanded password-protected health-route integration coverage to include
