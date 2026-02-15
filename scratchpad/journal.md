@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B53 NutJS diagnostics assertion hardening)
+
+### Summary
+- Added post-completion coverage hardening for NutJS diagnostics metadata.
+- Updated:
+  - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - `__tests__/e2e/skippable.nutjs-smoke.e2e.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added unit assertions for diagnostics status in executed and
+    permission-missing outcomes.
+  - added Linux smoke assertion for diagnostics status metadata in
+    permission-missing runtime path.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts __tests__/e2e/skippable.nutjs-smoke.e2e.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B52 Linux permission smoke assertion)
 
 ### Summary

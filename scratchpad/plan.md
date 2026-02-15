@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added NutJS diagnostics assertion hardening:
+  - unit coverage now asserts diagnostics status metadata for executed and
+    permission-missing outcomes.
+  - Linux smoke coverage now asserts diagnostics metadata in addition to
+    permission-missing outcome.
 - Added Linux-specific NutJS permission smoke hardening:
   - NutJS smoke e2e now asserts `permission_missing` outcome on Linux when
     runtime is enabled without display backend env.

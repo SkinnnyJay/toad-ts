@@ -7547,6 +7547,21 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - lock Linux headless permission-gate behavior at smoke-test level to
       prevent regression in CI matrix environments.
 
+## Execution Log Addendum — 2026-02-14 (B53 diagnostics assertion hardening)
+
+- Post-completion hardening for NutJS diagnostics visibility:
+  - Updated:
+    - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+    - `__tests__/e2e/skippable.nutjs-smoke.e2e.test.ts`
+  - Hardening changes:
+    - extended unit coverage to assert diagnostics payload status fields for
+      both executed and permission-missing outcomes.
+    - extended Linux smoke path to assert diagnostics status metadata in
+      addition to outcome semantics.
+  - Goal:
+    - prevent regressions where outcome values remain correct but diagnostics
+      payload metadata drifts from expected permission state.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7609,3 +7624,4 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B50 | P2 | document and simplify fallback precedence for platform + NutJS + clipboard + sound paths.
 - [x] - B51 | P2 | enforce permission diagnostics stage in NutJS execution gate before action execution.
 - [x] - B52 | P2 | add Linux smoke assertion for permission-missing NutJS runtime without display backend.
+- [x] - B53 | P2 | assert NutJS diagnostics metadata for executed and permission-missing outcomes.

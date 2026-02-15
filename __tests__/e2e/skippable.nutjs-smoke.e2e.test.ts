@@ -1,5 +1,6 @@
 import { ENV_KEY } from "@/constants/env-keys";
 import { NUTJS_EXECUTION_OUTCOME } from "@/constants/nutjs-execution";
+import { NUTJS_PERMISSION_STATUS } from "@/constants/nutjs-permissions";
 import { PLATFORM } from "@/constants/platform";
 import { detectNutJsCapability } from "@/utils/nutjs-capability.utils";
 import { runNutJsActionWithGate } from "@/utils/nutjs-execution-gate.utils";
@@ -81,5 +82,6 @@ describe("nutjs cross-platform smoke checks", () => {
     expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.PERMISSION_MISSING);
     expect(result.executed).toBe(false);
     expect(result.result).toBeNull();
+    expect(result.diagnostics?.linuxDisplayBackend.status).toBe(NUTJS_PERMISSION_STATUS.MISSING);
   });
 });

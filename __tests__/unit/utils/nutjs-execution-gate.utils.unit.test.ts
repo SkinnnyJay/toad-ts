@@ -1,5 +1,6 @@
 import { ENV_KEY } from "@/constants/env-keys";
 import { NUTJS_EXECUTION_OUTCOME } from "@/constants/nutjs-execution";
+import { NUTJS_PERMISSION_STATUS } from "@/constants/nutjs-permissions";
 import { PLATFORM } from "@/constants/platform";
 import { NUTJS_EXECUTION_STAGE } from "@/constants/platform-fallback-precedence";
 import {
@@ -68,6 +69,8 @@ describe("nutjs execution gate", () => {
     expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.EXECUTED);
     expect(result.executed).toBe(true);
     expect(result.result).toBe("executed");
+    expect(result.diagnostics?.ready).toBe(true);
+    expect(result.diagnostics?.linuxDisplayBackend.status).toBe(NUTJS_PERMISSION_STATUS.GRANTED);
     expect(action).toHaveBeenCalledTimes(1);
   });
 
@@ -118,6 +121,7 @@ describe("nutjs execution gate", () => {
     expect(result.outcome).toBe(NUTJS_EXECUTION_OUTCOME.PERMISSION_MISSING);
     expect(result.executed).toBe(false);
     expect(action).not.toHaveBeenCalled();
+    expect(result.diagnostics?.linuxDisplayBackend.status).toBe(NUTJS_PERMISSION_STATUS.MISSING);
   });
 
   it("does not block execution when permission state is unknown", async () => {
