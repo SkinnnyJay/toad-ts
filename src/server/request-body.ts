@@ -172,7 +172,8 @@ export const parseJsonRequestBody = async <TPayload>(
 ): Promise<TPayload> => {
   const body = await readRequestBody(req);
   const normalizedBody = stripUtf8Bom(body);
-  if (normalizedBody.length === 0 && options?.emptyBodyValue !== undefined) {
+  const isBlankBody = normalizedBody.trim().length === 0;
+  if (isBlankBody && options?.emptyBodyValue !== undefined) {
     return options.emptyBodyValue;
   }
   return JSON.parse(normalizedBody) as TPayload;

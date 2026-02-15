@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added request-body whitespace-only empty-body fallback hardening:
+  - JSON parse helper now treats whitespace-only bodies as empty for routes
+    that provide `emptyBodyValue`.
+  - preserved strict syntax-error behavior for whitespace-only bodies when no
+    empty-body fallback is configured.
+  - expanded request-body unit coverage for both fallback and strict branches.
 - Added server-auth bearer-token payload hardening:
   - bearer-scheme headers without token payload now return
     `AUTHORIZATION_REQUIRED` instead of misclassifying as invalid credentials.

@@ -192,6 +192,14 @@ describe("request-body helpers", () => {
     await expect(pending).resolves.toEqual({});
   });
 
+  it("treats whitespace-only payload as empty body fallback", async () => {
+    const req = createRequest();
+    const pending = parseJsonRequestBody<Record<string, never>>(req, { emptyBodyValue: {} });
+    emitPayload(req, "  \n\t  ");
+
+    await expect(pending).resolves.toEqual({});
+  });
+
   it("parses JSON payload prefixed by utf-8 bom", async () => {
     const req = createRequest();
     const pending = parseJsonRequestBody<{ value: string }>(req);
@@ -212,6 +220,14 @@ describe("request-body helpers", () => {
     const req = createRequest();
     const pending = parseJsonRequestBody<{ value: string }>(req);
     emitPayload(req, "{invalid");
+
+    await expect(pending).rejects.toBeInstanceOf(SyntaxError);
+  });
+
+  it("rejects whitespace-only payload when empty-body fallback is not configured", async () => {
+    const req = createRequest();
+    const pending = parseJsonRequestBody<{ value: string }>(req);
+    emitPayload(req, "   ");
 
     await expect(pending).rejects.toBeInstanceOf(SyntaxError);
   });

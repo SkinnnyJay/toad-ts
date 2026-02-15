@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B86 request-body whitespace-only empty-body fallback hardening
+    (fallback-aware blank body handling)
   - completed B85 server-auth bearer-token payload hardening
     (bare/whitespace bearer payloads -> authorization required)
   - completed B84 server schema non-blank string validation hardening

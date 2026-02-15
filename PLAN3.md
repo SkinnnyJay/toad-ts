@@ -1,3 +1,20 @@
+## 2026-02-14 Execution Update (B86 request-body whitespace fallback)
+
+- Hardened `parseJsonRequestBody(...)` to treat whitespace-only payloads as
+  empty when `emptyBodyValue` is configured by the caller.
+- Preserved strict syntax-error behavior for whitespace-only payloads when no
+  empty-body fallback is configured.
+- Updated:
+  - `src/server/request-body.ts`
+  - `__tests__/unit/server/request-body.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/request-body.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B85 bearer-token payload hardening)
 
 - Hardened server auth token parsing for bearer scheme payloads:

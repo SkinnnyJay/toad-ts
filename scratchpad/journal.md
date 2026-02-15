@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B86 request-body whitespace-only empty-body fallback)
+
+### Summary
+- Hardened shared request body JSON parsing for whitespace-only payloads when
+  routes intentionally configure empty-body fallback values.
+- Updated:
+  - `src/server/request-body.ts`
+  - `__tests__/unit/server/request-body.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - `parseJsonRequestBody(...)` now evaluates normalized body blankness via
+    trim and uses `emptyBodyValue` for whitespace-only payloads.
+  - preserved strict parse behavior when no empty-body fallback is provided
+    (whitespace-only payload still rejects as syntax error).
+  - expanded unit coverage for both fallback and strict branches.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-body.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B85 server-auth bearer-token payload hardening)
 
 ### Summary
