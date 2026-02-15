@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded core-route health combined-suffix coverage:
+  - core-route classifier unit tests now include
+    `GET /health/?check=true` combined trailing-slash + query form.
+  - locks canonical `HEALTH_OK` decision for combined normalized health route
+    input.
 - Expanded server-route missing-action combined coverage:
   - server-route classifier unit tests now include missing-action session
     combined trailing-slash+query variants for both GET and POST methods.

@@ -31,6 +31,11 @@ describe("classifyCoreRoute", () => {
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.HEALTH_OK });
   });
 
+  it("returns health_ok for GET /health with combined trailing-query suffix", () => {
+    const result = classifyCoreRoute(HTTP_METHOD.GET, "/health/?check=true");
+    expect(result).toEqual({ kind: CORE_ROUTE_DECISION.HEALTH_OK });
+  });
+
   it("returns method_not_allowed for non-GET /health", () => {
     const result = classifyCoreRoute(HTTP_METHOD.POST, SERVER_PATH.HEALTH);
     expect(result).toEqual({ kind: CORE_ROUTE_DECISION.METHOD_NOT_ALLOWED });

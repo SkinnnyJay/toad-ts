@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B141 core-route health combined-suffix coverage)
+
+- Expanded core-route classifier unit coverage for `GET /health` with combined
+  trailing-slash + query suffix normalization.
+- Updated:
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B140 server-route missing-action combined coverage)
 
 - Expanded server-route classifier unit coverage for missing-action session
