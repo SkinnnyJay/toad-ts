@@ -1,5 +1,38 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B158 protected-api session hash auth-order coverage)
+
+### Summary
+- Expanded password-protected API auth-order integration coverage for
+  session and session-messages hash/trailing-hash variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in
+    `applies auth checks before method-not-allowed semantics on api routes`,
+    added unauthenticated/authenticated assertions for:
+    - `/api/sessions/session-1#summary`
+    - `/api/sessions/session-1/#summary`
+    - `/api/sessions/session-1/messages#summary`
+    - `/api/sessions/session-1/messages/#summary`
+    locking pre-auth `401` + challenge and authenticated `405`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before method-not-allowed semantics on api routes"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B157 unknown-route hash auth-order coverage)
 
 ### Summary

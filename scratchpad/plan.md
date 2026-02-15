@@ -14,6 +14,16 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded protected-API session hash auth-order coverage:
+  - password-protected API auth-before-method integration test
+    (`applies auth checks before method-not-allowed semantics on api routes`)
+    now includes hash and trailing-hash variants for:
+    - `/api/sessions/:id`
+    - `/api/sessions/:id/messages`.
+  - locks canonical auth-first semantics:
+    - unauthenticated `401` + challenge
+    - authenticated `405` + `METHOD_NOT_ALLOWED`
+    across hash-bearing and combined trailing-slash+hash API session routes.
 - Expanded unknown-route hash auth-order coverage:
   - password-protected unknown-route ordering integration test
     (`applies auth checks before not-found semantics on unknown routes`)

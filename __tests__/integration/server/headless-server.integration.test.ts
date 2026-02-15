@@ -9520,6 +9520,20 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedSessionRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/sessions/session-1#summary`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedSessionRouteResponseWithHash.status).toBe(401);
+      expect(unauthenticatedSessionRouteResponseWithHash.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedSessionRouteResponseWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedTrailingSessionRouteResponseWithQuery = await fetch(
         `${baseUrl}/api/sessions/session-1/?scope=all`,
         {
@@ -9531,6 +9545,20 @@ describe("headless server", () => {
         unauthenticatedTrailingSessionRouteResponseWithQuery.headers.get("www-authenticate")
       ).toBe("Bearer");
       await expect(unauthenticatedTrailingSessionRouteResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedTrailingSessionRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/sessions/session-1/#summary`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedTrailingSessionRouteResponseWithHash.status).toBe(401);
+      expect(
+        unauthenticatedTrailingSessionRouteResponseWithHash.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedTrailingSessionRouteResponseWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -9574,6 +9602,20 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedMessagesRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/sessions/session-1/messages#summary`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedMessagesRouteResponseWithHash.status).toBe(401);
+      expect(unauthenticatedMessagesRouteResponseWithHash.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedMessagesRouteResponseWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedTrailingMessagesRouteResponseWithQuery = await fetch(
         `${baseUrl}/api/sessions/session-1/messages/?scope=all`,
         {
@@ -9585,6 +9627,20 @@ describe("headless server", () => {
         unauthenticatedTrailingMessagesRouteResponseWithQuery.headers.get("www-authenticate")
       ).toBe("Bearer");
       await expect(unauthenticatedTrailingMessagesRouteResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedTrailingMessagesRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/sessions/session-1/messages/#summary`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedTrailingMessagesRouteResponseWithHash.status).toBe(401);
+      expect(
+        unauthenticatedTrailingMessagesRouteResponseWithHash.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedTrailingMessagesRouteResponseWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -9771,6 +9827,20 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
+      const authenticatedSessionRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/sessions/session-1#summary`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSessionRouteResponseWithHash.status).toBe(405);
+      await expect(authenticatedSessionRouteResponseWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
       const authenticatedTrailingSessionRouteResponseWithQuery = await fetch(
         `${baseUrl}/api/sessions/session-1/?scope=all`,
         {
@@ -9782,6 +9852,20 @@ describe("headless server", () => {
       );
       expect(authenticatedTrailingSessionRouteResponseWithQuery.status).toBe(405);
       await expect(authenticatedTrailingSessionRouteResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const authenticatedTrailingSessionRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/sessions/session-1/#summary`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedTrailingSessionRouteResponseWithHash.status).toBe(405);
+      await expect(authenticatedTrailingSessionRouteResponseWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
@@ -9827,6 +9911,20 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
+      const authenticatedMessagesRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/sessions/session-1/messages#summary`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedMessagesRouteResponseWithHash.status).toBe(405);
+      await expect(authenticatedMessagesRouteResponseWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
       const authenticatedTrailingMessagesRouteResponseWithQuery = await fetch(
         `${baseUrl}/api/sessions/session-1/messages/?scope=all`,
         {
@@ -9838,6 +9936,20 @@ describe("headless server", () => {
       );
       expect(authenticatedTrailingMessagesRouteResponseWithQuery.status).toBe(405);
       await expect(authenticatedTrailingMessagesRouteResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const authenticatedTrailingMessagesRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/sessions/session-1/messages/#summary`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedTrailingMessagesRouteResponseWithHash.status).toBe(405);
+      await expect(authenticatedTrailingMessagesRouteResponseWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
     } finally {
