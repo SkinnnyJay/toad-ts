@@ -125,6 +125,41 @@ const collectSessionCreatedEvents = async (
   });
 };
 
+const distributeCreatesAcrossReconnects = (
+  createCount: number,
+  reconnectCount: number
+): number[] => {
+  const baseCount = Math.floor(createCount / reconnectCount);
+  const remainder = createCount % reconnectCount;
+  const segmentSizes: number[] = [];
+  for (let index = 0; index < reconnectCount; index += 1) {
+    segmentSizes.push(baseCount + (index < remainder ? 1 : 0));
+  }
+  return segmentSizes;
+};
+
+interface ReconnectJitterMatrixConfig {
+  openOrderByCycleMs: readonly number[];
+  createByCycleMs: readonly number[];
+  invalidPromptBurstByCycle: readonly number[];
+}
+
+interface ReconnectJitterMatrix {
+  openOrderByCycleMs: readonly number[];
+  createByCycleMs: readonly number[];
+  invalidPromptBurstByCycle: readonly number[];
+}
+
+const createReconnectJitterMatrix = (
+  config: ReconnectJitterMatrixConfig
+): ReconnectJitterMatrix => {
+  return {
+    openOrderByCycleMs: [...config.openOrderByCycleMs],
+    createByCycleMs: [...config.createByCycleMs],
+    invalidPromptBurstByCycle: [...config.invalidPromptBurstByCycle],
+  };
+};
+
 const requestWithRawPath = (
   host: string,
   port: number,
@@ -4940,19 +4975,6 @@ describe("headless server", () => {
     process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] = undefined;
     EnvManager.resetInstance();
 
-    const distributeCreatesAcrossReconnects = (
-      createCount: number,
-      reconnectCount: number
-    ): number[] => {
-      const baseCount = Math.floor(createCount / reconnectCount);
-      const remainder = createCount % reconnectCount;
-      const segmentSizes: number[] = [];
-      for (let index = 0; index < reconnectCount; index += 1) {
-        segmentSizes.push(baseCount + (index < remainder ? 1 : 0));
-      }
-      return segmentSizes;
-    };
-
     let server: Awaited<ReturnType<typeof startHeadlessServer>> | null = null;
     let activeSocket: WebSocket | null = null;
     try {
@@ -5193,19 +5215,6 @@ describe("headless server", () => {
     process.env[ENV_KEY.TOADSTOOL_CURSOR_COMMAND] = undefined;
     process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] = undefined;
     EnvManager.resetInstance();
-
-    const distributeCreatesAcrossReconnects = (
-      createCount: number,
-      reconnectCount: number
-    ): number[] => {
-      const baseCount = Math.floor(createCount / reconnectCount);
-      const remainder = createCount % reconnectCount;
-      const segmentSizes: number[] = [];
-      for (let index = 0; index < reconnectCount; index += 1) {
-        segmentSizes.push(baseCount + (index < remainder ? 1 : 0));
-      }
-      return segmentSizes;
-    };
 
     let server: Awaited<ReturnType<typeof startHeadlessServer>> | null = null;
     let activeSocket: WebSocket | null = null;
@@ -8416,19 +8425,6 @@ describe("headless server", () => {
     process.env[ENV_KEY.TOADSTOOL_GEMINI_COMMAND] = undefined;
     EnvManager.resetInstance();
 
-    const distributeCreatesAcrossReconnects = (
-      createCount: number,
-      reconnectCount: number
-    ): number[] => {
-      const baseCount = Math.floor(createCount / reconnectCount);
-      const remainder = createCount % reconnectCount;
-      const segmentSizes: number[] = [];
-      for (let index = 0; index < reconnectCount; index += 1) {
-        segmentSizes.push(baseCount + (index < remainder ? 1 : 0));
-      }
-      return segmentSizes;
-    };
-
     let server: Awaited<ReturnType<typeof startHeadlessServer>> | null = null;
     let activeSocket: WebSocket | null = null;
     try {
@@ -8440,9 +8436,14 @@ describe("headless server", () => {
       const websocketReconnectCadenceByCycle = [1, 2, 1] as const;
       const sseReconnectCadenceByCycle = [2, 1, 2] as const;
       const openSseFirstByCycle = [true, false, true] as const;
-      const openOrderJitterByCycleMs = [0, 1, 2] as const;
-      const createJitterByCycleMs = [2, 0, 1] as const;
-      const invalidPromptBurstByCycle = [1, 2, 1] as const;
+      const jitterMatrix = createReconnectJitterMatrix({
+        openOrderByCycleMs: [0, 1, 2],
+        createByCycleMs: [2, 0, 1],
+        invalidPromptBurstByCycle: [1, 2, 1],
+      });
+      const openOrderJitterByCycleMs = jitterMatrix.openOrderByCycleMs;
+      const createJitterByCycleMs = jitterMatrix.createByCycleMs;
+      const invalidPromptBurstByCycle = jitterMatrix.invalidPromptBurstByCycle;
       const createdSessionIds: string[] = [];
       let createRequestIndex = 0;
 

@@ -7376,6 +7376,22 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - simplify clipboard fallback behavior into explicit ranked strategy while
       preserving existing cross-platform copy semantics.
 
+## Execution Log Addendum — 2026-02-14 (B44 reconnect jitter scaffolding simplification)
+
+- Additional P2 backlog hardening for reconnect-test maintainability:
+  - Updated:
+    - `__tests__/integration/server/headless-server.integration.test.ts`
+  - Hardening changes:
+    - extracted shared reconnect-segment distribution helper from repeated
+      per-test local declarations.
+    - introduced typed reconnect jitter matrix helper to generate grouped jitter
+      arrays from one config object.
+    - switched reconnect-order jitter integration coverage to consume typed
+      jitter matrix output while preserving existing behavior.
+  - Goal:
+    - reduce reconnect jitter test scaffolding duplication while keeping
+      integration behavior coverage unchanged.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7429,7 +7445,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B41 | P2 | consolidate platform-specific command resolution into one shared platform adapter.
 - [x] - B42 | P2 | deduplicate shell invocation logic between shell-session, interactive-shell, and background-task-manager.
 - [x] - B43 | P2 | simplify clipboard fallback chain into explicit capability-ranked strategy.
-- [ ] - B44 | P2 | simplify reconnect jitter test scaffolding by generating jitter matrices from typed config.
+- [x] - B44 | P2 | simplify reconnect jitter test scaffolding by generating jitter matrices from typed config.
 - [ ] - B45 | P2 | replace repeated `new Promise(setTimeout...)` blocks with shared typed delay helpers.
 - [ ] - B46 | P2 | add NutJS capability detector with explicit unsupported-platform no-op behavior.
 - [ ] - B47 | P2 | add NutJS permission diagnostics (macOS Accessibility, Linux display backend, Windows integrity level).

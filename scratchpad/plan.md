@@ -4018,9 +4018,15 @@
     availability checks
   - added focused command-chain/support coverage in
     `__tests__/unit/utils/clipboard.utils.unit.test.ts`
+- Completed P2 backlog item B44 reconnect jitter scaffolding simplification:
+  - extracted shared reconnect segment distribution helper in
+    `__tests__/integration/server/headless-server.integration.test.ts`
+  - introduced typed reconnect jitter matrix helper for grouped jitter values
+  - updated reconnect-order jitter integration coverage to use typed matrix
+    config output
 - New next candidate:
-  - evaluate severity backlog item B44 by simplifying reconnect jitter test
-    scaffolding via typed jitter matrix generation
+  - evaluate severity backlog item B45 by replacing repeated timeout-promise
+    blocks with shared typed delay helpers
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers
