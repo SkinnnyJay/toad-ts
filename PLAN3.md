@@ -7428,6 +7428,26 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - establish explicit NutJS capability detection with deterministic no-op
       behavior on unsupported runtime/platform paths.
 
+## Execution Log Addendum — 2026-02-14 (B47 NutJS permission diagnostics)
+
+- Additional P2 backlog hardening for NutJS permission visibility:
+  - Updated:
+    - `src/constants/nutjs-permissions.ts` (new)
+    - `src/utils/nutjs-permission-diagnostics.utils.ts` (new)
+    - `__tests__/unit/utils/nutjs-permission-diagnostics.utils.unit.test.ts` (new)
+  - Hardening changes:
+    - added typed NutJS permission status and Windows integrity-level constants.
+    - introduced cross-platform NutJS permission diagnostics for:
+      - macOS Accessibility state,
+      - Linux display-backend availability,
+      - Windows integrity-level readiness.
+    - added readiness aggregation and detailed per-check diagnostic messages.
+    - added focused unit coverage for unsupported/headless/missing/granted
+      platform-specific permission paths.
+  - Goal:
+    - provide explicit NutJS permission diagnostics across macOS/Linux/Windows
+      prerequisites for safer automation readiness checks.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7484,7 +7504,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B44 | P2 | simplify reconnect jitter test scaffolding by generating jitter matrices from typed config.
 - [x] - B45 | P2 | replace repeated `new Promise(setTimeout...)` blocks with shared typed delay helpers.
 - [x] - B46 | P2 | add NutJS capability detector with explicit unsupported-platform no-op behavior.
-- [ ] - B47 | P2 | add NutJS permission diagnostics (macOS Accessibility, Linux display backend, Windows integrity level).
+- [x] - B47 | P2 | add NutJS permission diagnostics (macOS Accessibility, Linux display backend, Windows integrity level).
 - [ ] - B48 | P2 | gate NutJS execution behind feature flag and security allowlist.
 - [ ] - B49 | P2 | add cross-platform NutJS smoke checks (Windows/Linux/macOS) in CI matrix.
 - [ ] - B50 | P2 | document and simplify fallback precedence for platform + NutJS + clipboard + sound paths.

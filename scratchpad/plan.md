@@ -4036,9 +4036,16 @@
     `src/utils/nutjs-capability.utils.ts`
   - added focused no-op/supported behavior coverage in
     `__tests__/unit/utils/nutjs-capability.utils.unit.test.ts`
+- Completed P2 backlog item B47 NutJS permission diagnostics:
+  - added typed NutJS permission and Windows integrity constants in
+    `src/constants/nutjs-permissions.ts`
+  - added cross-platform NutJS permission diagnostics utility in
+    `src/utils/nutjs-permission-diagnostics.utils.ts`
+  - added focused diagnostics coverage in
+    `__tests__/unit/utils/nutjs-permission-diagnostics.utils.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B47 by adding NutJS permission diagnostics
-    for macOS/Linux/Windows capability checks
+  - evaluate severity backlog item B48 by gating NutJS execution behind feature
+    flag + security allowlist
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

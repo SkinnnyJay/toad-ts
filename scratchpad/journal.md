@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B47 NutJS permission diagnostics)
+
+### Summary
+- Completed P2 backlog item B47 in `PLAN3.md` by adding cross-platform NutJS
+  permission diagnostics for macOS/Linux/Windows readiness checks.
+- Updated:
+  - `src/constants/nutjs-permissions.ts`
+  - `src/utils/nutjs-permission-diagnostics.utils.ts`
+  - `__tests__/unit/utils/nutjs-permission-diagnostics.utils.unit.test.ts`
+- Changes:
+  - added typed permission status + Windows integrity-level constants.
+  - added diagnostics utility covering macOS Accessibility, Linux display
+    backend, and Windows integrity-level checks with readiness aggregation.
+  - added focused unit coverage for unsupported, missing, and granted
+    permission paths across platforms.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/nutjs-capability.utils.unit.test.ts __tests__/unit/utils/nutjs-permission-diagnostics.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B46 NutJS capability detector)
 
 ### Summary

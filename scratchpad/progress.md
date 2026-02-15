@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B47 NutJS permission diagnostics for macOS accessibility, Linux
+    display backend, and Windows integrity readiness checks
   - completed B46 NutJS capability detector with explicit unsupported-platform
     no-op behavior and focused unit coverage
   - completed B45 timeout-wrapper dedup with shared typed delay helpers in
