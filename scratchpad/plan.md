@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-route auth-order malformed API coverage:
+  - password-protected unknown-route ordering test now includes malformed API
+    variants (`/api//config`, `/api/sessions//messages`) with explicit
+    unauthenticated `401` challenge and authenticated `404` assertions.
 - Expanded core-route missing-action normalization coverage:
   - added classifier assertions proving `/sessions/:id` missing-action routes
     remain `UNHANDLED` across trailing-slash and query/hash normalized forms.

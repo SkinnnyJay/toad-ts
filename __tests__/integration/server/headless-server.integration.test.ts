@@ -9238,6 +9238,29 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedMalformedApiUnknown = await fetch(`${baseUrl}/api//config`, {
+        method: "POST",
+      });
+      expect(unauthenticatedMalformedApiUnknown.status).toBe(401);
+      expect(unauthenticatedMalformedApiUnknown.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedMalformedApiUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedMalformedApiSessionUnknown = await fetch(
+        `${baseUrl}/api/sessions//messages`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedMalformedApiSessionUnknown.status).toBe(401);
+      expect(unauthenticatedMalformedApiSessionUnknown.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedMalformedApiSessionUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedSessionUnknown = await fetch(
         `${baseUrl}/sessions/session-1/unsupported`
       );
@@ -9271,6 +9294,31 @@ describe("headless server", () => {
       });
       expect(authenticatedCoreUnknown.status).toBe(404);
       await expect(authenticatedCoreUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedMalformedApiUnknown = await fetch(`${baseUrl}/api//config`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedMalformedApiUnknown.status).toBe(404);
+      await expect(authenticatedMalformedApiUnknown.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+
+      const authenticatedMalformedApiSessionUnknown = await fetch(
+        `${baseUrl}/api/sessions//messages`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedMalformedApiSessionUnknown.status).toBe(404);
+      await expect(authenticatedMalformedApiSessionUnknown.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 
