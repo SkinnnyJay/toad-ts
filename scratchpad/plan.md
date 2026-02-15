@@ -14,6 +14,17 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-api whitespace-padded malformed parity:
+  - api-routes unit suite now explicitly covers whitespace-padded trailing and
+    double-trailing unknown API paths with GET/POST parity:
+    ` /api/does-not-exist/ `, ` /api/does-not-exist// `,
+    ` /api/does-not-exist//?view=compact `,
+    ` /api/does-not-exist//#summary `.
+  - server-route classifier suite now explicitly covers whitespace-padded
+    trailing and double-trailing unknown API paths with GET/POST parity:
+    ` /api/unknown/ `, ` /api/unknown// `,
+    ` /api/unknown//?scope=all `,
+    ` /api/unknown//#summary `.
 - Expanded pathname normalization malformed parity:
   - pathname-normalization unit suite now explicitly covers trailing and
     double-trailing normalization for:

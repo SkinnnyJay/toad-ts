@@ -715,6 +715,64 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies whitespace-padded unknown api route variants as api-scoped unhandled", () => {
+    const paddedTrailingGetResult = classifyServerRoute(HTTP_METHOD.GET, " /api/unknown/ ");
+    const paddedTrailingPostResult = classifyServerRoute(HTTP_METHOD.POST, " /api/unknown/ ");
+    const paddedDoubleTrailingGetResult = classifyServerRoute(HTTP_METHOD.GET, " /api/unknown// ");
+    const paddedDoubleTrailingPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /api/unknown// "
+    );
+    const paddedDoubleTrailingQueryGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /api/unknown//?scope=all "
+    );
+    const paddedDoubleTrailingQueryPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /api/unknown//?scope=all "
+    );
+    const paddedDoubleTrailingHashGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      " /api/unknown//#summary "
+    );
+    const paddedDoubleTrailingHashPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      " /api/unknown//#summary "
+    );
+    expect(paddedTrailingGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedTrailingPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedDoubleTrailingGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedDoubleTrailingPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedDoubleTrailingQueryGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedDoubleTrailingQueryPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedDoubleTrailingHashGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(paddedDoubleTrailingHashPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies malformed api double-segment paths as api-scoped unhandled", () => {
     const getResult = classifyServerRoute(HTTP_METHOD.GET, "/api//config");
     const trailingGetResult = classifyServerRoute(HTTP_METHOD.GET, "/api//config/");
