@@ -359,9 +359,14 @@ describe("API Routes", () => {
       const doubleTrailingQueryResult = classifyApiRoute("POST", "/api//config//?scope=all");
       const doubleTrailingHashResult = classifyApiRoute("POST", "/api//config//#summary");
       const doubleTrailingQueryGetResult = classifyApiRoute("GET", "/api//config//?scope=all");
+      const doubleTrailingHashGetResult = classifyApiRoute("GET", "/api//config//#summary");
       const messagesDoubleTrailingQueryGetResult = classifyApiRoute(
         "GET",
         "/api/sessions//messages//?scope=all"
+      );
+      const messagesDoubleTrailingHashGetResult = classifyApiRoute(
+        "GET",
+        "/api/sessions//messages//#summary"
       );
       expect(configResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
@@ -423,7 +428,15 @@ describe("API Routes", () => {
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });
+      expect(doubleTrailingHashGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
       expect(messagesDoubleTrailingQueryGetResult).toEqual({
+        kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
+        classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
+      });
+      expect(messagesDoubleTrailingHashGetResult).toEqual({
         kind: API_ROUTE_CLASSIFICATION.NOT_FOUND,
         classifierHandler: SERVER_ROUTE_CLASSIFIER_HANDLER.API_ROUTE_CLASSIFIER,
       });

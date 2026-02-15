@@ -393,6 +393,10 @@ describe("classifyServerRoute", () => {
       HTTP_METHOD.POST,
       "/api//config//#summary"
     );
+    const doubleTrailingHashGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/api//config//#summary"
+    );
     expect(getResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
@@ -414,6 +418,10 @@ describe("classifyServerRoute", () => {
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });
     expect(doubleTrailingHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingHashGetResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });
@@ -466,6 +474,10 @@ describe("classifyServerRoute", () => {
       HTTP_METHOD.POST,
       "/api/sessions//messages//#summary"
     );
+    const getDoubleTrailingHashResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/api/sessions//messages//#summary"
+    );
     expect(hashResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
@@ -475,6 +487,10 @@ describe("classifyServerRoute", () => {
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });
     expect(doubleTrailingHashResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+    expect(getDoubleTrailingHashResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
     });
