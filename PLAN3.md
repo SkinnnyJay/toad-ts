@@ -1,3 +1,19 @@
+## 2026-02-14 Execution Update (B186 malformed-api-session double-trailing-query method parity)
+
+- Expanded malformed API-session double-trailing-query classifier coverage with
+  explicit GET-method parity assertions.
+- Updated:
+  - `__tests__/unit/server/api-routes.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Validation:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B185 malformed-api-session double-trailing-query parity)
 
 - Expanded unknown-route auth-order and API-route classifier coverage for
