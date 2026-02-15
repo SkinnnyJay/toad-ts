@@ -1,5 +1,41 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B222 blank-session double-trailing integration parity)
+
+### Summary
+- Expanded headless-server integration coverage for blank-session
+  double-trailing `/sessions//...` base variants to lock method and auth
+  semantics end-to-end.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in non-auth method-not-allowed coverage, added GET assertions for:
+    - `/sessions//`
+    - `/sessions//?scope=all`
+    - `/sessions//#summary`
+    expecting `405` + `METHOD_NOT_ALLOWED`.
+  - in protected auth-before-method coverage, added unauthenticated GET
+    assertions for same variants expecting `401` + `Bearer` +
+    `AUTHORIZATION_REQUIRED`.
+  - in protected auth-before-method coverage, added authenticated GET
+    assertions for same variants expecting `405` + `METHOD_NOT_ALLOWED`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/session-route-path.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B221 blank-session base normalization parity)
 
 ### Summary

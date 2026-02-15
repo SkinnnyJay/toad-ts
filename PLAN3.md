@@ -1,3 +1,19 @@
+## 2026-02-14 Execution Update (B222 blank-session double-trailing integration parity)
+
+- Expanded headless-server integration coverage for blank-session
+  double-trailing `/sessions//...` base variants to lock method and auth
+  semantics end-to-end.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts __tests__/unit/server/session-route-path.unit.test.ts __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B221 blank-session base normalization parity)
 
 - Expanded blank-session base variant coverage to lock how double-trailing

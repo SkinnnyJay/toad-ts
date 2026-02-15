@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded blank-session double-trailing integration parity:
+  - headless-server integration suite now explicitly covers `/sessions//`,
+    `/sessions//?scope=all`, and `/sessions//#summary` for:
+    - unprotected known-route method semantics (GET => 405)
+    - protected auth-before-method semantics (unauthenticated => 401,
+      authenticated => 405).
 - Expanded blank-session base normalization parity:
   - session-route-path unit suite now explicitly asserts whitespace-padded
     blank-session base variants are rejected (`null`):
