@@ -18,6 +18,11 @@ describe("classifyServerRoute", () => {
     expect(result).toEqual({ kind: SERVER_ROUTE_CLASSIFICATION.HEALTH_OK });
   });
 
+  it("classifies GET /health with trailing-hash suffix as health_ok", () => {
+    const result = classifyServerRoute(HTTP_METHOD.GET, "/health/#summary");
+    expect(result).toEqual({ kind: SERVER_ROUTE_CLASSIFICATION.HEALTH_OK });
+  });
+
   it("classifies lowercase method core routes", () => {
     const result = classifyServerRoute("get", SERVER_PATH.HEALTH);
     expect(result).toEqual({ kind: SERVER_ROUTE_CLASSIFICATION.HEALTH_OK });
@@ -47,6 +52,27 @@ describe("classifyServerRoute", () => {
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
     expect(sessionsResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(promptResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(messagesResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
+  it("classifies unsupported core methods on trailing-hash routes as method_not_allowed", () => {
+    const healthResult = classifyServerRoute(HTTP_METHOD.POST, "/health/#summary");
+    const promptResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1/prompt/#latest");
+    const messagesResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/sessions/session-1/messages/#tail"
+    );
+    expect(healthResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.METHOD_NOT_ALLOWED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
@@ -165,9 +191,30 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies unknown core routes with trailing-hash suffix as unhandled", () => {
+    const result = classifyServerRoute(HTTP_METHOD.GET, "/unknown/#summary");
+    expect(result).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies missing-action session routes with trailing-query suffix as core unhandled", () => {
     const getResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1/?view=full");
     const postResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions/session-1/?view=full");
+    expect(getResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(postResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
+  it("classifies missing-action session routes with trailing-hash suffix as core unhandled", () => {
+    const getResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1/#latest");
+    const postResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions/session-1/#latest");
     expect(getResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
@@ -207,6 +254,14 @@ describe("classifyServerRoute", () => {
     });
   });
 
+  it("classifies /api trailing-slash hash forms as api-scoped unhandled", () => {
+    const result = classifyServerRoute(HTTP_METHOD.GET, "/api/#summary");
+    expect(result).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
   it("classifies unknown api routes as unhandled with api handler id", () => {
     const result = classifyServerRoute(HTTP_METHOD.GET, "/api/unknown");
     expect(result).toEqual({
@@ -230,6 +285,14 @@ describe("classifyServerRoute", () => {
 
   it("classifies malformed api double-segment trailing-query paths as api-scoped unhandled", () => {
     const result = classifyServerRoute(HTTP_METHOD.POST, "/api//config/?scope=all");
+    expect(result).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,
+    });
+  });
+
+  it("classifies malformed api double-segment trailing-hash paths as api-scoped unhandled", () => {
+    const result = classifyServerRoute(HTTP_METHOD.POST, "/api//config/#summary");
     expect(result).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.API_ROUTE_CLASSIFIER,

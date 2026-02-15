@@ -14,6 +14,21 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded server-route core trailing-hash combined coverage:
+  - server-route classifier unit tests now include combined
+    trailing-slash + hash forms for:
+    - `GET /health/#summary` -> `HEALTH_OK`
+    - unsupported core methods on
+      `/health/#summary`, `/sessions/:id/prompt/#latest`,
+      `/sessions/:id/messages/#tail` -> `METHOD_NOT_ALLOWED` +
+      `CORE_ROUTE_CLASSIFIER`
+    - unknown/missing-action core forms
+      `/unknown/#summary`, `/sessions/:id/#latest` -> `UNHANDLED` +
+      `CORE_ROUTE_CLASSIFIER`
+    - API-scope edge forms `/api/#summary`, `/api//config/#summary`
+      -> `UNHANDLED` + `API_ROUTE_CLASSIFIER`.
+  - locks canonical server-route classifier kind and handler ownership for
+    combined trailing-hash normalized core and scoped API edge-path variants.
 - Expanded core-route trailing-hash combined coverage:
   - core-route classifier unit tests now include combined
     trailing-slash + hash forms for:
