@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B109 API trailing-slash method semantics coverage
+    (`405` behavior lock-in for normalized API routes)
   - completed B108 non-API trailing-slash method semantics coverage
     (`405` behavior lock-in for normalized session routes)
   - completed B107 health-route trailing-slash auth-bypass regression coverage

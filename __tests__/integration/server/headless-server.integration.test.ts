@@ -8842,9 +8842,23 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
+      const trailingConfigResponse = await fetch(`${baseUrl}/api/config/`, {
+        method: "POST",
+      });
+      expect(trailingConfigResponse.status).toBe(405);
+      await expect(trailingConfigResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
       const executeResponse = await fetch(`${baseUrl}/api/tui/execute-command`);
       expect(executeResponse.status).toBe(405);
       await expect(executeResponse.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const trailingExecuteResponse = await fetch(`${baseUrl}/api/tui/execute-command/`);
+      expect(trailingExecuteResponse.status).toBe(405);
+      await expect(trailingExecuteResponse.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
     } finally {

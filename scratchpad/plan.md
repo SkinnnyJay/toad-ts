@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded API trailing-slash method semantics coverage:
+  - integration now verifies trailing-slash variants of `/api/config` and
+    `/api/tui/execute-command` preserve canonical `405`
+    method-not-allowed responses for unsupported methods.
 - Expanded non-API trailing-slash method semantics coverage:
   - integration now verifies trailing-slash variants of `/sessions`,
     `/sessions/:id/prompt`, and `/sessions/:id/messages` keep canonical
