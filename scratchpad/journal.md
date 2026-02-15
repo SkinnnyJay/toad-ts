@@ -1,5 +1,41 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B212 api-unknown trailing integration parity)
+
+### Summary
+- Expanded password-auth ordering integration coverage for `/api/unknown`
+  malformed trailing and double-trailing variants with explicit POST-method
+  parity.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added explicit unauthenticated POST assertions (`401` + `Bearer` +
+    `AUTHORIZATION_REQUIRED`) for:
+    - `/api/unknown/`
+    - `/api/unknown/?scope=all`
+    - `/api/unknown/#summary`
+    - `/api/unknown//`
+    - `/api/unknown//?scope=all`
+    - `/api/unknown//#summary`
+  - added explicit authenticated POST assertions (`404` + `NOT_FOUND`) for the
+    same route set, confirming auth-before-not-found ordering stability.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/api-routes.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B211 api-unknown segment parity hardening)
 
 ### Summary

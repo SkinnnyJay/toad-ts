@@ -10728,6 +10728,156 @@ describe("headless server", () => {
       await expect(unauthenticatedSingleSegmentApiUnknownWithHashPost.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
+      const unauthenticatedSingleSegmentApiUnknownTrailing = await fetch(`${baseUrl}/api/unknown/`);
+      expect(unauthenticatedSingleSegmentApiUnknownTrailing.status).toBe(401);
+      expect(unauthenticatedSingleSegmentApiUnknownTrailing.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedSingleSegmentApiUnknownTrailing.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedSingleSegmentApiUnknownTrailingPost = await fetch(
+        `${baseUrl}/api/unknown/`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedSingleSegmentApiUnknownTrailingPost.status).toBe(401);
+      expect(
+        unauthenticatedSingleSegmentApiUnknownTrailingPost.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedSingleSegmentApiUnknownTrailingPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedSingleSegmentApiUnknownTrailingQuery = await fetch(
+        `${baseUrl}/api/unknown/?scope=all`
+      );
+      expect(unauthenticatedSingleSegmentApiUnknownTrailingQuery.status).toBe(401);
+      expect(
+        unauthenticatedSingleSegmentApiUnknownTrailingQuery.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedSingleSegmentApiUnknownTrailingQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedSingleSegmentApiUnknownTrailingQueryPost = await fetch(
+        `${baseUrl}/api/unknown/?scope=all`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedSingleSegmentApiUnknownTrailingQueryPost.status).toBe(401);
+      expect(
+        unauthenticatedSingleSegmentApiUnknownTrailingQueryPost.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedSingleSegmentApiUnknownTrailingQueryPost.json()).resolves.toEqual(
+        {
+          error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+        }
+      );
+      const unauthenticatedSingleSegmentApiUnknownTrailingHash = await fetch(
+        `${baseUrl}/api/unknown/#summary`
+      );
+      expect(unauthenticatedSingleSegmentApiUnknownTrailingHash.status).toBe(401);
+      expect(
+        unauthenticatedSingleSegmentApiUnknownTrailingHash.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedSingleSegmentApiUnknownTrailingHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedSingleSegmentApiUnknownTrailingHashPost = await fetch(
+        `${baseUrl}/api/unknown/#summary`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedSingleSegmentApiUnknownTrailingHashPost.status).toBe(401);
+      expect(
+        unauthenticatedSingleSegmentApiUnknownTrailingHashPost.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedSingleSegmentApiUnknownTrailingHashPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedSingleSegmentApiUnknownDoubleTrailing = await fetch(
+        `${baseUrl}/api/unknown//`
+      );
+      expect(unauthenticatedSingleSegmentApiUnknownDoubleTrailing.status).toBe(401);
+      expect(
+        unauthenticatedSingleSegmentApiUnknownDoubleTrailing.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedSingleSegmentApiUnknownDoubleTrailing.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedSingleSegmentApiUnknownDoubleTrailingPost = await fetch(
+        `${baseUrl}/api/unknown//`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedSingleSegmentApiUnknownDoubleTrailingPost.status).toBe(401);
+      expect(
+        unauthenticatedSingleSegmentApiUnknownDoubleTrailingPost.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(
+        unauthenticatedSingleSegmentApiUnknownDoubleTrailingPost.json()
+      ).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedSingleSegmentApiUnknownDoubleTrailingQuery = await fetch(
+        `${baseUrl}/api/unknown//?scope=all`
+      );
+      expect(unauthenticatedSingleSegmentApiUnknownDoubleTrailingQuery.status).toBe(401);
+      expect(
+        unauthenticatedSingleSegmentApiUnknownDoubleTrailingQuery.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(
+        unauthenticatedSingleSegmentApiUnknownDoubleTrailingQuery.json()
+      ).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedSingleSegmentApiUnknownDoubleTrailingQueryPost = await fetch(
+        `${baseUrl}/api/unknown//?scope=all`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedSingleSegmentApiUnknownDoubleTrailingQueryPost.status).toBe(401);
+      expect(
+        unauthenticatedSingleSegmentApiUnknownDoubleTrailingQueryPost.headers.get(
+          "www-authenticate"
+        )
+      ).toBe("Bearer");
+      await expect(
+        unauthenticatedSingleSegmentApiUnknownDoubleTrailingQueryPost.json()
+      ).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedSingleSegmentApiUnknownDoubleTrailingHash = await fetch(
+        `${baseUrl}/api/unknown//#summary`
+      );
+      expect(unauthenticatedSingleSegmentApiUnknownDoubleTrailingHash.status).toBe(401);
+      expect(
+        unauthenticatedSingleSegmentApiUnknownDoubleTrailingHash.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(
+        unauthenticatedSingleSegmentApiUnknownDoubleTrailingHash.json()
+      ).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+      const unauthenticatedSingleSegmentApiUnknownDoubleTrailingHashPost = await fetch(
+        `${baseUrl}/api/unknown//#summary`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedSingleSegmentApiUnknownDoubleTrailingHashPost.status).toBe(401);
+      expect(
+        unauthenticatedSingleSegmentApiUnknownDoubleTrailingHashPost.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(
+        unauthenticatedSingleSegmentApiUnknownDoubleTrailingHashPost.json()
+      ).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
 
       const unauthenticatedRootUnknown = await fetch(`${baseUrl}/`);
       expect(unauthenticatedRootUnknown.status).toBe(401);
@@ -12619,6 +12769,159 @@ describe("headless server", () => {
       );
       expect(authenticatedSingleSegmentApiUnknownWithHashPost.status).toBe(404);
       await expect(authenticatedSingleSegmentApiUnknownWithHashPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownTrailing = await fetch(`${baseUrl}/api/unknown/`, {
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedSingleSegmentApiUnknownTrailing.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknownTrailing.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownTrailingPost = await fetch(
+        `${baseUrl}/api/unknown/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSingleSegmentApiUnknownTrailingPost.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknownTrailingPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownTrailingQuery = await fetch(
+        `${baseUrl}/api/unknown/?scope=all`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSingleSegmentApiUnknownTrailingQuery.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknownTrailingQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownTrailingQueryPost = await fetch(
+        `${baseUrl}/api/unknown/?scope=all`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSingleSegmentApiUnknownTrailingQueryPost.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknownTrailingQueryPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownTrailingHash = await fetch(
+        `${baseUrl}/api/unknown/#summary`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSingleSegmentApiUnknownTrailingHash.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknownTrailingHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownTrailingHashPost = await fetch(
+        `${baseUrl}/api/unknown/#summary`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSingleSegmentApiUnknownTrailingHashPost.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknownTrailingHashPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownDoubleTrailing = await fetch(
+        `${baseUrl}/api/unknown//`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSingleSegmentApiUnknownDoubleTrailing.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknownDoubleTrailing.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownDoubleTrailingPost = await fetch(
+        `${baseUrl}/api/unknown//`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSingleSegmentApiUnknownDoubleTrailingPost.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknownDoubleTrailingPost.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownDoubleTrailingQuery = await fetch(
+        `${baseUrl}/api/unknown//?scope=all`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSingleSegmentApiUnknownDoubleTrailingQuery.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknownDoubleTrailingQuery.json()).resolves.toEqual(
+        {
+          error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+        }
+      );
+      const authenticatedSingleSegmentApiUnknownDoubleTrailingQueryPost = await fetch(
+        `${baseUrl}/api/unknown//?scope=all`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSingleSegmentApiUnknownDoubleTrailingQueryPost.status).toBe(404);
+      await expect(
+        authenticatedSingleSegmentApiUnknownDoubleTrailingQueryPost.json()
+      ).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownDoubleTrailingHash = await fetch(
+        `${baseUrl}/api/unknown//#summary`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSingleSegmentApiUnknownDoubleTrailingHash.status).toBe(404);
+      await expect(authenticatedSingleSegmentApiUnknownDoubleTrailingHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
+      });
+      const authenticatedSingleSegmentApiUnknownDoubleTrailingHashPost = await fetch(
+        `${baseUrl}/api/unknown//#summary`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedSingleSegmentApiUnknownDoubleTrailingHashPost.status).toBe(404);
+      await expect(
+        authenticatedSingleSegmentApiUnknownDoubleTrailingHashPost.json()
+      ).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.NOT_FOUND,
       });
 

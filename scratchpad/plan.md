@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded `/api/unknown` trailing integration parity:
+  - headless-server integration suite now includes explicit unauthenticated and
+    authenticated POST assertions for:
+    `/api/unknown/`, `/api/unknown/?scope=all`, `/api/unknown/#summary`,
+    `/api/unknown//`, `/api/unknown//?scope=all`, `/api/unknown//#summary`.
 - Expanded API unknown-segment parity hardening:
   - headless-server integration suite now includes explicit unauthenticated and
     authenticated POST assertions for `/api/unknown`, `/api/unknown?scope=all`,
