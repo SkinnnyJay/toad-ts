@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added server-auth single-entry authorization-array support:
+  - auth normalization now accepts one authorization array value (while still
+    rejecting ambiguous multi-entry arrays).
+  - expanded server-auth unit coverage for accepted single-entry arrays and
+    rejected multi-entry arrays.
 - Added request-url multi-host candidate parsing hardening:
   - request URL parser now supports comma-delimited host header candidates and
     array entries while preserving malformed-host rejection behavior.

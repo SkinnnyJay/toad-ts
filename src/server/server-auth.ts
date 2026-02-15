@@ -14,11 +14,22 @@ const BEARER_TOKEN_PREFIX_PATTERN = /^Bearer\s+/i;
 const normalizeAuthorizationHeader = (
   authorization: string | string[] | undefined
 ): string | null => {
-  if (typeof authorization !== "string") {
-    return null;
+  if (typeof authorization === "string") {
+    const normalizedAuthorization = authorization.trim();
+    return normalizedAuthorization.length > 0 ? normalizedAuthorization : null;
   }
-  const normalizedAuthorization = authorization.trim();
-  return normalizedAuthorization.length > 0 ? normalizedAuthorization : null;
+  if (Array.isArray(authorization)) {
+    if (authorization.length !== 1) {
+      return null;
+    }
+    const singleAuthorization = authorization[0];
+    if (singleAuthorization === undefined) {
+      return null;
+    }
+    const normalizedAuthorization = singleAuthorization.trim();
+    return normalizedAuthorization.length > 0 ? normalizedAuthorization : null;
+  }
+  return null;
 };
 
 const rejectUnauthorized = (res: ServerResponse, message: string): boolean => {

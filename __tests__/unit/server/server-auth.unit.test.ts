@@ -171,13 +171,29 @@ describe("checkServerAuth", () => {
     expect(getCaptured().statusCode).toBeNull();
   });
 
-  it("rejects authorization header arrays as invalid header format", () => {
+  it("accepts single-entry authorization header arrays", () => {
     process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD] = "secret";
     EnvManager.resetInstance();
     const { response, getCaptured } = createResponseCapture();
 
     const allowed = checkServerAuth(
       { headers: { authorization: ["Bearer secret"] } } as unknown as IncomingMessage,
+      response as unknown as ServerResponse
+    );
+
+    expect(allowed).toBe(true);
+    expect(getCaptured().statusCode).toBeNull();
+  });
+
+  it("rejects multi-entry authorization header arrays as invalid header format", () => {
+    process.env[ENV_KEY.TOADSTOOL_SERVER_PASSWORD] = "secret";
+    EnvManager.resetInstance();
+    const { response, getCaptured } = createResponseCapture();
+
+    const allowed = checkServerAuth(
+      {
+        headers: { authorization: ["Bearer secret", "Bearer extra"] },
+      } as unknown as IncomingMessage,
       response as unknown as ServerResponse
     );
 

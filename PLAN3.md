@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B81 server-auth single-entry arrays)
+
+- Hardened server auth normalization to accept single-entry authorization
+  arrays while continuing to reject multi-entry arrays.
+- Updated:
+  - `src/server/server-auth.ts`
+  - `__tests__/unit/server/server-auth.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/server-auth.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B80 request-url multi-host candidates)
 
 - Hardened request-url parsing so comma-delimited host headers and host arrays

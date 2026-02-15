@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B81 server-auth single-entry array support)
+
+### Summary
+- Hardened server auth header normalization for environments that surface a
+  single authorization header as an array.
+- Updated:
+  - `src/server/server-auth.ts`
+  - `__tests__/unit/server/server-auth.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - `normalizeAuthorizationHeader(...)` now accepts exactly one authorization
+    array entry and normalizes it like string headers.
+  - multi-entry authorization arrays remain rejected to avoid ambiguous
+    credential precedence.
+  - expanded unit coverage for accepted single-entry arrays and rejected
+    multi-entry arrays.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/server-auth.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B80 request-url multi-host candidate parsing)
 
 ### Summary
