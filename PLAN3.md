@@ -7655,6 +7655,21 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - reduce redundant allowlist entries and lock deterministic normalized
       policy output for repeated env values.
 
+## Execution Log Addendum — 2026-02-14 (B60 wildcard precedence canonicalization)
+
+- Post-completion hardening for wildcard precedence semantics:
+  - Updated:
+    - `src/utils/nutjs-execution-gate.utils.ts`
+    - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - Hardening changes:
+    - canonicalized normalized allowlist output to `["*"]` whenever wildcard is
+      present, regardless of additional explicit entries.
+    - added focused unit coverage for wildcard collapse behavior and kept
+      explicit-entry dedupe coverage separate.
+  - Goal:
+    - lock deterministic wildcard-precedence behavior and simplify downstream
+      policy inspection semantics.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7724,3 +7739,4 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B57 | P2 | add wildcard allowlist normalization execution coverage for padded env input.
 - [x] - B58 | P2 | harden NutJS fallback-stage API typing and precedence uniqueness assertions.
 - [x] - B59 | P2 | deduplicate normalized NutJS allowlist entries while preserving order.
+- [x] - B60 | P2 | canonicalize wildcard allowlist precedence to a single-entry normalized policy.

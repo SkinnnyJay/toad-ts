@@ -71,6 +71,9 @@ const resolveNutJsAllowlist = (env: NodeJS.ProcessEnv): string[] => {
     }
     uniqueEntries.add(entry);
   }
+  if (uniqueEntries.has(NUTJS_ALLOWLIST_WILDCARD)) {
+    return [NUTJS_ALLOWLIST_WILDCARD];
+  }
   return [...uniqueEntries];
 };
 

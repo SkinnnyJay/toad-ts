@@ -47,11 +47,19 @@ describe("nutjs execution gate", () => {
   it("deduplicates normalized allowlist entries while preserving order", () => {
     const policy = resolveNutJsExecutionPolicy({
       [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
-      [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]:
-        "mouse.click, MOUSE.CLICK ,*, keyboard.type, *, keyboard.type",
+      [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: "mouse.click, MOUSE.CLICK, keyboard.type, keyboard.type",
     });
 
-    expect(policy.allowlist).toEqual(["mouse.click", "*", "keyboard.type"]);
+    expect(policy.allowlist).toEqual(["mouse.click", "keyboard.type"]);
+  });
+
+  it("collapses allowlist to wildcard when wildcard entry is present", () => {
+    const policy = resolveNutJsExecutionPolicy({
+      [ENV_KEY.TOADSTOOL_NUTJS_ENABLED]: "true",
+      [ENV_KEY.TOADSTOOL_NUTJS_ALLOWLIST]: "mouse.click, *, keyboard.type",
+    });
+
+    expect(policy.allowlist).toEqual(["*"]);
   });
 
   it("returns not allowlisted when feature is enabled without allowlist", async () => {

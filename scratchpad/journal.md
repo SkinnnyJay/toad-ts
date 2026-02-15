@@ -1,5 +1,33 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B60 wildcard precedence canonicalization)
+
+### Summary
+- Added post-completion hardening for wildcard precedence behavior in normalized
+  allowlist policies.
+- Updated:
+  - `src/utils/nutjs-execution-gate.utils.ts`
+  - `__tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - normalization now collapses any wildcard-containing allowlist to `["*"]`.
+  - kept explicit dedupe-order tests and added wildcard collapse assertion.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B59 allowlist deduplication hardening)
 
 ### Summary

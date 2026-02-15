@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added wildcard precedence canonicalization hardening:
+  - normalized allowlist output now collapses to `["*"]` when wildcard is
+    present.
+  - added focused coverage for wildcard collapse while preserving explicit
+    dedupe-order coverage.
 - Added allowlist deduplication hardening:
   - NutJS allowlist normalization now deduplicates repeated entries while
     preserving first-seen order.
