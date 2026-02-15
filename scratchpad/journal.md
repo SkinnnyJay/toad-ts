@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B169 request-validation malformed-path logging parity coverage)
+
+### Summary
+- Expanded request-error-normalization unit coverage for request-validation
+  logging parity on malformed combined-suffix paths.
+- Updated:
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added `logRequestValidationFailure` assertion for malformed path
+    `/sessions//prompt/#summary?tail=1`, verifying normalized logged pathname
+    preserves inner separator structure as `/sessions//prompt` while stripping
+    suffix/trailing metadata.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B168 request-url host-array fallback coverage)
 
 ### Summary

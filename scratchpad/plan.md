@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded request-validation malformed-path logging parity coverage:
+  - request-error-normalization unit tests now include request-validation log
+    normalization assertion for malformed combined-suffix path forms,
+    preserving inner separators while trimming suffix metadata.
 - Expanded request-url host-array fallback coverage:
   - request-url unit tests now include host-header array fallback assertions
     for:

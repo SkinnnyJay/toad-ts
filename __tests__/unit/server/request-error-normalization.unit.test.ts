@@ -296,6 +296,34 @@ describe("request-error-normalization", () => {
     });
   });
 
+  it("preserves malformed inner separators when logging validation pathnames", () => {
+    const warn = vi.fn();
+    const logger = { warn } as {
+      warn: (message: string, metadata?: Record<string, unknown>) => void;
+    };
+
+    logRequestValidationFailure(
+      logger,
+      {
+        source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
+        method: " get ",
+        pathname: " /sessions//prompt/#summary?tail=1 ",
+      },
+      {
+        mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+        error: UNKNOWN_ERROR_MESSAGE,
+      }
+    );
+
+    expect(warn).toHaveBeenCalledWith("Request validation failed", {
+      source: REQUEST_PARSING_SOURCE.HEADLESS_SERVER,
+      method: "GET",
+      pathname: "/sessions//prompt",
+      mappedMessage: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST,
+      error: UNKNOWN_ERROR_MESSAGE,
+    });
+  });
+
   it("normalizes combined trailing-slash suffixes when logging parsing pathnames", () => {
     const warn = vi.fn();
     const logger = { warn } as {
