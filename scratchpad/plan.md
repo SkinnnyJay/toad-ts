@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added request-url multi-host candidate parsing hardening:
+  - request URL parser now supports comma-delimited host header candidates and
+    array entries while preserving malformed-host rejection behavior.
+  - added route-level and direct request-url coverage for comma-delimited host
+    parsing and invalid-leading-candidate recovery.
 - Added request-url host-header array normalization hardening:
   - request URL parsing now safely handles unexpected array-shaped host headers
     and falls back to localhost for blank array entries.

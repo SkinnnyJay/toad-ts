@@ -84,4 +84,22 @@ describe("parseRequestUrl", () => {
     expect(url?.pathname).toBe("/health");
     expect(url?.host).toBe("localhost");
   });
+
+  it("uses first host value when host header contains comma-separated entries", () => {
+    const url = parseRequestUrl(
+      createRequestWithHostHeader("/api/files/search?q=readme", "127.0.0.1:4141, example.com")
+    );
+
+    expect(url?.pathname).toBe("/api/files/search");
+    expect(url?.host).toBe("127.0.0.1:4141");
+  });
+
+  it("uses later host candidate when earlier candidate is invalid", () => {
+    const url = parseRequestUrl(
+      createRequestWithHostHeader("/api/files/search?q=readme", "%, 127.0.0.1:4141")
+    );
+
+    expect(url?.pathname).toBe("/api/files/search");
+    expect(url?.host).toBe("127.0.0.1:4141");
+  });
 });

@@ -1,5 +1,39 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B80 request-url multi-host candidate parsing)
+
+### Summary
+- Added follow-on request URL parsing hardening for comma-delimited host
+  header values and host arrays that include delimited entries.
+- Updated:
+  - `src/server/request-url.ts`
+  - `__tests__/unit/server/request-url.unit.test.ts`
+  - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - introduced host-candidate normalization that splits host header values on
+    commas and trims each candidate.
+  - parser now attempts host candidates in order and succeeds on the first
+    parseable candidate (while still returning bad-request when all candidates
+    are malformed).
+  - added focused request-url + file-search coverage for comma-delimited hosts
+    and invalid-leading-candidate recovery.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-url.unit.test.ts __tests__/unit/server/api-route-file-search.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B79 request-url host-header array normalization)
 
 ### Summary

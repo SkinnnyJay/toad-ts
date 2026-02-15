@@ -3,21 +3,37 @@ import type { IncomingMessage } from "node:http";
 const REQUEST_URL_DEFAULT_HOST = "localhost";
 const REQUEST_PATH_PREFIX = "/";
 const REQUEST_NETWORK_PATH_PREFIX = "//";
+const HOST_VALUE_SEPARATOR = ",";
 
-const normalizeHostHeader = (hostHeader: string | string[] | undefined): string | null => {
+const toHostHeaderCandidates = (hostHeader: string | string[] | undefined): string[] => {
   if (typeof hostHeader === "string") {
-    const normalizedHost = hostHeader.trim();
-    return normalizedHost.length > 0 ? normalizedHost : null;
+    return hostHeader
+      .split(HOST_VALUE_SEPARATOR)
+      .map((hostSegment) => hostSegment.trim())
+      .filter((hostSegment) => hostSegment.length > 0);
   }
   if (Array.isArray(hostHeader)) {
-    for (const hostSegment of hostHeader) {
-      const normalizedHost = hostSegment.trim();
-      if (normalizedHost.length > 0) {
-        return normalizedHost;
+    const hostCandidates: string[] = [];
+    for (const hostValue of hostHeader) {
+      const normalizedSegments = hostValue
+        .split(HOST_VALUE_SEPARATOR)
+        .map((hostSegment) => hostSegment.trim())
+        .filter((hostSegment) => hostSegment.length > 0);
+      if (normalizedSegments.length > 0) {
+        hostCandidates.push(...normalizedSegments);
       }
     }
+    return hostCandidates;
   }
-  return null;
+  return [];
+};
+
+const parseUrlWithHost = (rawUrl: string, host: string): URL | null => {
+  try {
+    return new URL(rawUrl, `http://${host}`);
+  } catch {
+    return null;
+  }
 };
 
 export const parseRequestUrl = (req: IncomingMessage): URL | null => {
@@ -31,10 +47,15 @@ export const parseRequestUrl = (req: IncomingMessage): URL | null => {
   if (rawUrl.startsWith(REQUEST_NETWORK_PATH_PREFIX)) {
     return null;
   }
-  const host = normalizeHostHeader(req.headers.host) ?? REQUEST_URL_DEFAULT_HOST;
-  try {
-    return new URL(rawUrl, `http://${host}`);
-  } catch {
-    return null;
+  const hostCandidates = toHostHeaderCandidates(req.headers.host);
+  if (hostCandidates.length === 0) {
+    return parseUrlWithHost(rawUrl, REQUEST_URL_DEFAULT_HOST);
   }
+  for (const host of hostCandidates) {
+    const parsed = parseUrlWithHost(rawUrl, host);
+    if (parsed) {
+      return parsed;
+    }
+  }
+  return null;
 };

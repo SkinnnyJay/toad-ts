@@ -133,6 +133,21 @@ describe("api-routes searchFiles handler", () => {
     });
   });
 
+  it("parses query when request host header has comma-separated values", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(
+      createRequest("/api/files/search?q=notes", "127.0.0.1:4141, example.com"),
+      response,
+      {}
+    );
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "notes", results: [] },
+    });
+  });
+
   it("returns bad request when request url is missing", async () => {
     const { response, getCaptured } = createResponseCapture();
 

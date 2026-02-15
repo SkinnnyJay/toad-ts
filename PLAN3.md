@@ -1,3 +1,19 @@
+## 2026-02-14 Execution Update (B80 request-url multi-host candidates)
+
+- Hardened request-url parsing so comma-delimited host headers and host arrays
+  are normalized into ordered candidates and parsed deterministically.
+- Updated:
+  - `src/server/request-url.ts`
+  - `__tests__/unit/server/request-url.unit.test.ts`
+  - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/request-url.unit.test.ts __tests__/unit/server/api-route-file-search.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B79 request-url host-header arrays)
 
 - Added defensive request-url host header normalization for string-array host
