@@ -14,6 +14,19 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-route hash auth-order coverage:
+  - password-protected unknown-route ordering integration test
+    (`applies auth checks before not-found semantics on unknown routes`)
+    now includes hash and trailing-hash variants for:
+    - API unknown root (`/api`, `/api/`)
+    - core unknown endpoint (`/unknown-endpoint`, `/unknown-endpoint/`)
+    - malformed API path (`/api//config`, `/api//config/`)
+    - session unknown path (`/sessions/:id/unsupported`,
+      `/sessions/:id/unsupported/`).
+  - locks canonical auth-first semantics:
+    - unauthenticated `401` + challenge
+    - authenticated `404` (`NOT_FOUND` or `UNKNOWN_ENDPOINT` as appropriate)
+    across these hash-bearing unknown-route variants.
 - Expanded protected non-API hash auth-order coverage:
   - password-protected non-API auth-before-method integration test
     (`applies auth checks before method semantics on non-api protected routes`)

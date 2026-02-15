@@ -1,5 +1,40 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B157 unknown-route hash auth-order coverage)
+
+### Summary
+- Expanded password-protected unknown-route auth-before-not-found integration
+  coverage for hash/trailing-hash variants across API/core/session categories.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in
+    `applies auth checks before not-found semantics on unknown routes`,
+    added unauthenticated/authenticated assertions for hash and trailing-hash
+    variants of:
+    - `/api` and `/api/`
+    - `/unknown-endpoint` and `/unknown-endpoint/`
+    - `/api//config` and `/api//config/`
+    - `/sessions/session-1/unsupported` and
+      `/sessions/session-1/unsupported/`
+    locking canonical auth-first `401` and authenticated `404` semantics.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B156 protected-non-api hash auth-order coverage)
 
 ### Summary
