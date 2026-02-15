@@ -1,5 +1,39 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B83 request-url host metadata validation)
+
+### Summary
+- Hardened request URL host candidate validation to prevent malformed host
+  metadata from being silently coerced by URL base parsing.
+- Updated:
+  - `src/server/request-url.ts`
+  - `__tests__/unit/server/request-url.unit.test.ts`
+  - `__tests__/unit/server/api-route-file-search.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added explicit host candidate validation requiring no path/search/hash or
+    userinfo metadata in host values.
+  - parser now ignores malformed host candidates and continues evaluating
+    subsequent comma-delimited candidates for deterministic recovery.
+  - malformed single host values with metadata now return `null` (bad request).
+  - expanded direct request-url and route-level search tests for metadata
+    rejection + fallback.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-url.unit.test.ts __tests__/unit/server/api-route-file-search.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B82 server runtime host/port normalization)
 
 ### Summary

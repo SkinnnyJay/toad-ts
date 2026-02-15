@@ -38,6 +38,18 @@ describe("parseRequestUrl", () => {
     expect(url).toBeNull();
   });
 
+  it("returns null for host header values that include a path segment", () => {
+    const url = parseRequestUrl(createRequest("/health", "example.com/path"));
+
+    expect(url).toBeNull();
+  });
+
+  it("returns null for host header values that include userinfo", () => {
+    const url = parseRequestUrl(createRequest("/health", "user@example.com"));
+
+    expect(url).toBeNull();
+  });
+
   it("returns null for malformed absolute request urls", () => {
     const url = parseRequestUrl(createRequest("http://%"));
 
@@ -97,6 +109,15 @@ describe("parseRequestUrl", () => {
   it("uses later host candidate when earlier candidate is invalid", () => {
     const url = parseRequestUrl(
       createRequestWithHostHeader("/api/files/search?q=readme", "%, 127.0.0.1:4141")
+    );
+
+    expect(url?.pathname).toBe("/api/files/search");
+    expect(url?.host).toBe("127.0.0.1:4141");
+  });
+
+  it("uses later host candidate when earlier candidate has path metadata", () => {
+    const url = parseRequestUrl(
+      createRequestWithHostHeader("/api/files/search?q=readme", "example.com/path, 127.0.0.1:4141")
     );
 
     expect(url?.pathname).toBe("/api/files/search");

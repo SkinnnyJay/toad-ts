@@ -122,6 +122,17 @@ describe("api-routes searchFiles handler", () => {
     });
   });
 
+  it("returns bad request when request host header includes a path segment", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(createRequest("/api/files/search?q=notes", "example.com/path"), response, {});
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.BAD_REQUEST,
+      body: { error: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST },
+    });
+  });
+
   it("parses query when request host header has surrounding whitespace", async () => {
     const { response, getCaptured } = createResponseCapture();
 
@@ -138,6 +149,21 @@ describe("api-routes searchFiles handler", () => {
 
     await searchFiles(
       createRequest("/api/files/search?q=notes", "127.0.0.1:4141, example.com"),
+      response,
+      {}
+    );
+
+    expect(getCaptured()).toEqual({
+      statusCode: HTTP_STATUS.OK,
+      body: { query: "notes", results: [] },
+    });
+  });
+
+  it("parses query when first host candidate has path metadata but next host is valid", async () => {
+    const { response, getCaptured } = createResponseCapture();
+
+    await searchFiles(
+      createRequest("/api/files/search?q=notes", "example.com/path, 127.0.0.1:4141"),
       response,
       {}
     );

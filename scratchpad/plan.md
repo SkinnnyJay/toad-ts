@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added request-url host metadata validation hardening:
+  - host candidates containing path/query/fragment/userinfo metadata are now
+    rejected instead of being silently coerced by URL base parsing.
+  - parser still supports comma-delimited host candidate fallback by accepting
+    the first valid host candidate.
+  - expanded request-url + api search route tests for malformed host metadata
+    rejection and fallback behavior.
 - Added server runtime host/port resolution hardening:
   - host values are now trimmed and blank hosts no longer override valid env or
     default hosts.

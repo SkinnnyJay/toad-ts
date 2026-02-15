@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B83 request-url host metadata validation hardening
+    (reject host path/query/fragment/userinfo metadata)
   - completed B82 server runtime host/port normalization hardening
     (trimmed host resolution + strict bounded port parsing)
   - completed B81 server-auth single-entry authorization-array support
