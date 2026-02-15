@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-core double-trailing hash parity:
+  - unknown-route auth-order integration coverage now includes
+    `/unknown-endpoint//#summary` in unauthenticated/authenticated flows.
+  - core/server route classifier unit suites now include
+    `/unknown-endpoint//#summary` as core-unhandled parity.
 - Expanded unknown-core double-trailing classifier parity:
   - core/server route classifier unit suites now include
     `/unknown-endpoint//` and `/unknown-endpoint//?scope=all`.

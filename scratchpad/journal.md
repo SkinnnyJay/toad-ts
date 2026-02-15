@@ -1,5 +1,39 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B177 unknown-core double-trailing hash parity)
+
+### Summary
+- Expanded unknown-route auth-order and classifier unit coverage for
+  double-trailing unknown core hash variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added unauthenticated/authenticated integration assertions for:
+    - `/unknown-endpoint//#summary`
+    locking auth-first unknown-route semantics under password protection.
+  - added core/server classifier unit assertions for:
+    - `/unknown-endpoint//#summary`
+    locking canonical core-unhandled classifier parity.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B176 unknown-core double-trailing classifier parity)
 
 ### Summary
