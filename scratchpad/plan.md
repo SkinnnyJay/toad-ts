@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown-core integration POST parity:
+  - headless-server integration suite now includes explicit unauthenticated and
+    authenticated POST assertions for unknown non-session core route variants:
+    base, trailing, direct query/hash, and double-trailing query/hash forms.
 - Expanded unknown-core classifier POST/GET method parity:
   - core-route classifier unit suite now includes explicit POST parity for
     unknown base/query/hash and double-trailing malformed variants.
