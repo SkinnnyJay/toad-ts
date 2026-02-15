@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B63 capability helper dead-code cleanup)
+
+### Summary
+- Added post-completion simplification hardening by removing obsolete NutJS
+  capability wrapper logic no longer used by production paths.
+- Updated:
+  - `src/utils/nutjs-capability.utils.ts`
+  - `__tests__/unit/utils/nutjs-capability.utils.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - deleted `withNutJsCapabilityNoop(...)` from capability utilities after
+    execution-gate short-circuiting made it redundant.
+  - removed obsolete wrapper-focused unit tests and retained capability status
+    detection coverage.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/nutjs-capability.utils.unit.test.ts __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B62 executed-outcome null-result hardening)
 
 ### Summary

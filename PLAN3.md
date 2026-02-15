@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B63 capability helper dead-code cleanup)
+
+- Added NutJS simplification hardening by removing obsolete capability noop
+  wrapper utility that was no longer used by production gate flows.
+- Updated:
+  - `src/utils/nutjs-capability.utils.ts`
+  - `__tests__/unit/utils/nutjs-capability.utils.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/utils/nutjs-capability.utils.unit.test.ts __tests__/unit/utils/nutjs-execution-gate.utils.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B62 executed-outcome null-result hardening)
 
 - Added NutJS execution-gate hardening to preserve `executed` outcomes when

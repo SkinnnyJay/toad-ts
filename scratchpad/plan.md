@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added NutJS capability helper dead-code cleanup:
+  - removed unused `withNutJsCapabilityNoop(...)` wrapper from
+    `nutjs-capability.utils.ts` after gate-level short-circuit hardening made
+    it redundant.
+  - trimmed obsolete unit coverage and kept capability-detection assertions.
 - Added NutJS executed-outcome null-result hardening:
   - removed redundant post-capability no-op wrapper invocation in
     `runNutJsActionWithGate(...)` so successful action executions that resolve

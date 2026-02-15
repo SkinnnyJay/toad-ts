@@ -58,13 +58,3 @@ export const detectNutJsCapability = (options: NutJsCapabilityOptions = {}): Nut
     message: NUTJS_STATUS_MESSAGE[NUTJS_CAPABILITY.SUPPORTED],
   };
 };
-
-export const withNutJsCapabilityNoop = async <T>(
-  capability: NutJsCapability,
-  action: () => Promise<T>
-): Promise<T | null> => {
-  if (capability.noOp) {
-    return null;
-  }
-  return action();
-};

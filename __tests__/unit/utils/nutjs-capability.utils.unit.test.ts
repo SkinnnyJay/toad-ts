@@ -1,7 +1,7 @@
 import { NUTJS_CAPABILITY } from "@/constants/nutjs-capabilities";
 import { PLATFORM } from "@/constants/platform";
-import { detectNutJsCapability, withNutJsCapabilityNoop } from "@/utils/nutjs-capability.utils";
-import { describe, expect, it, vi } from "vitest";
+import { detectNutJsCapability } from "@/utils/nutjs-capability.utils";
+import { describe, expect, it } from "vitest";
 
 describe("nutjs capability detector", () => {
   it("returns explicit no-op for unsupported platforms", () => {
@@ -35,31 +35,5 @@ describe("nutjs capability detector", () => {
     expect(capability.status).toBe(NUTJS_CAPABILITY.SUPPORTED);
     expect(capability.noOp).toBe(false);
     expect(capability.supported).toBe(true);
-  });
-
-  it("skips NutJS actions when capability is no-op", async () => {
-    const action = vi.fn(async () => "executed");
-    const capability = detectNutJsCapability({
-      platform: PLATFORM.LINUX,
-      hasRuntime: false,
-    });
-
-    const result = await withNutJsCapabilityNoop(capability, action);
-
-    expect(result).toBeNull();
-    expect(action).not.toHaveBeenCalled();
-  });
-
-  it("executes NutJS actions when capability is supported", async () => {
-    const action = vi.fn(async () => "executed");
-    const capability = detectNutJsCapability({
-      platform: PLATFORM.DARWIN,
-      hasRuntime: true,
-    });
-
-    const result = await withNutJsCapabilityNoop(capability, action);
-
-    expect(result).toBe("executed");
-    expect(action).toHaveBeenCalledTimes(1);
   });
 });
