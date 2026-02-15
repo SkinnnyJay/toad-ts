@@ -4057,9 +4057,14 @@
     `__tests__/e2e/skippable.nutjs-smoke.e2e.test.ts`
   - expanded CI workflow assertions in
     `__tests__/unit/scripts/ci-workflow.unit.test.ts`
-- New next candidate:
-  - evaluate severity backlog item B50 by documenting and simplifying fallback
-    precedence for platform + NutJS + clipboard + sound paths
+- Completed P2 backlog item B50 fallback precedence consolidation:
+  - added shared fallback precedence constants in
+    `src/constants/platform-fallback-precedence.ts`
+  - rewired clipboard, sound, and NutJS gate paths to consume shared precedence
+    constants
+  - added fallback precedence docs in `docs/platform-fallback-precedence.md`
+  - added focused fallback precedence coverage in
+    `__tests__/unit/constants/platform-fallback-precedence.unit.test.ts`
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

@@ -1,7 +1,9 @@
 import { ENV_KEY } from "@/constants/env-keys";
 import { NUTJS_EXECUTION_OUTCOME } from "@/constants/nutjs-execution";
 import { PLATFORM } from "@/constants/platform";
+import { NUTJS_EXECUTION_STAGE } from "@/constants/platform-fallback-precedence";
 import {
+  getNutJsExecutionFallbackPrecedence,
   isNutJsActionAllowlisted,
   resolveNutJsExecutionPolicy,
   runNutJsActionWithGate,
@@ -11,6 +13,16 @@ import { describe, expect, it, vi } from "vitest";
 const ACTION_ID = "mouse.click";
 
 describe("nutjs execution gate", () => {
+  it("exposes canonical NutJS execution fallback order", () => {
+    expect(getNutJsExecutionFallbackPrecedence()).toEqual([
+      NUTJS_EXECUTION_STAGE.FEATURE_FLAG,
+      NUTJS_EXECUTION_STAGE.ALLOWLIST,
+      NUTJS_EXECUTION_STAGE.CAPABILITY,
+      NUTJS_EXECUTION_STAGE.PERMISSION_DIAGNOSTICS,
+      NUTJS_EXECUTION_STAGE.EXECUTION,
+    ]);
+  });
+
   it("defaults to disabled policy with empty allowlist", () => {
     const policy = resolveNutJsExecutionPolicy({});
 

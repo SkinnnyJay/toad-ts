@@ -1,44 +1,44 @@
 import { spawn } from "node:child_process";
 import { LIMIT } from "@/config/limits";
 import { LINUX_DESKTOP_CAPABILITY } from "@/constants/linux-desktop-capabilities";
-
 import { PLATFORM } from "@/constants/platform";
+import {
+  CLIPBOARD_COMMAND_NAME,
+  CLIPBOARD_FALLBACK_PRECEDENCE,
+  type ClipboardCommandName,
+} from "@/constants/platform-fallback-precedence";
 import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
 import { detectLinuxDesktopCapability } from "@/utils/linux-desktop-capability.utils";
-
-const CLIPBOARD_COMMAND = {
-  PBCOPY: "pbcopy",
-  CLIP: "clip",
-  WLCOPY: "wl-copy",
-  XCLIP: "xclip",
-  XSEL: "xsel",
-} as const;
 
 export interface ClipboardCommandSpec {
   command: string;
   args: string[];
 }
 
-const CLIPBOARD_COMMAND_STRATEGY = {
-  DARWIN: [{ command: CLIPBOARD_COMMAND.PBCOPY, args: [] }],
-  WINDOWS: [{ command: CLIPBOARD_COMMAND.CLIP, args: [] }],
-  LINUX_WAYLAND: [{ command: CLIPBOARD_COMMAND.WLCOPY, args: [] }],
-  LINUX_X11: [
-    { command: CLIPBOARD_COMMAND.XCLIP, args: ["-selection", "clipboard"] },
-    { command: CLIPBOARD_COMMAND.XSEL, args: ["--clipboard", "--input"] },
-  ],
-} as const satisfies Record<string, ClipboardCommandSpec[]>;
+const CLIPBOARD_COMMAND_ARGS: Record<ClipboardCommandName, string[]> = {
+  [CLIPBOARD_COMMAND_NAME.PBCOPY]: [],
+  [CLIPBOARD_COMMAND_NAME.CLIP]: [],
+  [CLIPBOARD_COMMAND_NAME.WLCOPY]: [],
+  [CLIPBOARD_COMMAND_NAME.XCLIP]: ["-selection", "clipboard"],
+  [CLIPBOARD_COMMAND_NAME.XSEL]: ["--clipboard", "--input"],
+};
+
+const toClipboardSpecs = (commands: readonly ClipboardCommandName[]): ClipboardCommandSpec[] =>
+  commands.map((command) => ({
+    command,
+    args: [...CLIPBOARD_COMMAND_ARGS[command]],
+  }));
 
 export const resolveClipboardCommandChain = (
   env: NodeJS.ProcessEnv = EnvManager.getInstance().getSnapshot(),
   platform: NodeJS.Platform = process.platform
 ): ClipboardCommandSpec[] => {
   if (platform === PLATFORM.DARWIN) {
-    return [...CLIPBOARD_COMMAND_STRATEGY.DARWIN];
+    return toClipboardSpecs(CLIPBOARD_FALLBACK_PRECEDENCE.DARWIN);
   }
   if (platform === PLATFORM.WIN32) {
-    return [...CLIPBOARD_COMMAND_STRATEGY.WINDOWS];
+    return toClipboardSpecs(CLIPBOARD_FALLBACK_PRECEDENCE.WINDOWS);
   }
 
   const desktop = detectLinuxDesktopCapability(env, platform);
@@ -48,10 +48,10 @@ export const resolveClipboardCommandChain = (
 
   const commands: ClipboardCommandSpec[] = [];
   if (desktop.hasWayland) {
-    commands.push(...CLIPBOARD_COMMAND_STRATEGY.LINUX_WAYLAND);
+    commands.push(...toClipboardSpecs(CLIPBOARD_FALLBACK_PRECEDENCE.LINUX_WAYLAND));
   }
   if (desktop.hasX11) {
-    commands.push(...CLIPBOARD_COMMAND_STRATEGY.LINUX_X11);
+    commands.push(...toClipboardSpecs(CLIPBOARD_FALLBACK_PRECEDENCE.LINUX_X11));
   }
 
   return commands;

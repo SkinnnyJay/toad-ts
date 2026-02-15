@@ -6,6 +6,7 @@ import {
   NUTJS_EXECUTION_OUTCOME,
   type NutJsExecutionOutcome,
 } from "@/constants/nutjs-execution";
+import { NUTJS_EXECUTION_FALLBACK_PRECEDENCE } from "@/constants/platform-fallback-precedence";
 import { EnvManager } from "@/utils/env/env.utils";
 import {
   type NutJsCapability,
@@ -109,3 +110,6 @@ export const runNutJsActionWithGate = async <T>(
     capability,
   };
 };
+
+export const getNutJsExecutionFallbackPrecedence = (): readonly string[] =>
+  NUTJS_EXECUTION_FALLBACK_PRECEDENCE;

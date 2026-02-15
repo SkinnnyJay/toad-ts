@@ -7489,6 +7489,28 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - add cross-platform NutJS smoke checks in CI matrix to protect readiness
       behavior across Linux/macOS/Windows runners.
 
+## Execution Log Addendum — 2026-02-14 (B50 fallback precedence consolidation)
+
+- Additional P2 backlog hardening for fallback precedence clarity:
+  - Updated:
+    - `src/constants/platform-fallback-precedence.ts` (new)
+    - `src/utils/clipboard/clipboard.utils.ts`
+    - `src/utils/sound/completion-sound.utils.ts`
+    - `src/utils/nutjs-execution-gate.utils.ts`
+    - `__tests__/unit/constants/platform-fallback-precedence.unit.test.ts` (new)
+    - `docs/platform-fallback-precedence.md` (new)
+  - Hardening changes:
+    - centralized platform fallback precedence constants for clipboard, sound,
+      and NutJS execution stages.
+    - rewired clipboard/sound/NutJS gate paths to consume shared fallback
+      precedence constants.
+    - added focused unit coverage for fallback precedence constants and gate
+      ordering exposure.
+    - documented runtime fallback order and source-of-truth modules.
+  - Goal:
+    - document and simplify fallback precedence for platform + NutJS + clipboard
+      + sound paths to reduce drift and improve maintainability.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7548,4 +7570,4 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B47 | P2 | add NutJS permission diagnostics (macOS Accessibility, Linux display backend, Windows integrity level).
 - [x] - B48 | P2 | gate NutJS execution behind feature flag and security allowlist.
 - [x] - B49 | P2 | add cross-platform NutJS smoke checks (Windows/Linux/macOS) in CI matrix.
-- [ ] - B50 | P2 | document and simplify fallback precedence for platform + NutJS + clipboard + sound paths.
+- [x] - B50 | P2 | document and simplify fallback precedence for platform + NutJS + clipboard + sound paths.
