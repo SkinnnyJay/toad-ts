@@ -28,4 +28,10 @@ describe("normalizeRoutePathname", () => {
     expect(normalizeRoutePathname("/?check=true")).toBe("/");
     expect(normalizeRoutePathname("/#status")).toBe("/");
   });
+
+  it("normalizes slash-only paths to root", () => {
+    expect(normalizeRoutePathname("///")).toBe("/");
+    expect(normalizeRoutePathname("////?check=true")).toBe("/");
+    expect(normalizeRoutePathname("////#status")).toBe("/");
+  });
 });

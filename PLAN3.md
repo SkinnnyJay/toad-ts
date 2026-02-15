@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B110 slash-only pathname normalization)
+
+- Hardened shared pathname normalization so slash-only non-canonical paths
+  collapse to canonical root (`/`) rather than empty-string output.
+- Updated:
+  - `src/server/pathname-normalization.ts`
+  - `__tests__/unit/server/pathname-normalization.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/pathname-normalization.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B109 API trailing-slash method semantics)
 
 - Expanded headless-server integration coverage for trailing-slash API routes

@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Hardened slash-only pathname normalization:
+  - `normalizeRoutePathname(...)` now canonicalizes slash-only non-root inputs
+    (for example `///`, `////?x=1`) to root `/` instead of empty path output.
+  - added focused unit assertions for slash-only query/hash variants.
 - Expanded API trailing-slash method semantics coverage:
   - integration now verifies trailing-slash variants of `/api/config` and
     `/api/tui/execute-command` preserve canonical `405`

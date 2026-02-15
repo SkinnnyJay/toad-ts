@@ -23,5 +23,6 @@ export const normalizeRoutePathname = (pathname: string): string => {
   if (pathnameWithoutSuffix === PATHNAME_SEPARATOR) {
     return PATHNAME_SEPARATOR;
   }
-  return pathnameWithoutSuffix.replace(TRAILING_PATH_SEPARATOR_PATTERN, "");
+  const normalizedPathname = pathnameWithoutSuffix.replace(TRAILING_PATH_SEPARATOR_PATTERN, "");
+  return normalizedPathname.length > 0 ? normalizedPathname : PATHNAME_SEPARATOR;
 };

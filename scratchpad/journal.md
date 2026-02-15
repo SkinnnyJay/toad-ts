@@ -1,5 +1,34 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B110 slash-only pathname normalization)
+
+### Summary
+- Hardened shared pathname normalization to collapse slash-only paths to
+  canonical root (`/`) instead of emitting empty-string pathnames.
+- Updated:
+  - `src/server/pathname-normalization.ts`
+  - `__tests__/unit/server/pathname-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added root fallback when trailing-slash stripping consumes an entire
+    slash-only path.
+  - added focused unit assertions for slash-only path + query/hash suffixes.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/pathname-normalization.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/integration/server/headless-server.integration.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B109 API trailing-slash method semantics coverage)
 
 ### Summary
