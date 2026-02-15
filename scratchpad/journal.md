@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B91 content-encoding parameter normalization)
+
+### Summary
+- Hardened request body preflight content-encoding parsing for standards-style
+  parameterized identity values.
+- Updated:
+  - `src/server/request-body.ts`
+  - `__tests__/unit/server/request-body.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - content-encoding normalization now strips per-segment parameters (after
+    `;`) before identity support checks.
+  - `identity` encodings with parameters now accepted as supported.
+  - mixed identity segments with parameters remain accepted while non-identity
+    encodings still reject.
+  - added focused unit coverage for parameterized identity encoding scenarios.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-body.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B90 bracketed IPv6 host normalization)
 
 ### Summary

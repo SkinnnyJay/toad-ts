@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added content-encoding parameter normalization hardening:
+  - request-body preflight now treats `identity` content-encoding values with
+    RFC parameter suffixes (e.g. `identity;q=1.0`) as supported.
+  - mixed identity segments with parameters remain accepted while unsupported
+    encodings still reject.
+  - expanded request-body unit coverage for parameterized identity encodings.
 - Added server runtime bracketed-IPv6 host normalization hardening:
   - runtime host normalization now accepts bracketed IPv6 hosts (e.g. `[::1]`)
     and canonicalizes them to plain IPv6 for server bind compatibility.

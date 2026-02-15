@@ -25,6 +25,7 @@ const CONTENT_ENCODING = {
 } as const;
 
 const CONTENT_ENCODING_SEPARATOR = ",";
+const CONTENT_ENCODING_PARAMETER_SEPARATOR = ";";
 const UTF8_BOM = "\uFEFF";
 
 const stripUtf8Bom = (payload: string): string =>
@@ -68,6 +69,7 @@ const hasUnsupportedContentEncoding = (req: IncomingMessage): boolean => {
   }
   const normalizedEncodings = contentEncodingHeader
     .split(CONTENT_ENCODING_SEPARATOR)
+    .map((segment) => segment.split(CONTENT_ENCODING_PARAMETER_SEPARATOR)[0] ?? "")
     .map((segment) => segment.trim().toLowerCase())
     .filter((segment) => segment.length > 0);
 

@@ -108,6 +108,22 @@ describe("request-body helpers", () => {
     await expect(pending).resolves.toBe('{"value":"ok"}');
   });
 
+  it("allows request body when identity content-encoding includes parameters", async () => {
+    const req = createRequest({ "content-encoding": "identity;q=1.0" });
+    const pending = readRequestBody(req);
+    emitPayload(req, '{"value":"ok"}');
+
+    await expect(pending).resolves.toBe('{"value":"ok"}');
+  });
+
+  it("allows request body when all content-encoding segments are identity with parameters", async () => {
+    const req = createRequest({ "content-encoding": "identity;q=1.0, identity; q=0.5" });
+    const pending = readRequestBody(req);
+    emitPayload(req, '{"value":"ok"}');
+
+    await expect(pending).resolves.toBe('{"value":"ok"}');
+  });
+
   it("rejects when combined chunk size exceeds configured max", async () => {
     const req = createRequest();
     const pending = readRequestBody(req, 4);

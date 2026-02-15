@@ -1,3 +1,20 @@
+## 2026-02-14 Execution Update (B91 content-encoding parameters)
+
+- Hardened request-body preflight content-encoding parsing:
+  - strips encoding parameters before support checks
+  - accepts parameterized identity values (e.g. `identity;q=1.0`)
+  - preserves rejection for non-identity encodings
+- Updated:
+  - `src/server/request-body.ts`
+  - `__tests__/unit/server/request-body.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/request-body.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B90 bracketed IPv6 host normalization)
 
 - Hardened runtime server host normalization to support bracketed IPv6 host
