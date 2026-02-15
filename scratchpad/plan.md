@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded missing-action double-trailing parity:
+  - unknown-route auth-order integration coverage now includes
+    `/sessions/session-1//`, `/sessions/session-1//?scope=all`, and
+    `/sessions/session-1//#summary`.
+  - core/server classifier and session-route-path unit suites now include
+    missing-action double-trailing base/query/hash malformed-path parity
+    checks.
 - Expanded blank-session double-trailing-query parity:
   - unknown-route auth-order integration coverage now includes
     `/sessions//prompt//?tail=1` and `/sessions//messages//?tail=1`.

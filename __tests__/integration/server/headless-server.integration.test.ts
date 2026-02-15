@@ -10996,6 +10996,43 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedDoubleTrailingSessionMissingAction = await fetch(
+        `${baseUrl}/sessions/session-1//`
+      );
+      expect(unauthenticatedDoubleTrailingSessionMissingAction.status).toBe(401);
+      expect(
+        unauthenticatedDoubleTrailingSessionMissingAction.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedDoubleTrailingSessionMissingAction.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedDoubleTrailingSessionMissingActionWithQuery = await fetch(
+        `${baseUrl}/sessions/session-1//?scope=all`
+      );
+      expect(unauthenticatedDoubleTrailingSessionMissingActionWithQuery.status).toBe(401);
+      expect(
+        unauthenticatedDoubleTrailingSessionMissingActionWithQuery.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(
+        unauthenticatedDoubleTrailingSessionMissingActionWithQuery.json()
+      ).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedDoubleTrailingSessionMissingActionWithHash = await fetch(
+        `${baseUrl}/sessions/session-1//#summary`
+      );
+      expect(unauthenticatedDoubleTrailingSessionMissingActionWithHash.status).toBe(401);
+      expect(
+        unauthenticatedDoubleTrailingSessionMissingActionWithHash.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(
+        unauthenticatedDoubleTrailingSessionMissingActionWithHash.json()
+      ).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedSessionBlankPrompt = await fetch(`${baseUrl}/sessions//prompt`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -11806,6 +11843,49 @@ describe("headless server", () => {
       await expect(authenticatedTrailingSessionMissingActionWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
       });
+
+      const authenticatedDoubleTrailingSessionMissingAction = await fetch(
+        `${baseUrl}/sessions/session-1//`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedDoubleTrailingSessionMissingAction.status).toBe(404);
+      await expect(authenticatedDoubleTrailingSessionMissingAction.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const authenticatedDoubleTrailingSessionMissingActionWithQuery = await fetch(
+        `${baseUrl}/sessions/session-1//?scope=all`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedDoubleTrailingSessionMissingActionWithQuery.status).toBe(404);
+      await expect(
+        authenticatedDoubleTrailingSessionMissingActionWithQuery.json()
+      ).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+      });
+
+      const authenticatedDoubleTrailingSessionMissingActionWithHash = await fetch(
+        `${baseUrl}/sessions/session-1//#summary`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedDoubleTrailingSessionMissingActionWithHash.status).toBe(404);
+      await expect(authenticatedDoubleTrailingSessionMissingActionWithHash.json()).resolves.toEqual(
+        {
+          error: SERVER_RESPONSE_MESSAGE.UNKNOWN_ENDPOINT,
+        }
+      );
 
       const authenticatedSessionBlankPrompt = await fetch(`${baseUrl}/sessions//prompt`, {
         method: "POST",

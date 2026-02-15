@@ -1,5 +1,46 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B182 missing-action double-trailing parity)
+
+### Summary
+- Expanded unknown-route auth-order and core-route parsing/classifier coverage
+  for missing-action session double-trailing unknown path variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added unauthenticated/authenticated integration assertions for:
+    - `/sessions/session-1//`
+    - `/sessions/session-1//?scope=all`
+    - `/sessions/session-1//#summary`
+    locking auth-first missing-action unknown-route semantics under password
+    protection for double-trailing variants.
+  - added core/server classifier unit assertions for the same missing-action
+    double-trailing base/query/hash variants, locking canonical core-unhandled
+    ownership.
+  - added session-route-path unit assertions locking parsed
+    `{ sessionId, action: undefined }` behavior for the same missing-action
+    double-trailing variants.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts __tests__/unit/server/session-route-path.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B181 blank-session double-trailing-query parity)
 
 ### Summary

@@ -233,11 +233,27 @@ describe("classifyServerRoute", () => {
   it("classifies missing-action session routes with trailing-query suffix as core unhandled", () => {
     const getResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1/?view=full");
     const postResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions/session-1/?view=full");
+    const doubleTrailingGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/sessions/session-1//?view=full"
+    );
+    const doubleTrailingPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/sessions/session-1//?view=full"
+    );
     expect(getResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
     expect(postResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingPostResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
     });
@@ -259,6 +275,35 @@ describe("classifyServerRoute", () => {
   it("classifies missing-action session routes with trailing-hash suffix as core unhandled", () => {
     const getResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1/#latest");
     const postResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions/session-1/#latest");
+    const doubleTrailingGetResult = classifyServerRoute(
+      HTTP_METHOD.GET,
+      "/sessions/session-1//#latest"
+    );
+    const doubleTrailingPostResult = classifyServerRoute(
+      HTTP_METHOD.POST,
+      "/sessions/session-1//#latest"
+    );
+    expect(getResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(postResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingGetResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+    expect(doubleTrailingPostResult).toEqual({
+      kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
+      classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,
+    });
+  });
+
+  it("classifies missing-action session routes with double-trailing base path as core unhandled", () => {
+    const getResult = classifyServerRoute(HTTP_METHOD.GET, "/sessions/session-1//");
+    const postResult = classifyServerRoute(HTTP_METHOD.POST, "/sessions/session-1//");
     expect(getResult).toEqual({
       kind: SERVER_ROUTE_CLASSIFICATION.UNHANDLED,
       classifierHandler: SERVER_ROUTE_HANDLER.CORE_ROUTE_CLASSIFIER,

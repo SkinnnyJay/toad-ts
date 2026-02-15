@@ -99,6 +99,18 @@ describe("parseSessionRoutePath", () => {
       sessionId: "session-1",
       action: undefined,
     });
+    expect(parseSessionRoutePath("/sessions/session-1//")).toEqual({
+      sessionId: "session-1",
+      action: undefined,
+    });
+    expect(parseSessionRoutePath("/sessions/session-1//?scope=all")).toEqual({
+      sessionId: "session-1",
+      action: undefined,
+    });
+    expect(parseSessionRoutePath("/sessions/session-1//#summary")).toEqual({
+      sessionId: "session-1",
+      action: undefined,
+    });
   });
 
   it("returns null for blank-session malformed routes with suffixes", () => {
