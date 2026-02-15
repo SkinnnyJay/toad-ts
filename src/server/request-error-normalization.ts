@@ -27,6 +27,10 @@ const REQUEST_PARSING_FAILURE_LOG_MESSAGE = "Request parsing failed";
 const REQUEST_VALIDATION_FAILURE_LOG_MESSAGE = "Request validation failed";
 const FALLBACK_REQUEST_PATHNAME = "/";
 const FALLBACK_REQUEST_METHOD = "UNKNOWN";
+const NORMALIZED_PARSE_ERROR_MESSAGE = {
+  REQUEST_BODY_TOO_LARGE: SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE.toLowerCase(),
+  INVALID_REQUEST: SERVER_RESPONSE_MESSAGE.INVALID_REQUEST.toLowerCase(),
+} as const;
 
 export interface RequestValidationFailureDetails {
   readonly error: string;
@@ -75,17 +79,17 @@ const resolveComparableErrorMessage = (error: unknown): string | null => {
   if (message === null) {
     return null;
   }
-  return message.trim();
+  return message.trim().toLowerCase();
 };
 
 const isRequestBodyTooLargeError = (error: unknown): boolean =>
-  resolveComparableErrorMessage(error) === SERVER_RESPONSE_MESSAGE.REQUEST_BODY_TOO_LARGE;
+  resolveComparableErrorMessage(error) === NORMALIZED_PARSE_ERROR_MESSAGE.REQUEST_BODY_TOO_LARGE;
 
 const isInvalidRequestError = (error: unknown): boolean => {
   if (error instanceof SyntaxError) {
     return true;
   }
-  return resolveComparableErrorMessage(error) === SERVER_RESPONSE_MESSAGE.INVALID_REQUEST;
+  return resolveComparableErrorMessage(error) === NORMALIZED_PARSE_ERROR_MESSAGE.INVALID_REQUEST;
 };
 
 export const normalizeRequestBodyParseError = (error: unknown): string => {

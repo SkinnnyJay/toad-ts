@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B78 request-error case-insensitive matching)
+
+- Added request-error normalization hardening for case-variant canonical parse
+  message inputs.
+- Updated:
+  - `src/server/request-error-normalization.ts`
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B77 JSON response undefined-payload serialization)
 
 - Added shared JSON response hardening for undefined payload serialization.

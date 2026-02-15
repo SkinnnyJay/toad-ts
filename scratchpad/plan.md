@@ -14,6 +14,10 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added request-error case-insensitive canonical matching hardening:
+  - canonical parse-error classification now matches case-variant string/object
+    message inputs in addition to padded variants.
+  - added focused unit coverage for uppercase canonical message handling.
 - Added JSON response undefined-payload serialization hardening:
   - `sendJsonResponse(...)` now canonicalizes `JSON.stringify(undefined)` to
     `"null"` so content-length/header emission remains safe and deterministic.

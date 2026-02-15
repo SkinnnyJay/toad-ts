@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B78 request-error case-insensitive canonical matching)
+
+### Summary
+- Added post-completion hardening so canonical request parse-error
+  classification is resilient to case-variant message inputs.
+- Updated:
+  - `src/server/request-error-normalization.ts`
+  - `__tests__/unit/server/request-error-normalization.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - canonical comparison now normalizes comparable message text to
+    lowercase+trimmed form before matching.
+  - classification now accepts uppercase/mixed-case canonical
+    `request_body_too_large` and `invalid_request` text variants from string
+    and object error shapes.
+  - added focused unit coverage for case-variant canonical inputs.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/request-error-normalization.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B77 JSON response undefined-payload serialization hardening)
 
 ### Summary
