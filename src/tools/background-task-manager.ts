@@ -1,10 +1,8 @@
 import { LIMIT } from "@/config/limits";
 import { BACKGROUND_TASK_STATUS } from "@/constants/background-task-status";
-import { ENV_KEY } from "@/constants/env-keys";
-import { PLATFORM } from "@/constants/platform";
 import { type BackgroundTask, type BackgroundTaskId, BackgroundTaskIdSchema } from "@/types/domain";
 import { EnvManager } from "@/utils/env/env.utils";
-import { buildWindowsCmdExecArgs } from "@/utils/windows-command.utils";
+import { resolvePlatformShellCommandSpec } from "@/utils/platform-shell.utils";
 import { nanoid } from "nanoid";
 
 import { useBackgroundTaskStore } from "@/store/background-task-store";
@@ -22,29 +20,6 @@ export interface BackgroundTaskOutput {
   output: TerminalSessionOutput;
 }
 
-interface ShellCommandSpec {
-  command: string;
-  args: string[];
-}
-
-const SHELL_COMMAND = {
-  POSIX: "bash",
-  WINDOWS: "cmd.exe",
-} as const;
-
-const SHELL_ARGS = {
-  POSIX: ["-lc"],
-} as const;
-
-const resolveShellCommand = (command: string): ShellCommandSpec => {
-  if (process.platform === PLATFORM.WIN32) {
-    return { command: SHELL_COMMAND.WINDOWS, args: buildWindowsCmdExecArgs(command) };
-  }
-  const envShell = EnvManager.getInstance().getSnapshot()[ENV_KEY.SHELL];
-  const shellCommand = envShell ?? SHELL_COMMAND.POSIX;
-  return { command: shellCommand, args: [...SHELL_ARGS.POSIX, command] };
-};
-
 export class BackgroundTaskManager {
   private readonly terminalManager: TerminalManager;
   private readonly now: () => number;
@@ -57,7 +32,11 @@ export class BackgroundTaskManager {
 
   startTask(input: BackgroundTaskCommand): BackgroundTask {
     const taskId = BackgroundTaskIdSchema.parse(nanoid(LIMIT.NANOID_LENGTH));
-    const shellSpec = resolveShellCommand(input.command);
+    const shellSpec = resolvePlatformShellCommandSpec(
+      input.command,
+      EnvManager.getInstance().getSnapshot(),
+      process.platform
+    );
     const terminalId = this.terminalManager.createSession({
       command: shellSpec.command,
       args: shellSpec.args,

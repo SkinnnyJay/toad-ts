@@ -7319,6 +7319,26 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - prevent runaway nested hook/prompt subprocess chains while preserving
       independent concurrent hook execution paths.
 
+## Execution Log Addendum — 2026-02-14 (B41 platform command adapter consolidation)
+
+- Additional P2 backlog hardening for command-resolution maintainability:
+  - Updated:
+    - `src/utils/platform-shell.utils.ts` (new)
+    - `src/tools/shell-session.ts`
+    - `src/tools/background-task-manager.ts`
+    - `src/tools/interactive-shell.ts`
+    - `__tests__/unit/utils/platform-shell.utils.unit.test.ts` (new)
+  - Hardening changes:
+    - extracted one shared platform shell adapter for session-shell startup and
+      one-shot command execution specs.
+    - removed duplicated Windows/POSIX shell resolution branches across shell
+      session, interactive shell, and background-task execution paths.
+    - added focused adapter unit coverage for Windows/POSIX startup and command
+      execution argument semantics.
+  - Goal:
+    - simplify platform-specific shell command resolution into one reusable
+      adapter while preserving existing runtime behavior.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7369,7 +7389,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 
 ### P2 - Simplification-first hardening, NutJS readiness, and maintainability
 
-- [ ] - B41 | P2 | consolidate platform-specific command resolution into one shared platform adapter.
+- [x] - B41 | P2 | consolidate platform-specific command resolution into one shared platform adapter.
 - [ ] - B42 | P2 | deduplicate shell invocation logic between shell-session, interactive-shell, and background-task-manager.
 - [ ] - B43 | P2 | simplify clipboard fallback chain into explicit capability-ranked strategy.
 - [ ] - B44 | P2 | simplify reconnect jitter test scaffolding by generating jitter matrices from typed config.

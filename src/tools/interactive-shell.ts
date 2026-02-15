@@ -1,11 +1,9 @@
 import { type ChildProcess, spawn } from "node:child_process";
 
-import { ENV_KEY } from "@/constants/env-keys";
-import { PLATFORM } from "@/constants/platform";
 import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
+import { resolvePlatformShellCommandSpec } from "@/utils/platform-shell.utils";
 import { acquireProcessSlot, bindProcessSlotToChild } from "@/utils/process-concurrency.utils";
-import { buildWindowsCmdExecArgs } from "@/utils/windows-command.utils";
 import type { CliRenderer } from "@opentui/core";
 
 export interface InteractiveShellOptions {
@@ -20,22 +18,13 @@ export interface InteractiveShellResult {
   signal: NodeJS.Signals | null;
 }
 
-const resolveShellCommand = (command: string): { command: string; args: string[] } => {
-  if (process.platform === PLATFORM.WIN32) {
-    return { command: "cmd.exe", args: buildWindowsCmdExecArgs(command) };
-  }
-
-  const envShell = EnvManager.getInstance().getSnapshot()[ENV_KEY.SHELL];
-  const shellCommand = envShell ?? "bash";
-  return { command: shellCommand, args: ["-lc", command] };
-};
-
 export const runInteractiveShellCommand = async (
   options: InteractiveShellOptions
 ): Promise<InteractiveShellResult> => {
   const renderer = options.renderer;
-  const shell = resolveShellCommand(options.command);
-  const env = { ...EnvManager.getInstance().getSnapshot(), ...options.env };
+  const envSnapshot = EnvManager.getInstance().getSnapshot();
+  const shell = resolvePlatformShellCommandSpec(options.command, envSnapshot, process.platform);
+  const env = { ...envSnapshot, ...options.env };
 
   renderer.suspend();
 

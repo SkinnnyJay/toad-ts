@@ -3997,9 +3997,16 @@
     recursive hook chains
   - added focused nested-depth + concurrent-root regression coverage in
     `__tests__/unit/hooks/hook-manager.unit.test.ts`
+- Completed P2 backlog item B41 platform command adapter consolidation:
+  - introduced shared platform shell adapter in
+    `src/utils/platform-shell.utils.ts`
+  - migrated shell-session, interactive-shell, and background-task-manager to
+    the shared adapter to remove duplicate Windows/POSIX command resolution
+  - added focused adapter coverage in
+    `__tests__/unit/utils/platform-shell.utils.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B41 by consolidating platform-specific
-    command resolution into one shared adapter
+  - evaluate severity backlog item B42 by deduplicating shell invocation logic
+    between shell-session, interactive-shell, and background-task-manager
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

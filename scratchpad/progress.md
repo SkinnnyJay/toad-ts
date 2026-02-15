@@ -3,6 +3,8 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B41 platform command adapter consolidation with shared shell
+    resolution utility and focused adapter unit coverage
   - completed B40 nested hook/prompt subprocess chain hardening with async-context-local depth caps and concurrent-root isolation coverage
   - strengthened fallback and feature-flag behavior coverage
   - expanded repo workflow and server route unit coverage

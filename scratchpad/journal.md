@@ -1,5 +1,38 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B41 platform command adapter consolidation)
+
+### Summary
+- Completed P2 backlog item B41 in `PLAN3.md` by consolidating duplicated
+  platform-specific shell command resolution into a shared adapter utility.
+- Updated:
+  - `src/utils/platform-shell.utils.ts`
+  - `src/tools/shell-session.ts`
+  - `src/tools/background-task-manager.ts`
+  - `src/tools/interactive-shell.ts`
+  - `__tests__/unit/utils/platform-shell.utils.unit.test.ts`
+- Changes:
+  - added shared platform shell adapter functions for session startup and
+    one-shot command execution paths.
+  - migrated shell-session, background-task-manager, and interactive-shell to
+    shared adapter calls instead of duplicated inline platform branches.
+  - added focused unit coverage for Windows and POSIX adapter semantics.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/platform-shell.utils.unit.test.ts __tests__/unit/tools/shell-session.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B40 nested hook/prompt chain depth caps)
 
 ### Summary

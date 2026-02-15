@@ -9,6 +9,7 @@ import { PLATFORM } from "@/constants/platform";
 import { SIGNAL } from "@/constants/signals";
 import { EnvManager } from "@/utils/env/env.utils";
 import { isPathWithinBase } from "@/utils/pathContainment.utils";
+import { resolvePlatformShellSessionSpec } from "@/utils/platform-shell.utils";
 import { quoteWindowsCommandValue } from "@/utils/windows-command.utils";
 import { nanoid } from "nanoid";
 
@@ -47,9 +48,6 @@ interface PendingCommand {
 }
 
 const SHELL_CONTROL = {
-  DEFAULT_POSIX_COMMAND: "bash",
-  DEFAULT_WINDOWS_COMMAND: "cmd.exe",
-  DEFAULT_POSIX_ARGS: ["-s"],
   SENTINEL_PREFIX: "__TOADSTOOL_CMD_END__",
   DISPOSE_ERROR_MESSAGE: "Shell session disposed.",
 } as const;
@@ -71,29 +69,6 @@ const resolveCwd = (candidate: string, base: string, allowEscape: boolean): stri
     throw new Error(`Cwd escapes base directory: ${candidate}`);
   }
   return resolved;
-};
-
-const resolveShellCommand = (): {
-  command: string;
-  args: string[];
-  usesShell: boolean;
-  isWindows: boolean;
-} => {
-  if (process.platform === PLATFORM.WIN32) {
-    return {
-      command: SHELL_CONTROL.DEFAULT_WINDOWS_COMMAND,
-      args: ["/D", "/Q", "/K"],
-      usesShell: true,
-      isWindows: true,
-    };
-  }
-  const envShell = EnvManager.getInstance().getSnapshot()[ENV_KEY.SHELL];
-  return {
-    command: envShell ?? SHELL_CONTROL.DEFAULT_POSIX_COMMAND,
-    args: [...SHELL_CONTROL.DEFAULT_POSIX_ARGS],
-    usesShell: false,
-    isWindows: false,
-  };
 };
 
 class ShellSession {
@@ -124,13 +99,14 @@ class ShellSession {
     this.allowEscape = shouldAllowEscape(options.env, options.allowEscape);
     this.spawnFn = options.spawnFn ?? spawn;
     this.baseEnv = options.env ?? {};
-    const shell = resolveShellCommand();
+    const envSnapshot = EnvManager.getInstance().getSnapshot();
+    const shell = resolvePlatformShellSessionSpec(envSnapshot, process.platform);
     this.command = shell.command;
     this.args = shell.args;
     this.usesShell = shell.usesShell;
     this.isWindows = shell.isWindows;
     this.runtimeBaseEnv = {
-      ...EnvManager.getInstance().getSnapshot(),
+      ...envSnapshot,
       ...this.baseEnv,
     };
   }
