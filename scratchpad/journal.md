@@ -1,5 +1,40 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B164 session-route-path malformed suffix parsing coverage)
+
+### Summary
+- Expanded `parseSessionRoutePath` unit coverage for missing-action direct
+  suffix parsing and malformed blank-session suffix rejection.
+- Updated:
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added parsing assertions for missing-action direct suffix forms:
+    - `/sessions/:id?scope=all`
+    - `/sessions/:id#summary`
+    returning `{ sessionId, action: undefined }`.
+  - added malformed blank-session rejection assertions for:
+    - `/sessions//prompt?...`
+    - `/sessions//prompt#...`
+    - `/sessions//messages?...`
+    - `/sessions//messages#...`
+    returning `null`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/session-route-path.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B163 malformed-route unit suffix parity coverage)
 
 ### Summary

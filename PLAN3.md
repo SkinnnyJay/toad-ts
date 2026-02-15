@@ -1,3 +1,17 @@
+## 2026-02-14 Execution Update (B164 session-route-path malformed suffix parsing coverage)
+
+- Expanded `parseSessionRoutePath` unit coverage for missing-action direct
+  query/hash forms and malformed blank-session suffix variants.
+- Updated:
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/session-route-path.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B163 malformed-route unit suffix parity coverage)
 
 - Expanded unit classifier coverage for malformed route suffix parity across

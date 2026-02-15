@@ -14,6 +14,12 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded session-route-path malformed suffix parsing coverage:
+  - `parseSessionRoutePath` unit tests now include:
+    - missing-action direct suffix parsing (`/sessions/:id?query`,
+      `/sessions/:id#hash`) -> `{sessionId, action: undefined}`
+    - malformed blank-session suffix rejection (`/sessions//prompt...`,
+      `/sessions//messages...`) -> `null`.
 - Expanded malformed-route unit suffix parity coverage:
   - api/core/server-route classifier unit suites now include additional
     malformed blank-session and malformed API-session suffix variants:

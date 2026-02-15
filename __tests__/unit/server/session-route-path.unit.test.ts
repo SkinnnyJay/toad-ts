@@ -64,6 +64,17 @@ describe("parseSessionRoutePath", () => {
     });
   });
 
+  it("parses missing-action session routes with direct query/hash suffixes", () => {
+    expect(parseSessionRoutePath("/sessions/session-1?scope=all")).toEqual({
+      sessionId: "session-1",
+      action: undefined,
+    });
+    expect(parseSessionRoutePath("/sessions/session-1#summary")).toEqual({
+      sessionId: "session-1",
+      action: undefined,
+    });
+  });
+
   it("parses trailing-slash prompt and messages routes", () => {
     expect(parseSessionRoutePath("/sessions/session-1/prompt/")).toEqual({
       sessionId: "session-1",
@@ -88,5 +99,12 @@ describe("parseSessionRoutePath", () => {
       sessionId: "session-1",
       action: undefined,
     });
+  });
+
+  it("returns null for blank-session malformed routes with suffixes", () => {
+    expect(parseSessionRoutePath("/sessions//prompt?tail=1")).toBeNull();
+    expect(parseSessionRoutePath("/sessions//prompt#summary")).toBeNull();
+    expect(parseSessionRoutePath("/sessions//messages?tail=1")).toBeNull();
+    expect(parseSessionRoutePath("/sessions//messages#summary")).toBeNull();
   });
 });
