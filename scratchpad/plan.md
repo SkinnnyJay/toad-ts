@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded unknown single-segment integration parity:
+  - headless-server integration suite now includes explicit unauthenticated and
+    authenticated POST assertions for unknown single-segment variants across:
+    base/trailing, direct/trailing query, direct/trailing hash, and
+    double-trailing base/query/hash forms.
 - Expanded unknown single-segment trailing parity:
   - core-route classifier unit suite now includes explicit unknown single-segment
     POST/GET parity assertions for trailing base/query/hash and double-trailing

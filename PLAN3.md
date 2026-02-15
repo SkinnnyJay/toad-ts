@@ -1,3 +1,19 @@
+## 2026-02-14 Execution Update (B209 unknown single-segment integration parity)
+
+- Expanded password-auth ordering integration coverage for unknown
+  single-segment routes with explicit POST-method parity across base/trailing,
+  query/hash, and double-trailing suffix variants.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Validation:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B208 unknown single-segment trailing parity)
 
 - Expanded core/server classifier coverage for unknown single-segment routes
