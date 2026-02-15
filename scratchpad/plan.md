@@ -14,6 +14,13 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded blank-session messages malformed POST-method parity:
+  - unknown-route auth-order integration coverage now includes explicit POST
+    assertions for blank-session messages malformed base/query/hash/trailing/
+    double-trailing variants.
+  - core/server route classifier unit suites now include explicit POST-method
+    assertions for blank-session messages malformed variants, including
+    trailing-hash and double-trailing suffix forms.
 - Expanded blank-session prompt malformed hash GET-method parity:
   - unknown-route auth-order integration coverage now includes explicit GET
     assertions for `/sessions//prompt#summary`,

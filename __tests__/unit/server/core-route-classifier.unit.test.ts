@@ -217,19 +217,43 @@ describe("classifyCoreRoute", () => {
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions//messages")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions//messages")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions//messages//")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions//messages//")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions//messages//?tail=1")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions//messages//?tail=1")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions//messages?tail=1")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions//messages?tail=1")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions//messages#summary")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions//messages#summary")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions//messages/#summary")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions//messages/#summary")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
     expect(classifyCoreRoute(HTTP_METHOD.GET, "/sessions//messages//#summary")).toEqual({
+      kind: CORE_ROUTE_DECISION.UNHANDLED,
+    });
+    expect(classifyCoreRoute(HTTP_METHOD.POST, "/sessions//messages//#summary")).toEqual({
       kind: CORE_ROUTE_DECISION.UNHANDLED,
     });
   });

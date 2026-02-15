@@ -1,5 +1,50 @@
 # Scratchpad Journal
 
+# 2026-02-14 (B196 blank-session messages post-method parity)
+
+### Summary
+- Expanded unknown-route auth-order integration plus core/server classifier
+  coverage for blank-session messages malformed variants with explicit
+  POST-method parity.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `__tests__/unit/server/core-route-classifier.unit.test.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added unauthenticated/authenticated POST assertions for blank-session
+    messages malformed variants:
+    - `/sessions//messages`
+    - `/sessions//messages?tail=1`
+    - `/sessions//messages/`
+    - `/sessions//messages/?tail=1`
+    - `/sessions//messages#summary`
+    - `/sessions//messages/#summary`
+    - `/sessions//messages//`
+    - `/sessions//messages//?tail=1`
+    - `/sessions//messages//#summary`
+    alongside existing GET assertions, locking auth-first unknown-route
+    semantics under password protection.
+  - added core/server classifier POST assertions for blank-session messages
+    malformed variants (including trailing-hash and double-trailing forms),
+    locking canonical core `UNHANDLED` ownership parity.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before not-found semantics on unknown routes"` ✅
+  - `npx vitest run __tests__/unit/server/core-route-classifier.unit.test.ts __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 # 2026-02-14 (B195 blank-session prompt hash get-method parity)
 
 ### Summary
