@@ -1,5 +1,36 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B46 NutJS capability detector)
+
+### Summary
+- Completed P2 backlog item B46 in `PLAN3.md` by introducing typed NutJS
+  capability detection with explicit unsupported-path no-op behavior.
+- Updated:
+  - `src/constants/nutjs-capabilities.ts`
+  - `src/utils/nutjs-capability.utils.ts`
+  - `__tests__/unit/utils/nutjs-capability.utils.unit.test.ts`
+- Changes:
+  - added typed NutJS capability status constants.
+  - added platform/runtime capability detector that returns deterministic no-op
+    mode when unsupported or missing runtime.
+  - added no-op execution helper and focused unit coverage for supported/no-op
+    execution paths.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/utils/nutjs-capability.utils.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B45 typed delay helper reuse)
 
 ### Summary

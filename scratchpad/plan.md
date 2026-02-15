@@ -4029,9 +4029,16 @@
     `__tests__/integration/server/headless-server.integration.test.ts`
   - replaced repeated inline timeout-promise wrappers with shared delay helpers
     across reconnect timing paths
+- Completed P2 backlog item B46 NutJS capability detector:
+  - added typed NutJS capability constants in
+    `src/constants/nutjs-capabilities.ts`
+  - added capability detector + explicit no-op helper in
+    `src/utils/nutjs-capability.utils.ts`
+  - added focused no-op/supported behavior coverage in
+    `__tests__/unit/utils/nutjs-capability.utils.unit.test.ts`
 - New next candidate:
-  - evaluate severity backlog item B46 by adding NutJS capability detection
-    with explicit unsupported-platform no-op behavior
+  - evaluate severity backlog item B47 by adding NutJS permission diagnostics
+    for macOS/Linux/Windows capability checks
 - Added severity-ordered simplification backlog in PLAN3:
   - appended 50 incomplete tasks using strict checkbox plan format
     (`- [ ] - ...`) with no emoji markers

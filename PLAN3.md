@@ -7408,6 +7408,26 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
     - replace repeated timeout wrappers with shared typed delay helpers to
       improve test readability and maintainability.
 
+## Execution Log Addendum — 2026-02-14 (B46 NutJS capability detector)
+
+- Additional P2 backlog hardening for NutJS readiness:
+  - Updated:
+    - `src/constants/nutjs-capabilities.ts` (new)
+    - `src/utils/nutjs-capability.utils.ts` (new)
+    - `__tests__/unit/utils/nutjs-capability.utils.unit.test.ts` (new)
+  - Hardening changes:
+    - added typed NutJS capability status constants for supported, missing
+      runtime, and unsupported platform outcomes.
+    - introduced NutJS capability detector that explicitly returns no-op mode on
+      unsupported platforms or missing runtime conditions.
+    - added helper to execute NutJS actions only when capability indicates
+      support, otherwise deterministic no-op.
+    - added focused unit coverage for unsupported-platform no-op behavior and
+      supported execution behavior.
+  - Goal:
+    - establish explicit NutJS capability detection with deterministic no-op
+      behavior on unsupported runtime/platform paths.
+
 ## Incomplete Critical Backlog (Severity Ordered)
 
 ### P0 - Critical stability, safety, and cross-platform correctness
@@ -7463,7 +7483,7 @@ Review of the codebase and PLAN2/PLAN3 against .cursorrules and project goals. C
 - [x] - B43 | P2 | simplify clipboard fallback chain into explicit capability-ranked strategy.
 - [x] - B44 | P2 | simplify reconnect jitter test scaffolding by generating jitter matrices from typed config.
 - [x] - B45 | P2 | replace repeated `new Promise(setTimeout...)` blocks with shared typed delay helpers.
-- [ ] - B46 | P2 | add NutJS capability detector with explicit unsupported-platform no-op behavior.
+- [x] - B46 | P2 | add NutJS capability detector with explicit unsupported-platform no-op behavior.
 - [ ] - B47 | P2 | add NutJS permission diagnostics (macOS Accessibility, Linux display backend, Windows integrity level).
 - [ ] - B48 | P2 | gate NutJS execution behind feature flag and security allowlist.
 - [ ] - B49 | P2 | add cross-platform NutJS smoke checks (Windows/Linux/macOS) in CI matrix.
