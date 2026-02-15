@@ -14,6 +14,15 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded session-route-path combined suffix coverage:
+  - session-route-path unit tests now include combined trailing-slash suffix
+    forms for:
+    - `/sessions/:id/prompt/#latest`
+    - `/sessions/:id/messages/?limit=10`
+    - `/sessions/:id/#summary`
+  - locks canonical parsed `{sessionId, action}` extraction behavior for prompt,
+    messages, and missing-action session-id forms under combined normalized
+    query/hash path variants.
 - Expanded api-route execute/session hash-match coverage:
   - api-routes unit tests now include combined trailing-slash + hash forms for:
     - `matchRoute("POST", "/api/tui/execute-command/#summary")`

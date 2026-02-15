@@ -3,6 +3,10 @@
 ## Current Focus
 - Phase 0 (PLAN2 Cursor CLI prerequisites) completed on branch `feature/cursor-cli-harness`. Fixtures captured; baseline quality gate recorded (see below).
 - PLAN3 completion hardening on branch `cursor/plan3-tasks-completion-62e5` is active:
+  - completed B149 session-route-path combined suffix coverage hardening
+    (session-route-path unit coverage now explicitly locks combined
+    trailing-slash + query/hash parsing behavior across prompt/messages and
+    missing-action session-id forms)
   - completed B148 api-route execute/session hash-match coverage hardening
     (api-routes matcher/classifier unit coverage now explicitly locks combined
     trailing-slash + hash semantics for execute-command and session-messages

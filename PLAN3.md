@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B149 session-route-path combined suffix coverage)
+
+- Expanded session-route-path unit coverage for combined
+  trailing-slash + query/hash suffix forms on prompt/messages/session-id
+  route parsing.
+- Updated:
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/session-route-path.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B148 api-route execute/session hash-match coverage)
 
 - Expanded api-routes matcher/classifier unit coverage to lock combined

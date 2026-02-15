@@ -1,5 +1,37 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B149 session-route-path combined suffix coverage)
+
+### Summary
+- Expanded session-route-path unit coverage for combined trailing-slash +
+  query/hash route forms.
+- Updated:
+  - `__tests__/unit/server/session-route-path.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - added assertions for:
+    - `/sessions/session-1/prompt/#latest`
+      -> `{ sessionId: "session-1", action: "prompt" }`
+    - `/sessions/session-1/messages/?limit=10`
+      -> `{ sessionId: "session-1", action: "messages" }`
+    - `/sessions/session-1/#summary`
+      -> `{ sessionId: "session-1", action: undefined }`.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/session-route-path.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B148 api-route execute/session hash-match coverage)
 
 ### Summary

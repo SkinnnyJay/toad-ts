@@ -74,4 +74,19 @@ describe("parseSessionRoutePath", () => {
       action: "messages",
     });
   });
+
+  it("parses combined trailing-slash suffix forms on session routes", () => {
+    expect(parseSessionRoutePath("/sessions/session-1/prompt/#latest")).toEqual({
+      sessionId: "session-1",
+      action: "prompt",
+    });
+    expect(parseSessionRoutePath("/sessions/session-1/messages/?limit=10")).toEqual({
+      sessionId: "session-1",
+      action: "messages",
+    });
+    expect(parseSessionRoutePath("/sessions/session-1/#summary")).toEqual({
+      sessionId: "session-1",
+      action: undefined,
+    });
+  });
 });
