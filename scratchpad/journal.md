@@ -1,5 +1,38 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B153 protected-api hash auth-order coverage)
+
+### Summary
+- Expanded password-protected API auth-order integration coverage for
+  hash/trailing-hash unsupported-method variants on config and execute routes.
+- Updated:
+  - `__tests__/integration/server/headless-server.integration.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - in
+    `applies auth checks before method-not-allowed semantics on api routes`,
+    added unauthenticated and authenticated assertions for:
+    - `/api/config#summary`
+    - `/api/config/#summary`
+    - `/api/tui/execute-command#summary`
+    - `/api/tui/execute-command/#summary`
+    locking pre-auth `401` and post-auth `405` ordering.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/integration/server/headless-server.integration.test.ts -t "applies auth checks before method-not-allowed semantics on api routes"` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B152 integration api hash method coverage)
 
 ### Summary

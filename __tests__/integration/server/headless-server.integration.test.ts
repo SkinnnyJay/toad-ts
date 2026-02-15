@@ -9316,6 +9316,15 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedResponseWithHash = await fetch(`${baseUrl}/api/config#summary`, {
+        method: "POST",
+      });
+      expect(unauthenticatedResponseWithHash.status).toBe(401);
+      expect(unauthenticatedResponseWithHash.headers.get("www-authenticate")).toBe("Bearer");
+      await expect(unauthenticatedResponseWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedTrailingResponseWithQuery = await fetch(
         `${baseUrl}/api/config/?scope=all`,
         {
@@ -9327,6 +9336,20 @@ describe("headless server", () => {
         "Bearer"
       );
       await expect(unauthenticatedTrailingResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedTrailingResponseWithHash = await fetch(
+        `${baseUrl}/api/config/#summary`,
+        {
+          method: "POST",
+        }
+      );
+      expect(unauthenticatedTrailingResponseWithHash.status).toBe(401);
+      expect(unauthenticatedTrailingResponseWithHash.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedTrailingResponseWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -9359,6 +9382,17 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
+      const unauthenticatedExecuteRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/tui/execute-command#summary`
+      );
+      expect(unauthenticatedExecuteRouteResponseWithHash.status).toBe(401);
+      expect(unauthenticatedExecuteRouteResponseWithHash.headers.get("www-authenticate")).toBe(
+        "Bearer"
+      );
+      await expect(unauthenticatedExecuteRouteResponseWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
       const unauthenticatedTrailingExecuteRouteResponseWithQuery = await fetch(
         `${baseUrl}/api/tui/execute-command/?scope=all`
       );
@@ -9367,6 +9401,17 @@ describe("headless server", () => {
         unauthenticatedTrailingExecuteRouteResponseWithQuery.headers.get("www-authenticate")
       ).toBe("Bearer");
       await expect(unauthenticatedTrailingExecuteRouteResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
+      });
+
+      const unauthenticatedTrailingExecuteRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/tui/execute-command/#summary`
+      );
+      expect(unauthenticatedTrailingExecuteRouteResponseWithHash.status).toBe(401);
+      expect(
+        unauthenticatedTrailingExecuteRouteResponseWithHash.headers.get("www-authenticate")
+      ).toBe("Bearer");
+      await expect(unauthenticatedTrailingExecuteRouteResponseWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.AUTHORIZATION_REQUIRED,
       });
 
@@ -9508,6 +9553,17 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
+      const authenticatedResponseWithHash = await fetch(`${baseUrl}/api/config#summary`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedResponseWithHash.status).toBe(405);
+      await expect(authenticatedResponseWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
       const authenticatedTrailingResponseWithQuery = await fetch(
         `${baseUrl}/api/config/?scope=all`,
         {
@@ -9519,6 +9575,17 @@ describe("headless server", () => {
       );
       expect(authenticatedTrailingResponseWithQuery.status).toBe(405);
       await expect(authenticatedTrailingResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const authenticatedTrailingResponseWithHash = await fetch(`${baseUrl}/api/config/#summary`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer secret",
+        },
+      });
+      expect(authenticatedTrailingResponseWithHash.status).toBe(405);
+      await expect(authenticatedTrailingResponseWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
@@ -9558,6 +9625,19 @@ describe("headless server", () => {
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 
+      const authenticatedExecuteRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/tui/execute-command#summary`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedExecuteRouteResponseWithHash.status).toBe(405);
+      await expect(authenticatedExecuteRouteResponseWithHash.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
       const authenticatedTrailingExecuteRouteResponseWithQuery = await fetch(
         `${baseUrl}/api/tui/execute-command/?scope=all`,
         {
@@ -9568,6 +9648,19 @@ describe("headless server", () => {
       );
       expect(authenticatedTrailingExecuteRouteResponseWithQuery.status).toBe(405);
       await expect(authenticatedTrailingExecuteRouteResponseWithQuery.json()).resolves.toEqual({
+        error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
+      });
+
+      const authenticatedTrailingExecuteRouteResponseWithHash = await fetch(
+        `${baseUrl}/api/tui/execute-command/#summary`,
+        {
+          headers: {
+            Authorization: "Bearer secret",
+          },
+        }
+      );
+      expect(authenticatedTrailingExecuteRouteResponseWithHash.status).toBe(405);
+      await expect(authenticatedTrailingExecuteRouteResponseWithHash.json()).resolves.toEqual({
         error: SERVER_RESPONSE_MESSAGE.METHOD_NOT_ALLOWED,
       });
 

@@ -14,6 +14,14 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Expanded protected-API hash auth-order coverage:
+  - password-protected API auth-before-method integration test
+    (`applies auth checks before method-not-allowed semantics on api routes`)
+    now includes hash and trailing-hash variants for:
+    - `/api/config` (unauthenticated `401`, authenticated `405`)
+    - `/api/tui/execute-command` (unauthenticated `401`, authenticated `405`).
+  - locks auth-before-method ordering semantics for hash-bearing and
+    combined trailing-slash+hash normalized API method-guard paths.
 - Expanded integration API hash method coverage:
   - headless-server integration test
     `returns method not allowed for known API routes with unsupported methods`
