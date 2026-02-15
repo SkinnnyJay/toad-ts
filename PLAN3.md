@@ -1,3 +1,18 @@
+## 2026-02-14 Execution Update (B95 route-classifier pathname trim)
+
+- Hardened `classifyServerRoute(...)` pathname normalization to trim surrounding
+  whitespace before core/API route dispatch.
+- Updated:
+  - `src/server/server-route-classifier.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+- Validation:
+  - `npx vitest run __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 Execution Update (B94 request-url IPv6 coverage)
 
 - Expanded request-url and api-route test coverage for bracketed IPv6 host

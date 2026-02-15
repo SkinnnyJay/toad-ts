@@ -14,6 +14,11 @@
 3. Keep strict literal checks green.
 
 ## Latest Completed Increment
+- Added server-route classifier pathname trim hardening:
+  - classifier now trims incoming pathname text before core/api route
+    classification.
+  - added route classifier coverage for API pathnames with surrounding
+    whitespace.
 - Expanded request-url IPv6 host handling coverage:
   - added direct utility coverage for bracketed IPv6 host parsing and malformed
     bracket rejection.

@@ -1,5 +1,35 @@
 # Scratchpad Journal
 
+## 2026-02-14 (B95 server-route classifier pathname trim)
+
+### Summary
+- Hardened server-route classifier pathname handling by normalizing surrounding
+  whitespace before route classification.
+- Updated:
+  - `src/server/server-route-classifier.ts`
+  - `__tests__/unit/server/server-route-classifier.unit.test.ts`
+  - `PLAN3.md`
+- Changes:
+  - `classifyServerRoute(...)` now trims pathnames before core/API classifier
+    dispatch.
+  - added unit coverage for API pathname classification with surrounding
+    whitespace.
+
+### Validation
+- Targeted:
+  - `npx vitest run __tests__/unit/server/server-route-classifier.unit.test.ts` ✅
+- Full gates (equivalent commands; bun/bunx unavailable in this shell):
+  - `bun run lint` ❌ (`bun: command not found`)
+  - `bun run typecheck` ❌ (`bun: command not found`)
+  - `bun run test` ❌ (`bun: command not found`)
+  - `bun run build` ❌ (`bun: command not found`)
+  - `bun run check:literals:strict` ❌ (`bun: command not found`)
+  - `npx biome check . && npx eslint .` ✅
+  - `npx tsc --noEmit` ✅
+  - `npx vitest run` ✅
+  - `npx tsup` ✅
+  - `npx tsx scripts/check-magic-literals.ts --strict` ✅
+
 ## 2026-02-14 (B94 request-url IPv6 host coverage expansion)
 
 ### Summary

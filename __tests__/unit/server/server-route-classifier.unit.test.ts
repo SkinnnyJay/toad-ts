@@ -35,6 +35,11 @@ describe("classifyServerRoute", () => {
     }
   });
 
+  it("classifies api matches when pathname has surrounding whitespace", () => {
+    const result = classifyServerRoute(HTTP_METHOD.GET, " /api/config ");
+    expect(result.kind).toBe(SERVER_ROUTE_CLASSIFICATION.API_MATCH);
+  });
+
   it("classifies unsupported api methods as method_not_allowed", () => {
     const result = classifyServerRoute(HTTP_METHOD.POST, "/api/config");
     expect(result).toEqual({

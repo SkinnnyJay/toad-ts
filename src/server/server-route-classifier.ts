@@ -59,7 +59,8 @@ export const classifyServerRoute = (
   method: string,
   pathname: string
 ): ServerRouteClassification => {
-  const coreClassification = classifyCoreRoute(method, pathname);
+  const normalizedPathname = pathname.trim();
+  const coreClassification = classifyCoreRoute(method, normalizedPathname);
   if (coreClassification.kind === CORE_ROUTE_DECISION.HEALTH_OK) {
     return { kind: SERVER_ROUTE_CLASSIFICATION.HEALTH_OK };
   }
@@ -70,9 +71,9 @@ export const classifyServerRoute = (
     };
   }
 
-  const isApiPath = pathname.startsWith("/api/");
+  const isApiPath = normalizedPathname.startsWith("/api/");
   if (isApiPath) {
-    const apiClassification = classifyApiRoute(method, pathname);
+    const apiClassification = classifyApiRoute(method, normalizedPathname);
     if (apiClassification.kind === API_ROUTE_CLASSIFICATION.MATCH) {
       return classifyApiRouteMatch(apiClassification);
     }
